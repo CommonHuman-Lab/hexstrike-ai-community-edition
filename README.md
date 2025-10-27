@@ -438,6 +438,24 @@ We welcome contributions from the cybersecurity and AI community!
 
 ---
 
+## Using with ChatGPT Codex
+
+HexStrike works with ChatGPT Codex through MCP. Codex can autonomously use all 64 security tools.
+
+Quick start:
+```bash
+# Start HexStrike server
+python3 hexstrike_server.py --port 8888
+
+# Configure Codex (see docs/CODEX_SETUP.md for details)
+# Then just run:
+codex
+```
+
+See [docs/CODEX_SETUP.md](docs/CODEX_SETUP.md) for full setup instructions.
+
+---
+
 ## License
 
 MIT License - see LICENSE file for details.
