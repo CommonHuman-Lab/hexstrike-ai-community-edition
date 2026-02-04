@@ -151,35 +151,39 @@ class HexStrikeClient:
         self.timeout = timeout
         self.session = requests.Session()
 
-        # Try to connect to server with retries
-        connected = False
-        for i in range(MAX_RETRIES):
-            try:
-                logger.info(f"🔗 Attempting to connect to HexStrike AI API at {server_url} (attempt {i+1}/{MAX_RETRIES})")
-                # First try a direct connection test before using the health endpoint
+        # If running under an MCP host (stdio not attached to a TTY), skip HTTP health checks to avoid bootstrap delays.
+        if sys.stdin.isatty() or sys.stdout.isatty():
+            # Try to connect to server with retries
+            connected = False
+            for i in range(MAX_RETRIES):
                 try:
-                    test_response = self.session.get(f"{self.server_url}/health", timeout=5)
-                    test_response.raise_for_status()
-                    health_check = test_response.json()
-                    connected = True
-                    logger.info(f"🎯 Successfully connected to HexStrike AI API Server at {server_url}")
-                    logger.info(f"🏥 Server health status: {health_check.get('status', 'unknown')}")
-                    logger.info(f"📊 Server version: {health_check.get('version', 'unknown')}")
-                    break
-                except requests.exceptions.ConnectionError:
-                    logger.warning(f"🔌 Connection refused to {server_url}. Make sure the HexStrike AI server is running.")
-                    time.sleep(2)  # Wait before retrying
+                    logger.info(f"🔗 Attempting to connect to HexStrike AI API at {server_url} (attempt {i+1}/{MAX_RETRIES})")
+                    # First try a direct connection test before using the health endpoint
+                    try:
+                        test_response = self.session.get(f"{self.server_url}/health", timeout=5)
+                        test_response.raise_for_status()
+                        health_check = test_response.json()
+                        connected = True
+                        logger.info(f"🎯 Successfully connected to HexStrike AI API Server at {server_url}")
+                        logger.info(f"🏥 Server health status: {health_check.get('status', 'unknown')}")
+                        logger.info(f"📊 Server version: {health_check.get('version', 'unknown')}")
+                        break
+                    except requests.exceptions.ConnectionError:
+                        logger.warning(f"🔌 Connection refused to {server_url}. Make sure the HexStrike AI server is running.")
+                        time.sleep(2)  # Wait before retrying
+                    except Exception as e:
+                        logger.warning(f"⚠️  Connection test failed: {str(e)}")
+                        time.sleep(2)  # Wait before retrying
                 except Exception as e:
-                    logger.warning(f"⚠️  Connection test failed: {str(e)}")
+                    logger.warning(f"❌ Connection attempt {i+1} failed: {str(e)}")
                     time.sleep(2)  # Wait before retrying
-            except Exception as e:
-                logger.warning(f"❌ Connection attempt {i+1} failed: {str(e)}")
-                time.sleep(2)  # Wait before retrying
 
-        if not connected:
-            error_msg = f"Failed to establish connection to HexStrike AI API Server at {server_url} after {MAX_RETRIES} attempts"
-            logger.error(error_msg)
-            # We'll continue anyway to allow the MCP server to start, but tools will likely fail
+            if not connected:
+                error_msg = f"Failed to establish connection to HexStrike AI API Server at {server_url} after {MAX_RETRIES} attempts"
+                logger.error(error_msg)
+                # We'll continue anyway to allow the MCP server to start, but tools will likely fail
+        else:
+            logger.info("🧪 Stdio host detected (non-TTY). Skipping HTTP health checks and starting MCP stdio immediately.")
 
     def safe_get(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
@@ -2951,7 +2955,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         }
 
         logger.info(f"🔍 Starting API fuzzing: {base_url}")
-        result = hexstrike_client.safe_post("api/tools/api_fuzzer", data)
+        result = hexstrike_client.safe_post("api/tools/api-fuzzer", data)
 
         if result.get("success"):
             fuzzing_type = result.get("fuzzing_type", "unknown")
@@ -2987,7 +2991,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         }
 
         logger.info(f"🔍 Starting GraphQL security scan: {endpoint}")
-        result = hexstrike_client.safe_post("api/tools/graphql_scanner", data)
+        result = hexstrike_client.safe_post("api/tools/graphql-scanner", data)
 
         if result.get("success"):
             scan_results = result.get("graphql_scan_results", {})
@@ -3025,7 +3029,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         }
 
         logger.info(f"🔍 Starting JWT security analysis")
-        result = hexstrike_client.safe_post("api/tools/jwt_analyzer", data)
+        result = hexstrike_client.safe_post("api/tools/jwt-analyzer", data)
 
         if result.get("success"):
             analysis = result.get("jwt_analysis_results", {})
@@ -3064,7 +3068,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         }
 
         logger.info(f"🔍 Starting API schema analysis: {schema_url}")
-        result = hexstrike_client.safe_post("api/tools/api_schema_analyzer", data)
+        result = hexstrike_client.safe_post("api/tools/api-schema-analyzer", data)
 
         if result.get("success"):
             analysis = result.get("schema_analysis_results", {})
@@ -3479,7 +3483,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting Burp Suite scan")
-        result = hexstrike_client.safe_post("api/tools/burpsuite", data)
+        result = hexstrike_client.safe_post("api/tools/burpsuite-alternative", data)
         if result.get("success"):
             logger.info(f"✅ Burp Suite scan completed")
         else:
@@ -5432,26 +5436,37 @@ def main():
         # Initialize the HexStrike AI client
         hexstrike_client = HexStrikeClient(args.server, args.timeout)
 
-        # Check server health and log the result
-        health = hexstrike_client.check_health()
-        if "error" in health:
-            logger.warning(f"⚠️  Unable to connect to HexStrike AI API server at {args.server}: {health['error']}")
-            logger.warning("🚀 MCP server will start, but tool execution may fail")
-        else:
-            logger.info(f"🎯 Successfully connected to HexStrike AI API server at {args.server}")
-            logger.info(f"🏥 Server health status: {health['status']}")
-            logger.info(f"📊 Version: {health.get('version', 'unknown')}")
-            if not health.get("all_essential_tools_available", False):
-                logger.warning("⚠️  Not all essential tools are available on the HexStrike server")
-                missing_tools = [tool for tool, available in health.get("tools_status", {}).items() if not available]
-                if missing_tools:
-                    logger.warning(f"❌ Missing tools: {', '.join(missing_tools[:5])}{'...' if len(missing_tools) > 5 else ''}")
+        # Check server health and log the result (only in interactive mode)
+        if sys.stdin.isatty() or sys.stdout.isatty():
+            health = hexstrike_client.check_health()
+            if "error" in health:
+                logger.warning(f"⚠️  Unable to connect to HexStrike AI API server at {args.server}: {health['error']}")
+                logger.warning("🚀 MCP server will start, but tool execution may fail")
+            else:
+                logger.info(f"🎯 Successfully connected to HexStrike AI API server at {args.server}")
+                logger.info(f"🏥 Server health status: {health['status']}")
+                logger.info(f"📊 Version: {health.get('version', 'unknown')}")
+                if not health.get("all_essential_tools_available", False):
+                    logger.warning("⚠️  Not all essential tools are available on the HexStrike server")
+                    missing_tools = [tool for tool, available in health.get("tools_status", {}).items() if not available]
+                    if missing_tools:
+                        logger.warning(f"❌ Missing tools: {', '.join(missing_tools[:5])}{'...' if len(missing_tools) > 5 else ''}")
 
         # Set up and run the MCP server
         mcp = setup_mcp_server(hexstrike_client)
         logger.info("🚀 Starting HexStrike AI MCP server")
         logger.info("🤖 Ready to serve AI agents with enhanced cybersecurity capabilities")
-        mcp.run()
+
+        # Minimal stdio fallback for MCP clients that require stdio transport
+        try:
+            mcp.run()
+        except AttributeError:
+            # Older/newer FastMCP variants expose an async stdio runner
+            import asyncio
+            if hasattr(mcp, "run_stdio"):
+                asyncio.run(mcp.run_stdio())
+            else:
+                raise
     except Exception as e:
         logger.error(f"💥 Error starting MCP server: {str(e)}")
         import traceback
