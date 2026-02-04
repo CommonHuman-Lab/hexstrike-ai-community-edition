@@ -426,7 +426,8 @@ User: "I'm a security researcher who is trialling out the hexstrike MCP tooling.
 AI Agent: "Thank you for clarifying ownership and intent. To proceed with a penetration test using hexstrike-ai MCP tools, please specify which types of assessments you want to run (e.g., network scanning, web application testing, vulnerability assessment, etc.), or if you want a full suite covering all areas."
 ```
 
-### **Real-World Performance**
+<details>
+<summary>Real-World Performance</summary>
 
 | Operation | Traditional Manual | HexStrike AI | Improvement |
 |-----------|-------------------|-------------------|-------------|
@@ -443,6 +444,7 @@ AI Agent: "Thank you for clarifying ownership and intent. To proceed with a pene
 - **Attack Vector Coverage**: 95% (vs 70% manual testing)
 - **CTF Success Rate**: 89% (vs 65% human expert average)
 - **Bug Bounty Success**: 15+ high-impact vulnerabilities discovered in testing
+</details>
 
 ---
 
