@@ -83,15 +83,19 @@ curl -X POST http://localhost:8888/api/intelligence/analyze-target \
   -d '{"target": "example.com", "analysis_type": "comprehensive"}'
 ```
 
-### Installation and Setting Up Guide for various AI Clients:
-
 [Install Security Tools - Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Install-Security-Tools)
 
-#### Installation & Demo Video
+### Installation and Setting Up Guide for various AI Clients:
+
+<details>
+<summary>Installation & Demo Video</summary>
 
 Watch the full installation and setup walkthrough here: [YouTube - HexStrike AI Installation & Demo](https://www.youtube.com/watch?v=pSoftCagCm8)
 
-#### Supported AI Clients for Running & Integration
+</details>
+
+<details>
+<summary>Supported AI Clients for Running & Integration</summary>
 
 You can install and run HexStrike AI MCPs with various AI clients, including:
 
@@ -104,6 +108,8 @@ You can install and run HexStrike AI MCPs with various AI clients, including:
 
 Refer to the video above for step-by-step instructions and integration examples for these platforms.
 
+</details>
+  
 ---
 
 ## AI Client Integration Setup
