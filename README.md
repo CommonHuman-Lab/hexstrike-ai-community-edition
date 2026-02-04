@@ -51,7 +51,7 @@ HexStrike AI features a multi-agent architecture with autonomous AI agents, inte
 
 ## Installation
 
-### Quick Setup to Run the hexstrike MCPs Server
+### Quick Setup & Run Hexstrike Server
 Many tools, such as nmap, require elevated privileges for certain features. To avoid granting permissions to each tool individually, perform the setup steps below as the `root` user.
 
 ```bash
@@ -69,6 +69,18 @@ pip3 install -r requirements.txt
 
 # 4. Start the MCP server
 python3 hexstrike_server.py
+```
+
+### Verify Installation
+
+```bash
+# Test server health
+curl http://localhost:8888/health
+
+# Test AI agent capabilities
+curl -X POST http://localhost:8888/api/intelligence/analyze-target \
+  -H "Content-Type: application/json" \
+  -d '{"target": "example.com", "analysis_type": "comprehensive"}'
 ```
 
 ### Installation and Setting Up Guide for various AI Clients:
@@ -91,32 +103,6 @@ You can install and run HexStrike AI MCPs with various AI clients, including:
 - **Any MCP-compatible agent**
 
 Refer to the video above for step-by-step instructions and integration examples for these platforms.
-
-
-### Start the Server
-
-```bash
-# Start the MCP server
-python3 hexstrike_server.py
-
-# Optional: Start with debug mode
-python3 hexstrike_server.py --debug
-
-# Optional: Custom port configuration
-python3 hexstrike_server.py --port 8888
-```
-
-### Verify Installation
-
-```bash
-# Test server health
-curl http://localhost:8888/health
-
-# Test AI agent capabilities
-curl -X POST http://localhost:8888/api/intelligence/analyze-target \
-  -H "Content-Type: application/json" \
-  -d '{"target": "example.com", "analysis_type": "comprehensive"}'
-```
 
 ---
 
