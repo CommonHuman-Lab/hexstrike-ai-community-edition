@@ -122,9 +122,11 @@ curl -X POST http://localhost:8888/api/intelligence/analyze-target \
 
 ## AI Client Integration Setup
 
-### Claude Desktop Integration or Cursor
+<details>
+<summary>Claude Desktop Integration or Cursor</summary>
 
 Edit `~/.config/Claude/claude_desktop_config.json`:
+  
 ```json
 {
   "mcpServers": {
@@ -142,10 +144,13 @@ Edit `~/.config/Claude/claude_desktop_config.json`:
   }
 }
 ```
+</details>
 
-### VS Code Copilot Integration
+<details>
+<summary>VS Code Copilot Integration</summary>
 
 Configure VS Code settings in `.vscode/settings.json`:
+  
 ```json
 {
   "servers": {
@@ -162,6 +167,7 @@ Configure VS Code settings in `.vscode/settings.json`:
   "inputs": []
 }
 ```
+</details>
 
 ---
 
