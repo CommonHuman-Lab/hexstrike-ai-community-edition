@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Security](https://img.shields.io/badge/Security-Penetration%20Testing-red.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
-[![Version](https://img.shields.io/badge/Version-1.0.0-orange.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/releases)
+[![Version](https://img.shields.io/badge/Version-1.0.1-orange.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/releases)
 [![Tools](https://img.shields.io/badge/Security%20Tools-150%2B-brightgreen.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![Agents](https://img.shields.io/badge/AI%20Agents-12%2B-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 
