@@ -17,14 +17,6 @@
 
 [📡 Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki)
 
-</div>
-
----
-
-<div align="center">
-
-## Follow Our Social Accounts
-
 <p align="center">
   <a href="https://discord.gg/BWnmrrSHbA">
     <img src="https://img.shields.io/badge/Discord-Join-7289DA?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord" />
@@ -71,6 +63,7 @@ pip3 install -r requirements.txt
 python3 hexstrike_server.py
 ```
 
+
 ### Verify Installation
 
 ```bash
@@ -83,7 +76,6 @@ curl -X POST http://localhost:8888/api/intelligence/analyze-target \
   -d '{"target": "example.com", "analysis_type": "comprehensive"}'
 ```
 
-[Install Security Tools - Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Install-Security-Tools)
 
 ### Installation and Setting Up Guide for various AI Clients:
 
@@ -109,7 +101,7 @@ You can install and run HexStrike AI MCPs with various AI clients, including:
 Refer to the video above for step-by-step instructions and integration examples for these platforms.
 
 </details>
-  
+
 ---
 
 ## AI Client Integration Setup
@@ -160,6 +152,12 @@ Configure VS Code settings in `.vscode/settings.json`:
 }
 ```
 </details>
+
+---
+
+## Wiki
+- [Troubleshooting - Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Troubleshooting)
+- [Install Security Tools - Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Install-Security-Tools)
 
 ---
 
@@ -440,11 +438,6 @@ AI Agent: "Thank you for clarifying ownership and intent. To proceed with a pene
 
 ---
 
-## Troubleshooting
-[Troubleshooting - Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Troubleshooting)
-
----
-
 ## Security Considerations
 
 ⚠️ **Important Security Notes**:
@@ -492,13 +485,9 @@ MIT License - see LICENSE file for details.
 
 **m0x4m4** - [www.0x4m4.com](https://www.0x4m4.com) | [HexStrike](https://www.hexstrike.com)
 
----
-
 <div align="center">
 
 ### **🚀 Ready to Transform Your AI Agents?**
-
----
 
 **Made with ❤️ by the cybersecurity community for AI-powered security automation**
 
