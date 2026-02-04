@@ -18,14 +18,37 @@ class FileOperationsManager:
     """Handle file operations with security and validation"""
 
     def __init__(self, base_dir: str = "/tmp/hexstrike_files"):
-        self.base_dir = Path(base_dir)
+        self.base_dir = Path(base_dir).resolve()
         self.base_dir.mkdir(exist_ok=True)
         self.max_file_size = 100 * 1024 * 1024  # 100MB
+
+    def _validate_path(self, filename: str) -> Path:
+        """
+        Validate that the resolved path is within the base directory.
+        Prevents path traversal attacks via sequences like '../'.
+        
+        Args:
+            filename: The filename or relative path to validate
+            
+        Returns:
+            Resolved Path object if valid
+            
+        Raises:
+            ValueError: If path traversal is detected
+        """
+        # Resolve the full path
+        file_path = (self.base_dir / filename).resolve()
+        
+        # Ensure the resolved path is still within base_dir
+        if not str(file_path).startswith(str(self.base_dir)):
+            raise ValueError(f"Path traversal detected: {filename}")
+        
+        return file_path
 
     def create_file(self, filename: str, content: str, binary: bool = False) -> Dict[str, Any]:
         """Create a file with the specified content"""
         try:
-            file_path = self.base_dir / filename
+            file_path = self._validate_path(filename)
             file_path.parent.mkdir(parents=True, exist_ok=True)
 
             if len(content.encode()) > self.max_file_size:
@@ -48,7 +71,7 @@ class FileOperationsManager:
     def modify_file(self, filename: str, content: str, append: bool = False) -> Dict[str, Any]:
         """Modify an existing file"""
         try:
-            file_path = self.base_dir / filename
+            file_path = self._validate_path(filename)
             if not file_path.exists():
                 return {"success": False, "error": "File does not exist"}
 
@@ -66,7 +89,7 @@ class FileOperationsManager:
     def delete_file(self, filename: str) -> Dict[str, Any]:
         """Delete a file or directory"""
         try:
-            file_path = self.base_dir / filename
+            file_path = self._validate_path(filename)
             if not file_path.exists():
                 return {"success": False, "error": "File does not exist"}
 
@@ -85,7 +108,7 @@ class FileOperationsManager:
     def list_files(self, directory: str = ".") -> Dict[str, Any]:
         """List files in a directory"""
         try:
-            dir_path = self.base_dir / directory
+            dir_path = self._validate_path(directory)
             if not dir_path.exists():
                 return {"success": False, "error": "Directory does not exist"}
 
