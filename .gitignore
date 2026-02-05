@@ -3,3 +3,6 @@ hexstrike-env/
 __pycache__/
 .vscode/
 *.log
+.coverage
+.gitignore
+coverage.xml
