@@ -4,5 +4,4 @@ __pycache__/
 .vscode/
 *.log
 .coverage
-.gitignore
 coverage.xml
