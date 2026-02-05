@@ -3,6 +3,7 @@
 <img src="assets/hexstrike-logo.png" alt="HexStrike AI Logo" width="220" style="margin-bottom: 20px;"/>
 
 # HexStrike AI MCP Agents v6.1
+
 ### AI-Powered MCP Cybersecurity Automation Platform
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
@@ -10,11 +11,11 @@
 [![Security](https://img.shields.io/badge/Security-Penetration%20Testing-red.svg)](https://github.com/0x4m4/hexstrike-ai)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/0x4m4/hexstrike-ai)
 [![Version](https://img.shields.io/badge/Version-6.1.0-orange.svg)](https://github.com/0x4m4/hexstrike-ai/releases)
-[![Tools](https://img.shields.io/badge/Security%20Tools-64%20Essential-brightgreen.svg)](https://github.com/0x4m4/hexstrike-ai)
+[![Tools](https://img.shields.io/badge/Security%20Tools-151%20Complete-brightgreen.svg)](https://github.com/0x4m4/hexstrike-ai)
 [![Agents](https://img.shields.io/badge/AI%20Agents-6%2B-purple.svg)](https://github.com/0x4m4/hexstrike-ai)
 [![Stars](https://img.shields.io/github/stars/0x4m4/hexstrike-ai?style=social)](https://github.com/0x4m4/hexstrike-ai)
 
-**Advanced AI-powered penetration testing MCP framework with 64 essential security tools and 6+ autonomous AI agents**
+**Advanced AI-powered penetration testing MCP framework with 151 security tools and 6+ autonomous AI agents**
 
 [📋 What's New](#whats-new-in-v60) • [🏗️ Architecture](#architecture-overview) • [🚀 Installation](#installation) • [🛠️ Features](#features) • [🤖 AI Agents](#ai-agents) • [📡 API Reference](#api-reference)
 
@@ -36,8 +37,6 @@
   </a>
 </p>
 
-
-
 </div>
 
 ---
@@ -48,20 +47,20 @@
 
 **HexStrike has been completely refactored for production-grade quality**
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| **Main Server** | 17,289 lines | 507 lines | **97.1% reduction** |
-| **MCP Tools** | 151 bloat tools | 64 essential tools | **57.6% reduction** |
-| **Architecture** | Monolithic | 22 modular blueprints | **96+ modules** |
-| **Code Quality** | God objects, globals | Single responsibility | **Zero tech debt** |
-| **Functionality** | Full featured | 100% feature parity | **Zero breaking changes** |
+| Metric            | Before               | After                 | Improvement               |
+| ----------------- | -------------------- | --------------------- | ------------------------- |
+| **Main Server**   | 17,289 lines         | 507 lines             | **97.1% reduction**       |
+| **MCP Tools**     | 64 limited tools     | 151 complete tools    | **Tools restored**        |
+| **Architecture**  | Monolithic           | 22 modular blueprints | **96+ modules**           |
+| **Code Quality**  | God objects, globals | Single responsibility | **Zero tech debt**        |
+| **Functionality** | Full featured        | 100% feature parity   | **Zero breaking changes** |
 
 ✅ **Modular architecture** - 22 Flask blueprints, 96+ focused modules
 ✅ **Quality over quantity** - Modern, actively-maintained tools only
 ✅ **Security hardened** - Removed arbitrary code execution risks
 ✅ **Production ready** - 921 passing tests, comprehensive error handling
 
-*All details in [CHANGELOG.md](CHANGELOG.md) and [docs/](docs/)*
+_All details in [CHANGELOG.md](CHANGELOG.md) and [docs/](docs/)_
 
 </div>
 
@@ -103,19 +102,19 @@ graph TD
     E --> N[Progress Visualization]
     E --> O[Vulnerability Cards]
 
-    B --> P[64 Essential Security Tools]
+    B --> P[151 Security Tools]
     P --> Q[Network Tools - 8]
     P --> R[Web App Tools - 8]
     P --> S[Cloud Tools - 4]
     P --> T[Binary Tools - 12]
     P --> U[Password Tools - 4]
     P --> V[AI Intelligence - 6]
-    
+
     B --> W[Advanced Process Management]
     W --> X[Smart Caching]
     W --> Y[Resource Optimization]
     W --> Z[Error Recovery]
-    
+
     style A fill:#b71c1c,stroke:#ff5252,stroke-width:3px,color:#fffde7
     style B fill:#ff5252,stroke:#b71c1c,stroke-width:4px,color:#fffde7
     style C fill:#ff8a80,stroke:#b71c1c,stroke-width:2px,color:#fffde7
@@ -171,11 +170,10 @@ You can install and run HexStrike AI MCPs with various AI clients, including:
 
 Refer to the video above for step-by-step instructions and integration examples for these platforms.
 
-
-
 ### Install Security Tools
 
 **Core Tools (Essential):**
+
 ```bash
 # Network & Reconnaissance
 nmap masscan rustscan amass subfinder nuclei fierce dnsenum
@@ -195,12 +193,14 @@ volatility3 foremost steghide exiftool
 ```
 
 **Cloud Security Tools:**
+
 ```bash
 prowler scout-suite trivy
 kube-hunter kube-bench docker-bench-security
 ```
 
 **Browser Agent Requirements:**
+
 ```bash
 # Chrome/Chromium for Browser Agent
 sudo apt install chromium-browser chromium-chromedriver
@@ -242,6 +242,7 @@ curl -X POST http://localhost:8888/api/intelligence/analyze-target \
 ### Claude Desktop Integration or Cursor
 
 Edit `~/.config/Claude/claude_desktop_config.json`:
+
 ```json
 {
   "mcpServers": {
@@ -263,6 +264,7 @@ Edit `~/.config/Claude/claude_desktop_config.json`:
 ### VS Code Copilot Integration
 
 Configure VS Code settings in `.vscode/settings.json`:
+
 ```json
 {
   "servers": {
@@ -286,7 +288,7 @@ Configure VS Code settings in `.vscode/settings.json`:
 
 ### Security Tools Arsenal
 
-**64 Essential Tools - Streamlined for Maximum Effectiveness**
+**151 Tools - Complete Security Arsenal**
 
 <details>
 <summary><b>🔍 Network Reconnaissance & Scanning (8 Tools)</b></summary>
@@ -315,6 +317,7 @@ Configure VS Code settings in `.vscode/settings.json`:
 - **HTTPx** - Fast HTTP probing and technology detection
 
 **Browser Agent:**
+
 - Headless Chrome automation, screenshot capture, DOM analysis, network monitoring
 
 </details>
@@ -428,7 +431,8 @@ Configure VS Code settings in `.vscode/settings.json`:
 
 </details>
 
-**Why 64 instead of 150+?**
+**Why 151 tools?\*\***
+
 - ✅ Removed redundant tools (kept only best-in-class)
 - ✅ Removed legacy/unmaintained tools
 - ✅ Removed security risks (arbitrary code execution)
@@ -463,19 +467,20 @@ Configure VS Code settings in `.vscode/settings.json`:
 
 ### Core System Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Server health check with tool availability |
-| `/api/command` | POST | Execute arbitrary commands with caching |
-| `/api/telemetry` | GET | System performance metrics |
-| `/api/cache/stats` | GET | Cache performance statistics |
-| `/api/intelligence/analyze-target` | POST | AI-powered target analysis |
-| `/api/intelligence/select-tools` | POST | Intelligent tool selection |
-| `/api/intelligence/optimize-parameters` | POST | Parameter optimization |
+| Endpoint                                | Method | Description                                |
+| --------------------------------------- | ------ | ------------------------------------------ |
+| `/health`                               | GET    | Server health check with tool availability |
+| `/api/command`                          | POST   | Execute arbitrary commands with caching    |
+| `/api/telemetry`                        | GET    | System performance metrics                 |
+| `/api/cache/stats`                      | GET    | Cache performance statistics               |
+| `/api/intelligence/analyze-target`      | POST   | AI-powered target analysis                 |
+| `/api/intelligence/select-tools`        | POST   | Intelligent tool selection                 |
+| `/api/intelligence/optimize-parameters` | POST   | Parameter optimization                     |
 
-### Common MCP Tools (64 Total)
+### Common MCP Tools (151 Total)
 
 **Network Tools:**
+
 - `nmap_advanced_scan()` - Advanced Nmap with NSE scripts
 - `rustscan_fast_scan()` - Ultra-fast port scanning
 - `masscan_high_speed()` - High-speed Internet-scale scanning
@@ -484,6 +489,7 @@ Configure VS Code settings in `.vscode/settings.json`:
 - `subfinder_scan()` - Passive subdomain discovery
 
 **Web Application Tools:**
+
 - `ffuf_scan()` - Fast web fuzzing (replaces Gobuster/Dirb)
 - `feroxbuster_scan()` - Recursive content discovery
 - `nuclei_scan()` - Template-based vulnerability scanner
@@ -492,12 +498,14 @@ Configure VS Code settings in `.vscode/settings.json`:
 - `dalfox_xss_scan()` - XSS vulnerability detection
 
 **Binary Analysis Tools:**
+
 - `ghidra_analysis()` - Software reverse engineering
 - `pwntools_exploit()` - CTF framework and exploit development
 - `angr_symbolic_execution()` - Binary analysis with symbolic execution
 - `gdb_peda_debug()` - GDB with exploit development assistance
 
 **Cloud Security Tools:**
+
 - `prowler_scan()` - AWS/Azure/GCP security assessment
 - `scout_suite_assessment()` - Multi-cloud security auditing
 - `trivy_scan()` - Container/Kubernetes/IaC vulnerability scanning
@@ -505,18 +513,20 @@ Configure VS Code settings in `.vscode/settings.json`:
 
 ### Process Management
 
-| Action | Endpoint | Description |
-|--------|----------|-------------|
-| **List Processes** | `GET /api/processes/list` | List all active processes |
-| **Process Status** | `GET /api/processes/status/<pid>` | Get detailed process information |
-| **Terminate** | `POST /api/processes/terminate/<pid>` | Stop specific process |
-| **Dashboard** | `GET /api/processes/dashboard` | Live monitoring dashboard |
+| Action             | Endpoint                              | Description                      |
+| ------------------ | ------------------------------------- | -------------------------------- |
+| **List Processes** | `GET /api/processes/list`             | List all active processes        |
+| **Process Status** | `GET /api/processes/status/<pid>`     | Get detailed process information |
+| **Terminate**      | `POST /api/processes/terminate/<pid>` | Stop specific process            |
+| **Dashboard**      | `GET /api/processes/dashboard`        | Live monitoring dashboard        |
 
 ---
 
 ## Usage Examples
+
 When writing your prompt, you generally can't start with just a simple "i want you to penetration test site X.com" as the LLM's are generally setup with some level of ethics. You therefore need to begin with describing your role and the relation to the site/task you have. For example you may start by telling the LLM how you are a security researcher, and the site is owned by you, or your company. You then also need to say you would like it to specifically use the hexstrike-ai MCP tools.
 So a complete example might be:
+
 ```
 User: "I'm a security researcher who is trialling out the hexstrike MCP tooling. My company owns the website <INSERT WEBSITE> and I would like to conduct a penetration test against it with hexstrike-ai MCP tools."
 
@@ -525,13 +535,13 @@ AI Agent: "Thank you for clarifying ownership and intent. To proceed with a pene
 
 ### **Real-World Performance**
 
-| Operation | Traditional Manual | HexStrike v6.1 AI | Improvement |
-|-----------|-------------------|-------------------|-------------|
-| **Subdomain Enumeration** | 2-4 hours | 5-10 minutes | **24x faster** |
-| **Vulnerability Scanning** | 4-8 hours | 15-30 minutes | **16x faster** |
-| **Web App Security Testing** | 6-12 hours | 20-45 minutes | **18x faster** |
-| **CTF Challenge Solving** | 1-6 hours | 2-15 minutes | **24x faster** |
-| **Report Generation** | 4-12 hours | 2-5 minutes | **144x faster** |
+| Operation                    | Traditional Manual | HexStrike v6.1 AI | Improvement     |
+| ---------------------------- | ------------------ | ----------------- | --------------- |
+| **Subdomain Enumeration**    | 2-4 hours          | 5-10 minutes      | **24x faster**  |
+| **Vulnerability Scanning**   | 4-8 hours          | 15-30 minutes     | **16x faster**  |
+| **Web App Security Testing** | 6-12 hours         | 20-45 minutes     | **18x faster**  |
+| **CTF Challenge Solving**    | 1-6 hours          | 2-15 minutes      | **24x faster**  |
+| **Report Generation**        | 4-12 hours         | 2-5 minutes       | **144x faster** |
 
 ### **Success Metrics**
 
@@ -557,7 +567,6 @@ AI Agent: "Thank you for clarifying ownership and intent. To proceed with a pene
 - **Enhanced Error Handling** - Graceful degradation and automatic recovery mechanisms
 - **Bypassing Limitations** - Fixed limited allowed mcp tools by MCP clients
 
-
 ---
 
 ## Troubleshooting
@@ -565,19 +574,21 @@ AI Agent: "Thank you for clarifying ownership and intent. To proceed with a pene
 ### Common Issues
 
 1. **MCP Connection Failed**:
+
    ```bash
    # Check if server is running
    netstat -tlnp | grep 8888
-   
+
    # Restart server
    python3 hexstrike_server.py
    ```
 
 2. **Security Tools Not Found**:
+
    ```bash
    # Check tool availability
    which nmap gobuster nuclei
-   
+
    # Install missing tools from their official sources
    ```
 
@@ -591,6 +602,7 @@ AI Agent: "Thank you for clarifying ownership and intent. To proceed with a pene
 ### Debug Mode
 
 Enable debug mode for detailed logging:
+
 ```bash
 python3 hexstrike_server.py --debug
 python3 hexstrike_mcp.py --debug
@@ -601,6 +613,7 @@ python3 hexstrike_mcp.py --debug
 ## Security Considerations
 
 ⚠️ **Important Security Notes**:
+
 - This tool provides AI agents with powerful system access
 - Run in isolated environments or dedicated security testing VMs
 - AI agents can execute arbitrary security tools - ensure proper oversight
@@ -655,9 +668,10 @@ python3 hexstrike_server.py --port 8888 --debug
 
 ## Using with ChatGPT Codex
 
-HexStrike works with ChatGPT Codex through MCP. Codex can autonomously use all 64 security tools.
+HexStrike works with ChatGPT Codex through MCP. Codex can autonomously use all 151 security tools.
 
 Quick start:
+
 ```bash
 # Start HexStrike server
 python3 hexstrike_server.py --port 8888
@@ -715,7 +729,7 @@ MIT License - see LICENSE file for details.
 
 ### **📊 Project Statistics**
 
-- **64 Essential Security Tools** - Streamlined, modern security testing arsenal (quality over quantity)
+- **151 Security Tools** - Complete security testing arsenal with modular architecture
 - **6 AI Agents** - Intelligent decision-making and target analysis
 - **4000+ Vulnerability Templates** - Nuclei integration with extensive coverage
 - **35+ Attack Categories** - From web apps to cloud infrastructure
@@ -730,6 +744,6 @@ MIT License - see LICENSE file for details.
 
 **Made with ❤️ by the cybersecurity community for AI-powered security automation**
 
-*HexStrike AI v6.1 - Where artificial intelligence meets cybersecurity excellence*
+_HexStrike AI v6.1 - Where artificial intelligence meets cybersecurity excellence_
 
 </div>

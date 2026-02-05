@@ -80,6 +80,13 @@ except ImportError:
 # LOGGING CONFIGURATION (MUST BE FIRST)
 # ============================================================================
 
+# Fix Windows console encoding for emoji/unicode support
+import io
+if sys.platform == 'win32':
+    # Wrap stdout/stderr with UTF-8 encoding to prevent cp1252 errors
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
 # Configure logging with fallback for permission issues
 try:
     logging.basicConfig(
@@ -87,7 +94,7 @@ try:
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
             logging.StreamHandler(sys.stdout),
-            logging.FileHandler('hexstrike.log')
+            logging.FileHandler('hexstrike.log', encoding='utf-8')
         ]
     )
 except PermissionError:

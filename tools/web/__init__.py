@@ -16,6 +16,11 @@ from .whatweb import WhatwebTool
 from .dirsearch import DirsearchTool
 from .paramspider import ParamSpiderTool
 from .x8 import X8Tool
+from .wafw00f import Wafw00fTool
+from .dirb import DirbTool
+from .wfuzz import WfuzzTool
+from .xsser import XsserTool
+from .dotdotpwn import DotdotpwnTool
 
 __all__ = [
     'NucleiTool',
@@ -31,5 +36,10 @@ __all__ = [
     'WhatwebTool',
     'DirsearchTool',
     'ParamSpiderTool',
-    'X8Tool'
+    'X8Tool',
+    'Wafw00fTool',
+    'DirbTool',
+    'WfuzzTool',
+    'XsserTool',
+    'DotdotpwnTool'
 ]
