@@ -245,7 +245,7 @@ class IntelligentDecisionEngine:
                 "clair": 0.85,  # Good for container vulnerability analysis
                 "kube-hunter": 0.9,  # Excellent for Kubernetes penetration testing
                 "kube-bench": 0.88,  # Great for CIS benchmarks
-                "docker-bench-security": 0.85,  # Good for Docker security
+                "docker-bench": 0.85,  # Good for Docker security
                 "falco": 0.87,  # Great for runtime monitoring
                 "checkov": 0.9,  # Excellent for IaC scanning
                 "terrascan": 0.88  # Great for IaC security
@@ -373,7 +373,7 @@ class IntelligentDecisionEngine:
             "container_security_assessment": [
                 {"tool": "trivy", "priority": 1, "params": {"scan_type": "image", "severity": "HIGH,CRITICAL"}},
                 {"tool": "clair", "priority": 2, "params": {"output_format": "json"}},
-                {"tool": "docker-bench-security", "priority": 3, "params": {}}
+                {"tool": "docker-bench", "priority": 3, "params": {}}
             ],
             "iac_security_assessment": [
                 {"tool": "checkov", "priority": 1, "params": {"output_format": "json"}},
@@ -1141,7 +1141,7 @@ class IntelligentDecisionEngine:
                 "checksec": 30, "pwninit": 60, "libc-database": 90,
                 "prowler": 600, "scout-suite": 480, "cloudmapper": 300, "pacu": 420,
                 "trivy": 180, "clair": 240, "kube-hunter": 300, "kube-bench": 120,
-                "docker-bench-security": 180, "falco": 120, "checkov": 240, "terrascan": 200
+                "docker-bench": 180, "falco": 120, "checkov": 240, "terrascan": 200
             }
             exec_time = time_estimates.get(tool, 180)
 

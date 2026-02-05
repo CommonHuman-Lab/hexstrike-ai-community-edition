@@ -301,6 +301,7 @@ tool_executors = {
     'smbmap': create_tool_executor(SMBMapTool),
     'rpcclient': create_tool_executor(RPCClientTool),
     'enum4linux_ng': create_tool_executor(Enum4linuxNgTool),
+    'nmap_advanced': create_tool_executor(NmapTool),  # nmap-advanced uses same tool, different params from optimizer
     # Web (22)
     'nuclei': create_tool_executor(NucleiTool),
     'gobuster': create_tool_executor(GobusterTool),

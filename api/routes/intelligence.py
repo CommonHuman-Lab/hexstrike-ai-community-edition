@@ -200,9 +200,12 @@ def intelligent_smart_scan():
                 # Get optimized parameters for this tool
                 optimized_params = decision_engine.optimize_parameters(tool_name, profile)
 
+                # Normalize tool name (decision engine uses hyphens, executors use underscores)
+                executor_key = tool_name.replace("-", "_")
+
                 # Execute the tool if we have an executor for it
-                if tool_name in tool_executors:
-                    result = tool_executors[tool_name](target, optimized_params)
+                if executor_key in tool_executors:
+                    result = tool_executors[executor_key](target, optimized_params)
 
                     # Extract vulnerability count from result
                     vuln_count = 0
