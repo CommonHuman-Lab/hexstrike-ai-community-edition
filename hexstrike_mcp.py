@@ -329,7 +329,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
             Scan results with enhanced telemetry
         """
         data = {
-            "url": url,
+            "target": url,
             "mode": mode,
             "wordlist": wordlist,
             "additional_args": additional_args
@@ -2267,7 +2267,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
             Content discovery results
         """
         data = {
-            "url": url,
+            "target": url,
             "wordlist": wordlist,
             "threads": threads,
             "additional_args": additional_args
@@ -2381,7 +2381,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
             Advanced directory discovery results
         """
         data = {
-            "url": url,
+            "target": url,
             "extensions": extensions,
             "wordlist": wordlist,
             "threads": threads,
@@ -2415,7 +2415,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
             Advanced web crawling results with endpoints and forms
         """
         data = {
-            "url": url,
+            "target": url,
             "depth": depth,
             "js_crawl": js_crawl,
             "form_extraction": form_extraction,
@@ -2448,7 +2448,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
             Comprehensive URL discovery results from multiple sources
         """
         data = {
-            "domain": domain,
+            "target": domain,
             "providers": providers,
             "include_subs": include_subs,
             "blacklist": blacklist,
@@ -2478,7 +2478,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
             Historical URL discovery results from Wayback Machine
         """
         data = {
-            "domain": domain,
+            "target": domain,
             "get_versions": get_versions,
             "no_subs": no_subs,
             "additional_args": additional_args
