@@ -6,62 +6,11 @@ HexStrike AI Community Edition - Advanced Penetration Testing Framework Server
 """
 
 import argparse
-import json
 import logging
 import os
-import subprocess
 import sys
-import traceback
 import threading
-import time
-import hashlib
-import pickle
-import base64
-import queue
-from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
-from collections import OrderedDict
-import shutil
-import venv
-import zipfile
-from pathlib import Path
-from flask import Flask, request, jsonify
-import psutil
-import signal
-import requests
-import re
-import socket
-import urllib.parse
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import List, Set, Tuple
-import asyncio
-import aiohttp
-from urllib.parse import urljoin, urlparse, parse_qs
-from bs4 import BeautifulSoup
-
-# Optional imports for advanced web testing features
-try:
-    import selenium
-    from selenium import webdriver
-    from selenium.webdriver.chrome.options import Options
-    from selenium.webdriver.common.by import By
-    from selenium.webdriver.support.ui import WebDriverWait
-    from selenium.webdriver.support import expected_conditions as EC
-    from selenium.common.exceptions import TimeoutException, WebDriverException
-    SELENIUM_AVAILABLE = True
-except ImportError:
-    SELENIUM_AVAILABLE = False
-
-try:
-    import mitmproxy
-    from mitmproxy import http as mitmhttp
-    from mitmproxy.tools.dump import DumpMaster
-    from mitmproxy.options import Options as MitmOptions
-    MITMPROXY_AVAILABLE = True
-except ImportError:
-    MITMPROXY_AVAILABLE = False
+from flask import Flask
 
 # ============================================================================
 # LOGGING CONFIGURATION (MUST BE FIRST)
@@ -147,36 +96,14 @@ from core.execution import (
 )
 from core.tool_factory import create_tool_executor
 
-from tools.network.nmap import NmapTool
-from tools.network.httpx import HttpxTool
-from tools.network.masscan import MasscanTool
-from tools.network.dnsenum import DNSEnumTool
-from tools.network.fierce import FierceTool
-from tools.network.dnsx import DNSxTool
-from tools.web.nuclei import NucleiTool
-from tools.web.gobuster import GobusterTool
-from tools.web.sqlmap import SQLMapTool
-from tools.web.nikto import NiktoTool
-from tools.web.feroxbuster import FeroxbusterTool
-from tools.web.ffuf import FfufTool
-from tools.web.katana import KatanaTool
-from tools.web.wpscan import WpscanTool
-from tools.web.arjun import ArjunTool
-from tools.web.dalfox import DalfoxTool
-from tools.web.whatweb import WhatwebTool
-from tools.web.dirsearch import DirsearchTool
-from tools.web.paramspider import ParamSpiderTool
-from tools.web.x8 import X8Tool
-from tools.recon.amass import AmassTool
-from tools.recon.subfinder import SubfinderTool
-from tools.recon.waybackurls import WaybackURLsTool
-from tools.recon.gau import GAUTool
-from tools.recon.hakrawler import HakrawlerTool
-from tools.security.testssl import TestSSLTool
-from tools.security.sslscan import SSLScanTool
-from tools.security.jaeles import JaelesTool
-from tools.security.zap import ZAPTool
-from tools.security.burpsuite import BurpSuiteTool
+from tools.network import *
+from tools.web import *
+from tools.recon import *
+from tools.security import *
+from tools.exploit import *
+from tools.forensics import *
+from tools.binary import *
+from tools.cloud import *
 
 # Global decision engine instance
 decision_engine = IntelligentDecisionEngine()
@@ -285,6 +212,7 @@ from api.routes.tools_api import tools_api_bp
 from api.routes.tools_parameters import tools_parameters_bp
 from api.routes.tools_forensics import tools_forensics_bp
 from api.routes.tools_web_frameworks import tools_web_frameworks_bp
+from api.routes.tools_recon import tools_recon_bp
 import api.routes.files as files_routes
 import api.routes.error_handling as error_handling_routes
 import api.routes.intelligence as intelligence_routes
@@ -306,6 +234,7 @@ import api.routes.tools_api as tools_api_routes
 import api.routes.tools_parameters as tools_parameters_routes
 import api.routes.tools_forensics as tools_forensics_routes
 import api.routes.tools_web_frameworks as tools_web_frameworks_routes
+import api.routes.tools_recon as tools_recon_routes
 
 files_routes.init_app(file_manager)
 error_handling_routes.init_app(error_handler, degradation_manager, execute_command_with_recovery)
@@ -326,6 +255,7 @@ tools_api_routes.init_app(execute_command)
 tools_parameters_routes.init_app(execute_command)
 tools_forensics_routes.init_app(execute_command)
 tools_web_frameworks_routes.init_app(http_testing_framework, browser_agent)
+tools_recon_routes.init_app(execute_command, execute_command_with_recovery)
 ai_routes.init_app(ai_payload_generator, execute_command)
 app.register_blueprint(files_bp)
 app.register_blueprint(visual_bp)
@@ -348,14 +278,131 @@ app.register_blueprint(tools_api_bp)
 app.register_blueprint(tools_parameters_bp)
 app.register_blueprint(tools_forensics_bp)
 app.register_blueprint(tools_web_frameworks_bp)
+app.register_blueprint(tools_recon_bp)
 
 # Create tool_executors dictionary for intelligence engine
 # Each executor wraps a tool class and provides a simple (target, params) -> result interface
 
 tool_executors = {
+    # Network (16)
     'nmap': create_tool_executor(NmapTool),
-    'gobuster': create_tool_executor(GobusterTool),
+    'httpx': create_tool_executor(HttpxTool),
+    'masscan': create_tool_executor(MasscanTool),
+    'dnsenum': create_tool_executor(DNSEnumTool),
+    'fierce': create_tool_executor(FierceTool),
+    'dnsx': create_tool_executor(DNSxTool),
+    'rustscan': create_tool_executor(RustscanTool),
+    'autorecon': create_tool_executor(AutoReconTool),
+    'nbtscan': create_tool_executor(NBTScanTool),
+    'arp_scan': create_tool_executor(ArpScanTool),
+    'responder': create_tool_executor(ResponderTool),
+    'netexec': create_tool_executor(NetExecTool),
+    'enum4linux': create_tool_executor(Enum4linuxTool),
+    'smbmap': create_tool_executor(SMBMapTool),
+    'rpcclient': create_tool_executor(RPCClientTool),
+    'enum4linux_ng': create_tool_executor(Enum4linuxNgTool),
+    # Web (22)
     'nuclei': create_tool_executor(NucleiTool),
+    'gobuster': create_tool_executor(GobusterTool),
+    'sqlmap': create_tool_executor(SQLMapTool),
+    'nikto': create_tool_executor(NiktoTool),
+    'feroxbuster': create_tool_executor(FeroxbusterTool),
+    'ffuf': create_tool_executor(FfufTool),
+    'katana': create_tool_executor(KatanaTool),
+    'wpscan': create_tool_executor(WpscanTool),
+    'arjun': create_tool_executor(ArjunTool),
+    'dalfox': create_tool_executor(DalfoxTool),
+    'whatweb': create_tool_executor(WhatwebTool),
+    'dirsearch': create_tool_executor(DirsearchTool),
+    'paramspider': create_tool_executor(ParamSpiderTool),
+    'x8': create_tool_executor(X8Tool),
+    'dirb': create_tool_executor(DirbTool),
+    'dotdotpwn': create_tool_executor(DotDotPwnTool),
+    'wfuzz': create_tool_executor(WfuzzTool),
+    'xsser': create_tool_executor(XsserTool),
+    'wafw00f': create_tool_executor(Wafw00fTool),
+    'commix': create_tool_executor(CommixTool),
+    'nosqlmap': create_tool_executor(NoSQLMapTool),
+    'tplmap': create_tool_executor(TplmapTool),
+    # Recon (15)
+    'amass': create_tool_executor(AmassTool),
+    'subfinder': create_tool_executor(SubfinderTool),
+    'waybackurls': create_tool_executor(WaybackURLsTool),
+    'gau': create_tool_executor(GAUTool),
+    'hakrawler': create_tool_executor(HakrawlerTool),
+    'anew': create_tool_executor(AnewTool),
+    'qsreplace': create_tool_executor(QsreplaceTool),
+    'uro': create_tool_executor(UroTool),
+    'theharvester': create_tool_executor(TheHarvesterTool),
+    'sherlock': create_tool_executor(SherlockTool),
+    'spiderfoot': create_tool_executor(SpiderFootTool),
+    'trufflehog': create_tool_executor(TruffleHogTool),
+    'aquatone': create_tool_executor(AquatoneTool),
+    'subjack': create_tool_executor(SubjackTool),
+    'recon_ng': create_tool_executor(ReconNgTool),
+    # Security (6)
+    'testssl': create_tool_executor(TestSSLTool),
+    'sslscan': create_tool_executor(SSLScanTool),
+    'jaeles': create_tool_executor(JaelesTool),
+    'zap': create_tool_executor(ZAPTool),
+    'burpsuite': create_tool_executor(BurpSuiteTool),
+    'sslyze': create_tool_executor(SSLyzeTool),
+    # Exploit (11)
+    'metasploit': create_tool_executor(MetasploitTool),
+    'hydra': create_tool_executor(HydraTool),
+    'john': create_tool_executor(JohnTool),
+    'hashcat': create_tool_executor(HashcatTool),
+    'hashpump': create_tool_executor(HashPumpTool),
+    'msfvenom': create_tool_executor(MsfvenomTool),
+    'medusa': create_tool_executor(MedusaTool),
+    'patator': create_tool_executor(PatatorTool),
+    'evil_winrm': create_tool_executor(EvilWinRMTool),
+    'hash_identifier': create_tool_executor(HashIdentifierTool),
+    'hashid': create_tool_executor(HashIDTool),
+    # Forensics (10)
+    'volatility': create_tool_executor(VolatilityTool),
+    'volatility3': create_tool_executor(Volatility3Tool),
+    'steghide': create_tool_executor(SteghideTool),
+    'exiftool': create_tool_executor(ExifToolTool),
+    'foremost': create_tool_executor(ForemostTool),
+    'zsteg': create_tool_executor(ZstegTool),
+    'stegsolve': create_tool_executor(StegSolveTool),
+    'scalpel': create_tool_executor(ScalpelTool),
+    'bulk_extractor': create_tool_executor(BulkExtractorTool),
+    'outguess': create_tool_executor(OutguessTool),
+    # Binary (19)
+    'ghidra': create_tool_executor(GhidraTool),
+    'checksec': create_tool_executor(ChecksecTool),
+    'binwalk': create_tool_executor(BinwalkTool),
+    'gdb': create_tool_executor(GDBTool),
+    'gdb_peda': create_tool_executor(GDBPedaTool),
+    'gdb_gef': create_tool_executor(GDBGEFTool),
+    'radare2': create_tool_executor(Radare2Tool),
+    'ropgadget': create_tool_executor(ROPGadgetTool),
+    'ropper': create_tool_executor(RopperTool),
+    'one_gadget': create_tool_executor(OneGadgetTool),
+    'strings': create_tool_executor(StringsTool),
+    'objdump': create_tool_executor(ObjdumpTool),
+    'xxd': create_tool_executor(XXDTool),
+    'pwntools': create_tool_executor(PwntoolsTool),
+    'angr': create_tool_executor(AngrTool),
+    'libc_database': create_tool_executor(LibcDatabaseTool),
+    'pwninit': create_tool_executor(PwninitTool),
+    'upx': create_tool_executor(UPXTool),
+    'hexdump': create_tool_executor(HexdumpTool),
+    # Cloud (12)
+    'prowler': create_tool_executor(ProwlerTool),
+    'scout_suite': create_tool_executor(ScoutSuiteTool),
+    'trivy': create_tool_executor(TrivyTool),
+    'kube_hunter': create_tool_executor(KubeHunterTool),
+    'kube_bench': create_tool_executor(KubeBenchTool),
+    'docker_bench': create_tool_executor(DockerBenchTool),
+    'falco': create_tool_executor(FalcoTool),
+    'checkov': create_tool_executor(CheckovTool),
+    'terrascan': create_tool_executor(TerrascanTool),
+    'cloudsploit': create_tool_executor(CloudSploitTool),
+    'pacu': create_tool_executor(PacuTool),
+    'cloudmapper': create_tool_executor(CloudMapperTool),
 }
 
 # Initialize and register intelligence blueprint

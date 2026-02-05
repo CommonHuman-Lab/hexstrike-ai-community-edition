@@ -33,10 +33,10 @@ angr>=9.2.0,<10.0.0             # Binary analysis (import angr)
 bcrypt==4.0.1                   # Pin bcrypt version for passlib compatibility (fixes pwntools dependency issue)
 
 # ============================================================================
-# EXTERNAL SECURITY TOOLS (150+ Tools - Install separately)
+# EXTERNAL SECURITY TOOLS (170+ Tools - Install separately)
 # ============================================================================
 #
-# HexStrike v6.0 integrates with 150+ external security tools that must be
+# HexStrike CE 1.0.1 integrates with 170+ external security tools that must be
 # installed separately from their official sources:
 #
 # 🔍 Network & Reconnaissance (25+ tools):

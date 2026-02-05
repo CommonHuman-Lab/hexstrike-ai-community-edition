@@ -299,3 +299,163 @@ def zap():
         return jsonify({
             "error": f"Server error: {str(e)}"
         }), 500
+
+
+@tools_web_bp.route("/commix", methods=["POST"])
+def commix():
+    """Execute Commix for command injection testing"""
+    try:
+        params = request.json
+        url = params.get("url", "")
+        data = params.get("data", "")
+        cookie = params.get("cookie", "")
+        level = params.get("level", 1)
+        technique = params.get("technique", "")
+        batch = params.get("batch", True)
+        additional_args = params.get("additional_args", "")
+
+        if not url:
+            logger.warning("🌐 Commix called without URL parameter")
+            return jsonify({"error": "URL parameter is required"}), 400
+
+        command = f"commix -u {url} --level {level}"
+
+        if data:
+            command += f" --data={data}"
+
+        if cookie:
+            command += f" --cookie={cookie}"
+
+        if technique:
+            command += f" --technique={technique}"
+
+        if batch:
+            command += " --batch"
+
+        if additional_args:
+            command += f" {additional_args}"
+
+        logger.info(f"💉 Starting Commix: {url}")
+        result = execute_command(command)
+        logger.info(f"📊 Commix completed for {url}")
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"💥 Error in commix endpoint: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+@tools_web_bp.route("/nosqlmap", methods=["POST"])
+def nosqlmap():
+    """Execute NoSQLMap for NoSQL injection testing"""
+    try:
+        params = request.json
+        url = params.get("url", "")
+        database = params.get("database", "mongodb")
+        post_data = params.get("post_data", "")
+        cookie = params.get("cookie", "")
+        additional_args = params.get("additional_args", "")
+
+        if not url:
+            logger.warning("🌐 NoSQLMap called without URL parameter")
+            return jsonify({"error": "URL parameter is required"}), 400
+
+        command = f"nosqlmap -u {url} --dbtype {database}"
+
+        if post_data:
+            command += f" --data={post_data}"
+
+        if cookie:
+            command += f" --cookie={cookie}"
+
+        if additional_args:
+            command += f" {additional_args}"
+
+        logger.info(f"💉 Starting NoSQLMap: {url}")
+        result = execute_command(command)
+        logger.info(f"📊 NoSQLMap completed for {url}")
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"💥 Error in nosqlmap endpoint: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+@tools_web_bp.route("/tplmap", methods=["POST"])
+def tplmap():
+    """Execute Tplmap for server-side template injection"""
+    try:
+        params = request.json
+        url = params.get("url", "")
+        data = params.get("data", "")
+        cookie = params.get("cookie", "")
+        engine = params.get("engine", "")
+        level = params.get("level", 1)
+        os_cmd = params.get("os_cmd", "")
+        additional_args = params.get("additional_args", "")
+
+        if not url:
+            logger.warning("🌐 Tplmap called without URL parameter")
+            return jsonify({"error": "URL parameter is required"}), 400
+
+        command = f"tplmap -u {url} --level {level}"
+
+        if data:
+            command += f" -d {data}"
+
+        if cookie:
+            command += f" --cookie={cookie}"
+
+        if engine:
+            command += f" -e {engine}"
+
+        if os_cmd:
+            command += f" --os-cmd={os_cmd}"
+
+        if additional_args:
+            command += f" {additional_args}"
+
+        logger.info(f"💉 Starting Tplmap: {url}")
+        result = execute_command(command)
+        logger.info(f"📊 Tplmap completed for {url}")
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"💥 Error in tplmap endpoint: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+@tools_web_bp.route("/sslyze", methods=["POST"])
+def sslyze():
+    """Execute SSLyze for SSL/TLS configuration analysis"""
+    try:
+        params = request.json
+        target = params.get("target", "")
+        certinfo = params.get("certinfo", True)
+        heartbleed = params.get("heartbleed", True)
+        robot = params.get("robot", True)
+        additional_args = params.get("additional_args", "")
+
+        if not target:
+            logger.warning("🔐 SSLyze called without target parameter")
+            return jsonify({"error": "Target parameter is required"}), 400
+
+        command = f"sslyze {target}"
+
+        if certinfo:
+            command += " --certinfo"
+
+        if heartbleed:
+            command += " --heartbleed"
+
+        if robot:
+            command += " --robot"
+
+        if additional_args:
+            command += f" {additional_args}"
+
+        logger.info(f"🔐 Starting SSLyze: {target}")
+        result = execute_command(command)
+        logger.info(f"📊 SSLyze completed for {target}")
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"💥 Error in sslyze endpoint: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+

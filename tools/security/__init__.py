@@ -7,11 +7,14 @@ from .sslscan import SSLScanTool
 from .jaeles import JaelesTool
 from .zap import ZAPTool
 from .burpsuite import BurpSuiteTool
+from .sslyze import SSLyzeTool
 
 __all__ = [
     'TestSSLTool',
     'SSLScanTool',
     'JaelesTool',
     'ZAPTool',
-    'BurpSuiteTool'
+    'BurpSuiteTool',
+    'SSLyzeTool'
 ]
+

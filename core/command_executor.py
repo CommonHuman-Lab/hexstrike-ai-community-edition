@@ -185,7 +185,7 @@ class EnhancedCommandExecutor:
             pid = self.process.pid
             logger.info(f"🆔 PROCESS: PID {pid} started")
 
-            # Register process with ProcessManager (v5.0 enhancement)
+            # Register process with ProcessManager
             ProcessManager.register_process(pid, self.command, self.process)
 
             # Start threads to read output continuously
@@ -212,7 +212,7 @@ class EnhancedCommandExecutor:
 
                 execution_time = self.end_time - self.start_time
 
-                # Cleanup process from registry (v5.0 enhancement)
+                # Cleanup process from registry
                 ProcessManager.cleanup_process(pid)
 
                 if self.return_code == 0:

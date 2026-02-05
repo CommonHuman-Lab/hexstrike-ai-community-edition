@@ -18,6 +18,9 @@ from .ropgadget import RopgadgetTool
 from .pwninit import PwninitTool
 from .libc_database import LibcDatabaseTool
 from .gdb_peda import GdbPedaTool
+from .gdb_gef import GDBGEFTool
+from .upx import UPXTool
+from .hexdump import HexdumpTool
 
 __all__ = [
     'GhidraTool',
@@ -35,5 +38,9 @@ __all__ = [
     'RopgadgetTool',
     'PwninitTool',
     'LibcDatabaseTool',
-    'GdbPedaTool'
+    'GdbPedaTool',
+    'GDBGEFTool',
+    'UPXTool',
+    'HexdumpTool'
 ]
+

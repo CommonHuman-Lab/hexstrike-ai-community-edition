@@ -240,3 +240,151 @@ def hashpump():
         return jsonify({
             "error": f"Server error: {str(e)}"
         }), 500
+
+
+@tools_forensics_bp.route("/zsteg", methods=["POST"])
+def zsteg():
+    """Execute Zsteg for PNG/BMP steganography detection"""
+    try:
+        params = request.json
+        file_path = params.get("file_path", "")
+        all_methods = params.get("all", True)
+        bits = params.get("bits", "")
+        limit = params.get("limit", 256)
+        additional_args = params.get("additional_args", "")
+
+        if not file_path:
+            logger.warning("🔍 Zsteg called without file_path parameter")
+            return jsonify({"error": "File path parameter is required"}), 400
+
+        command = f"zsteg {file_path}"
+
+        if all_methods:
+            command += " -a"
+
+        if bits:
+            command += f" -b {bits}"
+
+        if limit:
+            command += f" -l {limit}"
+
+        if additional_args:
+            command += f" {additional_args}"
+
+        logger.info(f"🔍 Starting Zsteg analysis: {file_path}")
+        result = execute_command(command)
+        logger.info(f"📊 Zsteg analysis completed")
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"💥 Error in zsteg endpoint: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+@tools_forensics_bp.route("/outguess", methods=["POST"])
+def outguess():
+    """Execute Outguess for JPEG steganography"""
+    try:
+        params = request.json
+        file_path = params.get("file_path", "")
+        extract = params.get("extract", True)
+        key = params.get("key", "")
+        output = params.get("output", "/tmp/outguess_output.txt")
+        additional_args = params.get("additional_args", "")
+
+        if not file_path:
+            logger.warning("🔍 Outguess called without file_path parameter")
+            return jsonify({"error": "File path parameter is required"}), 400
+
+        command = "outguess"
+
+        if extract:
+            command += " -r"
+
+        if key:
+            command += f" -k {key}"
+
+        command += f" {file_path} {output}"
+
+        if additional_args:
+            command += f" {additional_args}"
+
+        logger.info(f"🔍 Starting Outguess extraction: {file_path}")
+        result = execute_command(command)
+        logger.info(f"📊 Outguess extraction completed")
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"💥 Error in outguess endpoint: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+@tools_forensics_bp.route("/scalpel", methods=["POST"])
+def scalpel():
+    """Execute Scalpel for file carving"""
+    try:
+        params = request.json
+        input_file = params.get("input_file", "")
+        output_dir = params.get("output_dir", "/tmp/scalpel_output")
+        config = params.get("config", "")
+        preview = params.get("preview", False)
+        additional_args = params.get("additional_args", "")
+
+        if not input_file:
+            logger.warning("🔍 Scalpel called without input_file parameter")
+            return jsonify({"error": "Input file parameter is required"}), 400
+
+        command = f"scalpel -o {output_dir} -v"
+
+        if config:
+            command += f" -c {config}"
+
+        if preview:
+            command += " -p"
+
+        command += f" {input_file}"
+
+        if additional_args:
+            command += f" {additional_args}"
+
+        logger.info(f"🔪 Starting Scalpel file carving: {input_file}")
+        result = execute_command(command)
+        logger.info(f"📊 Scalpel file carving completed")
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"💥 Error in scalpel endpoint: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+@tools_forensics_bp.route("/bulk-extractor", methods=["POST"])
+def bulk_extractor():
+    """Execute Bulk Extractor for digital forensics feature extraction"""
+    try:
+        params = request.json
+        input_file = params.get("input_file", "")
+        output_dir = params.get("output_dir", "/tmp/bulk_output")
+        scanner = params.get("scanner", "")
+        threads = params.get("threads", 4)
+        additional_args = params.get("additional_args", "")
+
+        if not input_file:
+            logger.warning("🔍 Bulk Extractor called without input_file parameter")
+            return jsonify({"error": "Input file parameter is required"}), 400
+
+        command = f"bulk_extractor -o {output_dir} -j {threads}"
+
+        if scanner:
+            for s in scanner.split(","):
+                command += f" -E {s.strip()}"
+
+        command += f" {input_file}"
+
+        if additional_args:
+            command += f" {additional_args}"
+
+        logger.info(f"🔍 Starting Bulk Extractor: {input_file}")
+        result = execute_command(command)
+        logger.info(f"📊 Bulk Extractor completed")
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"💥 Error in bulk-extractor endpoint: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+

@@ -22,7 +22,7 @@ from unittest.mock import patch
 # Add parent directories to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
-from hexstrike_server import HexStrikeCache
+from core.cache import HexStrikeCache
 
 
 class TestCacheInitialization:

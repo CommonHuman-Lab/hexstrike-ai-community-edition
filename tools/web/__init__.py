@@ -21,6 +21,9 @@ from .dirb import DirbTool
 from .wfuzz import WfuzzTool
 from .xsser import XsserTool
 from .dotdotpwn import DotdotpwnTool
+from .commix import CommixTool
+from .nosqlmap import NoSQLMapTool
+from .tplmap import TplmapTool
 
 __all__ = [
     'NucleiTool',
@@ -41,5 +44,9 @@ __all__ = [
     'DirbTool',
     'WfuzzTool',
     'XsserTool',
-    'DotdotpwnTool'
+    'DotdotpwnTool',
+    'CommixTool',
+    'NoSQLMapTool',
+    'TplmapTool'
 ]
+

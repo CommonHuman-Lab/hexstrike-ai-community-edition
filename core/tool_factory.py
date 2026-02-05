@@ -16,14 +16,18 @@ def create_tool_executor(tool_class, execute_command_func=None):
 
     Args:
         tool_class: The tool class to instantiate
-        execute_command_func: The execute_command function to use (optional, can be passed later)
+        execute_command_func: The execute_command function to use.
+            If None, falls back to core.execution.execute_command at call time
+            (lazy import to avoid circular imports during module loading).
 
     Returns:
         An executor function that takes (target, params) and returns execution results
     """
     def executor(target: str, params: Dict[str, Any]) -> Dict[str, Any]:
+        exec_func = execute_command_func
+        if exec_func is None:
+            from core.execution import execute_command
+            exec_func = execute_command
         tool = tool_class()
-        # Use the provided execute_command function
-        # This will need to be passed when calling create_tool_executor
-        return tool.execute(target, params, execute_command_func)
+        return tool.execute(target, params, exec_func)
     return executor

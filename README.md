@@ -10,9 +10,9 @@
 [![Security](https://img.shields.io/badge/Security-Penetration%20Testing-red.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![Version](https://img.shields.io/badge/Version-1.0.1-orange.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/releases)
-[![Tools](https://img.shields.io/badge/Security%20Tools-150%2B-brightgreen.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
+[![Tools](https://img.shields.io/badge/Security%20Tools-170%2B-brightgreen.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 
-**Advanced AI-powered penetration testing MCP framework with 64 essential security tools and 6+ autonomous AI agents**
+**Advanced AI-powered penetration testing MCP framework with 170+ security tools and 12+ autonomous AI agents**
 
 [📡 Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki)
 
@@ -60,6 +60,14 @@ pip3 install -r requirements.txt
 
 # 4. Start the MCP server
 python3 hexstrike_server.py
+```
+
+### Docker Setup
+
+```bash
+docker build -t hexstrike-ai .
+docker run -d -p 8888:8888 --name hexstrike hexstrike-ai
+curl http://localhost:8888/health
 ```
 
 ### Verify Installation
