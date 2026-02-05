@@ -1064,7 +1064,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         return result
 
     @mcp.tool()
-    def metasploit_run(module: str, options: Dict[str, Any] = {}) -> Dict[str, Any]:
+    def metasploit_run(module: str, options: Dict[str, Any] = None) -> Dict[str, Any]:
         """
         Execute a Metasploit module with enhanced logging.
 
@@ -1075,6 +1075,9 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         Returns:
             Metasploit execution results
         """
+        # Context7 audit: avoid mutable default argument (shared dict across calls)
+        if options is None:
+            options = {}
         data = {
             "module": module,
             "options": options
@@ -2897,7 +2900,8 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
             logger.info(f"🤖 Generating {attack_type} payloads...")
 
             # Generate payloads for this attack type
-            payload_result = self.ai_generate_payload(attack_type, "advanced", "", target_url)
+            # Context7 audit: removed invalid 'self' ref — these are closures, not class methods
+            payload_result = ai_generate_payload(attack_type, "advanced", "", target_url)
 
             if payload_result.get("success"):
                 payload_data = payload_result.get("ai_payload_generation", {})
@@ -3153,8 +3157,9 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         logger.info(f"🚀 Starting comprehensive API security audit: {base_url}")
 
         # 1. API Endpoint Fuzzing
+        # Context7 audit: removed invalid 'self' refs — these are closures, not class methods
         logger.info("🔍 Phase 1: API endpoint discovery and fuzzing")
-        fuzz_result = self.api_fuzzer(base_url)
+        fuzz_result = api_fuzzer(base_url)
         if fuzz_result.get("success"):
             audit_results["tests_performed"].append("api_fuzzing")
             audit_results["api_fuzzing"] = fuzz_result
@@ -3162,7 +3167,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         # 2. Schema Analysis (if provided)
         if schema_url:
             logger.info("🔍 Phase 2: API schema analysis")
-            schema_result = self.api_schema_analyzer(schema_url)
+            schema_result = api_schema_analyzer(schema_url)
             if schema_result.get("success"):
                 audit_results["tests_performed"].append("schema_analysis")
                 audit_results["schema_analysis"] = schema_result
@@ -3173,7 +3178,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         # 3. JWT Analysis (if provided)
         if jwt_token:
             logger.info("🔍 Phase 3: JWT token analysis")
-            jwt_result = self.jwt_analyzer(jwt_token, base_url)
+            jwt_result = jwt_analyzer(jwt_token, base_url)
             if jwt_result.get("success"):
                 audit_results["tests_performed"].append("jwt_analysis")
                 audit_results["jwt_analysis"] = jwt_result
@@ -3184,7 +3189,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         # 4. GraphQL Testing (if provided)
         if graphql_endpoint:
             logger.info("🔍 Phase 4: GraphQL security scanning")
-            graphql_result = self.graphql_scanner(graphql_endpoint)
+            graphql_result = graphql_scanner(graphql_endpoint)
             if graphql_result.get("success"):
                 audit_results["tests_performed"].append("graphql_scanning")
                 audit_results["graphql_scanning"] = graphql_result
@@ -3356,7 +3361,8 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         Returns:
             Hash length extension attack results
         """
-        data = {
+        # Context7 audit: renamed local dict to avoid shadowing the 'data' parameter
+        request_data = {
             "signature": signature,
             "data": data,
             "key_length": key_length,
@@ -3364,7 +3370,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
             "additional_args": additional_args
         }
         logger.info(f"🔐 Starting HashPump attack")
-        result = hexstrike_client.safe_post("api/tools/hashpump", data)
+        result = hexstrike_client.safe_post("api/tools/hashpump", request_data)
         if result.get("success"):
             logger.info(f"✅ HashPump attack completed")
         else:
