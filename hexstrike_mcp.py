@@ -2,8 +2,6 @@
 """
 HexStrike AI MCP Client - Enhanced AI Agent Communication Interface
 
-Enhanced with AI-Powered Intelligence & Automation
-🚀 Bug Bounty | CTF | Red Team | Security Research
 """
 
 import sys
