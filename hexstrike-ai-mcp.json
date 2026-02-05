@@ -7,7 +7,7 @@
         "--server",
         "http://localhost:8888"
       ],
-      "description": "HexStrike AI v6.1 - Advanced Cybersecurity Automation Platform",
+      "description": "HexStrike AI Community Edition. Turn off alwaysAllow if you dont want autonomous execution!",
       "timeout": 300,
       "disabled": false
     }
