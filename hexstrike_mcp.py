@@ -3090,6 +3090,44 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
         return result
 
     @mcp.tool()
+    def postman_collection_run(collection: str, environment: str = "", globals_file: str = "", iterations: int = 1, delay: int = 0, timeout: int = 30000, reporters: str = "cli,json", env_var: str = "", additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute Newman (Postman CLI) for automated API collection testing.
+
+        Args:
+            collection: Path to Postman collection JSON file
+            environment: Path to environment variables file
+            globals_file: Path to global variables file
+            iterations: Number of iterations to run
+            delay: Delay between requests in milliseconds
+            timeout: Request timeout in milliseconds
+            reporters: Reporter types (cli, json, html)
+            env_var: Environment variable overrides (comma-separated key=value)
+            additional_args: Additional Newman arguments
+
+        Returns:
+            Collection test results with pass/fail status
+        """
+        data = {
+            "collection": collection,
+            "environment": environment,
+            "globals": globals_file,
+            "iterations": iterations,
+            "delay": delay,
+            "timeout": timeout,
+            "reporters": reporters,
+            "env_var": env_var,
+            "additional_args": additional_args
+        }
+        logger.info(f"📬 Starting Newman/Postman collection run")
+        result = hexstrike_client.safe_post("api/tools/postman", data)
+        if result.get("success"):
+            logger.info(f"✅ Newman/Postman collection run completed")
+        else:
+            logger.error(f"❌ Newman/Postman collection run failed")
+        return result
+
+    @mcp.tool()
     def comprehensive_api_audit(base_url: str, schema_url: str = "", jwt_token: str = "", graphql_endpoint: str = "") -> Dict[str, Any]:
         """
         Comprehensive API security audit combining multiple testing techniques.

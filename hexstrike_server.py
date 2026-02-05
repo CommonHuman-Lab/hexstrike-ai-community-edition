@@ -104,6 +104,7 @@ from tools.exploit import *
 from tools.forensics import *
 from tools.binary import *
 from tools.cloud import *
+from tools.api import *
 
 # Global decision engine instance
 decision_engine = IntelligentDecisionEngine()
@@ -404,6 +405,8 @@ tool_executors = {
     'clair': create_tool_executor(ClairTool),
     'pacu': create_tool_executor(PacuTool),
     'cloudmapper': create_tool_executor(CloudmapperTool),
+    # API (1)
+    'postman': create_tool_executor(PostmanTool),
 }
 
 # Initialize and register intelligence blueprint

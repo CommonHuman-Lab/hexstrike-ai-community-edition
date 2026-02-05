@@ -147,3 +147,52 @@ def api_schema_analyzer():
         return jsonify({
             "error": f"Server error: {str(e)}"
         }), 500
+
+
+@tools_api_bp.route("/postman", methods=["POST"])
+def postman():
+    """Execute Newman (Postman CLI) for automated API collection testing"""
+    try:
+        params = request.json
+        collection = params.get("collection", "")
+        environment = params.get("environment", "")
+        globals_file = params.get("globals", "")
+        iterations = params.get("iterations", 1)
+        delay = params.get("delay", 0)
+        timeout = params.get("timeout", 30000)
+        reporters = params.get("reporters", "cli,json")
+        env_var = params.get("env_var", "")
+        additional_args = params.get("additional_args", "")
+
+        if not collection:
+            logger.warning("🎯 Postman called without collection parameter")
+            return jsonify({"error": "Collection parameter is required"}), 400
+
+        command = f"newman run {collection} --timeout-request {timeout} -r {reporters}"
+
+        if environment:
+            command += f" -e {environment}"
+
+        if globals_file:
+            command += f" -g {globals_file}"
+
+        if iterations > 1:
+            command += f" -n {iterations}"
+
+        if delay:
+            command += f" --delay-request {delay}"
+
+        if env_var:
+            for var in env_var.split(","):
+                command += f" --env-var {var.strip()}"
+
+        if additional_args:
+            command += f" {additional_args}"
+
+        logger.info(f"📬 Starting Newman/Postman collection run")
+        result = execute_command(command)
+        logger.info(f"📊 Newman/Postman collection run completed")
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"💥 Error in postman endpoint: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
