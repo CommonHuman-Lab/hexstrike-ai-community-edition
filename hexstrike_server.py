@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 """
-HexStrike AI - Advanced Penetration Testing Framework Server
 
-Enhanced with AI-Powered Intelligence & Automation
-🚀 Bug Bounty | CTF | Red Team | Security Research
+HexStrike AI Community Edition - Advanced Penetration Testing Framework Server
 
 """
 
@@ -105,15 +103,10 @@ app.config['JSON_SORT_KEYS'] = False
 API_PORT = int(os.environ.get('HEXSTRIKE_PORT', 8888))
 API_HOST = os.environ.get('HEXSTRIKE_HOST', '127.0.0.1')
 
-# ============================================================================
-# REFACTORED IMPORTS - Phase 1 Modularization
-# ============================================================================
-# Import core modules from new modular architecture
 from core.visual import ModernVisualEngine
 from core.cache import HexStrikeCache
 from core.telemetry import TelemetryCollector
 
-# Phase 5C Batch 1: Core System Classes
 from core.degradation import GracefulDegradation
 from core.process_pool import ProcessPool
 from core.enhanced_process import EnhancedProcessManager
@@ -121,7 +114,6 @@ from core.command_executor import EnhancedCommandExecutor
 from core.file_manager import FileOperationsManager
 from core.file_upload_testing import FileUploadTestingFramework
 
-# Phase 5C Batch 3: Workflow & Support Classes
 from core.process_manager import ProcessManager
 from core.advanced_cache import AdvancedCache
 from core.resource_monitor import ResourceMonitor
@@ -130,7 +122,6 @@ from core.python_env_manager import PythonEnvironmentManager
 from core.logging_formatter import ColoredFormatter
 from core.http_testing_framework import HTTPTestingFramework
 
-# Import agents modules
 from agents.bugbounty import BugBountyWorkflowManager, BugBountyTarget
 from agents.ctf import CTFWorkflowManager, CTFChallenge, CTFToolManager
 from agents.cve import CVEIntelligenceManager
@@ -138,7 +129,6 @@ from agents.decision_engine import IntelligentDecisionEngine, TargetProfile, Att
 from agents.ai_payload_generator import AIPayloadGenerator, ai_payload_generator
 from agents.browser_agent import BrowserAgent
 
-# Phase 5C Batch 2: Exploit Generation System
 from agents.cve.exploit_ai import AIExploitGenerator
 from agents.cve.exploits import (
     SQLiExploit, XSSExploit, FileReadExploit, RCEExploit,
@@ -146,20 +136,17 @@ from agents.cve.exploits import (
     BufferOverflowExploit, GenericExploit
 )
 
-# Phase 5C Batch 3: CTF Agent Classes
 from agents.ctf.automator import CTFChallengeAutomator
 from agents.ctf.coordinator import CTFTeamCoordinator
 from agents.cve.correlator import VulnerabilityCorrelator
 from core.error_handler import IntelligentErrorHandler, ErrorType, RecoveryAction
 
-# Phase 5C Batch 4: Command Execution & Tool Factory
 from core.execution import (
     execute_command,
     execute_command_with_recovery
 )
 from core.tool_factory import create_tool_executor
 
-# Phase 2: Tool Abstraction Layer
 from tools.network.nmap import NmapTool
 from tools.network.httpx import HttpxTool
 from tools.network.masscan import MasscanTool
@@ -191,12 +178,6 @@ from tools.security.jaeles import JaelesTool
 from tools.security.zap import ZAPTool
 from tools.security.burpsuite import BurpSuiteTool
 
-
-# ============================================================================
-# INTELLIGENT DECISION ENGINE (v6.0 ENHANCEMENT)
-# ============================================================================
-
-
 # Global decision engine instance
 decision_engine = IntelligentDecisionEngine()
 
@@ -204,26 +185,6 @@ decision_engine = IntelligentDecisionEngine()
 error_handler = IntelligentErrorHandler()
 degradation_manager = GracefulDegradation()
 
-# ============================================================================
-# BUG BOUNTY HUNTING SPECIALIZED WORKFLOWS (v6.0 ENHANCEMENT)
-# ============================================================================
-# NOTE: BugBountyTarget and BugBountyWorkflowManager moved to agents/bugbounty/workflow_manager.py
-
-# ============================================================================
-# CTF COMPETITION EXCELLENCE FRAMEWORK (v6.0 ENHANCEMENT)
-# ============================================================================
-
-# ============================================================================
-# CTF COMPETITION EXCELLENCE FRAMEWORK (v6.0 ENHANCEMENT)
-# ============================================================================
-# NOTE: CTFChallenge, CTFWorkflowManager, and CTFToolManager moved to agents/ctf/workflow_manager.py
-
-
-
-# ============================================================================
-# ADVANCED PARAMETER OPTIMIZATION AND INTELLIGENCE (v9.0 ENHANCEMENT)
-# ============================================================================
-# NOTE: Optimization classes moved to core/optimizer.py
 from core.optimizer import (
     TechnologyDetector,
     RateLimitDetector,
@@ -231,16 +192,6 @@ from core.optimizer import (
     PerformanceMonitor,
     ParameterOptimizer
 )
-
-
-# ============================================================================
-# ADVANCED PROCESS MANAGEMENT AND MONITORING (v10.0 ENHANCEMENT)
-# ============================================================================
-
-
-
-
-
 
 # Global instances
 tech_detector = TechnologyDetector()
@@ -263,28 +214,12 @@ bugbounty_manager = BugBountyWorkflowManager()
 http_testing_framework = HTTPTestingFramework()
 browser_agent = BrowserAgent()
 
-# ============================================================================
-# PROCESS MANAGEMENT FOR COMMAND TERMINATION (v5.0 ENHANCEMENT)
-# ============================================================================
-
 # Process management for command termination
 active_processes = {}  # pid -> process info
 process_lock = threading.Lock()
 
-
-
 # Global environment manager
 env_manager = PythonEnvironmentManager()
-
-# ============================================================================
-# ADVANCED VULNERABILITY INTELLIGENCE SYSTEM (v6.0 ENHANCEMENT)
-# ============================================================================
-
-# ============================================================================
-# CVE INTELLIGENCE AND VULNERABILITY MANAGEMENT
-# ============================================================================
-# NOTE: CVEIntelligenceManager moved to agents/cve/intelligence_manager.py
-
 
 # Enhanced logging setup
 def setup_logging():
@@ -312,48 +247,16 @@ COMMAND_TIMEOUT = 300  # 5 minutes default timeout
 CACHE_SIZE = 1000
 CACHE_TTL = 3600  # 1 hour
 
-# End of HexStrikeCache and TelemetryCollector classes - now in core/cache.py and core/telemetry.py
-
 # Global instances using imported classes
 cache = HexStrikeCache()
 telemetry = TelemetryCollector()
-
-
-# ============================================================================
-# DUPLICATE CLASSES REMOVED - Using the first definitions above
-# ============================================================================
-
-# ============================================================================
-# AI-POWERED EXPLOIT GENERATION SYSTEM (v6.0 ENHANCEMENT)
-# ============================================================================
-#
-# This section contains advanced AI-powered exploit generation capabilities
-# for automated vulnerability exploitation and proof-of-concept development.
-#
-# Features:
-# - Automated exploit template generation from CVE data
-# - Multi-architecture support (x86, x64, ARM)
-# - Evasion technique integration
-# - Custom payload generation
-# - Exploit effectiveness scoring
-#
-# ============================================================================
-
-
-
-
 
 # Global intelligence managers
 cve_intelligence = CVEIntelligenceManager()
 exploit_generator = AIExploitGenerator()
 vulnerability_correlator = VulnerabilityCorrelator()
 
-
-
-
-
 # File Operations Manager
-
 # Global file operations manager
 file_manager = FileOperationsManager()
 
