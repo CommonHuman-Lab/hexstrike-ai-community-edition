@@ -8,11 +8,17 @@ from .subfinder import SubfinderTool
 from .waybackurls import WaybackURLsTool
 from .gau import GAUTool
 from .hakrawler import HakrawlerTool
+from .anew import AnewTool
+from .qsreplace import QsreplaceTool
+from .uro import UroTool
 
 __all__ = [
     'AmassTool',
     'SubfinderTool',
     'WaybackURLsTool',
     'GAUTool',
-    'HakrawlerTool'
+    'HakrawlerTool',
+    'AnewTool',
+    'QsreplaceTool',
+    'UroTool'
 ]
