@@ -35,8 +35,8 @@ class MockProcess:
         self.stderr = MagicMock()
 
         # Configure readline to return lines
-        self.stdout.readline = MagicMock(return_value='')
-        self.stderr.readline = MagicMock(return_value='')
+        self.stdout.readline = MagicMock(return_value="")
+        self.stderr.readline = MagicMock(return_value="")
 
     def communicate(self, timeout=None):
         """Mock communicate method"""
@@ -155,32 +155,34 @@ IP[192.168.1.100], JQuery[3.6.0], Script, Title[Example Site], X-Powered-By[PHP/
     def get_tool_output(cls, tool_name: str, target: str = "example.com", **kwargs) -> str:
         """Get mock output for a specific tool"""
         output_map = {
-            'nmap': cls.NMAP_OUTPUT,
-            'gobuster': cls.GOBUSTER_OUTPUT,
-            'sqlmap': cls.SQLMAP_OUTPUT,
-            'nikto': cls.NIKTO_OUTPUT,
-            'nuclei': cls.NUCLEI_OUTPUT,
-            'feroxbuster': cls.FEROXBUSTER_OUTPUT,
-            'ffuf': cls.FFUF_OUTPUT,
-            'hydra': cls.HYDRA_OUTPUT,
-            'john': cls.JOHN_OUTPUT,
-            'whatweb': cls.WHATWEB_OUTPUT,
-            'wafw00f': cls.WAFW00F_OUTPUT,
+            "nmap": cls.NMAP_OUTPUT,
+            "gobuster": cls.GOBUSTER_OUTPUT,
+            "sqlmap": cls.SQLMAP_OUTPUT,
+            "nikto": cls.NIKTO_OUTPUT,
+            "nuclei": cls.NUCLEI_OUTPUT,
+            "feroxbuster": cls.FEROXBUSTER_OUTPUT,
+            "ffuf": cls.FFUF_OUTPUT,
+            "hydra": cls.HYDRA_OUTPUT,
+            "john": cls.JOHN_OUTPUT,
+            "whatweb": cls.WHATWEB_OUTPUT,
+            "wafw00f": cls.WAFW00F_OUTPUT,
         }
 
         template = output_map.get(tool_name.lower(), "Mock output for {tool_name}")
         return template.format(target=target, tool_name=tool_name, **kwargs)
 
     @classmethod
-    def create_mock_process(cls, tool_name: str, target: str = "example.com",
-                          returncode: int = 0, **kwargs) -> MockProcess:
+    def create_mock_process(
+        cls, tool_name: str, target: str = "example.com", returncode: int = 0, **kwargs
+    ) -> MockProcess:
         """Create a mock process with tool output"""
         output = cls.get_tool_output(tool_name, target, **kwargs)
         return MockProcess(returncode=returncode, stdout=output, stderr="")
 
     @classmethod
-    def create_mock_result(cls, tool_name: str, target: str = "example.com",
-                          returncode: int = 0, **kwargs) -> MockSubprocessResult:
+    def create_mock_result(
+        cls, tool_name: str, target: str = "example.com", returncode: int = 0, **kwargs
+    ) -> MockSubprocessResult:
         """Create a mock subprocess result with tool output"""
         output = cls.get_tool_output(tool_name, target, **kwargs)
         return MockSubprocessResult(returncode=returncode, stdout=output, stderr="")
@@ -194,22 +196,17 @@ class CommandExecutionMocker:
         self.responses = {}
         self.default_response = MockSubprocessResult()
 
-    def add_response(self, command_pattern: str, returncode: int = 0,
-                    stdout: str = "", stderr: str = ""):
+    def add_response(self, command_pattern: str, returncode: int = 0, stdout: str = "", stderr: str = ""):
         """Add a mock response for commands matching a pattern"""
-        self.responses[command_pattern] = MockSubprocessResult(
-            returncode=returncode,
-            stdout=stdout,
-            stderr=stderr
-        )
+        self.responses[command_pattern] = MockSubprocessResult(returncode=returncode, stdout=stdout, stderr=stderr)
 
     def mock_run(self, *args, **kwargs):
         """Mock subprocess.run"""
-        command = args[0] if args else kwargs.get('args', [])
+        command = args[0] if args else kwargs.get("args", [])
         self.commands_executed.append(command)
 
         # Find matching response
-        command_str = ' '.join(command) if isinstance(command, list) else str(command)
+        command_str = " ".join(command) if isinstance(command, list) else str(command)
 
         for pattern, response in self.responses.items():
             if pattern in command_str:
@@ -219,18 +216,18 @@ class CommandExecutionMocker:
 
     def mock_popen(self, *args, **kwargs):
         """Mock subprocess.Popen"""
-        command = args[0] if args else kwargs.get('args', [])
+        command = args[0] if args else kwargs.get("args", [])
         self.commands_executed.append(command)
 
         # Find matching response
-        command_str = ' '.join(command) if isinstance(command, list) else str(command)
+        command_str = " ".join(command) if isinstance(command, list) else str(command)
 
         for pattern, response in self.responses.items():
             if pattern in command_str:
                 return MockProcess(
                     returncode=response.returncode,
                     stdout=response.stdout.decode() if isinstance(response.stdout, bytes) else response.stdout,
-                    stderr=response.stderr.decode() if isinstance(response.stderr, bytes) else response.stderr
+                    stderr=response.stderr.decode() if isinstance(response.stderr, bytes) else response.stderr,
                 )
 
         return MockProcess()
@@ -252,24 +249,20 @@ class NetworkMocker:
         self.requests_made = []
         self.responses = {}
         self.default_response = {
-            'status_code': 200,
-            'text': 'Mock response',
-            'content': b'Mock response',
-            'json': {'status': 'success'}
+            "status_code": 200,
+            "text": "Mock response",
+            "content": b"Mock response",
+            "json": {"status": "success"},
         }
 
-    def add_response(self, url_pattern: str, method: str = 'GET', **response_data):
+    def add_response(self, url_pattern: str, method: str = "GET", **response_data):
         """Add a mock response for a URL pattern"""
         key = f"{method.upper()}:{url_pattern}"
         self.responses[key] = response_data
 
     def mock_request(self, method: str, url: str, **kwargs):
         """Mock a network request"""
-        self.requests_made.append({
-            'method': method,
-            'url': url,
-            'kwargs': kwargs
-        })
+        self.requests_made.append({"method": method, "url": url, "kwargs": kwargs})
 
         # Find matching response
         for pattern, response in self.responses.items():
@@ -298,13 +291,13 @@ def create_mock_file_system(files: Dict[str, str]) -> Dict[str, Any]:
     """
     file_contents = files.copy()
 
-    def mock_open(path, mode='r', **kwargs):
+    def mock_open(path, mode="r", **kwargs):
         """Mock file open operation"""
         if path in file_contents:
             mock_file = MagicMock()
             content = file_contents[path]
 
-            if 'b' in mode:
+            if "b" in mode:
                 content = content.encode() if isinstance(content, str) else content
             else:
                 content = content.decode() if isinstance(content, bytes) else content
@@ -319,8 +312,4 @@ def create_mock_file_system(files: Dict[str, str]) -> Dict[str, Any]:
         """Mock file existence check"""
         return path in file_contents
 
-    return {
-        'open': mock_open,
-        'exists': mock_exists,
-        'files': file_contents
-    }
+    return {"open": mock_open, "exists": mock_exists, "files": file_contents}

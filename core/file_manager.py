@@ -7,9 +7,9 @@ deleting, and listing files within a secure base directory.
 
 import logging
 import shutil
-from pathlib import Path
-from typing import Dict, Any
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -26,23 +26,23 @@ class FileOperationsManager:
         """
         Validate that the resolved path is within the base directory.
         Prevents path traversal attacks via sequences like '../'.
-        
+
         Args:
             filename: The filename or relative path to validate
-            
+
         Returns:
             Resolved Path object if valid
-            
+
         Raises:
             ValueError: If path traversal is detected
         """
         # Resolve the full path
         file_path = (self.base_dir / filename).resolve()
-        
+
         # Ensure the resolved path is still within base_dir
         if not str(file_path).startswith(str(self.base_dir)):
             raise ValueError(f"Path traversal detected: {filename}")
-        
+
         return file_path
 
     def create_file(self, filename: str, content: str, binary: bool = False) -> Dict[str, Any]:
@@ -114,12 +114,14 @@ class FileOperationsManager:
 
             files = []
             for item in dir_path.iterdir():
-                files.append({
-                    "name": item.name,
-                    "type": "directory" if item.is_dir() else "file",
-                    "size": item.stat().st_size if item.is_file() else 0,
-                    "modified": datetime.fromtimestamp(item.stat().st_mtime).isoformat()
-                })
+                files.append(
+                    {
+                        "name": item.name,
+                        "type": "directory" if item.is_dir() else "file",
+                        "size": item.stat().st_size if item.is_file() else 0,
+                        "modified": datetime.fromtimestamp(item.stat().st_mtime).isoformat(),
+                    }
+                )
 
             return {"success": True, "files": files}
 

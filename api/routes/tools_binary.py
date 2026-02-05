@@ -5,15 +5,17 @@ Handles memory forensics, binary analysis, reverse engineering, and firmware ana
 
 import logging
 import os
-from flask import Blueprint, request, jsonify
+
+from flask import Blueprint, jsonify, request
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-tools_binary_bp = Blueprint('tools_binary', __name__, url_prefix='/api/tools')
+tools_binary_bp = Blueprint("tools_binary", __name__, url_prefix="/api/tools")
 
 # Dependencies will be injected via init_app
 execute_command = None
+
 
 def init_app(exec_command):
     """Initialize blueprint with dependencies"""
@@ -33,15 +35,11 @@ def volatility():
 
         if not memory_file:
             logger.warning("🧠 Volatility called without memory_file parameter")
-            return jsonify({
-                "error": "Memory file parameter is required"
-            }), 400
+            return jsonify({"error": "Memory file parameter is required"}), 400
 
         if not plugin:
             logger.warning("🧠 Volatility called without plugin parameter")
-            return jsonify({
-                "error": "Plugin parameter is required"
-            }), 400
+            return jsonify({"error": "Plugin parameter is required"}), 400
 
         command = f"volatility -f {memory_file}"
 
@@ -59,9 +57,8 @@ def volatility():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in volatility endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_binary_bp.route("/gdb", methods=["POST"])
 def gdb():
@@ -75,9 +72,7 @@ def gdb():
 
         if not binary:
             logger.warning("🔧 GDB called without binary parameter")
-            return jsonify({
-                "error": "Binary parameter is required"
-            }), 400
+            return jsonify({"error": "Binary parameter is required"}), 400
 
         command = f"gdb {binary}"
 
@@ -101,16 +96,15 @@ def gdb():
         if commands and os.path.exists("/tmp/gdb_commands.txt"):
             try:
                 os.remove("/tmp/gdb_commands.txt")
-            except:
+            except Exception:
                 pass
 
         logger.info(f"📊 GDB analysis completed for {binary}")
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in gdb endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_binary_bp.route("/radare2", methods=["POST"])
 def radare2():
@@ -123,9 +117,7 @@ def radare2():
 
         if not binary:
             logger.warning("🔧 Radare2 called without binary parameter")
-            return jsonify({
-                "error": "Binary parameter is required"
-            }), 400
+            return jsonify({"error": "Binary parameter is required"}), 400
 
         if commands:
             temp_script = "/tmp/r2_commands.txt"
@@ -144,16 +136,15 @@ def radare2():
         if commands and os.path.exists("/tmp/r2_commands.txt"):
             try:
                 os.remove("/tmp/r2_commands.txt")
-            except:
+            except Exception:
                 pass
 
         logger.info(f"📊 Radare2 analysis completed for {binary}")
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in radare2 endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_binary_bp.route("/binwalk", methods=["POST"])
 def binwalk():
@@ -166,9 +157,7 @@ def binwalk():
 
         if not file_path:
             logger.warning("🔧 Binwalk called without file_path parameter")
-            return jsonify({
-                "error": "File path parameter is required"
-            }), 400
+            return jsonify({"error": "File path parameter is required"}), 400
 
         command = f"binwalk"
 
@@ -186,9 +175,8 @@ def binwalk():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in binwalk endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_binary_bp.route("/ropgadget", methods=["POST"])
 def ropgadget():
@@ -201,9 +189,7 @@ def ropgadget():
 
         if not binary:
             logger.warning("🔧 ROPgadget called without binary parameter")
-            return jsonify({
-                "error": "Binary parameter is required"
-            }), 400
+            return jsonify({"error": "Binary parameter is required"}), 400
 
         command = f"ROPgadget --binary {binary}"
 
@@ -219,9 +205,8 @@ def ropgadget():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in ropgadget endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_binary_bp.route("/checksec", methods=["POST"])
 def checksec():
@@ -233,9 +218,7 @@ def checksec():
 
         if not binary:
             logger.warning("🔧 Checksec called without binary parameter")
-            return jsonify({
-                "error": "Binary parameter is required"
-            }), 400
+            return jsonify({"error": "Binary parameter is required"}), 400
 
         command = f"checksec --file={binary}"
 
@@ -248,9 +231,8 @@ def checksec():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in checksec endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_binary_bp.route("/xxd", methods=["POST"])
 def xxd():
@@ -264,9 +246,7 @@ def xxd():
 
         if not file_path:
             logger.warning("🔧 xxd called without file_path parameter")
-            return jsonify({
-                "error": "File path parameter is required"
-            }), 400
+            return jsonify({"error": "File path parameter is required"}), 400
 
         command = f"xxd"
 
@@ -287,9 +267,8 @@ def xxd():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in xxd endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_binary_bp.route("/strings", methods=["POST"])
 def strings():
@@ -302,9 +281,7 @@ def strings():
 
         if not file_path:
             logger.warning("🔧 Strings called without file_path parameter")
-            return jsonify({
-                "error": "File path parameter is required"
-            }), 400
+            return jsonify({"error": "File path parameter is required"}), 400
 
         command = f"strings"
 
@@ -322,9 +299,8 @@ def strings():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in strings endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_binary_bp.route("/objdump", methods=["POST"])
 def objdump():
@@ -338,9 +314,7 @@ def objdump():
 
         if not file_path:
             logger.warning("🔧 Objdump called without file_path parameter")
-            return jsonify({
-                "error": "File path parameter is required"
-            }), 400
+            return jsonify({"error": "File path parameter is required"}), 400
 
         command = f"objdump"
 
@@ -361,9 +335,8 @@ def objdump():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in objdump endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_binary_bp.route("/ghidra", methods=["POST"])
 def ghidra():
@@ -377,9 +350,7 @@ def ghidra():
 
         if not binary:
             logger.warning("🔧 Ghidra called without binary parameter")
-            return jsonify({
-                "error": "Binary parameter is required"
-            }), 400
+            return jsonify({"error": "Binary parameter is required"}), 400
 
         command = f"analyzeHeadless"
 
@@ -402,9 +373,8 @@ def ghidra():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in ghidra endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_binary_bp.route("/pwntools", methods=["POST"])
 def pwntools():
@@ -418,9 +388,7 @@ def pwntools():
 
         if not script:
             logger.warning("🔧 Pwntools called without script parameter")
-            return jsonify({
-                "error": "Script parameter is required"
-            }), 400
+            return jsonify({"error": "Script parameter is required"}), 400
 
         command = f"python3 {script}"
 
@@ -439,9 +407,8 @@ def pwntools():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in pwntools endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_binary_bp.route("/one-gadget", methods=["POST"])
 def one_gadget():
@@ -453,9 +420,7 @@ def one_gadget():
 
         if not libc_path:
             logger.warning("🔧 One-gadget called without libc_path parameter")
-            return jsonify({
-                "error": "Libc path parameter is required"
-            }), 400
+            return jsonify({"error": "Libc path parameter is required"}), 400
 
         command = f"one_gadget {libc_path}"
 
@@ -468,9 +433,8 @@ def one_gadget():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in one-gadget endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_binary_bp.route("/libc-database", methods=["POST"])
 def libc_database():
@@ -483,9 +447,7 @@ def libc_database():
 
         if not action:
             logger.warning("🔧 Libc-database called without action parameter")
-            return jsonify({
-                "error": "Action parameter is required"
-            }), 400
+            return jsonify({"error": "Action parameter is required"}), 400
 
         command = f"./libc-database/find {action}"
 
@@ -501,9 +463,8 @@ def libc_database():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in libc-database endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_binary_bp.route("/gdb-peda", methods=["POST"])
 def gdb_peda():
@@ -516,9 +477,7 @@ def gdb_peda():
 
         if not binary:
             logger.warning("🔧 GDB-PEDA called without binary parameter")
-            return jsonify({
-                "error": "Binary parameter is required"
-            }), 400
+            return jsonify({"error": "Binary parameter is required"}), 400
 
         command = f"gdb {binary}"
 
@@ -539,16 +498,15 @@ def gdb_peda():
         if commands and os.path.exists("/tmp/gdb_peda_commands.txt"):
             try:
                 os.remove("/tmp/gdb_peda_commands.txt")
-            except:
+            except Exception:
                 pass
 
         logger.info(f"📊 GDB-PEDA analysis completed for {binary}")
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in gdb-peda endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_binary_bp.route("/angr", methods=["POST"])
 def angr():
@@ -561,9 +519,7 @@ def angr():
 
         if not script:
             logger.warning("🔧 Angr called without script parameter")
-            return jsonify({
-                "error": "Script parameter is required"
-            }), 400
+            return jsonify({"error": "Script parameter is required"}), 400
 
         command = f"python3 {script}"
 
@@ -579,9 +535,8 @@ def angr():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in angr endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_binary_bp.route("/ropper", methods=["POST"])
 def ropper():
@@ -594,9 +549,7 @@ def ropper():
 
         if not binary:
             logger.warning("🔧 Ropper called without binary parameter")
-            return jsonify({
-                "error": "Binary parameter is required"
-            }), 400
+            return jsonify({"error": "Binary parameter is required"}), 400
 
         command = f"ropper --file {binary}"
 
@@ -612,9 +565,8 @@ def ropper():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in ropper endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_binary_bp.route("/pwninit", methods=["POST"])
 def pwninit():
@@ -646,6 +598,4 @@ def pwninit():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in pwninit endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500

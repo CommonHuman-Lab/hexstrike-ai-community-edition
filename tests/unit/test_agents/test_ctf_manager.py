@@ -15,16 +15,17 @@ Tests cover:
 Target: 95%+ code coverage with 30+ comprehensive tests
 """
 
-import pytest
-import sys
 import os
-from unittest.mock import patch, MagicMock
-from typing import Dict, List, Any
+import sys
+from typing import Any, Dict, List
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Add parent directories to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
-from agents.ctf import CTFWorkflowManager, CTFChallenge
+from agents.ctf import CTFChallenge, CTFWorkflowManager
 
 
 class TestCTFManagerInitialization:
@@ -90,11 +91,7 @@ class TestCTFChallenge:
 
     def test_create_basic_challenge(self):
         """Test creating a basic CTF challenge"""
-        challenge = CTFChallenge(
-            name="Test Challenge",
-            category="web",
-            description="A test web challenge"
-        )
+        challenge = CTFChallenge(name="Test Challenge", category="web", description="A test web challenge")
         assert challenge.name == "Test Challenge"
         assert challenge.category == "web"
         assert challenge.points == 0
@@ -103,11 +100,7 @@ class TestCTFChallenge:
     def test_create_challenge_with_points(self):
         """Test creating challenge with points"""
         challenge = CTFChallenge(
-            name="Hard Challenge",
-            category="pwn",
-            description="Binary exploitation",
-            points=500,
-            difficulty="hard"
+            name="Hard Challenge", category="pwn", description="Binary exploitation", points=500, difficulty="hard"
         )
         assert challenge.points == 500
         assert challenge.difficulty == "hard"
@@ -118,7 +111,7 @@ class TestCTFChallenge:
             name="Crypto Challenge",
             category="crypto",
             description="Decrypt the file",
-            files=["encrypted.txt", "key.pem"]
+            files=["encrypted.txt", "key.pem"],
         )
         assert len(challenge.files) == 2
 
@@ -128,7 +121,7 @@ class TestCTFChallenge:
             name="Mystery Challenge",
             category="misc",
             description="Find the flag",
-            hints=["Look at the headers", "Try base64"]
+            hints=["Look at the headers", "Try base64"],
         )
         assert len(challenge.hints) == 2
 
@@ -144,7 +137,7 @@ class TestChallengeWorkflowCreation:
             category="web",
             description="SQL injection in login form",
             points=300,
-            difficulty="medium"
+            difficulty="medium",
         )
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
@@ -157,12 +150,7 @@ class TestChallengeWorkflowCreation:
     def test_workflow_has_tools(self):
         """Test workflow includes appropriate tools"""
         manager = CTFWorkflowManager()
-        challenge = CTFChallenge(
-            name="Test",
-            category="web",
-            description="Web challenge",
-            difficulty="easy"
-        )
+        challenge = CTFChallenge(name="Test", category="web", description="Web challenge", difficulty="easy")
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
 
@@ -172,12 +160,7 @@ class TestChallengeWorkflowCreation:
     def test_workflow_has_strategies(self):
         """Test workflow includes solving strategies"""
         manager = CTFWorkflowManager()
-        challenge = CTFChallenge(
-            name="Test",
-            category="web",
-            description="Web challenge",
-            difficulty="easy"
-        )
+        challenge = CTFChallenge(name="Test", category="web", description="Web challenge", difficulty="easy")
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
 
@@ -187,12 +170,7 @@ class TestChallengeWorkflowCreation:
     def test_workflow_estimated_time(self):
         """Test workflow has estimated time"""
         manager = CTFWorkflowManager()
-        challenge = CTFChallenge(
-            name="Test",
-            category="web",
-            description="Web challenge",
-            difficulty="medium"
-        )
+        challenge = CTFChallenge(name="Test", category="web", description="Web challenge", difficulty="medium")
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
 
@@ -202,12 +180,7 @@ class TestChallengeWorkflowCreation:
     def test_workflow_success_probability(self):
         """Test workflow has success probability"""
         manager = CTFWorkflowManager()
-        challenge = CTFChallenge(
-            name="Test",
-            category="web",
-            description="Web challenge",
-            difficulty="easy"
-        )
+        challenge = CTFChallenge(name="Test", category="web", description="Web challenge", difficulty="easy")
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
 
@@ -222,10 +195,7 @@ class TestToolSelection:
         """Test tool selection for SQL injection challenge"""
         manager = CTFWorkflowManager()
         challenge = CTFChallenge(
-            name="SQL Challenge",
-            category="web",
-            description="SQL injection in database query",
-            difficulty="medium"
+            name="SQL Challenge", category="web", description="SQL injection in database query", difficulty="medium"
         )
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
@@ -239,7 +209,7 @@ class TestToolSelection:
             name="XSS Challenge",
             category="web",
             description="Exploit XSS vulnerability using JavaScript",
-            difficulty="easy"
+            difficulty="easy",
         )
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
@@ -250,10 +220,7 @@ class TestToolSelection:
         """Test tool selection for WordPress challenge"""
         manager = CTFWorkflowManager()
         challenge = CTFChallenge(
-            name="WP Challenge",
-            category="web",
-            description="WordPress site vulnerability",
-            difficulty="medium"
+            name="WP Challenge", category="web", description="WordPress site vulnerability", difficulty="medium"
         )
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
@@ -264,10 +231,7 @@ class TestToolSelection:
         """Test tool selection for hash cracking challenge"""
         manager = CTFWorkflowManager()
         challenge = CTFChallenge(
-            name="Hash Challenge",
-            category="crypto",
-            description="Crack the MD5 hash",
-            difficulty="easy"
+            name="Hash Challenge", category="crypto", description="Crack the MD5 hash", difficulty="easy"
         )
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
@@ -281,7 +245,7 @@ class TestToolSelection:
             name="RSA Challenge",
             category="crypto",
             description="Break weak RSA public key encryption",
-            difficulty="hard"
+            difficulty="hard",
         )
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
@@ -292,10 +256,7 @@ class TestToolSelection:
         """Test tool selection for pwn challenge"""
         manager = CTFWorkflowManager()
         challenge = CTFChallenge(
-            name="Binary Exploit",
-            category="pwn",
-            description="Exploit buffer overflow",
-            difficulty="medium"
+            name="Binary Exploit", category="pwn", description="Exploit buffer overflow", difficulty="medium"
         )
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
@@ -307,10 +268,7 @@ class TestToolSelection:
         """Test tool selection for image forensics"""
         manager = CTFWorkflowManager()
         challenge = CTFChallenge(
-            name="Image Forensics",
-            category="forensics",
-            description="Find hidden data in PNG image",
-            difficulty="easy"
+            name="Image Forensics", category="forensics", description="Find hidden data in PNG image", difficulty="easy"
         )
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
@@ -321,10 +279,7 @@ class TestToolSelection:
         """Test tool selection for memory forensics"""
         manager = CTFWorkflowManager()
         challenge = CTFChallenge(
-            name="Memory Dump",
-            category="forensics",
-            description="Analyze memory dump for secrets",
-            difficulty="hard"
+            name="Memory Dump", category="forensics", description="Analyze memory dump for secrets", difficulty="hard"
         )
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
@@ -335,10 +290,7 @@ class TestToolSelection:
         """Test tool selection for reverse engineering"""
         manager = CTFWorkflowManager()
         challenge = CTFChallenge(
-            name="Reverse Me",
-            category="rev",
-            description="Reverse engineer the binary",
-            difficulty="medium"
+            name="Reverse Me", category="rev", description="Reverse engineer the binary", difficulty="medium"
         )
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
@@ -353,10 +305,7 @@ class TestTimeEstimation:
         """Test time estimation for easy challenge"""
         manager = CTFWorkflowManager()
         challenge = CTFChallenge(
-            name="Easy Challenge",
-            category="web",
-            description="Simple web challenge",
-            difficulty="easy"
+            name="Easy Challenge", category="web", description="Simple web challenge", difficulty="easy"
         )
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
@@ -368,10 +317,7 @@ class TestTimeEstimation:
         """Test time estimation for hard challenge"""
         manager = CTFWorkflowManager()
         challenge = CTFChallenge(
-            name="Hard Challenge",
-            category="pwn",
-            description="Complex binary exploitation",
-            difficulty="hard"
+            name="Hard Challenge", category="pwn", description="Complex binary exploitation", difficulty="hard"
         )
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
@@ -386,7 +332,7 @@ class TestTimeEstimation:
             name="Insane Challenge",
             category="crypto",
             description="Advanced cryptographic challenge",
-            difficulty="insane"
+            difficulty="insane",
         )
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
@@ -398,12 +344,8 @@ class TestTimeEstimation:
         """Test that category affects time estimation"""
         manager = CTFWorkflowManager()
 
-        pwn_challenge = CTFChallenge(
-            name="Pwn", category="pwn", description="Binary", difficulty="medium"
-        )
-        web_challenge = CTFChallenge(
-            name="Web", category="web", description="Web", difficulty="medium"
-        )
+        pwn_challenge = CTFChallenge(name="Pwn", category="pwn", description="Binary", difficulty="medium")
+        web_challenge = CTFChallenge(name="Web", category="web", description="Web", difficulty="medium")
 
         pwn_workflow = manager.create_ctf_challenge_workflow(pwn_challenge)
         web_workflow = manager.create_ctf_challenge_workflow(web_challenge)
@@ -418,12 +360,7 @@ class TestSuccessProbability:
     def test_easy_challenge_probability(self):
         """Test success probability for easy challenge"""
         manager = CTFWorkflowManager()
-        challenge = CTFChallenge(
-            name="Easy",
-            category="web",
-            description="Simple challenge",
-            difficulty="easy"
-        )
+        challenge = CTFChallenge(name="Easy", category="web", description="Simple challenge", difficulty="easy")
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
 
@@ -434,10 +371,7 @@ class TestSuccessProbability:
         """Test success probability for insane challenge"""
         manager = CTFWorkflowManager()
         challenge = CTFChallenge(
-            name="Insane",
-            category="crypto",
-            description="Very difficult challenge",
-            difficulty="insane"
+            name="Insane", category="crypto", description="Very difficult challenge", difficulty="insane"
         )
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
@@ -451,18 +385,12 @@ class TestSuccessProbability:
 
         # Challenge with keyword-specific tools
         challenge_with_keywords = CTFChallenge(
-            name="SQL Injection",
-            category="web",
-            description="SQL injection and XSS vulnerability",
-            difficulty="medium"
+            name="SQL Injection", category="web", description="SQL injection and XSS vulnerability", difficulty="medium"
         )
 
         # Challenge without specific keywords
         challenge_generic = CTFChallenge(
-            name="Generic",
-            category="web",
-            description="Generic web challenge",
-            difficulty="medium"
+            name="Generic", category="web", description="Generic web challenge", difficulty="medium"
         )
 
         workflow_keywords = manager.create_ctf_challenge_workflow(challenge_with_keywords)
@@ -478,12 +406,7 @@ class TestCategoryWorkflows:
     def test_web_workflow_steps(self):
         """Test web challenge workflow steps"""
         manager = CTFWorkflowManager()
-        challenge = CTFChallenge(
-            name="Web",
-            category="web",
-            description="Web challenge",
-            difficulty="medium"
-        )
+        challenge = CTFChallenge(name="Web", category="web", description="Web challenge", difficulty="medium")
 
         workflow = challenge
 
@@ -501,10 +424,7 @@ class TestCategoryWorkflows:
         """Test crypto challenge workflow steps"""
         manager = CTFWorkflowManager()
         challenge = CTFChallenge(
-            name="Crypto",
-            category="crypto",
-            description="Cryptography challenge",
-            difficulty="medium"
+            name="Crypto", category="crypto", description="Cryptography challenge", difficulty="medium"
         )
 
         steps = manager._create_category_workflow(challenge)
@@ -515,12 +435,7 @@ class TestCategoryWorkflows:
     def test_pwn_workflow_steps(self):
         """Test pwn challenge workflow steps"""
         manager = CTFWorkflowManager()
-        challenge = CTFChallenge(
-            name="Pwn",
-            category="pwn",
-            description="Binary exploitation",
-            difficulty="medium"
-        )
+        challenge = CTFChallenge(name="Pwn", category="pwn", description="Binary exploitation", difficulty="medium")
 
         steps = manager._create_category_workflow(challenge)
 
@@ -532,10 +447,7 @@ class TestCategoryWorkflows:
         """Test forensics challenge workflow steps"""
         manager = CTFWorkflowManager()
         challenge = CTFChallenge(
-            name="Forensics",
-            category="forensics",
-            description="Digital forensics",
-            difficulty="medium"
+            name="Forensics", category="forensics", description="Digital forensics", difficulty="medium"
         )
 
         steps = manager._create_category_workflow(challenge)
@@ -547,10 +459,7 @@ class TestCategoryWorkflows:
         """Test workflow for unknown category"""
         manager = CTFWorkflowManager()
         challenge = CTFChallenge(
-            name="Unknown",
-            category="unknown_category",
-            description="Unknown challenge",
-            difficulty="medium"
+            name="Unknown", category="unknown_category", description="Unknown challenge", difficulty="medium"
         )
 
         steps = manager._create_category_workflow(challenge)
@@ -568,7 +477,7 @@ class TestTeamStrategy:
         manager = CTFWorkflowManager()
         challenges = [
             CTFChallenge("Easy Web", "web", "Web challenge", points=100, difficulty="easy"),
-            CTFChallenge("Hard Pwn", "pwn", "Binary exploit", points=500, difficulty="hard")
+            CTFChallenge("Hard Pwn", "pwn", "Binary exploit", points=500, difficulty="hard"),
         ]
 
         strategy = manager.create_ctf_team_strategy(challenges, team_size=4)
@@ -580,9 +489,7 @@ class TestTeamStrategy:
     def test_team_strategy_components(self):
         """Test team strategy has all components"""
         manager = CTFWorkflowManager()
-        challenges = [
-            CTFChallenge("Challenge 1", "web", "Test", points=200, difficulty="medium")
-        ]
+        challenges = [CTFChallenge("Challenge 1", "web", "Test", points=200, difficulty="medium")]
 
         strategy = manager.create_ctf_team_strategy(challenges)
 
@@ -598,12 +505,7 @@ class TestEdgeCases:
     def test_challenge_with_empty_description(self):
         """Test challenge with empty description"""
         manager = CTFWorkflowManager()
-        challenge = CTFChallenge(
-            name="Empty Desc",
-            category="web",
-            description="",
-            difficulty="easy"
-        )
+        challenge = CTFChallenge(name="Empty Desc", category="web", description="", difficulty="easy")
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
 
@@ -614,10 +516,7 @@ class TestEdgeCases:
         """Test challenge with unknown difficulty"""
         manager = CTFWorkflowManager()
         challenge = CTFChallenge(
-            name="Unknown Difficulty",
-            category="web",
-            description="Test challenge",
-            difficulty="unknown"
+            name="Unknown Difficulty", category="web", description="Test challenge", difficulty="unknown"
         )
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
@@ -628,12 +527,7 @@ class TestEdgeCases:
     def test_zero_points_challenge(self):
         """Test challenge with zero points"""
         manager = CTFWorkflowManager()
-        challenge = CTFChallenge(
-            name="Zero Points",
-            category="misc",
-            description="Warmup challenge",
-            points=0
-        )
+        challenge = CTFChallenge(name="Zero Points", category="misc", description="Warmup challenge", points=0)
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
 
@@ -646,7 +540,7 @@ class TestEdgeCases:
             name="Complex",
             category="web",
             description="SQL injection and XSS in WordPress upload form",
-            difficulty="hard"
+            difficulty="hard",
         )
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
@@ -659,10 +553,7 @@ class TestEdgeCases:
         """Test challenge with special characters in name"""
         manager = CTFWorkflowManager()
         challenge = CTFChallenge(
-            name="Ch@lleng3_2024!",
-            category="crypto",
-            description="Decrypt the message",
-            difficulty="medium"
+            name="Ch@lleng3_2024!", category="crypto", description="Decrypt the message", difficulty="medium"
         )
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
@@ -711,19 +602,21 @@ class TestWorkflowIntegration:
         """Test workflow contains all required fields"""
         manager = CTFWorkflowManager()
         challenge = CTFChallenge(
-            name="Full Test",
-            category="web",
-            description="Complete workflow test",
-            points=250,
-            difficulty="medium"
+            name="Full Test", category="web", description="Complete workflow test", points=250, difficulty="medium"
         )
 
         workflow = manager.create_ctf_challenge_workflow(challenge)
 
         required_fields = [
-            "challenge", "category", "difficulty", "points",
-            "tools", "strategies", "estimated_time",
-            "success_probability", "automation_level"
+            "challenge",
+            "category",
+            "difficulty",
+            "points",
+            "tools",
+            "strategies",
+            "estimated_time",
+            "success_probability",
+            "automation_level",
         ]
 
         for field in required_fields:

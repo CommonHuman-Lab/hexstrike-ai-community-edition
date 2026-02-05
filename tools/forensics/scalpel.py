@@ -1,7 +1,9 @@
 """
 Scalpel tool implementation for file carving
 """
-from typing import Dict, Any, List
+
+from typing import Any, Dict, List
+
 from tools.base import BaseTool
 
 
@@ -62,16 +64,17 @@ class ScalpelTool(BaseTool):
             "stderr": stderr,
             "returncode": returncode,
             "files_carved": [],
-            "total_carved": 0
+            "total_carved": 0,
         }
 
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         for line in lines:
             if "carved" in line.lower():
                 result["files_carved"].append(line.strip())
             # Try to extract carved file count
             import re
-            match = re.search(r'(\d+)\s*file', line)
+
+            match = re.search(r"(\d+)\s*file", line)
             if match:
                 result["total_carved"] = int(match.group(1))
 

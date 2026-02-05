@@ -13,8 +13,8 @@ Comprehensive test coverage: 35+ tests
 """
 
 import unittest
+from typing import Any, Dict
 from unittest.mock import Mock, patch
-from typing import Dict, Any
 
 from tools.network.masscan import MasscanTool
 
@@ -31,6 +31,7 @@ class TestMasscanToolInitialization(unittest.TestCase):
     def test_inheritance(self):
         """Test that MasscanTool inherits from BaseTool."""
         from tools.base import BaseTool
+
         tool = MasscanTool()
         self.assertIsInstance(tool, BaseTool)
 
@@ -72,85 +73,62 @@ class TestMasscanCommandBuilding(unittest.TestCase):
 
     def test_command_with_custom_port_range(self):
         """Test command with custom port range."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "ports": "80,443"
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"ports": "80,443"})
         self.assertIn("-p", cmd)
         self.assertIn("80,443", cmd)
 
     def test_command_with_single_port(self):
         """Test command with single port."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "ports": "80"
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"ports": "80"})
         self.assertIn("80", cmd)
 
     def test_command_with_port_range(self):
         """Test command with port range."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "ports": "1-1000"
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"ports": "1-1000"})
         self.assertIn("1-1000", cmd)
 
     def test_command_with_custom_rate(self):
         """Test command with custom scan rate."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "rate": "10000"
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"rate": "10000"})
         self.assertIn("--rate", cmd)
         self.assertIn("10000", cmd)
 
     def test_command_with_integer_rate(self):
         """Test command with integer rate value."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "rate": 5000
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"rate": 5000})
         self.assertIn("--rate", cmd)
         self.assertIn("5000", cmd)
 
     def test_command_with_low_rate(self):
         """Test command with low scan rate."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "rate": "100"
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"rate": "100"})
         self.assertIn("100", cmd)
 
     def test_command_with_high_rate(self):
         """Test command with high scan rate."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "rate": "100000"
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"rate": "100000"})
         self.assertIn("100000", cmd)
 
     def test_command_with_additional_args(self):
         """Test command with additional arguments."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "additional_args": "-oJ output.json"
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"additional_args": "-oJ output.json"})
         self.assertIn("-oJ", cmd)
         self.assertIn("output.json", cmd)
 
     def test_command_with_exclude(self):
         """Test command with exclude option."""
-        cmd = self.tool.build_command("192.168.1.0/24", {
-            "additional_args": "--exclude 192.168.1.1"
-        })
+        cmd = self.tool.build_command("192.168.1.0/24", {"additional_args": "--exclude 192.168.1.1"})
         self.assertIn("--exclude", cmd)
         self.assertIn("192.168.1.1", cmd)
 
     def test_command_with_banner_grab(self):
         """Test command with banner grabbing."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "additional_args": "--banners"
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"additional_args": "--banners"})
         self.assertIn("--banners", cmd)
 
     def test_command_order(self):
         """Test that command arguments are in correct order."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "ports": "80",
-            "rate": "5000"
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"ports": "80", "rate": "5000"})
         # target, -p, ports, --rate, rate
         self.assertEqual(cmd[0], "masscan")
         self.assertEqual(cmd[1], "192.168.1.1")
@@ -202,30 +180,22 @@ class TestMasscanPortSpecifications(unittest.TestCase):
 
     def test_common_ports(self):
         """Test with common web ports."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "ports": "80,443,8080,8443"
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"ports": "80,443,8080,8443"})
         self.assertIn("80,443,8080,8443", cmd)
 
     def test_port_range_low(self):
         """Test with low port range."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "ports": "1-1024"
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"ports": "1-1024"})
         self.assertIn("1-1024", cmd)
 
     def test_mixed_ports_and_ranges(self):
         """Test with mixed individual ports and ranges."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "ports": "22,80,443,8000-9000"
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"ports": "22,80,443,8000-9000"})
         self.assertIn("22,80,443,8000-9000", cmd)
 
     def test_top_ports(self):
         """Test with top 100 ports."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "additional_args": "--top-ports 100"
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"additional_args": "--top-ports 100"})
         self.assertIn("--top-ports", cmd)
         self.assertIn("100", cmd)
 
@@ -297,7 +267,7 @@ class TestMasscanToolExecution(unittest.TestCase):
             "stderr": "",
             "returncode": 0,
             "execution_time": 45.5,
-            "cached": False
+            "cached": False,
         }
 
         result = self.tool.execute("192.168.1.1", {}, self.mock_execute_func)
@@ -309,18 +279,9 @@ class TestMasscanToolExecution(unittest.TestCase):
 
     def test_execution_with_custom_rate(self):
         """Test execution with custom rate."""
-        self.mock_execute_func.return_value = {
-            "success": True,
-            "stdout": "output",
-            "stderr": "",
-            "returncode": 0
-        }
+        self.mock_execute_func.return_value = {"success": True, "stdout": "output", "stderr": "", "returncode": 0}
 
-        result = self.tool.execute(
-            "192.168.1.0/24",
-            {"ports": "80,443", "rate": "10000"},
-            self.mock_execute_func
-        )
+        result = self.tool.execute("192.168.1.0/24", {"ports": "80,443", "rate": "10000"}, self.mock_execute_func)
 
         self.assertTrue(result["success"])
         self.assertIn("--rate 10000", result["command"])
@@ -332,7 +293,7 @@ class TestMasscanToolExecution(unittest.TestCase):
             "success": False,
             "error": "masscan: permission denied",
             "stderr": "masscan: need root privileges",
-            "returncode": 1
+            "returncode": 1,
         }
 
         result = self.tool.execute("192.168.1.1", {}, self.mock_execute_func)
@@ -347,28 +308,18 @@ class TestMasscanToolExecution(unittest.TestCase):
             "stdout": "cached scan results",
             "stderr": "",
             "returncode": 0,
-            "cached": True
+            "cached": True,
         }
 
-        result = self.tool.execute(
-            "192.168.1.1",
-            {},
-            self.mock_execute_func,
-            use_cache=True
-        )
+        result = self.tool.execute("192.168.1.1", {}, self.mock_execute_func, use_cache=True)
 
         self.assertTrue(result["success"])
         self.assertTrue(result["cached"])
 
-    @patch('tools.base.logger')
+    @patch("tools.base.logger")
     def test_logging_during_execution(self, mock_logger):
         """Test that execution is logged."""
-        self.mock_execute_func.return_value = {
-            "success": True,
-            "stdout": "output",
-            "stderr": "",
-            "returncode": 0
-        }
+        self.mock_execute_func.return_value = {"success": True, "stdout": "output", "stderr": "", "returncode": 0}
 
         self.tool.execute("192.168.1.1", {}, self.mock_execute_func)
 
@@ -402,9 +353,7 @@ class TestMasscanEdgeCases(unittest.TestCase):
 
     def test_whitespace_in_additional_args(self):
         """Test with extra whitespace in additional_args."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "additional_args": "  --banners   -oJ   output.json  "
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"additional_args": "  --banners   -oJ   output.json  "})
         self.assertIn("--banners", cmd)
         self.assertIn("-oJ", cmd)
 
@@ -415,27 +364,25 @@ class TestMasscanIntegration(unittest.TestCase):
     def test_realistic_network_scan(self):
         """Test realistic network scanning scenario."""
         tool = MasscanTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": """Discovered open port 22/tcp on 192.168.1.10
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": """Discovered open port 22/tcp on 192.168.1.10
 Discovered open port 80/tcp on 192.168.1.10
 Discovered open port 443/tcp on 192.168.1.10
 Discovered open port 3306/tcp on 192.168.1.11""",
-            "stderr": "",
-            "returncode": 0,
-            "execution_time": 12.3,
-            "cached": False
-        })
-
-        result = tool.execute(
-            "192.168.1.0/24",
-            {"ports": "22,80,443,3306", "rate": "5000"},
-            mock_execute
+                "stderr": "",
+                "returncode": 0,
+                "execution_time": 12.3,
+                "cached": False,
+            }
         )
+
+        result = tool.execute("192.168.1.0/24", {"ports": "22,80,443,3306", "rate": "5000"}, mock_execute)
 
         self.assertTrue(result["success"])
         self.assertIn("Discovered", result["output"]["raw_output"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

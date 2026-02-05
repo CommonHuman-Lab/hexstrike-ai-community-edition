@@ -1,7 +1,9 @@
 """
 Commix tool implementation for command injection exploitation
 """
-from typing import Dict, Any, List
+
+from typing import Any, Dict, List
+
 from tools.base import BaseTool
 
 
@@ -80,13 +82,13 @@ class CommixTool(BaseTool):
             "returncode": returncode,
             "vulnerable": False,
             "injection_points": [],
-            "os_detected": ""
+            "os_detected": "",
         }
 
         if "is vulnerable" in stdout.lower():
             result["vulnerable"] = True
 
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         for line in lines:
             if "injection point" in line.lower():
                 result["injection_points"].append(line.strip())

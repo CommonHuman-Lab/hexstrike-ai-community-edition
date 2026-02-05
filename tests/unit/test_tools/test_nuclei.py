@@ -20,6 +20,7 @@ class TestNucleiToolInitialization(unittest.TestCase):
 
     def test_inheritance(self):
         from tools.base import BaseTool
+
         tool = NucleiTool()
         self.assertIsInstance(tool, BaseTool)
 
@@ -45,106 +46,73 @@ class TestNucleiCommandBuilding(unittest.TestCase):
         self.assertIn("https://example.com", cmd)
 
     def test_command_with_critical_severity(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "severity": "critical"
-        })
+        cmd = self.tool.build_command("https://example.com", {"severity": "critical"})
         self.assertIn("-severity", cmd)
         self.assertIn("critical", cmd)
 
     def test_command_with_multiple_severities(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "severity": "critical,high"
-        })
+        cmd = self.tool.build_command("https://example.com", {"severity": "critical,high"})
         self.assertIn("critical,high", cmd)
 
     def test_command_with_high_severity(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "severity": "high"
-        })
+        cmd = self.tool.build_command("https://example.com", {"severity": "high"})
         self.assertIn("high", cmd)
 
     def test_command_with_medium_severity(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "severity": "medium"
-        })
+        cmd = self.tool.build_command("https://example.com", {"severity": "medium"})
         self.assertIn("medium", cmd)
 
     def test_command_with_low_severity(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "severity": "low"
-        })
+        cmd = self.tool.build_command("https://example.com", {"severity": "low"})
         self.assertIn("low", cmd)
 
     def test_command_with_tags(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "tags": "cve,rce"
-        })
+        cmd = self.tool.build_command("https://example.com", {"tags": "cve,rce"})
         self.assertIn("-tags", cmd)
         self.assertIn("cve,rce", cmd)
 
     def test_command_with_cve_tag(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "tags": "cve"
-        })
+        cmd = self.tool.build_command("https://example.com", {"tags": "cve"})
         self.assertIn("cve", cmd)
 
     def test_command_with_xss_tag(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "tags": "xss"
-        })
+        cmd = self.tool.build_command("https://example.com", {"tags": "xss"})
         self.assertIn("xss", cmd)
 
     def test_command_with_multiple_tags(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "tags": "cve,xss,sqli,rce"
-        })
+        cmd = self.tool.build_command("https://example.com", {"tags": "cve,xss,sqli,rce"})
         self.assertIn("cve,xss,sqli,rce", cmd)
 
     def test_command_with_severity_and_tags(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "severity": "critical,high",
-            "tags": "cve,rce"
-        })
+        cmd = self.tool.build_command("https://example.com", {"severity": "critical,high", "tags": "cve,rce"})
         self.assertIn("-severity", cmd)
         self.assertIn("critical,high", cmd)
         self.assertIn("-tags", cmd)
         self.assertIn("cve,rce", cmd)
 
     def test_command_with_silent_flag(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-silent"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-silent"})
         self.assertIn("-silent", cmd)
 
     def test_command_with_json_output(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-json"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-json"})
         self.assertIn("-json", cmd)
 
     def test_command_with_markdown_output(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-markdown-export report.md"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-markdown-export report.md"})
         self.assertIn("-markdown-export", cmd)
 
     def test_command_with_custom_templates(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-t /custom/templates/"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-t /custom/templates/"})
         self.assertIn("-t", cmd)
         self.assertIn("/custom/templates/", cmd)
 
     def test_command_with_rate_limit(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-rate-limit 150"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-rate-limit 150"})
         self.assertIn("-rate-limit", cmd)
 
     def test_command_with_bulk_size(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-bulk-size 25"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-bulk-size 25"})
         self.assertIn("-bulk-size", cmd)
 
 
@@ -198,7 +166,7 @@ class TestNucleiToolExecution(unittest.TestCase):
             "stderr": "",
             "returncode": 0,
             "execution_time": 60.5,
-            "cached": False
+            "cached": False,
         }
 
         result = self.tool.execute("https://example.com", {}, self.mock_execute_func)
@@ -206,18 +174,9 @@ class TestNucleiToolExecution(unittest.TestCase):
         self.assertEqual(result["tool"], "Nuclei")
 
     def test_execution_with_severity_filter(self):
-        self.mock_execute_func.return_value = {
-            "success": True,
-            "stdout": "",
-            "stderr": "",
-            "returncode": 0
-        }
+        self.mock_execute_func.return_value = {"success": True, "stdout": "", "stderr": "", "returncode": 0}
 
-        result = self.tool.execute(
-            "https://example.com",
-            {"severity": "critical,high"},
-            self.mock_execute_func
-        )
+        result = self.tool.execute("https://example.com", {"severity": "critical,high"}, self.mock_execute_func)
         self.assertTrue(result["success"])
         self.assertIn("-severity critical,high", result["command"])
 
@@ -226,20 +185,15 @@ class TestNucleiToolExecution(unittest.TestCase):
             "success": False,
             "error": "nuclei: command not found",
             "stderr": "nuclei: command not found",
-            "returncode": 127
+            "returncode": 127,
         }
 
         result = self.tool.execute("https://example.com", {}, self.mock_execute_func)
         self.assertFalse(result["success"])
 
-    @patch('tools.base.logger')
+    @patch("tools.base.logger")
     def test_logging(self, mock_logger):
-        self.mock_execute_func.return_value = {
-            "success": True,
-            "stdout": "",
-            "stderr": "",
-            "returncode": 0
-        }
+        self.mock_execute_func.return_value = {"success": True, "stdout": "", "stderr": "", "returncode": 0}
 
         self.tool.execute("https://example.com", {}, self.mock_execute_func)
         mock_logger.info.assert_called()
@@ -262,9 +216,7 @@ class TestNucleiEdgeCases(unittest.TestCase):
         self.assertNotIn("-tags", cmd)
 
     def test_whitespace_in_args(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "  -silent   -json  "
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "  -silent   -json  "})
         self.assertIn("-silent", cmd)
         self.assertIn("-json", cmd)
 
@@ -274,25 +226,23 @@ class TestNucleiIntegration(unittest.TestCase):
 
     def test_realistic_vulnerability_scan(self):
         tool = NucleiTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": """[CVE-2021-12345] [http] [critical] https://example.com/vulnerable
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": """[CVE-2021-12345] [http] [critical] https://example.com/vulnerable
 [CVE-2022-67890] [http] [high] https://example.com/outdated
 [exposed-panel] [http] [medium] https://example.com/admin""",
-            "stderr": "",
-            "returncode": 0,
-            "execution_time": 120.5
-        })
-
-        result = tool.execute(
-            "https://example.com",
-            {"severity": "critical,high,medium", "tags": "cve"},
-            mock_execute
+                "stderr": "",
+                "returncode": 0,
+                "execution_time": 120.5,
+            }
         )
+
+        result = tool.execute("https://example.com", {"severity": "critical,high,medium", "tags": "cve"}, mock_execute)
 
         self.assertTrue(result["success"])
         self.assertEqual(result["output"]["vulnerability_count"], 3)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

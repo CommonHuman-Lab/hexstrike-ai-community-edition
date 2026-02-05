@@ -18,6 +18,7 @@ class TestWpscanToolInitialization(unittest.TestCase):
 
     def test_inheritance(self):
         from tools.base import BaseTool
+
         tool = WpscanTool()
         self.assertIsInstance(tool, BaseTool)
 
@@ -49,34 +50,24 @@ class TestWpscanCommandBuilding(unittest.TestCase):
         self.assertIn("p,t,u", cmd)
 
     def test_command_with_custom_enumeration(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "--enumerate vp"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "--enumerate vp"})
         self.assertIn("--enumerate", cmd)
         self.assertIn("vp", cmd)
 
     def test_command_with_api_token(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "--api-token YOUR_TOKEN"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "--api-token YOUR_TOKEN"})
         self.assertIn("--api-token", cmd)
 
     def test_command_with_plugins_detection(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "--enumerate p"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "--enumerate p"})
         self.assertIn("p", cmd)
 
     def test_command_with_themes_detection(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "--enumerate t"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "--enumerate t"})
         self.assertIn("t", cmd)
 
     def test_command_with_users_enumeration(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "--enumerate u"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "--enumerate u"})
         self.assertIn("u", cmd)
 
 
@@ -104,7 +95,7 @@ class TestWpscanToolExecution(unittest.TestCase):
             "success": True,
             "stdout": "[+] WordPress version 5.9",
             "stderr": "",
-            "returncode": 0
+            "returncode": 0,
         }
 
         result = self.tool.execute("https://example.com", {}, self.mock_execute_func)
@@ -116,7 +107,7 @@ class TestWpscanToolExecution(unittest.TestCase):
             "success": False,
             "error": "wpscan: command not found",
             "stderr": "wpscan: command not found",
-            "returncode": 127
+            "returncode": 127,
         }
 
         result = self.tool.execute("https://example.com", {}, self.mock_execute_func)
@@ -139,18 +130,20 @@ class TestWpscanEdgeCases(unittest.TestCase):
 class TestWpscanIntegration(unittest.TestCase):
     def test_realistic_scan(self):
         tool = WpscanTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": """[+] WordPress version 5.9 identified
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": """[+] WordPress version 5.9 identified
 [+] Enumerating plugins
 [+] Found plugin: akismet""",
-            "stderr": "",
-            "returncode": 0
-        })
+                "stderr": "",
+                "returncode": 0,
+            }
+        )
 
         result = tool.execute("https://example.com", {}, mock_execute)
         self.assertTrue(result["success"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

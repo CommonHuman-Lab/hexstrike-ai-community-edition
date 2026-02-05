@@ -5,15 +5,17 @@ Handles asynchronous process execution, resource monitoring, auto-scaling, and h
 
 import logging
 from datetime import datetime
-from flask import Blueprint, request, jsonify
+
+from flask import Blueprint, jsonify, request
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-process_workflows_bp = Blueprint('process_workflows', __name__, url_prefix='/api/process')
+process_workflows_bp = Blueprint("process_workflows", __name__, url_prefix="/api/process")
 
 # Dependencies will be injected via init_app
 enhanced_process_manager = None
+
 
 def init_app(proc_manager):
     """Initialize blueprint with dependencies"""
@@ -36,17 +38,20 @@ def execute_command_async():
         task_id = enhanced_process_manager.execute_command_async(command, context)
 
         logger.info(f"🚀 Async command execution started | Task ID: {task_id}")
-        return jsonify({
-            "success": True,
-            "task_id": task_id,
-            "command": command,
-            "status": "submitted",
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify(
+            {
+                "success": True,
+                "task_id": task_id,
+                "command": command,
+                "status": "submitted",
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     except Exception as e:
         logger.error(f"💥 Error in async command execution: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @process_workflows_bp.route("/get-task-result/<task_id>", methods=["GET"])
 def get_async_task_result(task_id):
@@ -58,16 +63,12 @@ def get_async_task_result(task_id):
             return jsonify({"error": "Task not found"}), 404
 
         logger.info(f"📋 Task result retrieved | Task ID: {task_id} | Status: {result['status']}")
-        return jsonify({
-            "success": True,
-            "task_id": task_id,
-            "result": result,
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify({"success": True, "task_id": task_id, "result": result, "timestamp": datetime.now().isoformat()})
 
     except Exception as e:
         logger.error(f"💥 Error getting task result: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @process_workflows_bp.route("/pool-stats", methods=["GET"])
 def get_process_pool_stats():
@@ -76,15 +77,12 @@ def get_process_pool_stats():
         stats = enhanced_process_manager.get_comprehensive_stats()
 
         logger.info(f"📊 Process pool stats retrieved | Active workers: {stats['process_pool']['active_workers']}")
-        return jsonify({
-            "success": True,
-            "stats": stats,
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify({"success": True, "stats": stats, "timestamp": datetime.now().isoformat()})
 
     except Exception as e:
         logger.error(f"💥 Error getting pool stats: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @process_workflows_bp.route("/cache-stats", methods=["GET"])
 def get_cache_stats():
@@ -93,15 +91,12 @@ def get_cache_stats():
         cache_stats = enhanced_process_manager.cache.get_stats()
 
         logger.info(f"💾 Cache stats retrieved | Hit rate: {cache_stats['hit_rate']:.1f}%")
-        return jsonify({
-            "success": True,
-            "cache_stats": cache_stats,
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify({"success": True, "cache_stats": cache_stats, "timestamp": datetime.now().isoformat()})
 
     except Exception as e:
         logger.error(f"💥 Error getting cache stats: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @process_workflows_bp.route("/clear-cache", methods=["POST"])
 def clear_process_cache():
@@ -110,15 +105,14 @@ def clear_process_cache():
         enhanced_process_manager.cache.clear()
 
         logger.info("🧹 Process cache cleared")
-        return jsonify({
-            "success": True,
-            "message": "Cache cleared successfully",
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify(
+            {"success": True, "message": "Cache cleared successfully", "timestamp": datetime.now().isoformat()}
+        )
 
     except Exception as e:
         logger.error(f"💥 Error clearing cache: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @process_workflows_bp.route("/resource-usage", methods=["GET"])
 def get_resource_usage():
@@ -127,17 +121,22 @@ def get_resource_usage():
         current_usage = enhanced_process_manager.resource_monitor.get_current_usage()
         usage_trends = enhanced_process_manager.resource_monitor.get_usage_trends()
 
-        logger.info(f"📈 Resource usage retrieved | CPU: {current_usage['cpu_percent']:.1f}% | Memory: {current_usage['memory_percent']:.1f}%")
-        return jsonify({
-            "success": True,
-            "current_usage": current_usage,
-            "usage_trends": usage_trends,
-            "timestamp": datetime.now().isoformat()
-        })
+        logger.info(
+            f"📈 Resource usage retrieved | CPU: {current_usage['cpu_percent']:.1f}% | Memory: {current_usage['memory_percent']:.1f}%"
+        )
+        return jsonify(
+            {
+                "success": True,
+                "current_usage": current_usage,
+                "usage_trends": usage_trends,
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     except Exception as e:
         logger.error(f"💥 Error getting resource usage: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @process_workflows_bp.route("/performance-dashboard", methods=["GET"])
 def get_performance_dashboard():
@@ -155,22 +154,31 @@ def get_performance_dashboard():
             "cache_stats": enhanced_process_manager.cache.get_stats(),
             "auto_scaling_status": enhanced_process_manager.auto_scaling_enabled,
             "system_health": {
-                "cpu_status": "healthy" if resource_usage["cpu_percent"] < 80 else "warning" if resource_usage["cpu_percent"] < 95 else "critical",
-                "memory_status": "healthy" if resource_usage["memory_percent"] < 85 else "warning" if resource_usage["memory_percent"] < 95 else "critical",
-                "disk_status": "healthy" if resource_usage["disk_percent"] < 90 else "warning" if resource_usage["disk_percent"] < 98 else "critical"
-            }
+                "cpu_status": (
+                    "healthy"
+                    if resource_usage["cpu_percent"] < 80
+                    else "warning" if resource_usage["cpu_percent"] < 95 else "critical"
+                ),
+                "memory_status": (
+                    "healthy"
+                    if resource_usage["memory_percent"] < 85
+                    else "warning" if resource_usage["memory_percent"] < 95 else "critical"
+                ),
+                "disk_status": (
+                    "healthy"
+                    if resource_usage["disk_percent"] < 90
+                    else "warning" if resource_usage["disk_percent"] < 98 else "critical"
+                ),
+            },
         }
 
         logger.info(f"📊 Performance dashboard retrieved | Success rate: {dashboard_data.get('success_rate', 0):.1f}%")
-        return jsonify({
-            "success": True,
-            "dashboard": dashboard,
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify({"success": True, "dashboard": dashboard, "timestamp": datetime.now().isoformat()})
 
     except Exception as e:
         logger.error(f"💥 Error getting performance dashboard: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @process_workflows_bp.route("/terminate-gracefully/<int:pid>", methods=["POST"])
 def terminate_process_gracefully(pid):
@@ -183,23 +191,31 @@ def terminate_process_gracefully(pid):
 
         if success:
             logger.info(f"✅ Process {pid} terminated gracefully")
-            return jsonify({
-                "success": True,
-                "message": f"Process {pid} terminated successfully",
-                "pid": pid,
-                "timestamp": datetime.now().isoformat()
-            })
+            return jsonify(
+                {
+                    "success": True,
+                    "message": f"Process {pid} terminated successfully",
+                    "pid": pid,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
         else:
-            return jsonify({
-                "success": False,
-                "error": f"Failed to terminate process {pid}",
-                "pid": pid,
-                "timestamp": datetime.now().isoformat()
-            }), 400
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "error": f"Failed to terminate process {pid}",
+                        "pid": pid,
+                        "timestamp": datetime.now().isoformat(),
+                    }
+                ),
+                400,
+            )
 
     except Exception as e:
         logger.error(f"💥 Error terminating process {pid}: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @process_workflows_bp.route("/auto-scaling", methods=["POST"])
 def configure_auto_scaling():
@@ -216,16 +232,19 @@ def configure_auto_scaling():
             enhanced_process_manager.resource_thresholds.update(thresholds)
 
         logger.info(f"⚙️ Auto-scaling configured | Enabled: {enabled}")
-        return jsonify({
-            "success": True,
-            "auto_scaling_enabled": enabled,
-            "resource_thresholds": enhanced_process_manager.resource_thresholds,
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify(
+            {
+                "success": True,
+                "auto_scaling_enabled": enabled,
+                "resource_thresholds": enhanced_process_manager.resource_thresholds,
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     except Exception as e:
         logger.error(f"💥 Error configuring auto-scaling: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @process_workflows_bp.route("/scale-pool", methods=["POST"])
 def manual_scale_pool():
@@ -259,17 +278,20 @@ def manual_scale_pool():
                 return jsonify({"error": f"Cannot scale down: would go below min workers ({min_workers})"}), 400
 
         logger.info(f"📏 Manual scaling | {message} | Workers: {current_workers} → {new_workers}")
-        return jsonify({
-            "success": True,
-            "message": message,
-            "previous_workers": current_workers,
-            "current_workers": new_workers,
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify(
+            {
+                "success": True,
+                "message": message,
+                "previous_workers": current_workers,
+                "current_workers": new_workers,
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     except Exception as e:
         logger.error(f"💥 Error scaling pool: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @process_workflows_bp.route("/health-check", methods=["GET"])
 def process_health_check():
@@ -339,7 +361,7 @@ def process_health_check():
             "health_score": health_score,
             "issues": issues,
             "system_stats": comprehensive_stats,
-            "recommendations": []
+            "recommendations": [],
         }
 
         # Add recommendations based on issues
@@ -353,11 +375,7 @@ def process_health_check():
             health_report["recommendations"].append("Review cache TTL settings or increase cache size")
 
         logger.info(f"🏥 Health check completed | Status: {status} | Score: {health_score}/100")
-        return jsonify({
-            "success": True,
-            "health_report": health_report,
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify({"success": True, "health_report": health_report, "timestamp": datetime.now().isoformat()})
 
     except Exception as e:
         logger.error(f"💥 Error in health check: {str(e)}")

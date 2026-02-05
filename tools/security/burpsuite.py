@@ -1,10 +1,12 @@
 """
 Burp Suite tool implementation for web application security testing
 """
-from typing import Dict, Any, List
-from tools.base import BaseTool
+
 import json
 import xml.etree.ElementTree as ET
+from typing import Any, Dict, List
+
+from tools.base import BaseTool
 
 
 class BurpSuiteTool(BaseTool):
@@ -115,12 +117,7 @@ class BurpSuiteTool(BaseTool):
                 - returncode: Command return code
         """
         issues = []
-        issues_by_severity = {
-            'High': [],
-            'Medium': [],
-            'Low': [],
-            'Information': []
-        }
+        issues_by_severity = {"High": [], "Medium": [], "Low": [], "Information": []}
         issues_by_type = {}
         urls_tested = set()
 
@@ -129,78 +126,87 @@ class BurpSuiteTool(BaseTool):
             data = json.loads(stdout)
 
             # Burp JSON format
-            if isinstance(data, dict) and 'issue_events' in data:
-                for issue in data['issue_events']:
+            if isinstance(data, dict) and "issue_events" in data:
+                for issue in data["issue_events"]:
                     issue_info = {
-                        'name': issue.get('issue', {}).get('name', 'Unknown'),
-                        'severity': issue.get('issue', {}).get('severity', 'Information'),
-                        'confidence': issue.get('issue', {}).get('confidence', 'Unknown'),
-                        'url': issue.get('url', ''),
-                        'description': issue.get('issue', {}).get('description', ''),
-                        'remediation': issue.get('issue', {}).get('remediation', ''),
-                        'vulnerability_classifications': issue.get('issue', {}).get('vulnerability_classifications', [])
+                        "name": issue.get("issue", {}).get("name", "Unknown"),
+                        "severity": issue.get("issue", {}).get("severity", "Information"),
+                        "confidence": issue.get("issue", {}).get("confidence", "Unknown"),
+                        "url": issue.get("url", ""),
+                        "description": issue.get("issue", {}).get("description", ""),
+                        "remediation": issue.get("issue", {}).get("remediation", ""),
+                        "vulnerability_classifications": issue.get("issue", {}).get(
+                            "vulnerability_classifications", []
+                        ),
                     }
                     issues.append(issue_info)
 
                     # Categorize by severity
-                    severity = issue_info['severity']
+                    severity = issue_info["severity"]
                     if severity in issues_by_severity:
                         issues_by_severity[severity].append(issue_info)
 
                     # Categorize by type
-                    issue_type = issue_info['name']
+                    issue_type = issue_info["name"]
                     if issue_type not in issues_by_type:
                         issues_by_type[issue_type] = []
                     issues_by_type[issue_type].append(issue_info)
 
                     # Track URLs
-                    if issue_info['url']:
-                        urls_tested.add(issue_info['url'])
+                    if issue_info["url"]:
+                        urls_tested.add(issue_info["url"])
 
         except json.JSONDecodeError:
             # Try to parse as XML
             try:
                 root = ET.fromstring(stdout)
-                for issue in root.findall('.//issue'):
+                for issue in root.findall(".//issue"):
                     issue_info = {
-                        'name': issue.find('name').text if issue.find('name') is not None else 'Unknown',
-                        'severity': issue.find('severity').text if issue.find('severity') is not None else 'Information',
-                        'confidence': issue.find('confidence').text if issue.find('confidence') is not None else 'Unknown',
-                        'url': issue.find('url').text if issue.find('url') is not None else '',
-                        'description': issue.find('issueBackground').text if issue.find('issueBackground') is not None else '',
-                        'remediation': issue.find('remediationBackground').text if issue.find('remediationBackground') is not None else ''
+                        "name": issue.find("name").text if issue.find("name") is not None else "Unknown",
+                        "severity": (
+                            issue.find("severity").text if issue.find("severity") is not None else "Information"
+                        ),
+                        "confidence": (
+                            issue.find("confidence").text if issue.find("confidence") is not None else "Unknown"
+                        ),
+                        "url": issue.find("url").text if issue.find("url") is not None else "",
+                        "description": (
+                            issue.find("issueBackground").text if issue.find("issueBackground") is not None else ""
+                        ),
+                        "remediation": (
+                            issue.find("remediationBackground").text
+                            if issue.find("remediationBackground") is not None
+                            else ""
+                        ),
                     }
                     issues.append(issue_info)
 
                     # Categorize by severity
-                    severity = issue_info['severity']
+                    severity = issue_info["severity"]
                     if severity in issues_by_severity:
                         issues_by_severity[severity].append(issue_info)
 
                     # Categorize by type
-                    issue_type = issue_info['name']
+                    issue_type = issue_info["name"]
                     if issue_type not in issues_by_type:
                         issues_by_type[issue_type] = []
                     issues_by_type[issue_type].append(issue_info)
 
                     # Track URLs
-                    if issue_info['url']:
-                        urls_tested.add(issue_info['url'])
+                    if issue_info["url"]:
+                        urls_tested.add(issue_info["url"])
 
             except ET.ParseError:
                 # Parse plain text output
                 import re
-                for line in stdout.split('\n'):
+
+                for line in stdout.split("\n"):
                     # Look for issue patterns
-                    issue_match = re.search(r'\[(High|Medium|Low|Information)\]\s+(.+)', line)
+                    issue_match = re.search(r"\[(High|Medium|Low|Information)\]\s+(.+)", line)
                     if issue_match:
                         severity = issue_match.group(1)
                         name = issue_match.group(2)
-                        issue_info = {
-                            'name': name,
-                            'severity': severity,
-                            'finding': line
-                        }
+                        issue_info = {"name": name, "severity": severity, "finding": line}
                         issues.append(issue_info)
 
                         if severity in issues_by_severity:
@@ -221,13 +227,13 @@ class BurpSuiteTool(BaseTool):
             "type_counts": type_counts,
             "urls_tested": sorted(list(urls_tested)),
             "url_count": len(urls_tested),
-            "high_severity_issues": issues_by_severity.get('High', []),
-            "high_count": len(issues_by_severity.get('High', [])),
-            "medium_severity_issues": issues_by_severity.get('Medium', []),
-            "medium_count": len(issues_by_severity.get('Medium', [])),
-            "low_severity_issues": issues_by_severity.get('Low', []),
-            "low_count": len(issues_by_severity.get('Low', [])),
+            "high_severity_issues": issues_by_severity.get("High", []),
+            "high_count": len(issues_by_severity.get("High", [])),
+            "medium_severity_issues": issues_by_severity.get("Medium", []),
+            "medium_count": len(issues_by_severity.get("Medium", [])),
+            "low_severity_issues": issues_by_severity.get("Low", []),
+            "low_count": len(issues_by_severity.get("Low", [])),
             "raw_output": stdout,
             "stderr": stderr,
-            "returncode": returncode
+            "returncode": returncode,
         }

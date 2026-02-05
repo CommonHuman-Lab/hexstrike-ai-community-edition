@@ -18,6 +18,7 @@ class TestNiktoToolInitialization(unittest.TestCase):
 
     def test_inheritance(self):
         from tools.base import BaseTool
+
         tool = NiktoTool()
         self.assertIsInstance(tool, BaseTool)
 
@@ -40,39 +41,27 @@ class TestNiktoCommandBuilding(unittest.TestCase):
         self.assertIn("example.com", cmd)
 
     def test_command_with_ssl(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-ssl"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-ssl"})
         self.assertIn("-ssl", cmd)
 
     def test_command_with_port(self):
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-port 8443"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-port 8443"})
         self.assertIn("-port", cmd)
 
     def test_command_with_tuning(self):
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-Tuning x"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-Tuning x"})
         self.assertIn("-Tuning", cmd)
 
     def test_command_with_plugins(self):
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-Plugins 'apacheusers'"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-Plugins 'apacheusers'"})
         self.assertIn("-Plugins", cmd)
 
     def test_command_with_output(self):
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-o output.txt"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-o output.txt"})
         self.assertIn("-o", cmd)
 
     def test_command_with_format(self):
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-Format txt"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-Format txt"})
         self.assertIn("-Format", cmd)
 
 
@@ -111,7 +100,7 @@ class TestNiktoToolExecution(unittest.TestCase):
             "success": True,
             "stdout": "+ Server: nginx/1.18.0",
             "stderr": "",
-            "returncode": 0
+            "returncode": 0,
         }
 
         result = self.tool.execute("example.com", {}, self.mock_execute_func)
@@ -123,7 +112,7 @@ class TestNiktoToolExecution(unittest.TestCase):
             "success": False,
             "error": "nikto: command not found",
             "stderr": "nikto: command not found",
-            "returncode": 127
+            "returncode": 127,
         }
 
         result = self.tool.execute("example.com", {}, self.mock_execute_func)
@@ -143,9 +132,7 @@ class TestNiktoEdgeCases(unittest.TestCase):
         self.assertIn("192.168.1.1", cmd)
 
     def test_whitespace_in_args(self):
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "  -ssl   -port   443  "
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "  -ssl   -port   443  "})
         self.assertIn("-ssl", cmd)
         self.assertIn("-port", cmd)
 
@@ -153,23 +140,25 @@ class TestNiktoEdgeCases(unittest.TestCase):
 class TestNiktoIntegration(unittest.TestCase):
     def test_realistic_scan(self):
         tool = NiktoTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": """- Nikto v2.5.0
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": """- Nikto v2.5.0
 + Target IP: 192.168.1.100
 + Target Hostname: example.com
 + Server: Apache/2.4.41 (Ubuntu)
 + The X-XSS-Protection header is not defined.
 + Apache/2.4.41 appears to be outdated.
 + /admin/: Admin section found.""",
-            "stderr": "",
-            "returncode": 0
-        })
+                "stderr": "",
+                "returncode": 0,
+            }
+        )
 
         result = tool.execute("example.com", {}, mock_execute)
         self.assertTrue(result["success"])
         self.assertGreater(result["output"]["findings_count"], 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

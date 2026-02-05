@@ -7,11 +7,13 @@ performance monitoring, and auto-scaling capabilities.
 
 import logging
 import os
-import time
 import subprocess
 import threading
+import time
+from typing import Any, Dict
+
 import psutil
-from typing import Dict, Any
+
 from core.process_pool import ProcessPool
 
 logger = logging.getLogger(__name__)
@@ -137,7 +139,7 @@ class AdvancedCache:
                 "hit_count": self.hit_count,
                 "miss_count": self.miss_count,
                 "hit_rate": hit_rate,
-                "total_requests": total_requests
+                "total_requests": total_requests,
             }
 
 
@@ -154,7 +156,7 @@ class ResourceMonitor:
         try:
             cpu_percent = psutil.cpu_percent(interval=1)
             memory = psutil.virtual_memory()
-            disk = psutil.disk_usage('/')
+            disk = psutil.disk_usage("/")
             network = psutil.net_io_counters()
 
             usage = {
@@ -165,7 +167,7 @@ class ResourceMonitor:
                 "disk_free_gb": disk.free / (1024**3),
                 "network_bytes_sent": network.bytes_sent,
                 "network_bytes_recv": network.bytes_recv,
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }
 
             # Add to history
@@ -186,7 +188,7 @@ class ResourceMonitor:
                 "disk_free_gb": 0,
                 "network_bytes_sent": 0,
                 "network_bytes_recv": 0,
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }
 
     def get_process_usage(self, pid: int) -> Dict[str, Any]:
@@ -198,7 +200,7 @@ class ResourceMonitor:
                 "memory_percent": process.memory_percent(),
                 "memory_rss_mb": process.memory_info().rss / (1024**2),
                 "num_threads": process.num_threads(),
-                "status": process.status()
+                "status": process.status(),
             }
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             return {}
@@ -218,7 +220,7 @@ class ResourceMonitor:
                 "cpu_avg_10": cpu_trend,
                 "memory_avg_10": memory_trend,
                 "measurements": len(self.usage_history),
-                "trend_period_minutes": len(recent) * 15 / 60  # 15 second intervals
+                "trend_period_minutes": len(recent) * 15 / 60,  # 15 second intervals
             }
 
 
@@ -239,7 +241,7 @@ class PerformanceDashboard:
                 "success": result.get("success", False),
                 "execution_time": result.get("execution_time", 0),
                 "return_code": result.get("return_code", -1),
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }
 
             self.execution_history.append(execution_record)
@@ -270,7 +272,7 @@ class PerformanceDashboard:
                 "recent_executions": total_executions,
                 "success_rate": (successful_executions / total_executions * 100) if total_executions > 0 else 0,
                 "avg_execution_time": avg_execution_time,
-                "system_metrics_count": len(self.system_metrics)
+                "system_metrics_count": len(self.system_metrics),
             }
 
 
@@ -291,12 +293,7 @@ class EnhancedProcessManager:
 
         # Auto-scaling configuration
         self.auto_scaling_enabled = True
-        self.resource_thresholds = {
-            "cpu_high": 85.0,
-            "memory_high": 90.0,
-            "disk_high": 95.0,
-            "load_high": 0.8
-        }
+        self.resource_thresholds = {"cpu_high": 85.0, "memory_high": 90.0, "disk_high": 95.0, "load_high": 0.8}
 
         # Start background monitoring
         self.monitor_thread = threading.Thread(target=self._monitor_system, daemon=True)
@@ -314,12 +311,7 @@ class EnhancedProcessManager:
             return cached_result
 
         # Submit to process pool
-        self.process_pool.submit_task(
-            task_id,
-            self._execute_command_internal,
-            command,
-            context or {}
-        )
+        self.process_pool.submit_task(task_id, self._execute_command_internal, command, context or {})
 
         return task_id
 
@@ -344,7 +336,7 @@ class EnhancedProcessManager:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
-                preexec_fn=os.setsid if os.name != 'nt' else None
+                preexec_fn=os.setsid if os.name != "nt" else None,
             )
 
             # Register process
@@ -354,7 +346,7 @@ class EnhancedProcessManager:
                     "process": process,
                     "start_time": start_time,
                     "context": context,
-                    "status": "running"
+                    "status": "running",
                 }
 
             # Monitor process execution
@@ -368,7 +360,7 @@ class EnhancedProcessManager:
                 "return_code": process.returncode,
                 "execution_time": execution_time,
                 "pid": process.pid,
-                "resource_usage": self.resource_monitor.get_process_usage(process.pid)
+                "resource_usage": self.resource_monitor.get_process_usage(process.pid),
             }
 
             # Cache successful results
@@ -390,7 +382,7 @@ class EnhancedProcessManager:
                 "stderr": str(e),
                 "return_code": -1,
                 "execution_time": execution_time,
-                "error": str(e)
+                "error": str(e),
             }
 
             self.performance_dashboard.record_execution(command, error_result)
@@ -399,7 +391,7 @@ class EnhancedProcessManager:
         finally:
             # Cleanup process registry
             with self.registry_lock:
-                if hasattr(process, 'pid') and process.pid in self.process_registry:
+                if hasattr(process, "pid") and process.pid in self.process_registry:
                     del self.process_registry[process.pid]
 
     def get_task_result(self, task_id: str) -> Dict[str, Any]:
@@ -461,17 +453,23 @@ class EnhancedProcessManager:
         current_workers = pool_stats["active_workers"]
 
         # Scale down if resources are constrained
-        if (resource_usage["cpu_percent"] > self.resource_thresholds["cpu_high"] or
-            resource_usage["memory_percent"] > self.resource_thresholds["memory_high"]):
+        if (
+            resource_usage["cpu_percent"] > self.resource_thresholds["cpu_high"]
+            or resource_usage["memory_percent"] > self.resource_thresholds["memory_high"]
+        ):
 
             if current_workers > self.process_pool.min_workers:
                 self.process_pool._scale_down(1)
-                logger.info(f"📉 Auto-scaled down due to high resource usage: CPU {resource_usage['cpu_percent']:.1f}%, Memory {resource_usage['memory_percent']:.1f}%")
+                logger.info(
+                    f"📉 Auto-scaled down due to high resource usage: CPU {resource_usage['cpu_percent']:.1f}%, Memory {resource_usage['memory_percent']:.1f}%"
+                )
 
         # Scale up if resources are available and there's demand
-        elif (resource_usage["cpu_percent"] < 60 and
-              resource_usage["memory_percent"] < 70 and
-              pool_stats["queue_size"] > 2):
+        elif (
+            resource_usage["cpu_percent"] < 60
+            and resource_usage["memory_percent"] < 70
+            and pool_stats["queue_size"] > 2
+        ):
 
             if current_workers < self.process_pool.max_workers:
                 self.process_pool._scale_up(1)
@@ -486,5 +484,5 @@ class EnhancedProcessManager:
             "active_processes": len(self.process_registry),
             "performance_dashboard": self.performance_dashboard.get_summary(),
             "auto_scaling_enabled": self.auto_scaling_enabled,
-            "resource_thresholds": self.resource_thresholds
+            "resource_thresholds": self.resource_thresholds,
         }

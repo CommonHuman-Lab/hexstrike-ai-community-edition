@@ -1,7 +1,9 @@
 """
 GDB-GEF tool implementation for exploit development
 """
-from typing import Dict, Any, List
+
+from typing import Any, Dict, List
+
 from tools.base import BaseTool
 
 
@@ -76,10 +78,10 @@ class GDBGEFTool(BaseTool):
             "returncode": returncode,
             "registers": {},
             "stack": [],
-            "code": []
+            "code": [],
         }
 
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         section = None
         for line in lines:
             if "registers" in line.lower():

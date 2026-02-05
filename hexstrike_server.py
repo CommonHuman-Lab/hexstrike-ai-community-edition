@@ -6,105 +6,82 @@ HexStrike AI Community Edition - Advanced Penetration Testing Framework Server
 """
 
 import argparse
+
+# Fix Windows console encoding for emoji/unicode support
+import io
 import logging
 import os
 import sys
 import threading
+
 from flask import Flask
 
 # ============================================================================
 # LOGGING CONFIGURATION (MUST BE FIRST)
 # ============================================================================
 
-# Fix Windows console encoding for emoji/unicode support
-import io
-if sys.platform == 'win32':
+
+if sys.platform == "win32":
     # Wrap stdout/stderr with UTF-8 encoding to prevent cp1252 errors
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 # Configure logging with fallback for permission issues
 try:
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.StreamHandler(sys.stdout),
-            logging.FileHandler('hexstrike.log', encoding='utf-8')
-        ]
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[logging.StreamHandler(sys.stdout), logging.FileHandler("hexstrike.log", encoding="utf-8")],
     )
 except PermissionError:
     # Fallback to console-only logging if file creation fails
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.StreamHandler(sys.stdout)
-        ]
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[logging.StreamHandler(sys.stdout)],
     )
 logger = logging.getLogger(__name__)
 
 # Flask app configuration
 app = Flask(__name__)
-app.config['JSON_SORT_KEYS'] = False
+app.config["JSON_SORT_KEYS"] = False
 
 # API Configuration
-API_PORT = int(os.environ.get('HEXSTRIKE_PORT', 8888))
-API_HOST = os.environ.get('HEXSTRIKE_HOST', '127.0.0.1')
+API_PORT = int(os.environ.get("HEXSTRIKE_PORT", 8888))
+API_HOST = os.environ.get("HEXSTRIKE_HOST", "127.0.0.1")
 
-from core.visual import ModernVisualEngine
-from core.cache import HexStrikeCache
-from core.telemetry import TelemetryCollector
-
-from core.degradation import GracefulDegradation
-from core.process_pool import ProcessPool
-from core.enhanced_process import EnhancedProcessManager
-from core.command_executor import EnhancedCommandExecutor
-from core.file_manager import FileOperationsManager
-from core.file_upload_testing import FileUploadTestingFramework
-
-from core.process_manager import ProcessManager
-from core.advanced_cache import AdvancedCache
-from core.resource_monitor import ResourceMonitor
-from core.performance import PerformanceDashboard
-from core.python_env_manager import PythonEnvironmentManager
-from core.logging_formatter import ColoredFormatter
-from core.http_testing_framework import HTTPTestingFramework
-
-from agents.bugbounty import BugBountyWorkflowManager, BugBountyTarget
-from agents.ctf import CTFWorkflowManager, CTFChallenge, CTFToolManager
-from agents.cve import CVEIntelligenceManager
-from agents.decision_engine import IntelligentDecisionEngine, TargetProfile, AttackChain
-from agents.ai_payload_generator import AIPayloadGenerator, ai_payload_generator
+from agents.ai_payload_generator import ai_payload_generator
 from agents.browser_agent import BrowserAgent
-
-from agents.cve.exploit_ai import AIExploitGenerator
-from agents.cve.exploits import (
-    SQLiExploit, XSSExploit, FileReadExploit, RCEExploit,
-    XXEExploit, DeserializationExploit, AuthBypassExploit,
-    BufferOverflowExploit, GenericExploit
-)
-
+from agents.bugbounty import BugBountyTarget, BugBountyWorkflowManager
+from agents.ctf import CTFToolManager, CTFWorkflowManager
 from agents.ctf.automator import CTFChallengeAutomator
 from agents.ctf.coordinator import CTFTeamCoordinator
+from agents.cve import CVEIntelligenceManager
 from agents.cve.correlator import VulnerabilityCorrelator
-from core.error_handler import IntelligentErrorHandler, ErrorType, RecoveryAction
-
-from core.execution import (
-    execute_command,
-    execute_command_with_recovery
-)
+from agents.cve.exploit_ai import AIExploitGenerator
+from agents.decision_engine import IntelligentDecisionEngine
+from core.cache import HexStrikeCache
+from core.degradation import GracefulDegradation
+from core.enhanced_process import EnhancedProcessManager
+from core.error_handler import IntelligentErrorHandler
+from core.execution import execute_command, execute_command_with_recovery
+from core.file_manager import FileOperationsManager
+from core.http_testing_framework import HTTPTestingFramework
+from core.logging_formatter import ColoredFormatter
+from core.process_manager import ProcessManager
+from core.python_env_manager import PythonEnvironmentManager
+from core.telemetry import TelemetryCollector
 from core.tool_factory import create_tool_executor
-
-from tools.network import *
-from tools.web import *
-from tools.recon import *
-from tools.security import *
-from tools.exploit import *
-from tools.forensics import *
+from core.visual import ModernVisualEngine
+from tools.api import *
 from tools.binary import *
 from tools.cloud import *
-from tools.api import *
+from tools.exploit import *
+from tools.forensics import *
+from tools.network import *
+from tools.recon import *
+from tools.security import *
+from tools.web import *
 
 # Global decision engine instance
 decision_engine = IntelligentDecisionEngine()
@@ -114,11 +91,11 @@ error_handler = IntelligentErrorHandler()
 degradation_manager = GracefulDegradation()
 
 from core.optimizer import (
-    TechnologyDetector,
-    RateLimitDetector,
     FailureRecoverySystem,
+    ParameterOptimizer,
     PerformanceMonitor,
-    ParameterOptimizer
+    RateLimitDetector,
+    TechnologyDetector,
 )
 
 # Global instances
@@ -149,6 +126,7 @@ process_lock = threading.Lock()
 # Global environment manager
 env_manager = PythonEnvironmentManager()
 
+
 # Enhanced logging setup
 def setup_logging():
     """Setup enhanced logging with colors and formatting"""
@@ -161,13 +139,13 @@ def setup_logging():
 
     # Console handler with colors
     console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(ColoredFormatter(
-        "[🔥 HexStrike AI] %(asctime)s [%(levelname)s] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
-    ))
+    console_handler.setFormatter(
+        ColoredFormatter("[🔥 HexStrike AI] %(asctime)s [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+    )
     logger.addHandler(console_handler)
 
     return logger
+
 
 # Configuration (using existing API_PORT from top of file)
 DEBUG_MODE = os.environ.get("DEBUG_MODE", "0").lower() in ("1", "true", "yes", "y")
@@ -188,54 +166,55 @@ vulnerability_correlator = VulnerabilityCorrelator()
 # Global file operations manager
 file_manager = FileOperationsManager()
 
+import api.routes.ai as ai_routes
+import api.routes.bugbounty as bugbounty_routes
+import api.routes.core as core_routes
+import api.routes.ctf as ctf_routes
+import api.routes.error_handling as error_handling_routes
+import api.routes.files as files_routes
+import api.routes.intelligence as intelligence_routes
+import api.routes.process_workflows as process_workflows_routes
+import api.routes.processes as processes_routes
+import api.routes.python_env as python_env_routes
+import api.routes.tools_api as tools_api_routes
+import api.routes.tools_binary as tools_binary_routes
+import api.routes.tools_cloud as tools_cloud_routes
+import api.routes.tools_exploit as tools_exploit_routes
+import api.routes.tools_forensics as tools_forensics_routes
+import api.routes.tools_network as tools_network_routes
+import api.routes.tools_parameters as tools_parameters_routes
+import api.routes.tools_recon as tools_recon_routes
+import api.routes.tools_web as tools_web_routes
+import api.routes.tools_web_advanced as tools_web_advanced_routes
+import api.routes.tools_web_frameworks as tools_web_frameworks_routes
+import api.routes.vuln_intel as vuln_intel_routes
+from api.routes.ai import ai_bp
+from api.routes.bugbounty import bugbounty_bp
+from api.routes.core import core_bp
+from api.routes.ctf import ctf_bp
+from api.routes.error_handling import error_handling_bp
+
 # ============================================================================
 # REGISTER API BLUEPRINTS
 # ============================================================================
 from api.routes.files import files_bp
-from api.routes.visual import visual_bp
-from api.routes.error_handling import error_handling_bp
 from api.routes.intelligence import intelligence_bp
-from api.routes.processes import processes_bp
-from api.routes.bugbounty import bugbounty_bp
-from api.routes.ctf import ctf_bp
-from api.routes.vuln_intel import vuln_intel_bp
-from api.routes.core import core_bp
-from api.routes.ai import ai_bp
-from api.routes.python_env import python_env_bp
 from api.routes.process_workflows import process_workflows_bp
-from api.routes.tools_cloud import tools_cloud_bp
-from api.routes.tools_web import tools_web_bp
-from api.routes.tools_network import tools_network_bp
-from api.routes.tools_web_advanced import tools_web_advanced_bp
-from api.routes.tools_exploit import tools_exploit_bp
-from api.routes.tools_binary import tools_binary_bp
+from api.routes.processes import processes_bp
+from api.routes.python_env import python_env_bp
 from api.routes.tools_api import tools_api_bp
-from api.routes.tools_parameters import tools_parameters_bp
+from api.routes.tools_binary import tools_binary_bp
+from api.routes.tools_cloud import tools_cloud_bp
+from api.routes.tools_exploit import tools_exploit_bp
 from api.routes.tools_forensics import tools_forensics_bp
-from api.routes.tools_web_frameworks import tools_web_frameworks_bp
+from api.routes.tools_network import tools_network_bp
+from api.routes.tools_parameters import tools_parameters_bp
 from api.routes.tools_recon import tools_recon_bp
-import api.routes.files as files_routes
-import api.routes.error_handling as error_handling_routes
-import api.routes.intelligence as intelligence_routes
-import api.routes.processes as processes_routes
-import api.routes.bugbounty as bugbounty_routes
-import api.routes.ctf as ctf_routes
-import api.routes.vuln_intel as vuln_intel_routes
-import api.routes.core as core_routes
-import api.routes.ai as ai_routes
-import api.routes.python_env as python_env_routes
-import api.routes.process_workflows as process_workflows_routes
-import api.routes.tools_cloud as tools_cloud_routes
-import api.routes.tools_web as tools_web_routes
-import api.routes.tools_web_advanced as tools_web_advanced_routes
-import api.routes.tools_network as tools_network_routes
-import api.routes.tools_exploit as tools_exploit_routes
-import api.routes.tools_binary as tools_binary_routes
-import api.routes.tools_api as tools_api_routes
-import api.routes.tools_parameters as tools_parameters_routes
-import api.routes.tools_forensics as tools_forensics_routes
-import api.routes.tools_web_frameworks as tools_web_frameworks_routes
-import api.routes.tools_recon as tools_recon_routes
+from api.routes.tools_web import tools_web_bp
+from api.routes.tools_web_advanced import tools_web_advanced_bp
+from api.routes.tools_web_frameworks import tools_web_frameworks_bp
+from api.routes.visual import visual_bp
+from api.routes.vuln_intel import vuln_intel_bp
 
 files_routes.init_app(file_manager)
 error_handling_routes.init_app(error_handler, degradation_manager, execute_command_with_recovery)
@@ -286,127 +265,127 @@ app.register_blueprint(tools_recon_bp)
 
 tool_executors = {
     # Network (16)
-    'nmap': create_tool_executor(NmapTool),
-    'httpx': create_tool_executor(HttpxTool),
-    'masscan': create_tool_executor(MasscanTool),
-    'dnsenum': create_tool_executor(DNSEnumTool),
-    'fierce': create_tool_executor(FierceTool),
-    'dnsx': create_tool_executor(DNSxTool),
-    'rustscan': create_tool_executor(RustscanTool),
-    'autorecon': create_tool_executor(AutoreconTool),
-    'nbtscan': create_tool_executor(NbtscanTool),
-    'arp_scan': create_tool_executor(ArpScanTool),
-    'responder': create_tool_executor(ResponderTool),
-    'netexec': create_tool_executor(NetexecTool),
-    'enum4linux': create_tool_executor(Enum4linuxTool),
-    'smbmap': create_tool_executor(SmbmapTool),
-    'rpcclient': create_tool_executor(RpcclientTool),
-    'enum4linux_ng': create_tool_executor(Enum4linuxNgTool),
-    'nmap_advanced': create_tool_executor(NmapTool),  # nmap-advanced uses same tool, different params from optimizer
+    "nmap": create_tool_executor(NmapTool),
+    "httpx": create_tool_executor(HttpxTool),
+    "masscan": create_tool_executor(MasscanTool),
+    "dnsenum": create_tool_executor(DNSEnumTool),
+    "fierce": create_tool_executor(FierceTool),
+    "dnsx": create_tool_executor(DNSxTool),
+    "rustscan": create_tool_executor(RustscanTool),
+    "autorecon": create_tool_executor(AutoreconTool),
+    "nbtscan": create_tool_executor(NbtscanTool),
+    "arp_scan": create_tool_executor(ArpScanTool),
+    "responder": create_tool_executor(ResponderTool),
+    "netexec": create_tool_executor(NetexecTool),
+    "enum4linux": create_tool_executor(Enum4linuxTool),
+    "smbmap": create_tool_executor(SmbmapTool),
+    "rpcclient": create_tool_executor(RpcclientTool),
+    "enum4linux_ng": create_tool_executor(Enum4linuxNgTool),
+    "nmap_advanced": create_tool_executor(NmapTool),  # nmap-advanced uses same tool, different params from optimizer
     # Web (22)
-    'nuclei': create_tool_executor(NucleiTool),
-    'gobuster': create_tool_executor(GobusterTool),
-    'sqlmap': create_tool_executor(SQLMapTool),
-    'nikto': create_tool_executor(NiktoTool),
-    'feroxbuster': create_tool_executor(FeroxbusterTool),
-    'ffuf': create_tool_executor(FfufTool),
-    'katana': create_tool_executor(KatanaTool),
-    'wpscan': create_tool_executor(WpscanTool),
-    'arjun': create_tool_executor(ArjunTool),
-    'dalfox': create_tool_executor(DalfoxTool),
-    'whatweb': create_tool_executor(WhatwebTool),
-    'dirsearch': create_tool_executor(DirsearchTool),
-    'paramspider': create_tool_executor(ParamSpiderTool),
-    'x8': create_tool_executor(X8Tool),
-    'dirb': create_tool_executor(DirbTool),
-    'dotdotpwn': create_tool_executor(DotDotPwnTool),
-    'wfuzz': create_tool_executor(WfuzzTool),
-    'xsser': create_tool_executor(XsserTool),
-    'wafw00f': create_tool_executor(Wafw00fTool),
-    'commix': create_tool_executor(CommixTool),
-    'nosqlmap': create_tool_executor(NoSQLMapTool),
-    'tplmap': create_tool_executor(TplmapTool),
+    "nuclei": create_tool_executor(NucleiTool),
+    "gobuster": create_tool_executor(GobusterTool),
+    "sqlmap": create_tool_executor(SQLMapTool),
+    "nikto": create_tool_executor(NiktoTool),
+    "feroxbuster": create_tool_executor(FeroxbusterTool),
+    "ffuf": create_tool_executor(FfufTool),
+    "katana": create_tool_executor(KatanaTool),
+    "wpscan": create_tool_executor(WpscanTool),
+    "arjun": create_tool_executor(ArjunTool),
+    "dalfox": create_tool_executor(DalfoxTool),
+    "whatweb": create_tool_executor(WhatwebTool),
+    "dirsearch": create_tool_executor(DirsearchTool),
+    "paramspider": create_tool_executor(ParamSpiderTool),
+    "x8": create_tool_executor(X8Tool),
+    "dirb": create_tool_executor(DirbTool),
+    "dotdotpwn": create_tool_executor(DotDotPwnTool),
+    "wfuzz": create_tool_executor(WfuzzTool),
+    "xsser": create_tool_executor(XsserTool),
+    "wafw00f": create_tool_executor(Wafw00fTool),
+    "commix": create_tool_executor(CommixTool),
+    "nosqlmap": create_tool_executor(NoSQLMapTool),
+    "tplmap": create_tool_executor(TplmapTool),
     # Recon (15)
-    'amass': create_tool_executor(AmassTool),
-    'subfinder': create_tool_executor(SubfinderTool),
-    'waybackurls': create_tool_executor(WaybackURLsTool),
-    'gau': create_tool_executor(GAUTool),
-    'hakrawler': create_tool_executor(HakrawlerTool),
-    'anew': create_tool_executor(AnewTool),
-    'qsreplace': create_tool_executor(QsreplaceTool),
-    'uro': create_tool_executor(UroTool),
-    'theharvester': create_tool_executor(TheHarvesterTool),
-    'sherlock': create_tool_executor(SherlockTool),
-    'spiderfoot': create_tool_executor(SpiderFootTool),
-    'trufflehog': create_tool_executor(TruffleHogTool),
-    'aquatone': create_tool_executor(AquatoneTool),
-    'subjack': create_tool_executor(SubjackTool),
-    'recon_ng': create_tool_executor(ReconNgTool),
+    "amass": create_tool_executor(AmassTool),
+    "subfinder": create_tool_executor(SubfinderTool),
+    "waybackurls": create_tool_executor(WaybackURLsTool),
+    "gau": create_tool_executor(GAUTool),
+    "hakrawler": create_tool_executor(HakrawlerTool),
+    "anew": create_tool_executor(AnewTool),
+    "qsreplace": create_tool_executor(QsreplaceTool),
+    "uro": create_tool_executor(UroTool),
+    "theharvester": create_tool_executor(TheHarvesterTool),
+    "sherlock": create_tool_executor(SherlockTool),
+    "spiderfoot": create_tool_executor(SpiderFootTool),
+    "trufflehog": create_tool_executor(TruffleHogTool),
+    "aquatone": create_tool_executor(AquatoneTool),
+    "subjack": create_tool_executor(SubjackTool),
+    "recon_ng": create_tool_executor(ReconNgTool),
     # Security (6)
-    'testssl': create_tool_executor(TestSSLTool),
-    'sslscan': create_tool_executor(SSLScanTool),
-    'jaeles': create_tool_executor(JaelesTool),
-    'zap': create_tool_executor(ZAPTool),
-    'burpsuite': create_tool_executor(BurpSuiteTool),
-    'sslyze': create_tool_executor(SSLyzeTool),
+    "testssl": create_tool_executor(TestSSLTool),
+    "sslscan": create_tool_executor(SSLScanTool),
+    "jaeles": create_tool_executor(JaelesTool),
+    "zap": create_tool_executor(ZAPTool),
+    "burpsuite": create_tool_executor(BurpSuiteTool),
+    "sslyze": create_tool_executor(SSLyzeTool),
     # Exploit (11)
-    'metasploit': create_tool_executor(MetasploitTool),
-    'hydra': create_tool_executor(HydraTool),
-    'john': create_tool_executor(JohnTool),
-    'hashcat': create_tool_executor(HashcatTool),
-    'hashpump': create_tool_executor(HashpumpTool),
-    'msfvenom': create_tool_executor(MsfvenomTool),
-    'medusa': create_tool_executor(MedusaTool),
-    'patator': create_tool_executor(PatatorTool),
-    'evil_winrm': create_tool_executor(EvilWinRMTool),
-    'hash_identifier': create_tool_executor(HashIdentifierTool),
-    'hashid': create_tool_executor(HashIDTool),
+    "metasploit": create_tool_executor(MetasploitTool),
+    "hydra": create_tool_executor(HydraTool),
+    "john": create_tool_executor(JohnTool),
+    "hashcat": create_tool_executor(HashcatTool),
+    "hashpump": create_tool_executor(HashpumpTool),
+    "msfvenom": create_tool_executor(MsfvenomTool),
+    "medusa": create_tool_executor(MedusaTool),
+    "patator": create_tool_executor(PatatorTool),
+    "evil_winrm": create_tool_executor(EvilWinRMTool),
+    "hash_identifier": create_tool_executor(HashIdentifierTool),
+    "hashid": create_tool_executor(HashIDTool),
     # Forensics (10)
-    'volatility': create_tool_executor(VolatilityTool),
-    'volatility3': create_tool_executor(Volatility3Tool),
-    'steghide': create_tool_executor(SteghideTool),
-    'exiftool': create_tool_executor(ExiftoolTool),
-    'foremost': create_tool_executor(ForemostTool),
-    'zsteg': create_tool_executor(ZstegTool),
-    'stegsolve': create_tool_executor(StegSolveTool),
-    'scalpel': create_tool_executor(ScalpelTool),
-    'bulk_extractor': create_tool_executor(BulkExtractorTool),
-    'outguess': create_tool_executor(OutguessTool),
+    "volatility": create_tool_executor(VolatilityTool),
+    "volatility3": create_tool_executor(Volatility3Tool),
+    "steghide": create_tool_executor(SteghideTool),
+    "exiftool": create_tool_executor(ExiftoolTool),
+    "foremost": create_tool_executor(ForemostTool),
+    "zsteg": create_tool_executor(ZstegTool),
+    "stegsolve": create_tool_executor(StegSolveTool),
+    "scalpel": create_tool_executor(ScalpelTool),
+    "bulk_extractor": create_tool_executor(BulkExtractorTool),
+    "outguess": create_tool_executor(OutguessTool),
     # Binary (19)
-    'ghidra': create_tool_executor(GhidraTool),
-    'checksec': create_tool_executor(ChecksecTool),
-    'binwalk': create_tool_executor(BinwalkTool),
-    'gdb': create_tool_executor(GdbTool),
-    'gdb_peda': create_tool_executor(GdbPedaTool),
-    'gdb_gef': create_tool_executor(GDBGEFTool),
-    'radare2': create_tool_executor(Radare2Tool),
-    'ropgadget': create_tool_executor(RopgadgetTool),
-    'ropper': create_tool_executor(RopperTool),
-    'one_gadget': create_tool_executor(OneGadgetTool),
-    'strings': create_tool_executor(StringsTool),
-    'objdump': create_tool_executor(ObjdumpTool),
-    'xxd': create_tool_executor(XxdTool),
-    'pwntools': create_tool_executor(PwntoolsTool),
-    'angr': create_tool_executor(AngrTool),
-    'libc_database': create_tool_executor(LibcDatabaseTool),
-    'pwninit': create_tool_executor(PwninitTool),
-    'upx': create_tool_executor(UPXTool),
-    'hexdump': create_tool_executor(HexdumpTool),
+    "ghidra": create_tool_executor(GhidraTool),
+    "checksec": create_tool_executor(ChecksecTool),
+    "binwalk": create_tool_executor(BinwalkTool),
+    "gdb": create_tool_executor(GdbTool),
+    "gdb_peda": create_tool_executor(GdbPedaTool),
+    "gdb_gef": create_tool_executor(GDBGEFTool),
+    "radare2": create_tool_executor(Radare2Tool),
+    "ropgadget": create_tool_executor(RopgadgetTool),
+    "ropper": create_tool_executor(RopperTool),
+    "one_gadget": create_tool_executor(OneGadgetTool),
+    "strings": create_tool_executor(StringsTool),
+    "objdump": create_tool_executor(ObjdumpTool),
+    "xxd": create_tool_executor(XxdTool),
+    "pwntools": create_tool_executor(PwntoolsTool),
+    "angr": create_tool_executor(AngrTool),
+    "libc_database": create_tool_executor(LibcDatabaseTool),
+    "pwninit": create_tool_executor(PwninitTool),
+    "upx": create_tool_executor(UPXTool),
+    "hexdump": create_tool_executor(HexdumpTool),
     # Cloud (12)
-    'prowler': create_tool_executor(ProwlerTool),
-    'scout_suite': create_tool_executor(ScoutSuiteTool),
-    'trivy': create_tool_executor(TrivyTool),
-    'kube_hunter': create_tool_executor(KubeHunterTool),
-    'kube_bench': create_tool_executor(KubeBenchTool),
-    'docker_bench': create_tool_executor(DockerBenchTool),
-    'falco': create_tool_executor(FalcoTool),
-    'checkov': create_tool_executor(CheckovTool),
-    'terrascan': create_tool_executor(TerrascanTool),
-    'clair': create_tool_executor(ClairTool),
-    'pacu': create_tool_executor(PacuTool),
-    'cloudmapper': create_tool_executor(CloudmapperTool),
+    "prowler": create_tool_executor(ProwlerTool),
+    "scout_suite": create_tool_executor(ScoutSuiteTool),
+    "trivy": create_tool_executor(TrivyTool),
+    "kube_hunter": create_tool_executor(KubeHunterTool),
+    "kube_bench": create_tool_executor(KubeBenchTool),
+    "docker_bench": create_tool_executor(DockerBenchTool),
+    "falco": create_tool_executor(FalcoTool),
+    "checkov": create_tool_executor(CheckovTool),
+    "terrascan": create_tool_executor(TerrascanTool),
+    "clair": create_tool_executor(ClairTool),
+    "pacu": create_tool_executor(PacuTool),
+    "cloudmapper": create_tool_executor(CloudmapperTool),
     # API (1)
-    'postman': create_tool_executor(PostmanTool),
+    "postman": create_tool_executor(PostmanTool),
 }
 
 # Initialize and register intelligence blueprint
@@ -449,9 +428,8 @@ if __name__ == "__main__":
 {ModernVisualEngine.COLORS['MATRIX_GREEN']}{ModernVisualEngine.COLORS['BOLD']}╰─────────────────────────────────────────────────────────────────────────────╯{ModernVisualEngine.COLORS['RESET']}
 """
 
-    for line in startup_info.strip().split('\n'):
+    for line in startup_info.strip().split("\n"):
         if line.strip():
             logger.info(line)
 
     app.run(host="0.0.0.0", port=API_PORT, debug=DEBUG_MODE)
-

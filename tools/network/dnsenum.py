@@ -1,9 +1,11 @@
 """
 DNSenum tool implementation for DNS enumeration and reconnaissance
 """
-from typing import Dict, Any, List
-from tools.base import BaseTool
+
 import re
+from typing import Any, Dict, List
+
+from tools.base import BaseTool
 
 
 class DNSEnumTool(BaseTool):
@@ -108,17 +110,10 @@ class DNSEnumTool(BaseTool):
         hosts = []
         subdomains = []
         zone_transfer = False
-        dns_records = {
-            'A': [],
-            'AAAA': [],
-            'MX': [],
-            'NS': [],
-            'TXT': [],
-            'CNAME': []
-        }
+        dns_records = {"A": [], "AAAA": [], "MX": [], "NS": [], "TXT": [], "CNAME": []}
         ip_addresses = set()
 
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
 
         for line in lines:
             line = line.strip()
@@ -126,50 +121,47 @@ class DNSEnumTool(BaseTool):
                 continue
 
             # Name servers
-            if 'Name Servers:' in line or re.search(r'NS\s+[\w\.-]+', line):
-                ns_match = re.search(r'([\w\.-]+)\s+\d+\.\d+\.\d+\.\d+', line)
+            if "Name Servers:" in line or re.search(r"NS\s+[\w\.-]+", line):
+                ns_match = re.search(r"([\w\.-]+)\s+\d+\.\d+\.\d+\.\d+", line)
                 if ns_match:
                     name_servers.append(ns_match.group(1))
-                    dns_records['NS'].append(line)
+                    dns_records["NS"].append(line)
 
             # Mail servers
-            if 'Mail (MX) Servers:' in line or re.search(r'MX\s+', line):
-                mx_match = re.search(r'([\w\.-]+)\s+\d+\.\d+\.\d+\.\d+', line)
+            if "Mail (MX) Servers:" in line or re.search(r"MX\s+", line):
+                mx_match = re.search(r"([\w\.-]+)\s+\d+\.\d+\.\d+\.\d+", line)
                 if mx_match:
                     mail_servers.append(mx_match.group(1))
-                    dns_records['MX'].append(line)
+                    dns_records["MX"].append(line)
 
             # Zone transfer
-            if 'Trying Zone Transfer' in line or 'Zone transfer successful' in line.lower():
+            if "Trying Zone Transfer" in line or "Zone transfer successful" in line.lower():
                 zone_transfer = True
 
             # Host entries with IP addresses
-            ip_match = re.search(r'([\w\.-]+)\s+(\d+\.\d+\.\d+\.\d+)', line)
+            ip_match = re.search(r"([\w\.-]+)\s+(\d+\.\d+\.\d+\.\d+)", line)
             if ip_match:
                 hostname = ip_match.group(1)
                 ip = ip_match.group(2)
-                hosts.append({
-                    'hostname': hostname,
-                    'ip': ip
-                })
+                hosts.append({"hostname": hostname, "ip": ip})
                 ip_addresses.add(ip)
                 subdomains.append(hostname)
 
             # A records
-            if re.search(r'\s+A\s+', line):
-                dns_records['A'].append(line)
+            if re.search(r"\s+A\s+", line):
+                dns_records["A"].append(line)
 
             # AAAA records
-            if re.search(r'\s+AAAA\s+', line):
-                dns_records['AAAA'].append(line)
+            if re.search(r"\s+AAAA\s+", line):
+                dns_records["AAAA"].append(line)
 
             # CNAME records
-            if re.search(r'\s+CNAME\s+', line):
-                dns_records['CNAME'].append(line)
+            if re.search(r"\s+CNAME\s+", line):
+                dns_records["CNAME"].append(line)
 
             # TXT records
-            if re.search(r'\s+TXT\s+', line):
-                dns_records['TXT'].append(line)
+            if re.search(r"\s+TXT\s+", line):
+                dns_records["TXT"].append(line)
 
         return {
             "name_servers": name_servers,
@@ -186,5 +178,5 @@ class DNSEnumTool(BaseTool):
             "ip_count": len(ip_addresses),
             "raw_output": stdout,
             "stderr": stderr,
-            "returncode": returncode
+            "returncode": returncode,
         }

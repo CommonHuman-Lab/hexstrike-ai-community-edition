@@ -18,6 +18,7 @@ class TestWhatwebToolInitialization(unittest.TestCase):
 
     def test_inheritance(self):
         from tools.base import BaseTool
+
         tool = WhatwebTool()
         self.assertIsInstance(tool, BaseTool)
 
@@ -59,15 +60,11 @@ class TestWhatwebCommandBuilding(unittest.TestCase):
         self.assertIn("3", cmd)
 
     def test_command_with_verbose(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-v"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-v"})
         self.assertIn("-v", cmd)
 
     def test_command_with_log_file(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "--log-verbose output.txt"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "--log-verbose output.txt"})
         self.assertIn("--log-verbose", cmd)
 
 
@@ -95,7 +92,7 @@ class TestWhatwebToolExecution(unittest.TestCase):
             "success": True,
             "stdout": "https://example.com [200 OK] Apache",
             "stderr": "",
-            "returncode": 0
+            "returncode": 0,
         }
 
         result = self.tool.execute("https://example.com", {}, self.mock_execute_func)
@@ -107,7 +104,7 @@ class TestWhatwebToolExecution(unittest.TestCase):
             "success": False,
             "error": "whatweb: command not found",
             "stderr": "whatweb: command not found",
-            "returncode": 127
+            "returncode": 127,
         }
 
         result = self.tool.execute("https://example.com", {}, self.mock_execute_func)
@@ -130,16 +127,18 @@ class TestWhatwebEdgeCases(unittest.TestCase):
 class TestWhatwebIntegration(unittest.TestCase):
     def test_realistic_scan(self):
         tool = WhatwebTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": "https://example.com [200 OK] Apache[2.4.41], PHP[7.4.3]",
-            "stderr": "",
-            "returncode": 0
-        })
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": "https://example.com [200 OK] Apache[2.4.41], PHP[7.4.3]",
+                "stderr": "",
+                "returncode": 0,
+            }
+        )
 
         result = tool.execute("https://example.com", {"aggression": "3"}, mock_execute)
         self.assertTrue(result["success"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

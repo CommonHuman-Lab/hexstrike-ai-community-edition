@@ -1,7 +1,9 @@
 """
 Tplmap tool implementation for server-side template injection
 """
-from typing import Dict, Any, List
+
+from typing import Any, Dict, List
+
 from tools.base import BaseTool
 
 
@@ -74,13 +76,13 @@ class TplmapTool(BaseTool):
             "returncode": returncode,
             "vulnerable": False,
             "engine": "",
-            "technique": ""
+            "technique": "",
         }
 
         if "is vulnerable" in stdout.lower() or "injection point" in stdout.lower():
             result["vulnerable"] = True
 
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         for line in lines:
             if "engine" in line.lower() and ":" in line:
                 result["engine"] = line.split(":")[-1].strip()

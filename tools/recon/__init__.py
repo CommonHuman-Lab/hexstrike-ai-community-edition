@@ -4,36 +4,35 @@ Contains subdomain enumeration and asset discovery tools
 """
 
 from .amass import AmassTool
-from .subfinder import SubfinderTool
-from .waybackurls import WaybackURLsTool
+from .anew import AnewTool
+from .aquatone import AquatoneTool
 from .gau import GAUTool
 from .hakrawler import HakrawlerTool
-from .anew import AnewTool
 from .qsreplace import QsreplaceTool
-from .uro import UroTool
-from .theharvester import TheHarvesterTool
+from .recon_ng import ReconNgTool
 from .sherlock import SherlockTool
 from .spiderfoot import SpiderFootTool
-from .trufflehog import TruffleHogTool
-from .aquatone import AquatoneTool
+from .subfinder import SubfinderTool
 from .subjack import SubjackTool
-from .recon_ng import ReconNgTool
+from .theharvester import TheHarvesterTool
+from .trufflehog import TruffleHogTool
+from .uro import UroTool
+from .waybackurls import WaybackURLsTool
 
 __all__ = [
-    'AmassTool',
-    'SubfinderTool',
-    'WaybackURLsTool',
-    'GAUTool',
-    'HakrawlerTool',
-    'AnewTool',
-    'QsreplaceTool',
-    'UroTool',
-    'TheHarvesterTool',
-    'SherlockTool',
-    'SpiderFootTool',
-    'TruffleHogTool',
-    'AquatoneTool',
-    'SubjackTool',
-    'ReconNgTool'
+    "AmassTool",
+    "SubfinderTool",
+    "WaybackURLsTool",
+    "GAUTool",
+    "HakrawlerTool",
+    "AnewTool",
+    "QsreplaceTool",
+    "UroTool",
+    "TheHarvesterTool",
+    "SherlockTool",
+    "SpiderFootTool",
+    "TruffleHogTool",
+    "AquatoneTool",
+    "SubjackTool",
+    "ReconNgTool",
 ]
-

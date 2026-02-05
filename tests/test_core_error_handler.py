@@ -9,15 +9,11 @@ Tests for IntelligentErrorHandler and related classes:
 - IntelligentErrorHandler class
 """
 
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from core.error_handler import (
-    ErrorType,
-    RecoveryAction,
-    ErrorContext,
-    RecoveryStrategy,
-    IntelligentErrorHandler
-)
+
+from core.error_handler import ErrorContext, ErrorType, IntelligentErrorHandler, RecoveryAction, RecoveryStrategy
 
 
 class TestErrorType:
@@ -64,6 +60,7 @@ class TestErrorContext:
     def test_error_context_creation(self):
         """Test creating an ErrorContext"""
         from datetime import datetime
+
         context = ErrorContext(
             tool_name="nmap",
             target="192.168.1.1",
@@ -73,7 +70,7 @@ class TestErrorContext:
             attempt_count=1,
             timestamp=datetime.now(),
             stack_trace="",
-            system_resources={}
+            system_resources={},
         )
 
         assert context.tool_name == "nmap"
@@ -85,6 +82,7 @@ class TestErrorContext:
     def test_error_context_with_defaults(self):
         """Test ErrorContext uses default values"""
         from datetime import datetime
+
         context = ErrorContext(
             tool_name="nmap",
             target="192.168.1.1",
@@ -94,7 +92,7 @@ class TestErrorContext:
             attempt_count=1,
             timestamp=datetime.now(),
             stack_trace="",
-            system_resources={}
+            system_resources={},
         )
 
         # Check that default values are set
@@ -115,7 +113,7 @@ class TestRecoveryStrategy:
             max_attempts=3,
             backoff_multiplier=2.0,
             success_probability=0.8,
-            estimated_time=120
+            estimated_time=120,
         )
 
         assert strategy.action == RecoveryAction.RETRY_WITH_BACKOFF
@@ -134,16 +132,14 @@ class TestIntelligentErrorHandler:
         handler = IntelligentErrorHandler()
 
         assert handler is not None
-        assert hasattr(handler, 'error_patterns')
-        assert hasattr(handler, 'recovery_strategies')
+        assert hasattr(handler, "error_patterns")
+        assert hasattr(handler, "recovery_strategies")
 
     def test_classify_timeout_error(self):
         """Test classifying timeout errors"""
         handler = IntelligentErrorHandler()
 
-        error_type = handler.classify_error(
-            error_message="Connection timed out after 30 seconds"
-        )
+        error_type = handler.classify_error(error_message="Connection timed out after 30 seconds")
 
         assert error_type == ErrorType.TIMEOUT
 
@@ -151,9 +147,7 @@ class TestIntelligentErrorHandler:
         """Test classifying permission denied errors"""
         handler = IntelligentErrorHandler()
 
-        error_type = handler.classify_error(
-            error_message="Permission denied: cannot access /root/file.txt"
-        )
+        error_type = handler.classify_error(error_message="Permission denied: cannot access /root/file.txt")
 
         assert error_type == ErrorType.PERMISSION_DENIED
 
@@ -161,9 +155,7 @@ class TestIntelligentErrorHandler:
         """Test classifying network unreachable errors"""
         handler = IntelligentErrorHandler()
 
-        error_type = handler.classify_error(
-            error_message="network unreachable"
-        )
+        error_type = handler.classify_error(error_message="network unreachable")
 
         assert error_type == ErrorType.NETWORK_UNREACHABLE
 
@@ -171,9 +163,7 @@ class TestIntelligentErrorHandler:
         """Test classifying rate limited errors"""
         handler = IntelligentErrorHandler()
 
-        error_type = handler.classify_error(
-            error_message="Rate limit exceeded, too many requests"
-        )
+        error_type = handler.classify_error(error_message="Rate limit exceeded, too many requests")
 
         assert error_type == ErrorType.RATE_LIMITED
 
@@ -181,9 +171,7 @@ class TestIntelligentErrorHandler:
         """Test classifying tool not found errors"""
         handler = IntelligentErrorHandler()
 
-        error_type = handler.classify_error(
-            error_message="nmap: command not found"
-        )
+        error_type = handler.classify_error(error_message="nmap: command not found")
 
         assert error_type == ErrorType.TOOL_NOT_FOUND
 
@@ -192,28 +180,24 @@ class TestIntelligentErrorHandler:
         handler = IntelligentErrorHandler()
 
         error = TimeoutError("Connection timeout")
-        context = {
-            "target": "192.168.1.1",
-            "parameters": {"timeout": 30, "threads": 50},
-            "attempt_count": 1
-        }
+        context = {"target": "192.168.1.1", "parameters": {"timeout": 30, "threads": 50}, "attempt_count": 1}
 
         strategy = handler.handle_tool_failure("nmap", error, context)
 
         assert strategy is not None
         assert isinstance(strategy, RecoveryStrategy)
-        assert strategy.action in [RecoveryAction.RETRY_WITH_BACKOFF, RecoveryAction.RETRY_WITH_REDUCED_SCOPE, RecoveryAction.SWITCH_TO_ALTERNATIVE_TOOL]
+        assert strategy.action in [
+            RecoveryAction.RETRY_WITH_BACKOFF,
+            RecoveryAction.RETRY_WITH_REDUCED_SCOPE,
+            RecoveryAction.SWITCH_TO_ALTERNATIVE_TOOL,
+        ]
 
     def test_handle_tool_failure_for_rate_limit(self):
         """Test handling tool failure for rate limiting"""
         handler = IntelligentErrorHandler()
 
         error = Exception("Rate limit exceeded")
-        context = {
-            "target": "http://example.com",
-            "parameters": {"threads": 50, "delay": 0},
-            "attempt_count": 1
-        }
+        context = {"target": "http://example.com", "parameters": {"threads": 50, "delay": 0}, "attempt_count": 1}
 
         strategy = handler.handle_tool_failure("gobuster", error, context)
 
@@ -226,11 +210,7 @@ class TestIntelligentErrorHandler:
         handler = IntelligentErrorHandler()
 
         error = FileNotFoundError("nmap: command not found")
-        context = {
-            "target": "192.168.1.1",
-            "parameters": {},
-            "attempt_count": 1
-        }
+        context = {"target": "192.168.1.1", "parameters": {}, "attempt_count": 1}
 
         strategy = handler.handle_tool_failure("nmap", error, context)
 
@@ -328,7 +308,7 @@ class TestIntelligentErrorHandler:
             attempt_count=1,
             timestamp=datetime.now(),
             stack_trace="",
-            system_resources={}
+            system_resources={},
         )
 
         result = handler.escalate_to_human(context, urgency="medium")
@@ -340,19 +320,15 @@ class TestIntelligentErrorHandler:
         assert result["tool"] == "nmap"
         assert result["urgency"] == "medium"
 
-    @patch('core.visual.ModernVisualEngine')
+    @patch("core.visual.ModernVisualEngine")
     def test_error_logging(self, mock_visual):
         """Test that errors are properly logged"""
         handler = IntelligentErrorHandler()
 
         error = TimeoutError("Connection timeout")
-        context = {
-            "target": "192.168.1.1",
-            "parameters": {},
-            "attempt_count": 1
-        }
+        context = {"target": "192.168.1.1", "parameters": {}, "attempt_count": 1}
 
-        with patch('logging.Logger.warning') as mock_log:
+        with patch("logging.Logger.warning") as mock_log:
             handler.handle_tool_failure("nmap", error, context)
             # Verify logging occurred (may or may not be called depending on implementation)
             # This is just to ensure the handler doesn't crash when logging
@@ -383,7 +359,7 @@ def test_error_handler_integration():
     context = {
         "target": "192.168.1.1",
         "parameters": {"timeout": 30, "threads": 100, "ports": "1-65535"},
-        "attempt_count": 1
+        "attempt_count": 1,
     }
 
     strategy = handler.handle_tool_failure("nmap", error, context)
@@ -391,8 +367,8 @@ def test_error_handler_integration():
     # Verify the handler returns a proper recovery strategy
     assert strategy is not None
     assert isinstance(strategy, RecoveryStrategy)
-    assert hasattr(strategy, 'action')
-    assert hasattr(strategy, 'parameters')
+    assert hasattr(strategy, "action")
+    assert hasattr(strategy, "parameters")
     assert strategy.action in [ra for ra in RecoveryAction]
 
 
@@ -401,11 +377,7 @@ def test_error_handler_with_unknown_error():
     handler = IntelligentErrorHandler()
 
     error = Exception("Something very unusual happened: XYZ123")
-    context = {
-        "target": "unknown",
-        "parameters": {},
-        "attempt_count": 1
-    }
+    context = {"target": "unknown", "parameters": {}, "attempt_count": 1}
 
     strategy = handler.handle_tool_failure("custom_tool", error, context)
 
@@ -420,11 +392,7 @@ def test_error_handler_preserves_context():
 
     original_params = {"timeout": 30, "threads": 50, "custom_flag": "value"}
     error = Exception("Error occurred")
-    context = {
-        "target": "192.168.1.1",
-        "parameters": original_params.copy(),
-        "attempt_count": 1
-    }
+    context = {"target": "192.168.1.1", "parameters": original_params.copy(), "attempt_count": 1}
 
     strategy = handler.handle_tool_failure("nmap", error, context)
 

@@ -4,15 +4,17 @@ Handles dirb, nikto, sqlmap, wpscan, ffuf, dalfox, xsser, jaeles, and zap tools
 """
 
 import logging
-from flask import Blueprint, request, jsonify
+
+from flask import Blueprint, jsonify, request
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-tools_web_bp = Blueprint('tools_web', __name__, url_prefix='/api/tools')
+tools_web_bp = Blueprint("tools_web", __name__, url_prefix="/api/tools")
 
 # Dependencies will be injected via init_app
 execute_command = None
+
 
 def init_app(exec_command):
     """Initialize blueprint with dependencies"""
@@ -31,9 +33,7 @@ def dirb():
 
         if not url:
             logger.warning("🌐 Dirb called without URL parameter")
-            return jsonify({
-                "error": "URL parameter is required"
-            }), 400
+            return jsonify({"error": "URL parameter is required"}), 400
 
         command = f"dirb {url} {wordlist}"
 
@@ -46,9 +46,8 @@ def dirb():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in dirb endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_bp.route("/nikto", methods=["POST"])
 def nikto():
@@ -60,9 +59,7 @@ def nikto():
 
         if not target:
             logger.warning("🎯 Nikto called without target parameter")
-            return jsonify({
-                "error": "Target parameter is required"
-            }), 400
+            return jsonify({"error": "Target parameter is required"}), 400
 
         command = f"nikto -h {target}"
 
@@ -75,9 +72,8 @@ def nikto():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in nikto endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_bp.route("/sqlmap", methods=["POST"])
 def sqlmap():
@@ -90,14 +86,12 @@ def sqlmap():
 
         if not url:
             logger.warning("🎯 SQLMap called without URL parameter")
-            return jsonify({
-                "error": "URL parameter is required"
-            }), 400
+            return jsonify({"error": "URL parameter is required"}), 400
 
         command = f"sqlmap -u {url} --batch"
 
         if data:
-            command += f" --data=\"{data}\""
+            command += f' --data="{data}"'
 
         if additional_args:
             command += f" {additional_args}"
@@ -108,9 +102,8 @@ def sqlmap():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in sqlmap endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_bp.route("/wpscan", methods=["POST"])
 def wpscan():
@@ -122,9 +115,7 @@ def wpscan():
 
         if not url:
             logger.warning("🌐 WPScan called without URL parameter")
-            return jsonify({
-                "error": "URL parameter is required"
-            }), 400
+            return jsonify({"error": "URL parameter is required"}), 400
 
         command = f"wpscan --url {url}"
 
@@ -137,9 +128,8 @@ def wpscan():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in wpscan endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_bp.route("/ffuf", methods=["POST"])
 def ffuf():
@@ -154,9 +144,7 @@ def ffuf():
 
         if not url:
             logger.warning("🌐 FFuf called without URL parameter")
-            return jsonify({
-                "error": "URL parameter is required"
-            }), 400
+            return jsonify({"error": "URL parameter is required"}), 400
 
         command = f"ffuf"
 
@@ -180,9 +168,8 @@ def ffuf():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in ffuf endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_bp.route("/dalfox", methods=["POST"])
 def dalfox():
@@ -194,9 +181,7 @@ def dalfox():
 
         if not url:
             logger.warning("🌐 Dalfox called without URL parameter")
-            return jsonify({
-                "error": "URL parameter is required"
-            }), 400
+            return jsonify({"error": "URL parameter is required"}), 400
 
         command = f"dalfox url {url}"
 
@@ -209,9 +194,8 @@ def dalfox():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in dalfox endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_bp.route("/xsser", methods=["POST"])
 def xsser():
@@ -223,9 +207,7 @@ def xsser():
 
         if not url:
             logger.warning("🌐 XSSer called without URL parameter")
-            return jsonify({
-                "error": "URL parameter is required"
-            }), 400
+            return jsonify({"error": "URL parameter is required"}), 400
 
         command = f"xsser --url {url}"
 
@@ -238,9 +220,8 @@ def xsser():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in xsser endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_bp.route("/jaeles", methods=["POST"])
 def jaeles():
@@ -252,9 +233,7 @@ def jaeles():
 
         if not url:
             logger.warning("🌐 Jaeles called without URL parameter")
-            return jsonify({
-                "error": "URL parameter is required"
-            }), 400
+            return jsonify({"error": "URL parameter is required"}), 400
 
         command = f"jaeles scan -u {url}"
 
@@ -267,9 +246,8 @@ def jaeles():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in jaeles endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_bp.route("/zap", methods=["POST"])
 def zap():
@@ -281,9 +259,7 @@ def zap():
 
         if not url:
             logger.warning("🌐 ZAP called without URL parameter")
-            return jsonify({
-                "error": "URL parameter is required"
-            }), 400
+            return jsonify({"error": "URL parameter is required"}), 400
 
         command = f"zap-cli quick-scan {url}"
 
@@ -296,9 +272,7 @@ def zap():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in zap endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 
 @tools_web_bp.route("/commix", methods=["POST"])
@@ -458,4 +432,3 @@ def sslyze():
     except Exception as e:
         logger.error(f"💥 Error in sslyze endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
-

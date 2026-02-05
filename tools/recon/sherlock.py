@@ -1,7 +1,9 @@
 """
 Sherlock tool implementation for username investigation across social networks
 """
-from typing import Dict, Any, List
+
+from typing import Any, Dict, List
+
 from tools.base import BaseTool
 
 
@@ -67,10 +69,10 @@ class SherlockTool(BaseTool):
             "stderr": stderr,
             "returncode": returncode,
             "found_profiles": [],
-            "not_found": []
+            "not_found": [],
         }
 
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         for line in lines:
             line = line.strip()
             if not line:

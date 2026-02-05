@@ -1,7 +1,9 @@
 """
 Zsteg tool implementation for PNG/BMP steganography detection
 """
-from typing import Dict, Any, List
+
+from typing import Any, Dict, List
+
 from tools.base import BaseTool
 
 
@@ -62,15 +64,9 @@ class ZstegTool(BaseTool):
 
     def parse_output(self, stdout: str, stderr: str, returncode: int) -> Dict[str, Any]:
         """Parse zsteg output"""
-        result = {
-            "raw_output": stdout,
-            "stderr": stderr,
-            "returncode": returncode,
-            "findings": [],
-            "text_found": []
-        }
+        result = {"raw_output": stdout, "stderr": stderr, "returncode": returncode, "findings": [], "text_found": []}
 
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         for line in lines:
             line = line.strip()
             if line and ":" in line:

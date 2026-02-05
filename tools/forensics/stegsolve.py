@@ -1,7 +1,9 @@
 """
 Stegsolve tool implementation for steganography analysis
 """
-from typing import Dict, Any, List
+
+from typing import Any, Dict, List
+
 from tools.base import BaseTool
 
 
@@ -40,7 +42,7 @@ class StegSolveTool(BaseTool):
             "raw_output": stdout,
             "stderr": stderr,
             "returncode": returncode,
-            "analysis_complete": returncode == 0
+            "analysis_complete": returncode == 0,
         }
 
         return result
@@ -72,7 +74,7 @@ class OutguessTool(BaseTool):
         # Mode
         if params.get("extract", True):
             cmd_parts.append("-r")
-        
+
         # Key
         key = params.get("key", "")
         if key:
@@ -98,12 +100,13 @@ class OutguessTool(BaseTool):
             "stderr": stderr,
             "returncode": returncode,
             "extracted": returncode == 0,
-            "bytes_extracted": 0
+            "bytes_extracted": 0,
         }
 
         # Try to find extracted bytes count
         import re
-        match = re.search(r'(\d+)\s*bytes', stdout + stderr)
+
+        match = re.search(r"(\d+)\s*bytes", stdout + stderr)
         if match:
             result["bytes_extracted"] = int(match.group(1))
 

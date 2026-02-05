@@ -4,15 +4,17 @@ Handles arjun, paramspider, x8, wfuzz, dotdotpwn, anew, qsreplace, and uro tools
 """
 
 import logging
-from flask import Blueprint, request, jsonify
+
+from flask import Blueprint, jsonify, request
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-tools_parameters_bp = Blueprint('tools_parameters', __name__, url_prefix='/api/tools')
+tools_parameters_bp = Blueprint("tools_parameters", __name__, url_prefix="/api/tools")
 
 # Dependencies will be injected via init_app
 execute_command = None
+
 
 def init_app(exec_command):
     """Initialize blueprint with dependencies"""
@@ -32,9 +34,7 @@ def arjun():
 
         if not url:
             logger.warning("Arjun called without URL parameter")
-            return jsonify({
-                "error": "URL parameter is required"
-            }), 400
+            return jsonify({"error": "URL parameter is required"}), 400
 
         command = f"arjun -u {url}"
 
@@ -53,9 +53,8 @@ def arjun():
         return jsonify(result)
     except Exception as e:
         logger.error(f"Error in arjun endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_parameters_bp.route("/paramspider", methods=["POST"])
 def paramspider():
@@ -68,9 +67,7 @@ def paramspider():
 
         if not domain:
             logger.warning("ParamSpider called without domain parameter")
-            return jsonify({
-                "error": "Domain parameter is required"
-            }), 400
+            return jsonify({"error": "Domain parameter is required"}), 400
 
         command = f"paramspider -d {domain}"
 
@@ -86,9 +83,8 @@ def paramspider():
         return jsonify(result)
     except Exception as e:
         logger.error(f"Error in paramspider endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_parameters_bp.route("/x8", methods=["POST"])
 def x8():
@@ -102,9 +98,7 @@ def x8():
 
         if not url:
             logger.warning("x8 called without URL parameter")
-            return jsonify({
-                "error": "URL parameter is required"
-            }), 400
+            return jsonify({"error": "URL parameter is required"}), 400
 
         command = f"x8 -u {url}"
 
@@ -123,9 +117,8 @@ def x8():
         return jsonify(result)
     except Exception as e:
         logger.error(f"Error in x8 endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_parameters_bp.route("/wfuzz", methods=["POST"])
 def wfuzz():
@@ -140,9 +133,7 @@ def wfuzz():
 
         if not url:
             logger.warning("Wfuzz called without URL parameter")
-            return jsonify({
-                "error": "URL parameter is required"
-            }), 400
+            return jsonify({"error": "URL parameter is required"}), 400
 
         command = f"wfuzz -w {wordlist}"
 
@@ -163,9 +154,8 @@ def wfuzz():
         return jsonify(result)
     except Exception as e:
         logger.error(f"Error in wfuzz endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_parameters_bp.route("/dotdotpwn", methods=["POST"])
 def dotdotpwn():
@@ -179,9 +169,7 @@ def dotdotpwn():
 
         if not host:
             logger.warning("DotDotPwn called without host parameter")
-            return jsonify({
-                "error": "Host parameter is required"
-            }), 400
+            return jsonify({"error": "Host parameter is required"}), 400
 
         command = f"dotdotpwn.pl -m {module} -h {host} -d {depth}"
 
@@ -194,9 +182,8 @@ def dotdotpwn():
         return jsonify(result)
     except Exception as e:
         logger.error(f"Error in dotdotpwn endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_parameters_bp.route("/anew", methods=["POST"])
 def anew():
@@ -209,9 +196,7 @@ def anew():
 
         if not input_file or not output_file:
             logger.warning("Anew called without required file parameters")
-            return jsonify({
-                "error": "Both input_file and output_file parameters are required"
-            }), 400
+            return jsonify({"error": "Both input_file and output_file parameters are required"}), 400
 
         command = f"cat {input_file} | anew {output_file}"
 
@@ -224,9 +209,8 @@ def anew():
         return jsonify(result)
     except Exception as e:
         logger.error(f"Error in anew endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_parameters_bp.route("/qsreplace", methods=["POST"])
 def qsreplace():
@@ -239,9 +223,7 @@ def qsreplace():
 
         if not input_file or not replace_value:
             logger.warning("Qsreplace called without required parameters")
-            return jsonify({
-                "error": "Both input_file and replace_value parameters are required"
-            }), 400
+            return jsonify({"error": "Both input_file and replace_value parameters are required"}), 400
 
         command = f"cat {input_file} | qsreplace {replace_value}"
 
@@ -254,9 +236,8 @@ def qsreplace():
         return jsonify(result)
     except Exception as e:
         logger.error(f"Error in qsreplace endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_parameters_bp.route("/uro", methods=["POST"])
 def uro():
@@ -269,9 +250,7 @@ def uro():
 
         if not input_file:
             logger.warning("Uro called without input_file parameter")
-            return jsonify({
-                "error": "input_file parameter is required"
-            }), 400
+            return jsonify({"error": "input_file parameter is required"}), 400
 
         command = f"cat {input_file} | uro"
 
@@ -287,6 +266,4 @@ def uro():
         return jsonify(result)
     except Exception as e:
         logger.error(f"Error in uro endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500

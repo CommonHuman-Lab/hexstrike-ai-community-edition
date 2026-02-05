@@ -3,7 +3,8 @@ Nuclei Tool Implementation
 Vulnerability scanner using community templates
 """
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 from ..base import BaseTool
 
 
@@ -44,20 +45,20 @@ class NucleiTool(BaseTool):
             >>> tool.build_command('example.com', {'severity': 'critical'})
             ['nuclei', '-u', 'example.com', '-severity', 'critical']
         """
-        cmd_parts = [self.binary_name, '-u', target]
+        cmd_parts = [self.binary_name, "-u", target]
 
         # Add severity filter if provided
-        severity = params.get('severity', '')
+        severity = params.get("severity", "")
         if severity:
-            cmd_parts.extend(['-severity', severity])
+            cmd_parts.extend(["-severity", severity])
 
         # Add tags filter if provided
-        tags = params.get('tags', '')
+        tags = params.get("tags", "")
         if tags:
-            cmd_parts.extend(['-tags', tags])
+            cmd_parts.extend(["-tags", tags])
 
         # Add any additional arguments
-        additional_args = params.get('additional_args', '')
+        additional_args = params.get("additional_args", "")
         if additional_args:
             cmd_parts.extend(additional_args.split())
 
@@ -75,23 +76,19 @@ class NucleiTool(BaseTool):
         Returns:
             Dictionary containing parsed results
         """
-        result = {
-            "raw_output": stdout,
-            "stderr": stderr,
-            "returncode": returncode
-        }
+        result = {"raw_output": stdout, "stderr": stderr, "returncode": returncode}
 
         # Count vulnerabilities found
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         vulnerabilities = []
 
         for line in lines:
-            if line.strip() and '[' in line:
+            if line.strip() and "[" in line:
                 # Basic parsing of nuclei output format
                 vulnerabilities.append(line.strip())
 
         if vulnerabilities:
-            result['vulnerabilities'] = vulnerabilities
-            result['vulnerability_count'] = len(vulnerabilities)
+            result["vulnerabilities"] = vulnerabilities
+            result["vulnerability_count"] = len(vulnerabilities)
 
         return result

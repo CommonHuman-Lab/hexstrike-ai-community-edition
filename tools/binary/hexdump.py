@@ -1,7 +1,9 @@
 """
 Hexdump tool implementation for binary viewing
 """
-from typing import Dict, Any, List
+
+from typing import Any, Dict, List
+
 from tools.base import BaseTool
 
 
@@ -64,10 +66,10 @@ class HexdumpTool(BaseTool):
             "stderr": stderr,
             "returncode": returncode,
             "hex_lines": [],
-            "ascii_strings": []
+            "ascii_strings": [],
         }
 
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         for line in lines:
             if line.strip():
                 result["hex_lines"].append(line)

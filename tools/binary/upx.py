@@ -1,7 +1,9 @@
 """
 UPX tool implementation for executable packing/unpacking
 """
-from typing import Dict, Any, List
+
+from typing import Any, Dict, List
+
 from tools.base import BaseTool
 
 
@@ -64,10 +66,10 @@ class UPXTool(BaseTool):
             "returncode": returncode,
             "packed": False,
             "ratio": "",
-            "format": ""
+            "format": "",
         }
 
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         for line in lines:
             if "packed" in line.lower():
                 result["packed"] = True

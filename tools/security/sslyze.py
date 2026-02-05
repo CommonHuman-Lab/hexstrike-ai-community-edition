@@ -1,7 +1,9 @@
 """
 SSLyze tool implementation for SSL/TLS configuration analysis
 """
-from typing import Dict, Any, List
+
+from typing import Any, Dict, List
+
 from tools.base import BaseTool
 
 
@@ -81,10 +83,10 @@ class SSLyzeTool(BaseTool):
             "returncode": returncode,
             "vulnerabilities": [],
             "supported_protocols": [],
-            "certificate_info": {}
+            "certificate_info": {},
         }
 
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         for line in lines:
             line = line.strip()
             if "VULNERABLE" in line.upper():

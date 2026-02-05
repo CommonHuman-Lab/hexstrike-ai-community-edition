@@ -1,7 +1,9 @@
 """
 TheHarvester tool implementation for email and subdomain harvesting
 """
-from typing import Dict, Any, List
+
+from typing import Any, Dict, List
+
 from tools.base import BaseTool
 
 
@@ -70,10 +72,10 @@ class TheHarvesterTool(BaseTool):
             "returncode": returncode,
             "emails": [],
             "subdomains": [],
-            "hosts": []
+            "hosts": [],
         }
 
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         section = None
 
         for line in lines:

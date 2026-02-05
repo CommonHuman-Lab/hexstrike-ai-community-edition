@@ -4,16 +4,18 @@ Handles http-framework, browser-agent, and burpsuite-alternative tools
 """
 
 import logging
-from flask import Blueprint, request, jsonify
+
+from flask import Blueprint, jsonify, request
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-tools_web_frameworks_bp = Blueprint('tools_web_frameworks', __name__, url_prefix='/api/tools')
+tools_web_frameworks_bp = Blueprint("tools_web_frameworks", __name__, url_prefix="/api/tools")
 
 # Dependencies will be injected via init_app
 http_framework = None
 browser_agent = None
+
 
 def init_app(http_testing_framework, browser_agent_instance):
     """Initialize blueprint with dependencies"""
@@ -31,9 +33,10 @@ def http_framework_route():
 
         if not action:
             logger.warning("HTTP Framework called without action parameter")
-            return jsonify({
-                "error": "Action parameter is required (intercept/spider/intruder/repeater/scope/rules)"
-            }), 400
+            return (
+                jsonify({"error": "Action parameter is required (intercept/spider/intruder/repeater/scope/rules)"}),
+                400,
+            )
 
         # Intercept request
         if action == "intercept":
@@ -79,7 +82,9 @@ def http_framework_route():
                 return jsonify({"error": "URL is required for intruder action"}), 400
 
             logger.info(f"HTTP Framework: Running Intruder on {url}")
-            result = http_framework.intruder_sniper(url, method, location, params_list, payloads, base_data, max_requests)
+            result = http_framework.intruder_sniper(
+                url, method, location, params_list, payloads, base_data, max_requests
+            )
             logger.info(f"HTTP Framework: Intruder completed for {url}")
             return jsonify(result)
 
@@ -115,15 +120,18 @@ def http_framework_route():
             return jsonify({"success": True, "message": f"Set {len(rules)} match/replace rules"})
 
         else:
-            return jsonify({
-                "error": f"Unknown action: {action}. Valid actions: intercept, spider, intruder, repeater, scope, rules"
-            }), 400
+            return (
+                jsonify(
+                    {
+                        "error": f"Unknown action: {action}. Valid actions: intercept, spider, intruder, repeater, scope, rules"
+                    }
+                ),
+                400,
+            )
 
     except Exception as e:
         logger.error(f"Error in http-framework endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 
 @tools_web_frameworks_bp.route("/browser-agent", methods=["POST"])
@@ -135,9 +143,7 @@ def browser_agent_route():
 
         if not action:
             logger.warning("Browser Agent called without action parameter")
-            return jsonify({
-                "error": "Action parameter is required (navigate/setup/close/active-test)"
-            }), 400
+            return jsonify({"error": "Action parameter is required (navigate/setup/close/active-test)"}), 400
 
         # Setup browser
         if action == "setup":
@@ -185,15 +191,14 @@ def browser_agent_route():
             return jsonify({"success": True, "message": "Browser closed"})
 
         else:
-            return jsonify({
-                "error": f"Unknown action: {action}. Valid actions: setup, navigate, active-test, close"
-            }), 400
+            return (
+                jsonify({"error": f"Unknown action: {action}. Valid actions: setup, navigate, active-test, close"}),
+                400,
+            )
 
     except Exception as e:
         logger.error(f"Error in browser-agent endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 
 @tools_web_frameworks_bp.route("/burpsuite-alternative", methods=["POST"])
@@ -206,9 +211,7 @@ def burpsuite_alternative():
 
         if not mode:
             logger.warning("Burpsuite Alternative called without mode parameter")
-            return jsonify({
-                "error": "Mode parameter is required (proxy/spider/intruder/repeater/scanner)"
-            }), 400
+            return jsonify({"error": "Mode parameter is required (proxy/spider/intruder/repeater/scanner)"}), 400
 
         if not url and mode != "proxy":
             return jsonify({"error": "URL parameter is required"}), 400
@@ -244,7 +247,9 @@ def burpsuite_alternative():
             max_requests = params.get("max_requests", 100)
 
             logger.info(f"Burpsuite Alternative: Intruder mode for {url}")
-            result = http_framework.intruder_sniper(url, method, location, params_list, payloads, base_data, max_requests)
+            result = http_framework.intruder_sniper(
+                url, method, location, params_list, payloads, base_data, max_requests
+            )
             logger.info(f"Burpsuite Alternative: Intruder completed for {url}")
             return jsonify(result)
 
@@ -281,23 +286,22 @@ def burpsuite_alternative():
                 "spider_results": {
                     "discovered_urls": spider_result.get("discovered_urls", []),
                     "forms": spider_result.get("forms", []),
-                    "total_pages": spider_result.get("total_pages", 0)
+                    "total_pages": spider_result.get("total_pages", 0),
                 },
-                "vulnerabilities": browser_result.get("security_analysis", {}).get("issues", []) +
-                                 spider_result.get("vulnerabilities", []),
-                "screenshot": browser_result.get("screenshot", "")
+                "vulnerabilities": browser_result.get("security_analysis", {}).get("issues", [])
+                + spider_result.get("vulnerabilities", []),
+                "screenshot": browser_result.get("screenshot", ""),
             }
 
             logger.info(f"Burpsuite Alternative: Scanner completed for {url}")
             return jsonify(combined_result)
 
         else:
-            return jsonify({
-                "error": f"Unknown mode: {mode}. Valid modes: proxy, spider, intruder, repeater, scanner"
-            }), 400
+            return (
+                jsonify({"error": f"Unknown mode: {mode}. Valid modes: proxy, spider, intruder, repeater, scanner"}),
+                400,
+            )
 
     except Exception as e:
         logger.error(f"Error in burpsuite-alternative endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500

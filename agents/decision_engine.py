@@ -17,15 +17,16 @@ import socket
 import urllib.parse
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, Any, List, Optional, Set
-
+from typing import Any, Dict, List, Optional
 
 # ============================================================================
 # ENUMS AND DATA CLASSES
 # ============================================================================
 
+
 class TargetType(Enum):
     """Types of targets for penetration testing"""
+
     WEB_APPLICATION = "web_application"
     NETWORK_HOST = "network_host"
     API_ENDPOINT = "api_endpoint"
@@ -36,6 +37,7 @@ class TargetType(Enum):
 
 class TechnologyStack(Enum):
     """Technology stack identification"""
+
     APACHE = "apache"
     NGINX = "nginx"
     IIS = "iis"
@@ -56,6 +58,7 @@ class TechnologyStack(Enum):
 @dataclass
 class TargetProfile:
     """Comprehensive profile of a penetration testing target"""
+
     target: str
     target_type: TargetType = TargetType.UNKNOWN
     ip_addresses: List[str] = field(default_factory=list)
@@ -83,13 +86,14 @@ class TargetProfile:
             "attack_surface_score": self.attack_surface_score,
             "risk_level": self.risk_level,
             "confidence_score": self.confidence_score,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
 
 
 @dataclass
 class AttackStep:
     """Individual step in an attack chain"""
+
     tool: str
     parameters: Dict[str, Any]
     expected_outcome: str
@@ -102,6 +106,7 @@ class AttackStep:
 @dataclass
 class AttackChain:
     """Intelligent attack chain with multiple steps"""
+
     target_profile: TargetProfile
     steps: List[AttackStep] = field(default_factory=list)
     total_success_probability: float = 0.0
@@ -147,7 +152,11 @@ class AttackChain:
         """Convert AttackChain to dictionary for JSON serialization"""
         return {
             "target": self.target_profile.target,
-            "target_type": self.target_profile.target_type.value if isinstance(self.target_profile.target_type, Enum) else self.target_profile.target_type,
+            "target_type": (
+                self.target_profile.target_type.value
+                if isinstance(self.target_profile.target_type, Enum)
+                else self.target_profile.target_type
+            ),
             "steps": [
                 {
                     "tool": step.tool,
@@ -155,7 +164,7 @@ class AttackChain:
                     "expected_outcome": step.expected_outcome,
                     "success_probability": step.success_probability,
                     "execution_time_estimate": step.execution_time_estimate,
-                    "dependencies": step.dependencies
+                    "dependencies": step.dependencies,
                 }
                 for step in self.steps
             ],
@@ -164,13 +173,14 @@ class AttackChain:
             "required_tools": self.required_tools,
             "risk_level": self.risk_level,
             "created_at": self.created_at,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
 
 
 # ============================================================================
 # INTELLIGENT DECISION ENGINE
 # ============================================================================
+
 
 class IntelligentDecisionEngine:
     """AI-powered tool selection and parameter optimization engine"""
@@ -206,7 +216,7 @@ class IntelligentDecisionEngine:
                 "dalfox": 0.93,  # High for XSS detection
                 "anew": 0.7,  # Utility tool
                 "qsreplace": 0.75,  # Utility tool
-                "uro": 0.7  # Utility tool
+                "uro": 0.7,  # Utility tool
             },
             TargetType.NETWORK_HOST.value: {
                 "nmap": 0.95,
@@ -223,7 +233,7 @@ class IntelligentDecisionEngine:
                 "responder": 0.88,  # Excellent for credential harvesting
                 "hydra": 0.8,
                 "netexec": 0.85,
-                "amass": 0.7
+                "amass": 0.7,
             },
             TargetType.API_ENDPOINT.value: {
                 "nuclei": 0.9,
@@ -234,7 +244,7 @@ class IntelligentDecisionEngine:
                 "x8": 0.92,  # Excellent for hidden parameters
                 "katana": 0.85,  # Good for API endpoint discovery
                 "jaeles": 0.88,
-                "postman": 0.8
+                "postman": 0.8,
             },
             TargetType.CLOUD_SERVICE.value: {
                 "prowler": 0.95,  # Excellent for AWS security assessment
@@ -248,7 +258,7 @@ class IntelligentDecisionEngine:
                 "docker-bench": 0.85,  # Good for Docker security
                 "falco": 0.87,  # Great for runtime monitoring
                 "checkov": 0.9,  # Excellent for IaC scanning
-                "terrascan": 0.88  # Great for IaC security
+                "terrascan": 0.88,  # Great for IaC security
             },
             TargetType.BINARY_FILE.value: {
                 "ghidra": 0.95,  # Excellent for comprehensive analysis
@@ -265,8 +275,8 @@ class IntelligentDecisionEngine:
                 "strings": 0.7,
                 "objdump": 0.75,
                 "binwalk": 0.8,
-                "pwninit": 0.85  # Great for CTF setup
-            }
+                "pwninit": 0.85,  # Great for CTF setup
+            },
         }
 
     def _initialize_technology_signatures(self) -> Dict[str, Dict[str, List[str]]]:
@@ -280,7 +290,7 @@ class IntelligentDecisionEngine:
                 TechnologyStack.NODEJS.value: ["Express", "X-Powered-By: Express"],
                 TechnologyStack.PYTHON.value: ["Django", "Flask", "Werkzeug"],
                 TechnologyStack.JAVA.value: ["Tomcat", "JBoss", "WebLogic"],
-                TechnologyStack.DOTNET.value: ["ASP.NET", "X-AspNet-Version"]
+                TechnologyStack.DOTNET.value: ["ASP.NET", "X-AspNet-Version"],
             },
             "content": {
                 TechnologyStack.WORDPRESS.value: ["wp-content", "wp-includes", "WordPress"],
@@ -288,14 +298,14 @@ class IntelligentDecisionEngine:
                 TechnologyStack.JOOMLA.value: ["Joomla", "joomla", "/administrator"],
                 TechnologyStack.REACT.value: ["React", "react", "__REACT_DEVTOOLS"],
                 TechnologyStack.ANGULAR.value: ["Angular", "angular", "ng-version"],
-                TechnologyStack.VUE.value: ["Vue", "vue", "__VUE__"]
+                TechnologyStack.VUE.value: ["Vue", "vue", "__VUE__"],
             },
             "ports": {
                 TechnologyStack.APACHE.value: [80, 443, 8080, 8443],
                 TechnologyStack.NGINX.value: [80, 443, 8080],
                 TechnologyStack.IIS.value: [80, 443, 8080],
-                TechnologyStack.NODEJS.value: [3000, 8000, 8080, 9000]
-            }
+                TechnologyStack.NODEJS.value: [3000, 8000, 8080, 9000],
+            },
         }
 
     def _initialize_attack_patterns(self) -> Dict[str, List[Dict[str, Any]]]:
@@ -309,39 +319,55 @@ class IntelligentDecisionEngine:
                 {"tool": "waybackurls", "priority": 5, "params": {"get_versions": False}},
                 {"tool": "nuclei", "priority": 6, "params": {"severity": "critical,high", "tags": "tech"}},
                 {"tool": "dirsearch", "priority": 7, "params": {"extensions": "php,html,js,txt", "threads": 30}},
-                {"tool": "gobuster", "priority": 8, "params": {"mode": "dir", "extensions": "php,html,js,txt"}}
+                {"tool": "gobuster", "priority": 8, "params": {"mode": "dir", "extensions": "php,html,js,txt"}},
             ],
             "api_testing": [
                 {"tool": "httpx", "priority": 1, "params": {"probe": True, "tech_detect": True}},
                 {"tool": "arjun", "priority": 2, "params": {"method": "GET,POST", "stable": True}},
-                {"tool": "x8", "priority": 3, "params": {"method": "GET", "wordlist": "/usr/share/wordlists/x8/params.txt"}},
+                {
+                    "tool": "x8",
+                    "priority": 3,
+                    "params": {"method": "GET", "wordlist": "/usr/share/wordlists/x8/params.txt"},
+                },
                 {"tool": "paramspider", "priority": 4, "params": {"level": 2}},
                 {"tool": "nuclei", "priority": 5, "params": {"tags": "api,graphql,jwt", "severity": "high,critical"}},
-                {"tool": "ffuf", "priority": 6, "params": {"mode": "parameter", "method": "POST"}}
+                {"tool": "ffuf", "priority": 6, "params": {"mode": "parameter", "method": "POST"}},
             ],
             "network_discovery": [
                 {"tool": "arp-scan", "priority": 1, "params": {"local_network": True}},
                 {"tool": "rustscan", "priority": 2, "params": {"ulimit": 5000, "scripts": True}},
-                {"tool": "nmap-advanced", "priority": 3, "params": {"scan_type": "-sS", "os_detection": True, "version_detection": True}},
+                {
+                    "tool": "nmap-advanced",
+                    "priority": 3,
+                    "params": {"scan_type": "-sS", "os_detection": True, "version_detection": True},
+                },
                 {"tool": "masscan", "priority": 4, "params": {"rate": 1000, "ports": "1-65535", "banners": True}},
                 {"tool": "enum4linux-ng", "priority": 5, "params": {"shares": True, "users": True, "groups": True}},
                 {"tool": "nbtscan", "priority": 6, "params": {"verbose": True}},
                 {"tool": "smbmap", "priority": 7, "params": {"recursive": True}},
-                {"tool": "rpcclient", "priority": 8, "params": {"commands": "enumdomusers;enumdomgroups;querydominfo"}}
+                {"tool": "rpcclient", "priority": 8, "params": {"commands": "enumdomusers;enumdomgroups;querydominfo"}},
             ],
             "vulnerability_assessment": [
                 {"tool": "nuclei", "priority": 1, "params": {"severity": "critical,high,medium", "update": True}},
                 {"tool": "jaeles", "priority": 2, "params": {"threads": 20, "timeout": 20}},
                 {"tool": "dalfox", "priority": 3, "params": {"mining_dom": True, "mining_dict": True}},
                 {"tool": "nikto", "priority": 4, "params": {"comprehensive": True}},
-                {"tool": "sqlmap", "priority": 5, "params": {"crawl": 2, "batch": True}}
+                {"tool": "sqlmap", "priority": 5, "params": {"crawl": 2, "batch": True}},
             ],
             "comprehensive_network_pentest": [
-                {"tool": "autorecon", "priority": 1, "params": {"port_scans": "top-1000-ports", "service_scans": "default"}},
+                {
+                    "tool": "autorecon",
+                    "priority": 1,
+                    "params": {"port_scans": "top-1000-ports", "service_scans": "default"},
+                },
                 {"tool": "rustscan", "priority": 2, "params": {"ulimit": 5000, "scripts": True}},
                 {"tool": "nmap-advanced", "priority": 3, "params": {"aggressive": True, "nse_scripts": "vuln,exploit"}},
-                {"tool": "enum4linux-ng", "priority": 4, "params": {"shares": True, "users": True, "groups": True, "policy": True}},
-                {"tool": "responder", "priority": 5, "params": {"wpad": True, "duration": 180}}
+                {
+                    "tool": "enum4linux-ng",
+                    "priority": 4,
+                    "params": {"shares": True, "users": True, "groups": True, "policy": True},
+                },
+                {"tool": "responder", "priority": 5, "params": {"wpad": True, "duration": 180}},
             ],
             "binary_exploitation": [
                 {"tool": "checksec", "priority": 1, "params": {}},
@@ -349,7 +375,7 @@ class IntelligentDecisionEngine:
                 {"tool": "ropper", "priority": 3, "params": {"gadget_type": "rop", "quality": 2}},
                 {"tool": "one-gadget", "priority": 4, "params": {"level": 1}},
                 {"tool": "pwntools", "priority": 5, "params": {"exploit_type": "local"}},
-                {"tool": "gdb-peda", "priority": 6, "params": {"commands": "checksec\ninfo functions\nquit"}}
+                {"tool": "gdb-peda", "priority": 6, "params": {"commands": "checksec\ninfo functions\nquit"}},
             ],
             "ctf_pwn_challenge": [
                 {"tool": "pwninit", "priority": 1, "params": {"template_type": "python"}},
@@ -357,34 +383,34 @@ class IntelligentDecisionEngine:
                 {"tool": "ghidra", "priority": 3, "params": {"analysis_timeout": 180}},
                 {"tool": "ropper", "priority": 4, "params": {"gadget_type": "all", "quality": 3}},
                 {"tool": "angr", "priority": 5, "params": {"analysis_type": "symbolic"}},
-                {"tool": "one-gadget", "priority": 6, "params": {"level": 2}}
+                {"tool": "one-gadget", "priority": 6, "params": {"level": 2}},
             ],
             "aws_security_assessment": [
                 {"tool": "prowler", "priority": 1, "params": {"provider": "aws", "output_format": "json"}},
                 {"tool": "scout-suite", "priority": 2, "params": {"provider": "aws"}},
                 {"tool": "cloudmapper", "priority": 3, "params": {"action": "collect"}},
-                {"tool": "pacu", "priority": 4, "params": {"modules": "iam__enum_users_roles_policies_groups"}}
+                {"tool": "pacu", "priority": 4, "params": {"modules": "iam__enum_users_roles_policies_groups"}},
             ],
             "kubernetes_security_assessment": [
                 {"tool": "kube-bench", "priority": 1, "params": {"output_format": "json"}},
                 {"tool": "kube-hunter", "priority": 2, "params": {"report": "json"}},
-                {"tool": "falco", "priority": 3, "params": {"duration": 120, "output_format": "json"}}
+                {"tool": "falco", "priority": 3, "params": {"duration": 120, "output_format": "json"}},
             ],
             "container_security_assessment": [
                 {"tool": "trivy", "priority": 1, "params": {"scan_type": "image", "severity": "HIGH,CRITICAL"}},
                 {"tool": "clair", "priority": 2, "params": {"output_format": "json"}},
-                {"tool": "docker-bench", "priority": 3, "params": {}}
+                {"tool": "docker-bench", "priority": 3, "params": {}},
             ],
             "iac_security_assessment": [
                 {"tool": "checkov", "priority": 1, "params": {"output_format": "json"}},
                 {"tool": "terrascan", "priority": 2, "params": {"scan_type": "all", "output_format": "json"}},
-                {"tool": "trivy", "priority": 3, "params": {"scan_type": "config", "severity": "HIGH,CRITICAL"}}
+                {"tool": "trivy", "priority": 3, "params": {"scan_type": "config", "severity": "HIGH,CRITICAL"}},
             ],
             "multi_cloud_assessment": [
                 {"tool": "scout-suite", "priority": 1, "params": {"provider": "aws"}},
                 {"tool": "prowler", "priority": 2, "params": {"provider": "aws"}},
                 {"tool": "checkov", "priority": 3, "params": {"framework": "terraform"}},
-                {"tool": "terrascan", "priority": 4, "params": {"scan_type": "all"}}
+                {"tool": "terrascan", "priority": 4, "params": {"scan_type": "all"}},
             ],
             "bug_bounty_reconnaissance": [
                 {"tool": "amass", "priority": 1, "params": {"mode": "enum", "passive": False}},
@@ -394,21 +420,33 @@ class IntelligentDecisionEngine:
                 {"tool": "gau", "priority": 5, "params": {"include_subs": True}},
                 {"tool": "waybackurls", "priority": 6, "params": {"get_versions": False}},
                 {"tool": "paramspider", "priority": 7, "params": {"level": 2}},
-                {"tool": "arjun", "priority": 8, "params": {"method": "GET,POST", "stable": True}}
+                {"tool": "arjun", "priority": 8, "params": {"method": "GET,POST", "stable": True}},
             ],
             "bug_bounty_vulnerability_hunting": [
                 {"tool": "nuclei", "priority": 1, "params": {"severity": "critical,high", "tags": "rce,sqli,xss,ssrf"}},
                 {"tool": "dalfox", "priority": 2, "params": {"mining_dom": True, "mining_dict": True}},
                 {"tool": "sqlmap", "priority": 3, "params": {"batch": True, "level": 2, "risk": 2}},
                 {"tool": "jaeles", "priority": 4, "params": {"threads": 20, "timeout": 20}},
-                {"tool": "ffuf", "priority": 5, "params": {"match_codes": "200,204,301,302,307,401,403", "threads": 40}}
+                {
+                    "tool": "ffuf",
+                    "priority": 5,
+                    "params": {"match_codes": "200,204,301,302,307,401,403", "threads": 40},
+                },
             ],
             "bug_bounty_high_impact": [
                 {"tool": "nuclei", "priority": 1, "params": {"severity": "critical", "tags": "rce,sqli,ssrf,lfi,xxe"}},
-                {"tool": "sqlmap", "priority": 2, "params": {"batch": True, "level": 3, "risk": 3, "tamper": "space2comment"}},
+                {
+                    "tool": "sqlmap",
+                    "priority": 2,
+                    "params": {"batch": True, "level": 3, "risk": 3, "tamper": "space2comment"},
+                },
                 {"tool": "jaeles", "priority": 3, "params": {"signatures": "rce,sqli,ssrf", "threads": 30}},
-                {"tool": "dalfox", "priority": 4, "params": {"blind": True, "mining_dom": True, "custom_payload": "alert(document.domain)"}}
-            ]
+                {
+                    "tool": "dalfox",
+                    "priority": 4,
+                    "params": {"blind": True, "mining_dom": True, "custom_payload": "alert(document.domain)"},
+                },
+            ],
         }
 
     def analyze_target(self, target: str) -> TargetProfile:
@@ -445,34 +483,34 @@ class IntelligentDecisionEngine:
             return TargetType.UNKNOWN
 
         # File patterns (check before URL patterns)
-        if target.endswith(('.exe', '.bin', '.elf', '.so', '.dll')):
+        if target.endswith((".exe", ".bin", ".elf", ".so", ".dll")):
             return TargetType.BINARY_FILE
 
         # Cloud service patterns (check early before web application)
-        if any(cloud in target.lower() for cloud in ['amazonaws.com', 'azure', 'googleapis.com']):
+        if any(cloud in target.lower() for cloud in ["amazonaws.com", "azure", "googleapis.com"]):
             return TargetType.CLOUD_SERVICE
 
         # URL patterns
-        if target.startswith(('http://', 'https://')):
+        if target.startswith(("http://", "https://")):
             parsed = urllib.parse.urlparse(target)
-            hostname = parsed.hostname or ''
+            hostname = parsed.hostname or ""
 
             # Check for API endpoint indicators
-            if '/api/' in parsed.path or parsed.path.endswith('/api') or hostname.startswith('api.'):
+            if "/api/" in parsed.path or parsed.path.endswith("/api") or hostname.startswith("api."):
                 return TargetType.API_ENDPOINT
             return TargetType.WEB_APPLICATION
 
         # IP address pattern with validation
-        if re.match(r'^(\d{1,3}\.){3}\d{1,3}$', target):
+        if re.match(r"^(\d{1,3}\.){3}\d{1,3}$", target):
             # Validate IP address octets
-            octets = target.split('.')
+            octets = target.split(".")
             if all(0 <= int(octet) <= 255 for octet in octets):
                 return TargetType.NETWORK_HOST
             else:
                 return TargetType.UNKNOWN
 
         # Domain name pattern
-        if re.match(r'^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', target):
+        if re.match(r"^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", target):
             return TargetType.WEB_APPLICATION
 
         return TargetType.UNKNOWN
@@ -480,7 +518,7 @@ class IntelligentDecisionEngine:
     def _resolve_domain(self, target: str) -> List[str]:
         """Resolve domain to IP addresses"""
         try:
-            if target.startswith(('http://', 'https://')):
+            if target.startswith(("http://", "https://")):
                 hostname = urllib.parse.urlparse(target).hostname
             else:
                 hostname = target
@@ -500,13 +538,13 @@ class IntelligentDecisionEngine:
         # and analyze headers, content, etc.
 
         # For now, return some common technologies based on target patterns
-        if 'wordpress' in target.lower() or 'wp-' in target.lower():
+        if "wordpress" in target.lower() or "wp-" in target.lower():
             technologies.append(TechnologyStack.WORDPRESS)
 
-        if any(ext in target.lower() for ext in ['.php', 'php']):
+        if any(ext in target.lower() for ext in [".php", "php"]):
             technologies.append(TechnologyStack.PHP)
 
-        if any(ext in target.lower() for ext in ['.asp', '.aspx']):
+        if any(ext in target.lower() for ext in [".asp", ".aspx"]):
             technologies.append(TechnologyStack.DOTNET)
 
         return technologies if technologies else [TechnologyStack.UNKNOWN]
@@ -515,11 +553,11 @@ class IntelligentDecisionEngine:
         """Detect CMS type"""
         target_lower = target.lower()
 
-        if 'wordpress' in target_lower or 'wp-' in target_lower:
+        if "wordpress" in target_lower or "wp-" in target_lower:
             return "WordPress"
-        elif 'drupal' in target_lower:
+        elif "drupal" in target_lower:
             return "Drupal"
-        elif 'joomla' in target_lower:
+        elif "joomla" in target_lower:
             return "Joomla"
 
         return None
@@ -534,7 +572,7 @@ class IntelligentDecisionEngine:
             TargetType.API_ENDPOINT: 6.0,
             TargetType.NETWORK_HOST: 8.0,
             TargetType.CLOUD_SERVICE: 5.0,
-            TargetType.BINARY_FILE: 4.0
+            TargetType.BINARY_FILE: 4.0,
         }
 
         score += type_scores.get(profile.target_type, 3.0)
@@ -621,9 +659,10 @@ class IntelligentDecisionEngine:
             context = {}
 
         # Use advanced parameter optimizer if available
-        if hasattr(self, '_use_advanced_optimizer') and self._use_advanced_optimizer:
+        if hasattr(self, "_use_advanced_optimizer") and self._use_advanced_optimizer:
             # Import here to avoid circular dependency
             from core.optimizer import ParameterOptimizer
+
             optimizer = ParameterOptimizer()
             return optimizer.optimize_parameters_advanced(tool, profile, context)
 
@@ -674,6 +713,7 @@ class IntelligentDecisionEngine:
         else:
             # Use advanced optimizer for unknown tools
             from core.optimizer import ParameterOptimizer
+
             optimizer = ParameterOptimizer()
             return optimizer.optimize_parameters_advanced(tool, profile, context)
 
@@ -928,7 +968,7 @@ class IntelligentDecisionEngine:
             params["analysis_timeout"] = 300
 
         # Set project name based on binary
-        binary_name = os.path.basename(profile.target).replace('.', '_')
+        binary_name = os.path.basename(profile.target).replace(".", "_")
         params["project_name"] = f"hexstrike_{binary_name}"
 
         return params
@@ -1048,7 +1088,7 @@ class IntelligentDecisionEngine:
         params = {"target": profile.target, "output_format": "json"}
 
         # Determine scan type based on target
-        if profile.target.startswith(('docker.io/', 'gcr.io/', 'quay.io/')) or ':' in profile.target:
+        if profile.target.startswith(("docker.io/", "gcr.io/", "quay.io/")) or ":" in profile.target:
             params["scan_type"] = "image"
         elif os.path.isdir(profile.target):
             params["scan_type"] = "fs"
@@ -1072,9 +1112,15 @@ class IntelligentDecisionEngine:
             params["framework"] = context["framework"]
         elif os.path.isdir(profile.target):
             # Auto-detect framework
-            if any(f.endswith('.tf') for f in os.listdir(profile.target) if os.path.isfile(os.path.join(profile.target, f))):
+            if any(
+                f.endswith(".tf") for f in os.listdir(profile.target) if os.path.isfile(os.path.join(profile.target, f))
+            ):
                 params["framework"] = "terraform"
-            elif any(f.endswith('.yaml') or f.endswith('.yml') for f in os.listdir(profile.target) if os.path.isfile(os.path.join(profile.target, f))):
+            elif any(
+                f.endswith(".yaml") or f.endswith(".yml")
+                for f in os.listdir(profile.target)
+                if os.path.isfile(os.path.join(profile.target, f))
+            ):
                 params["framework"] = "kubernetes"
 
         return params
@@ -1134,14 +1180,37 @@ class IntelligentDecisionEngine:
 
             # Estimate execution time (simplified)
             time_estimates = {
-                "nmap": 120, "gobuster": 300, "nuclei": 180, "nikto": 240,
-                "sqlmap": 600, "ffuf": 200, "hydra": 900, "amass": 300,
-                "ghidra": 300, "radare2": 180, "gdb": 120, "gdb-peda": 150,
-                "angr": 600, "pwntools": 240, "ropper": 120, "one-gadget": 60,
-                "checksec": 30, "pwninit": 60, "libc-database": 90,
-                "prowler": 600, "scout-suite": 480, "cloudmapper": 300, "pacu": 420,
-                "trivy": 180, "clair": 240, "kube-hunter": 300, "kube-bench": 120,
-                "docker-bench": 180, "falco": 120, "checkov": 240, "terrascan": 200
+                "nmap": 120,
+                "gobuster": 300,
+                "nuclei": 180,
+                "nikto": 240,
+                "sqlmap": 600,
+                "ffuf": 200,
+                "hydra": 900,
+                "amass": 300,
+                "ghidra": 300,
+                "radare2": 180,
+                "gdb": 120,
+                "gdb-peda": 150,
+                "angr": 600,
+                "pwntools": 240,
+                "ropper": 120,
+                "one-gadget": 60,
+                "checksec": 30,
+                "pwninit": 60,
+                "libc-database": 90,
+                "prowler": 600,
+                "scout-suite": 480,
+                "cloudmapper": 300,
+                "pacu": 420,
+                "trivy": 180,
+                "clair": 240,
+                "kube-hunter": 300,
+                "kube-bench": 120,
+                "docker-bench": 180,
+                "falco": 120,
+                "checkov": 240,
+                "terrascan": 200,
             }
             exec_time = time_estimates.get(tool, 180)
 
@@ -1150,7 +1219,7 @@ class IntelligentDecisionEngine:
                 parameters=optimized_params,
                 expected_outcome=f"Discover vulnerabilities using {tool}",
                 success_probability=success_prob,
-                execution_time_estimate=exec_time
+                execution_time_estimate=exec_time,
             )
 
             chain.add_step(step)

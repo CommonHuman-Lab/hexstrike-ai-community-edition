@@ -3,7 +3,8 @@ Amass Tool Implementation
 Subdomain enumeration and asset discovery
 """
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 from ..base import BaseTool
 
 
@@ -33,13 +34,13 @@ class AmassTool(BaseTool):
         cmd_parts = [self.binary_name]
 
         # Add enum subcommand
-        cmd_parts.append('enum')
+        cmd_parts.append("enum")
 
         # Add target domain
-        cmd_parts.extend(['-d', target])
+        cmd_parts.extend(["-d", target])
 
         # Add any additional arguments
-        additional_args = params.get('additional_args', '')
+        additional_args = params.get("additional_args", "")
         if additional_args:
             cmd_parts.extend(additional_args.split())
 
@@ -47,8 +48,4 @@ class AmassTool(BaseTool):
 
     def parse_output(self, stdout: str, stderr: str, returncode: int) -> Dict[str, Any]:
         """Parse amass output."""
-        return {
-            "raw_output": stdout,
-            "stderr": stderr,
-            "returncode": returncode
-        }
+        return {"raw_output": stdout, "stderr": stderr, "returncode": returncode}

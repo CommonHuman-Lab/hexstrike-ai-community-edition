@@ -6,9 +6,9 @@ Advanced automation system for CTF challenge solving
 import logging
 import re
 import time
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
-from agents.ctf.workflow_manager import CTFChallenge, CTFWorkflowManager, CTFToolManager
+from agents.ctf.workflow_manager import CTFChallenge, CTFToolManager, CTFWorkflowManager
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class CTFChallengeAutomator:
             "estimated_completion": 0,
             "artifacts": [],
             "flag_candidates": [],
-            "next_actions": []
+            "next_actions": [],
         }
 
         try:
@@ -86,7 +86,7 @@ class CTFChallengeAutomator:
             "output": "",
             "tools_used": [],
             "execution_time": 0,
-            "artifacts": []
+            "artifacts": [],
         }
 
         start_time = time.time()
@@ -96,7 +96,7 @@ class CTFChallengeAutomator:
         for tool in tools:
             try:
                 if tool != "manual":
-                    command = ctf_tools.get_tool_command(tool, challenge.target or challenge.name)
+                    ctf_tools.get_tool_command(tool, challenge.target or challenge.name)
                     # In a real implementation, this would execute the command
                     step_result["tools_used"].append(tool)
                     step_result["output"] += f"[{tool}] Executed successfully\n"
@@ -116,7 +116,7 @@ class CTFChallengeAutomator:
             "output": "",
             "tools_used": [],
             "execution_time": 0,
-            "artifacts": []
+            "artifacts": [],
         }
 
         start_time = time.time()
@@ -144,14 +144,14 @@ class CTFChallengeAutomator:
     def _extract_flag_candidates(self, output: str) -> List[str]:
         """Extract potential flags from tool output"""
         flag_patterns = [
-            r'flag\{[^}]+\}',
-            r'FLAG\{[^}]+\}',
-            r'ctf\{[^}]+\}',
-            r'CTF\{[^}]+\}',
-            r'[a-zA-Z0-9_]+\{[^}]+\}',
-            r'[0-9a-f]{32}',  # MD5 hash
-            r'[0-9a-f]{40}',  # SHA1 hash
-            r'[0-9a-f]{64}'   # SHA256 hash
+            r"flag\{[^}]+\}",
+            r"FLAG\{[^}]+\}",
+            r"ctf\{[^}]+\}",
+            r"CTF\{[^}]+\}",
+            r"[a-zA-Z0-9_]+\{[^}]+\}",
+            r"[0-9a-f]{32}",  # MD5 hash
+            r"[0-9a-f]{40}",  # SHA1 hash
+            r"[0-9a-f]{64}",  # SHA256 hash
         ]
 
         candidates = []
@@ -163,13 +163,7 @@ class CTFChallengeAutomator:
 
     def _validate_flag_format(self, flag: str) -> bool:
         """Validate if a string matches common flag formats"""
-        common_formats = [
-            r'^flag\{.+\}$',
-            r'^FLAG\{.+\}$',
-            r'^ctf\{.+\}$',
-            r'^CTF\{.+\}$',
-            r'^[a-zA-Z0-9_]+\{.+\}$'
-        ]
+        common_formats = [r"^flag\{.+\}$", r"^FLAG\{.+\}$", r"^ctf\{.+\}$", r"^CTF\{.+\}$", r"^[a-zA-Z0-9_]+\{.+\}$"]
 
         for pattern in common_formats:
             if re.match(pattern, flag, re.IGNORECASE):
@@ -177,7 +171,9 @@ class CTFChallengeAutomator:
 
         return False
 
-    def _generate_manual_guidance(self, challenge: CTFChallenge, current_result: Dict[str, Any]) -> List[Dict[str, str]]:
+    def _generate_manual_guidance(
+        self, challenge: CTFChallenge, current_result: Dict[str, Any]
+    ) -> List[Dict[str, str]]:
         """Generate manual guidance when automation fails"""
         guidance = []
 
@@ -191,42 +187,69 @@ class CTFChallengeAutomator:
         unused_tools = [tool for tool in all_category_tools if tool not in attempted_tools]
 
         if unused_tools:
-            guidance.append({
-                "action": "try_alternative_tools",
-                "description": f"Try these alternative tools: {', '.join(unused_tools[:3])}"
-            })
+            guidance.append(
+                {
+                    "action": "try_alternative_tools",
+                    "description": f"Try these alternative tools: {', '.join(unused_tools[:3])}",
+                }
+            )
 
         # Category-specific guidance
         if challenge.category == "web":
-            guidance.extend([
-                {"action": "manual_source_review", "description": "Manually review all HTML/JS source code for hidden comments or clues"},
-                {"action": "parameter_fuzzing", "description": "Manually fuzz parameters with custom payloads"},
-                {"action": "cookie_analysis", "description": "Analyze cookies and session management"}
-            ])
+            guidance.extend(
+                [
+                    {
+                        "action": "manual_source_review",
+                        "description": "Manually review all HTML/JS source code for hidden comments or clues",
+                    },
+                    {"action": "parameter_fuzzing", "description": "Manually fuzz parameters with custom payloads"},
+                    {"action": "cookie_analysis", "description": "Analyze cookies and session management"},
+                ]
+            )
         elif challenge.category == "crypto":
-            guidance.extend([
-                {"action": "cipher_research", "description": "Research the specific cipher type and known attacks"},
-                {"action": "key_analysis", "description": "Analyze key properties and potential weaknesses"},
-                {"action": "frequency_analysis", "description": "Perform detailed frequency analysis"}
-            ])
+            guidance.extend(
+                [
+                    {"action": "cipher_research", "description": "Research the specific cipher type and known attacks"},
+                    {"action": "key_analysis", "description": "Analyze key properties and potential weaknesses"},
+                    {"action": "frequency_analysis", "description": "Perform detailed frequency analysis"},
+                ]
+            )
         elif challenge.category == "pwn":
-            guidance.extend([
-                {"action": "manual_debugging", "description": "Manually debug the binary to understand control flow"},
-                {"action": "exploit_development", "description": "Develop custom exploit based on vulnerability analysis"},
-                {"action": "payload_crafting", "description": "Craft specific payloads for the identified vulnerability"}
-            ])
+            guidance.extend(
+                [
+                    {
+                        "action": "manual_debugging",
+                        "description": "Manually debug the binary to understand control flow",
+                    },
+                    {
+                        "action": "exploit_development",
+                        "description": "Develop custom exploit based on vulnerability analysis",
+                    },
+                    {
+                        "action": "payload_crafting",
+                        "description": "Craft specific payloads for the identified vulnerability",
+                    },
+                ]
+            )
         elif challenge.category == "forensics":
-            guidance.extend([
-                {"action": "manual_analysis", "description": "Manually analyze file structures and metadata"},
-                {"action": "steganography_deep_dive", "description": "Deep dive into steganography techniques"},
-                {"action": "timeline_analysis", "description": "Reconstruct detailed timeline of events"}
-            ])
+            guidance.extend(
+                [
+                    {"action": "manual_analysis", "description": "Manually analyze file structures and metadata"},
+                    {"action": "steganography_deep_dive", "description": "Deep dive into steganography techniques"},
+                    {"action": "timeline_analysis", "description": "Reconstruct detailed timeline of events"},
+                ]
+            )
         elif challenge.category == "rev":
-            guidance.extend([
-                {"action": "algorithm_analysis", "description": "Focus on understanding the core algorithm"},
-                {"action": "key_extraction", "description": "Extract hardcoded keys or important values"},
-                {"action": "dynamic_analysis", "description": "Use dynamic analysis to understand runtime behavior"}
-            ])
+            guidance.extend(
+                [
+                    {"action": "algorithm_analysis", "description": "Focus on understanding the core algorithm"},
+                    {"action": "key_extraction", "description": "Extract hardcoded keys or important values"},
+                    {
+                        "action": "dynamic_analysis",
+                        "description": "Use dynamic analysis to understand runtime behavior",
+                    },
+                ]
+            )
 
         return guidance
 

@@ -20,6 +20,7 @@ class TestGobusterToolInitialization(unittest.TestCase):
 
     def test_inheritance(self):
         from tools.base import BaseTool
+
         tool = GobusterTool()
         self.assertIsInstance(tool, BaseTool)
 
@@ -59,65 +60,45 @@ class TestGobusterCommandBuilding(unittest.TestCase):
         self.assertIn("vhost", cmd)
 
     def test_command_with_custom_wordlist(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "wordlist": "/custom/wordlist.txt"
-        })
+        cmd = self.tool.build_command("https://example.com", {"wordlist": "/custom/wordlist.txt"})
         self.assertIn("/custom/wordlist.txt", cmd)
 
     def test_command_with_extensions(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-x php,html,txt"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-x php,html,txt"})
         self.assertIn("-x", cmd)
         self.assertIn("php,html,txt", cmd)
 
     def test_command_with_threads(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-t 50"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-t 50"})
         self.assertIn("-t", cmd)
         self.assertIn("50", cmd)
 
     def test_command_with_status_codes(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-s 200,204,301,302,307,401,403"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-s 200,204,301,302,307,401,403"})
         self.assertIn("-s", cmd)
 
     def test_command_with_timeout(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "--timeout 10s"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "--timeout 10s"})
         self.assertIn("--timeout", cmd)
 
     def test_command_with_user_agent(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-a 'Custom User Agent'"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-a 'Custom User Agent'"})
         self.assertIn("-a", cmd)
 
     def test_command_with_cookies(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-c 'session=abc123'"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-c 'session=abc123'"})
         self.assertIn("-c", cmd)
 
     def test_command_with_follow_redirect(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-r"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-r"})
         self.assertIn("-r", cmd)
 
     def test_command_with_expanded_mode(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-e"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-e"})
         self.assertIn("-e", cmd)
 
     def test_command_with_no_status(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-q"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-q"})
         self.assertIn("-q", cmd)
 
 
@@ -178,7 +159,7 @@ class TestGobusterToolExecution(unittest.TestCase):
             "stderr": "",
             "returncode": 0,
             "execution_time": 30.5,
-            "cached": False
+            "cached": False,
         }
 
         result = self.tool.execute("https://example.com", {}, self.mock_execute_func)
@@ -190,14 +171,10 @@ class TestGobusterToolExecution(unittest.TestCase):
             "success": True,
             "stdout": "Found: www.example.com",
             "stderr": "",
-            "returncode": 0
+            "returncode": 0,
         }
 
-        result = self.tool.execute(
-            "example.com",
-            {"mode": "dns"},
-            self.mock_execute_func
-        )
+        result = self.tool.execute("example.com", {"mode": "dns"}, self.mock_execute_func)
         self.assertTrue(result["success"])
         self.assertIn("dns", result["command"])
 
@@ -206,20 +183,15 @@ class TestGobusterToolExecution(unittest.TestCase):
             "success": False,
             "error": "gobuster: command not found",
             "stderr": "gobuster: command not found",
-            "returncode": 127
+            "returncode": 127,
         }
 
         result = self.tool.execute("https://example.com", {}, self.mock_execute_func)
         self.assertFalse(result["success"])
 
-    @patch('tools.base.logger')
+    @patch("tools.base.logger")
     def test_logging(self, mock_logger):
-        self.mock_execute_func.return_value = {
-            "success": True,
-            "stdout": "",
-            "stderr": "",
-            "returncode": 0
-        }
+        self.mock_execute_func.return_value = {"success": True, "stdout": "", "stderr": "", "returncode": 0}
 
         self.tool.execute("https://example.com", {}, self.mock_execute_func)
         mock_logger.info.assert_called()
@@ -244,9 +216,7 @@ class TestGobusterEdgeCases(unittest.TestCase):
         self.assertIn("http://example.com", cmd)
 
     def test_whitespace_in_args(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "  -t  50   -x  php  "
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "  -t  50   -x  php  "})
         self.assertIn("-t", cmd)
         self.assertIn("50", cmd)
 
@@ -256,26 +226,24 @@ class TestGobusterIntegration(unittest.TestCase):
 
     def test_realistic_dir_scan(self):
         tool = GobusterTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": """/admin (Status: 301) [--> /admin/]
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": """/admin (Status: 301) [--> /admin/]
 /images (Status: 301) [--> /images/]
 /uploads (Status: 301) [--> /uploads/]
 /index.html (Status: 200)""",
-            "stderr": "",
-            "returncode": 0,
-            "execution_time": 45.2
-        })
-
-        result = tool.execute(
-            "https://example.com",
-            {"additional_args": "-x php,html"},
-            mock_execute
+                "stderr": "",
+                "returncode": 0,
+                "execution_time": 45.2,
+            }
         )
+
+        result = tool.execute("https://example.com", {"additional_args": "-x php,html"}, mock_execute)
 
         self.assertTrue(result["success"])
         self.assertEqual(result["output"]["found_count"], 4)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

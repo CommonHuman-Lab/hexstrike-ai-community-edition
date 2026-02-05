@@ -1,9 +1,11 @@
 """
 Dirsearch tool implementation for directory and file discovery
 """
-from typing import Dict, Any, List
-from tools.base import BaseTool
+
 import re
+from typing import Any, Dict, List
+
+from tools.base import BaseTool
 
 
 class DirsearchTool(BaseTool):
@@ -108,32 +110,49 @@ class DirsearchTool(BaseTool):
         interesting_files = []
 
         # Common interesting file extensions
-        interesting_extensions = ['.config', '.backup', '.bak', '.old', '.sql',
-                                 '.db', '.env', '.git', '.svn', '.zip', '.tar.gz']
+        interesting_extensions = [
+            ".config",
+            ".backup",
+            ".bak",
+            ".old",
+            ".sql",
+            ".db",
+            ".env",
+            ".git",
+            ".svn",
+            ".zip",
+            ".tar.gz",
+        ]
 
-        interesting_files_list = ['admin', 'login', 'config', 'backup', 'database',
-                                 'phpinfo', 'test', 'debug', 'api', 'upload']
+        interesting_files_list = [
+            "admin",
+            "login",
+            "config",
+            "backup",
+            "database",
+            "phpinfo",
+            "test",
+            "debug",
+            "api",
+            "upload",
+        ]
 
         # Parse output lines
         # Dirsearch format: [TIME] STATUS - SIZE - URL
-        for line in stdout.split('\n'):
+        for line in stdout.split("\n"):
             line = line.strip()
             if not line:
                 continue
 
             # Match dirsearch output pattern
             # Example: [12:34:56] 200 -  1234B  - /admin/login.php
-            match = re.search(r'\[[\d:]+\]\s+(\d+)\s+-\s+([\d\.]+[KMB]?)\s+-\s+(.+)', line)
+            match = re.search(r"\[[\d:]+\]\s+(\d+)\s+-\s+([\d\.]+[KMB]?)\s+-\s+(.+)", line)
             if match:
                 status_code = match.group(1)
                 size = match.group(2)
                 path = match.group(3).strip()
 
-                path_info = {
-                    "path": path,
-                    "status_code": int(status_code),
-                    "size": size
-                }
+                path_info = {"path": path, "status_code": int(status_code), "size": size}
                 discovered_paths.append(path_info)
 
                 # Count status codes
@@ -154,5 +173,5 @@ class DirsearchTool(BaseTool):
             "interesting_count": len(interesting_files),
             "raw_output": stdout,
             "stderr": stderr,
-            "returncode": returncode
+            "returncode": returncode,
         }

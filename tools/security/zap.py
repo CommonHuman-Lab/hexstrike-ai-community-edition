@@ -1,10 +1,12 @@
 """
 OWASP ZAP tool implementation for web application security scanning
 """
-from typing import Dict, Any, List
-from tools.base import BaseTool
+
 import json
 import xml.etree.ElementTree as ET
+from typing import Any, Dict, List
+
+from tools.base import BaseTool
 
 
 class ZAPTool(BaseTool):
@@ -125,12 +127,7 @@ class ZAPTool(BaseTool):
                 - returncode: Command return code
         """
         alerts = []
-        alerts_by_risk = {
-            'High': [],
-            'Medium': [],
-            'Low': [],
-            'Informational': []
-        }
+        alerts_by_risk = {"High": [], "Medium": [], "Low": [], "Informational": []}
         alerts_by_type = {}
         urls_scanned = set()
 
@@ -139,80 +136,83 @@ class ZAPTool(BaseTool):
             data = json.loads(stdout)
 
             # ZAP JSON format has 'site' array with alerts
-            if isinstance(data, dict) and 'site' in data:
-                for site in data['site']:
-                    for alert in site.get('alerts', []):
+            if isinstance(data, dict) and "site" in data:
+                for site in data["site"]:
+                    for alert in site.get("alerts", []):
                         alert_info = {
-                            'name': alert.get('name', alert.get('alert', 'Unknown')),
-                            'risk': alert.get('riskdesc', alert.get('risk', 'Informational')).split()[0],
-                            'confidence': alert.get('confidence', 'Unknown'),
-                            'url': alert.get('url', ''),
-                            'description': alert.get('desc', alert.get('description', '')),
-                            'solution': alert.get('solution', ''),
-                            'reference': alert.get('reference', '')
+                            "name": alert.get("name", alert.get("alert", "Unknown")),
+                            "risk": alert.get("riskdesc", alert.get("risk", "Informational")).split()[0],
+                            "confidence": alert.get("confidence", "Unknown"),
+                            "url": alert.get("url", ""),
+                            "description": alert.get("desc", alert.get("description", "")),
+                            "solution": alert.get("solution", ""),
+                            "reference": alert.get("reference", ""),
                         }
                         alerts.append(alert_info)
 
                         # Categorize by risk
-                        risk = alert_info['risk']
+                        risk = alert_info["risk"]
                         if risk in alerts_by_risk:
                             alerts_by_risk[risk].append(alert_info)
 
                         # Categorize by type
-                        alert_type = alert_info['name']
+                        alert_type = alert_info["name"]
                         if alert_type not in alerts_by_type:
                             alerts_by_type[alert_type] = []
                         alerts_by_type[alert_type].append(alert_info)
 
                         # Track URLs
-                        if alert_info['url']:
-                            urls_scanned.add(alert_info['url'])
+                        if alert_info["url"]:
+                            urls_scanned.add(alert_info["url"])
 
         except json.JSONDecodeError:
             # Try to parse as XML
             try:
                 root = ET.fromstring(stdout)
-                for alert in root.findall('.//alertitem'):
+                for alert in root.findall(".//alertitem"):
                     alert_info = {
-                        'name': alert.find('alert').text if alert.find('alert') is not None else 'Unknown',
-                        'risk': alert.find('riskdesc').text.split()[0] if alert.find('riskdesc') is not None else 'Informational',
-                        'confidence': alert.find('confidence').text if alert.find('confidence') is not None else 'Unknown',
-                        'url': alert.find('url').text if alert.find('url') is not None else '',
-                        'description': alert.find('desc').text if alert.find('desc') is not None else '',
-                        'solution': alert.find('solution').text if alert.find('solution') is not None else '',
-                        'reference': alert.find('reference').text if alert.find('reference') is not None else ''
+                        "name": alert.find("alert").text if alert.find("alert") is not None else "Unknown",
+                        "risk": (
+                            alert.find("riskdesc").text.split()[0]
+                            if alert.find("riskdesc") is not None
+                            else "Informational"
+                        ),
+                        "confidence": (
+                            alert.find("confidence").text if alert.find("confidence") is not None else "Unknown"
+                        ),
+                        "url": alert.find("url").text if alert.find("url") is not None else "",
+                        "description": alert.find("desc").text if alert.find("desc") is not None else "",
+                        "solution": alert.find("solution").text if alert.find("solution") is not None else "",
+                        "reference": alert.find("reference").text if alert.find("reference") is not None else "",
                     }
                     alerts.append(alert_info)
 
                     # Categorize by risk
-                    risk = alert_info['risk']
+                    risk = alert_info["risk"]
                     if risk in alerts_by_risk:
                         alerts_by_risk[risk].append(alert_info)
 
                     # Categorize by type
-                    alert_type = alert_info['name']
+                    alert_type = alert_info["name"]
                     if alert_type not in alerts_by_type:
                         alerts_by_type[alert_type] = []
                     alerts_by_type[alert_type].append(alert_info)
 
                     # Track URLs
-                    if alert_info['url']:
-                        urls_scanned.add(alert_info['url'])
+                    if alert_info["url"]:
+                        urls_scanned.add(alert_info["url"])
 
             except ET.ParseError:
                 # Parse plain text output
                 import re
-                for line in stdout.split('\n'):
+
+                for line in stdout.split("\n"):
                     # Look for alert patterns
-                    alert_match = re.search(r'\[(High|Medium|Low|Informational)\]\s+(.+)', line)
+                    alert_match = re.search(r"\[(High|Medium|Low|Informational)\]\s+(.+)", line)
                     if alert_match:
                         risk = alert_match.group(1)
                         name = alert_match.group(2)
-                        alert_info = {
-                            'name': name,
-                            'risk': risk,
-                            'finding': line
-                        }
+                        alert_info = {"name": name, "risk": risk, "finding": line}
                         alerts.append(alert_info)
 
                         if risk in alerts_by_risk:
@@ -233,13 +233,13 @@ class ZAPTool(BaseTool):
             "type_counts": type_counts,
             "urls_scanned": sorted(list(urls_scanned)),
             "url_count": len(urls_scanned),
-            "high_risk_alerts": alerts_by_risk.get('High', []),
-            "high_count": len(alerts_by_risk.get('High', [])),
-            "medium_risk_alerts": alerts_by_risk.get('Medium', []),
-            "medium_count": len(alerts_by_risk.get('Medium', [])),
-            "low_risk_alerts": alerts_by_risk.get('Low', []),
-            "low_count": len(alerts_by_risk.get('Low', [])),
+            "high_risk_alerts": alerts_by_risk.get("High", []),
+            "high_count": len(alerts_by_risk.get("High", [])),
+            "medium_risk_alerts": alerts_by_risk.get("Medium", []),
+            "medium_count": len(alerts_by_risk.get("Medium", [])),
+            "low_risk_alerts": alerts_by_risk.get("Low", []),
+            "low_count": len(alerts_by_risk.get("Low", [])),
             "raw_output": stdout,
             "stderr": stderr,
-            "returncode": returncode
+            "returncode": returncode,
         }

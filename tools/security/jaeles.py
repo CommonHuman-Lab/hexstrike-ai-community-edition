@@ -1,9 +1,11 @@
 """
 Jaeles tool implementation for automated security testing
 """
-from typing import Dict, Any, List
-from tools.base import BaseTool
+
 import json
+from typing import Any, Dict, List
+
+from tools.base import BaseTool
 
 
 class JaelesTool(BaseTool):
@@ -125,19 +127,13 @@ class JaelesTool(BaseTool):
                 - returncode: Command return code
         """
         vulnerabilities = []
-        vulns_by_severity = {
-            'CRITICAL': [],
-            'HIGH': [],
-            'MEDIUM': [],
-            'LOW': [],
-            'INFO': []
-        }
+        vulns_by_severity = {"CRITICAL": [], "HIGH": [], "MEDIUM": [], "LOW": [], "INFO": []}
         vulns_by_type = {}
         affected_urls = set()
         signatures_matched = set()
 
         # Parse output lines
-        for line in stdout.split('\n'):
+        for line in stdout.split("\n"):
             line = line.strip()
             if not line:
                 continue
@@ -146,19 +142,13 @@ class JaelesTool(BaseTool):
             try:
                 vuln = json.loads(line)
 
-                vuln_name = vuln.get('VulnName', vuln.get('name', 'Unknown'))
-                severity = vuln.get('Severity', vuln.get('severity', 'INFO')).upper()
-                url = vuln.get('URL', vuln.get('url', ''))
-                signature = vuln.get('Sign', vuln.get('signature', ''))
-                risk = vuln.get('Risk', vuln.get('risk', ''))
+                vuln_name = vuln.get("VulnName", vuln.get("name", "Unknown"))
+                severity = vuln.get("Severity", vuln.get("severity", "INFO")).upper()
+                url = vuln.get("URL", vuln.get("url", ""))
+                signature = vuln.get("Sign", vuln.get("signature", ""))
+                risk = vuln.get("Risk", vuln.get("risk", ""))
 
-                vuln_info = {
-                    'name': vuln_name,
-                    'severity': severity,
-                    'url': url,
-                    'signature': signature,
-                    'risk': risk
-                }
+                vuln_info = {"name": vuln_name, "severity": severity, "url": url, "signature": signature, "risk": risk}
                 vulnerabilities.append(vuln_info)
 
                 # Categorize by severity
@@ -166,7 +156,7 @@ class JaelesTool(BaseTool):
                     vulns_by_severity[severity].append(vuln_info)
 
                 # Categorize by type
-                vuln_type = vuln_name.split('-')[0] if '-' in vuln_name else vuln_name
+                vuln_type = vuln_name.split("-")[0] if "-" in vuln_name else vuln_name
                 if vuln_type not in vulns_by_type:
                     vulns_by_type[vuln_type] = []
                 vulns_by_type[vuln_type].append(vuln_info)
@@ -180,11 +170,8 @@ class JaelesTool(BaseTool):
             except json.JSONDecodeError:
                 # Not JSON, try to parse plain text
                 # Look for vulnerability indicators
-                if any(indicator in line for indicator in ['[Vulnerable]', '[VULN]', 'Found:', 'Matched:']):
-                    vulnerabilities.append({
-                        'finding': line,
-                        'severity': 'MEDIUM'
-                    })
+                if any(indicator in line for indicator in ["[Vulnerable]", "[VULN]", "Found:", "Matched:"]):
+                    vulnerabilities.append({"finding": line, "severity": "MEDIUM"})
 
         # Get severity counts
         severity_counts = {k: len(v) for k, v in vulns_by_severity.items() if v}
@@ -205,5 +192,5 @@ class JaelesTool(BaseTool):
             "signature_count": len(signatures_matched),
             "raw_output": stdout,
             "stderr": stderr,
-            "returncode": returncode
+            "returncode": returncode,
         }

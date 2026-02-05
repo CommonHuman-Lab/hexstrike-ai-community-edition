@@ -12,16 +12,17 @@ strategies for HexStrike, including:
 Part of the HexStrike modular refactoring (Phase 3).
 """
 
-import re
-import os
 import json
 import logging
+import os
+import re
 import traceback
-import psutil
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
+
+import psutil
 
 # Import visual engine for formatted output
 from core.visual import ModernVisualEngine
@@ -33,8 +34,10 @@ logger = logging.getLogger(__name__)
 # ERROR TYPES AND RECOVERY ACTIONS
 # ============================================================================
 
+
 class ErrorType(Enum):
     """Enumeration of different error types for intelligent handling"""
+
     TIMEOUT = "timeout"
     PERMISSION_DENIED = "permission_denied"
     NETWORK_UNREACHABLE = "network_unreachable"
@@ -50,6 +53,7 @@ class ErrorType(Enum):
 
 class RecoveryAction(Enum):
     """Types of recovery actions that can be taken"""
+
     RETRY_WITH_BACKOFF = "retry_with_backoff"
     RETRY_WITH_REDUCED_SCOPE = "retry_with_reduced_scope"
     SWITCH_TO_ALTERNATIVE_TOOL = "switch_to_alternative_tool"
@@ -62,6 +66,7 @@ class RecoveryAction(Enum):
 @dataclass
 class ErrorContext:
     """Context information for error handling decisions"""
+
     tool_name: str
     target: str
     parameters: Dict[str, Any]
@@ -71,12 +76,13 @@ class ErrorContext:
     timestamp: datetime
     stack_trace: str
     system_resources: Dict[str, Any]
-    previous_errors: List['ErrorContext'] = field(default_factory=list)
+    previous_errors: List["ErrorContext"] = field(default_factory=list)
 
 
 @dataclass
 class RecoveryStrategy:
     """Recovery strategy with configuration"""
+
     action: RecoveryAction
     parameters: Dict[str, Any]
     max_attempts: int
@@ -88,6 +94,7 @@ class RecoveryStrategy:
 # ============================================================================
 # INTELLIGENT ERROR HANDLER
 # ============================================================================
+
 
 class IntelligentErrorHandler:
     """Advanced error handling with automatic recovery strategies"""
@@ -106,42 +113,33 @@ class IntelligentErrorHandler:
             # Timeout patterns
             r"timeout|timed out|connection timeout|read timeout": ErrorType.TIMEOUT,
             r"operation timed out|command timeout": ErrorType.TIMEOUT,
-
             # Permission patterns
             r"permission denied|access denied|forbidden|not authorized": ErrorType.PERMISSION_DENIED,
             r"sudo required|root required|insufficient privileges": ErrorType.PERMISSION_DENIED,
-
             # Network patterns
             r"network unreachable|host unreachable|no route to host": ErrorType.NETWORK_UNREACHABLE,
             r"connection refused|connection reset|network error": ErrorType.NETWORK_UNREACHABLE,
-
             # Rate limiting patterns
             r"rate limit|too many requests|throttled|429": ErrorType.RATE_LIMITED,
             r"request limit exceeded|quota exceeded": ErrorType.RATE_LIMITED,
-
             # Tool not found patterns
             r"command not found|no such file or directory|not found": ErrorType.TOOL_NOT_FOUND,
             r"executable not found|binary not found": ErrorType.TOOL_NOT_FOUND,
-
             # Parameter patterns
             r"invalid argument|invalid option|unknown option": ErrorType.INVALID_PARAMETERS,
             r"bad parameter|invalid parameter|syntax error": ErrorType.INVALID_PARAMETERS,
-
             # Resource patterns
             r"out of memory|memory error|disk full|no space left": ErrorType.RESOURCE_EXHAUSTED,
             r"resource temporarily unavailable|too many open files": ErrorType.RESOURCE_EXHAUSTED,
-
             # Authentication patterns
             r"authentication failed|login failed|invalid credentials": ErrorType.AUTHENTICATION_FAILED,
             r"unauthorized|invalid token|expired token": ErrorType.AUTHENTICATION_FAILED,
-
             # Target patterns
             r"target unreachable|target not responding|target down": ErrorType.TARGET_UNREACHABLE,
             r"host not found|dns resolution failed": ErrorType.TARGET_UNREACHABLE,
-
             # Parsing patterns
             r"parse error|parsing failed|invalid format|malformed": ErrorType.PARSING_ERROR,
-            r"json decode error|xml parse error|invalid json": ErrorType.PARSING_ERROR
+            r"json decode error|xml parse error|invalid json": ErrorType.PARSING_ERROR,
         }
 
     def _initialize_recovery_strategies(self) -> Dict[ErrorType, List[RecoveryStrategy]]:
@@ -154,7 +152,7 @@ class IntelligentErrorHandler:
                     max_attempts=3,
                     backoff_multiplier=2.0,
                     success_probability=0.7,
-                    estimated_time=30
+                    estimated_time=30,
                 ),
                 RecoveryStrategy(
                     action=RecoveryAction.RETRY_WITH_REDUCED_SCOPE,
@@ -162,7 +160,7 @@ class IntelligentErrorHandler:
                     max_attempts=2,
                     backoff_multiplier=1.0,
                     success_probability=0.8,
-                    estimated_time=45
+                    estimated_time=45,
                 ),
                 RecoveryStrategy(
                     action=RecoveryAction.SWITCH_TO_ALTERNATIVE_TOOL,
@@ -170,8 +168,8 @@ class IntelligentErrorHandler:
                     max_attempts=1,
                     backoff_multiplier=1.0,
                     success_probability=0.6,
-                    estimated_time=60
-                )
+                    estimated_time=60,
+                ),
             ],
             ErrorType.PERMISSION_DENIED: [
                 RecoveryStrategy(
@@ -180,7 +178,7 @@ class IntelligentErrorHandler:
                     max_attempts=1,
                     backoff_multiplier=1.0,
                     success_probability=0.9,
-                    estimated_time=300
+                    estimated_time=300,
                 ),
                 RecoveryStrategy(
                     action=RecoveryAction.SWITCH_TO_ALTERNATIVE_TOOL,
@@ -188,8 +186,8 @@ class IntelligentErrorHandler:
                     max_attempts=1,
                     backoff_multiplier=1.0,
                     success_probability=0.5,
-                    estimated_time=30
-                )
+                    estimated_time=30,
+                ),
             ],
             ErrorType.NETWORK_UNREACHABLE: [
                 RecoveryStrategy(
@@ -198,7 +196,7 @@ class IntelligentErrorHandler:
                     max_attempts=3,
                     backoff_multiplier=2.0,
                     success_probability=0.6,
-                    estimated_time=60
+                    estimated_time=60,
                 ),
                 RecoveryStrategy(
                     action=RecoveryAction.SWITCH_TO_ALTERNATIVE_TOOL,
@@ -206,8 +204,8 @@ class IntelligentErrorHandler:
                     max_attempts=1,
                     backoff_multiplier=1.0,
                     success_probability=0.4,
-                    estimated_time=30
-                )
+                    estimated_time=30,
+                ),
             ],
             ErrorType.RATE_LIMITED: [
                 RecoveryStrategy(
@@ -216,7 +214,7 @@ class IntelligentErrorHandler:
                     max_attempts=5,
                     backoff_multiplier=1.5,
                     success_probability=0.9,
-                    estimated_time=180
+                    estimated_time=180,
                 ),
                 RecoveryStrategy(
                     action=RecoveryAction.ADJUST_PARAMETERS,
@@ -224,8 +222,8 @@ class IntelligentErrorHandler:
                     max_attempts=2,
                     backoff_multiplier=1.0,
                     success_probability=0.8,
-                    estimated_time=120
-                )
+                    estimated_time=120,
+                ),
             ],
             ErrorType.TOOL_NOT_FOUND: [
                 RecoveryStrategy(
@@ -234,7 +232,7 @@ class IntelligentErrorHandler:
                     max_attempts=1,
                     backoff_multiplier=1.0,
                     success_probability=0.7,
-                    estimated_time=15
+                    estimated_time=15,
                 ),
                 RecoveryStrategy(
                     action=RecoveryAction.ESCALATE_TO_HUMAN,
@@ -242,8 +240,8 @@ class IntelligentErrorHandler:
                     max_attempts=1,
                     backoff_multiplier=1.0,
                     success_probability=0.9,
-                    estimated_time=600
-                )
+                    estimated_time=600,
+                ),
             ],
             ErrorType.INVALID_PARAMETERS: [
                 RecoveryStrategy(
@@ -252,7 +250,7 @@ class IntelligentErrorHandler:
                     max_attempts=3,
                     backoff_multiplier=1.0,
                     success_probability=0.8,
-                    estimated_time=10
+                    estimated_time=10,
                 ),
                 RecoveryStrategy(
                     action=RecoveryAction.SWITCH_TO_ALTERNATIVE_TOOL,
@@ -260,8 +258,8 @@ class IntelligentErrorHandler:
                     max_attempts=1,
                     backoff_multiplier=1.0,
                     success_probability=0.6,
-                    estimated_time=30
-                )
+                    estimated_time=30,
+                ),
             ],
             ErrorType.RESOURCE_EXHAUSTED: [
                 RecoveryStrategy(
@@ -270,7 +268,7 @@ class IntelligentErrorHandler:
                     max_attempts=2,
                     backoff_multiplier=1.0,
                     success_probability=0.7,
-                    estimated_time=60
+                    estimated_time=60,
                 ),
                 RecoveryStrategy(
                     action=RecoveryAction.RETRY_WITH_BACKOFF,
@@ -278,8 +276,8 @@ class IntelligentErrorHandler:
                     max_attempts=2,
                     backoff_multiplier=2.0,
                     success_probability=0.5,
-                    estimated_time=180
-                )
+                    estimated_time=180,
+                ),
             ],
             ErrorType.AUTHENTICATION_FAILED: [
                 RecoveryStrategy(
@@ -288,7 +286,7 @@ class IntelligentErrorHandler:
                     max_attempts=1,
                     backoff_multiplier=1.0,
                     success_probability=0.9,
-                    estimated_time=300
+                    estimated_time=300,
                 ),
                 RecoveryStrategy(
                     action=RecoveryAction.SWITCH_TO_ALTERNATIVE_TOOL,
@@ -296,8 +294,8 @@ class IntelligentErrorHandler:
                     max_attempts=1,
                     backoff_multiplier=1.0,
                     success_probability=0.4,
-                    estimated_time=30
-                )
+                    estimated_time=30,
+                ),
             ],
             ErrorType.TARGET_UNREACHABLE: [
                 RecoveryStrategy(
@@ -306,7 +304,7 @@ class IntelligentErrorHandler:
                     max_attempts=3,
                     backoff_multiplier=2.0,
                     success_probability=0.6,
-                    estimated_time=90
+                    estimated_time=90,
                 ),
                 RecoveryStrategy(
                     action=RecoveryAction.GRACEFUL_DEGRADATION,
@@ -314,8 +312,8 @@ class IntelligentErrorHandler:
                     max_attempts=1,
                     backoff_multiplier=1.0,
                     success_probability=1.0,
-                    estimated_time=5
-                )
+                    estimated_time=5,
+                ),
             ],
             ErrorType.PARSING_ERROR: [
                 RecoveryStrategy(
@@ -324,7 +322,7 @@ class IntelligentErrorHandler:
                     max_attempts=2,
                     backoff_multiplier=1.0,
                     success_probability=0.7,
-                    estimated_time=20
+                    estimated_time=20,
                 ),
                 RecoveryStrategy(
                     action=RecoveryAction.SWITCH_TO_ALTERNATIVE_TOOL,
@@ -332,8 +330,8 @@ class IntelligentErrorHandler:
                     max_attempts=1,
                     backoff_multiplier=1.0,
                     success_probability=0.6,
-                    estimated_time=30
-                )
+                    estimated_time=30,
+                ),
             ],
             ErrorType.UNKNOWN: [
                 RecoveryStrategy(
@@ -342,7 +340,7 @@ class IntelligentErrorHandler:
                     max_attempts=2,
                     backoff_multiplier=2.0,
                     success_probability=0.3,
-                    estimated_time=45
+                    estimated_time=45,
                 ),
                 RecoveryStrategy(
                     action=RecoveryAction.ESCALATE_TO_HUMAN,
@@ -350,9 +348,9 @@ class IntelligentErrorHandler:
                     max_attempts=1,
                     backoff_multiplier=1.0,
                     success_probability=0.9,
-                    estimated_time=300
-                )
-            ]
+                    estimated_time=300,
+                ),
+            ],
         }
 
     def _initialize_tool_alternatives(self) -> Dict[str, List[str]]:
@@ -362,56 +360,45 @@ class IntelligentErrorHandler:
             "nmap": ["rustscan", "masscan", "zmap"],
             "rustscan": ["nmap", "masscan"],
             "masscan": ["nmap", "rustscan", "zmap"],
-
             # Directory/file discovery alternatives
             "gobuster": ["feroxbuster", "dirsearch", "ffuf", "dirb"],
             "feroxbuster": ["gobuster", "dirsearch", "ffuf"],
             "dirsearch": ["gobuster", "feroxbuster", "ffuf"],
             "ffuf": ["gobuster", "feroxbuster", "dirsearch"],
-
             # Vulnerability scanning alternatives
             "nuclei": ["jaeles", "nikto", "w3af"],
             "jaeles": ["nuclei", "nikto"],
             "nikto": ["nuclei", "jaeles", "w3af"],
-
             # Web crawling alternatives
             "katana": ["gau", "waybackurls", "hakrawler"],
             "gau": ["katana", "waybackurls", "hakrawler"],
             "waybackurls": ["gau", "katana", "hakrawler"],
-
             # Parameter discovery alternatives
             "arjun": ["paramspider", "x8", "ffuf"],
             "paramspider": ["arjun", "x8"],
             "x8": ["arjun", "paramspider"],
-
             # SQL injection alternatives
             "sqlmap": ["sqlninja", "jsql-injection"],
-
             # XSS testing alternatives
             "dalfox": ["xsser", "xsstrike"],
-
             # Subdomain enumeration alternatives
             "subfinder": ["amass", "assetfinder", "findomain"],
             "amass": ["subfinder", "assetfinder", "findomain"],
             "assetfinder": ["subfinder", "amass", "findomain"],
-
             # Cloud security alternatives
             "prowler": ["scout-suite", "cloudmapper"],
             "scout-suite": ["prowler", "cloudmapper"],
-
             # Container security alternatives
             "trivy": ["clair", "docker-bench-security"],
             "clair": ["trivy", "docker-bench-security"],
-
             # Binary analysis alternatives
             "ghidra": ["radare2", "ida", "binary-ninja"],
             "radare2": ["ghidra", "objdump", "gdb"],
             "gdb": ["radare2", "lldb"],
-
             # Exploitation alternatives
             "pwntools": ["ropper", "ropgadget"],
             "ropper": ["ropgadget", "pwntools"],
-            "ropgadget": ["ropper", "pwntools"]
+            "ropgadget": ["ropper", "pwntools"],
         }
 
     def _initialize_parameter_adjustments(self) -> Dict[str, Dict[ErrorType, Dict[str, Any]]]:
@@ -420,28 +407,28 @@ class IntelligentErrorHandler:
             "nmap": {
                 ErrorType.TIMEOUT: {"timing": "-T2", "reduce_ports": True},
                 ErrorType.RATE_LIMITED: {"timing": "-T1", "delay": "1000ms"},
-                ErrorType.RESOURCE_EXHAUSTED: {"max_parallelism": "10"}
+                ErrorType.RESOURCE_EXHAUSTED: {"max_parallelism": "10"},
             },
             "gobuster": {
                 ErrorType.TIMEOUT: {"threads": "10", "timeout": "30s"},
                 ErrorType.RATE_LIMITED: {"threads": "5", "delay": "1s"},
-                ErrorType.RESOURCE_EXHAUSTED: {"threads": "5"}
+                ErrorType.RESOURCE_EXHAUSTED: {"threads": "5"},
             },
             "nuclei": {
                 ErrorType.TIMEOUT: {"concurrency": "10", "timeout": "30"},
                 ErrorType.RATE_LIMITED: {"rate-limit": "10", "concurrency": "5"},
-                ErrorType.RESOURCE_EXHAUSTED: {"concurrency": "5"}
+                ErrorType.RESOURCE_EXHAUSTED: {"concurrency": "5"},
             },
             "feroxbuster": {
                 ErrorType.TIMEOUT: {"threads": "10", "timeout": "30"},
                 ErrorType.RATE_LIMITED: {"threads": "5", "rate-limit": "10"},
-                ErrorType.RESOURCE_EXHAUSTED: {"threads": "5"}
+                ErrorType.RESOURCE_EXHAUSTED: {"threads": "5"},
             },
             "ffuf": {
                 ErrorType.TIMEOUT: {"threads": "10", "timeout": "30"},
                 ErrorType.RATE_LIMITED: {"threads": "5", "rate": "10"},
-                ErrorType.RESOURCE_EXHAUSTED: {"threads": "5"}
-            }
+                ErrorType.RESOURCE_EXHAUSTED: {"threads": "5"},
+            },
         }
 
     def classify_error(self, error_message: str, exception: Exception = None) -> ErrorType:
@@ -474,14 +461,14 @@ class IntelligentErrorHandler:
         # Create error context
         error_context = ErrorContext(
             tool_name=tool,
-            target=context.get('target', 'unknown'),
-            parameters=context.get('parameters', {}),
+            target=context.get("target", "unknown"),
+            parameters=context.get("parameters", {}),
             error_type=error_type,
             error_message=error_message,
-            attempt_count=context.get('attempt_count', 1),
+            attempt_count=context.get("attempt_count", 1),
             timestamp=datetime.now(),
             stack_trace=traceback.format_exc(),
-            system_resources=self._get_system_resources()
+            system_resources=self._get_system_resources(),
         )
 
         # Add to error history
@@ -493,7 +480,7 @@ class IntelligentErrorHandler:
         # Select best strategy based on context
         best_strategy = self._select_best_strategy(strategies, error_context)
 
-        error_message = f'{error_type.value} - Applying {best_strategy.action.value}'
+        error_message = f"{error_type.value} - Applying {best_strategy.action.value}"
         logger.warning(f"{ModernVisualEngine.format_error_card('RECOVERY', tool, error_message)}")
 
         return best_strategy
@@ -511,7 +498,7 @@ class IntelligentErrorHandler:
                 max_attempts=1,
                 backoff_multiplier=1.0,
                 success_probability=0.9,
-                estimated_time=300
+                estimated_time=300,
             )
 
         # Score strategies based on success probability and estimated time
@@ -528,7 +515,9 @@ class IntelligentErrorHandler:
         scored_strategies.sort(key=lambda x: x[0], reverse=True)
         return scored_strategies[0][1]
 
-    def auto_adjust_parameters(self, tool: str, error_type: ErrorType, original_params: Dict[str, Any]) -> Dict[str, Any]:
+    def auto_adjust_parameters(
+        self, tool: str, error_type: ErrorType, original_params: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Automatically adjust tool parameters based on error patterns"""
         adjustments = self.parameter_adjustments.get(tool, {}).get(error_type, {})
 
@@ -545,7 +534,7 @@ class IntelligentErrorHandler:
         adjusted_params = original_params.copy()
         adjusted_params.update(adjustments)
 
-        adjustment_info = f'Parameters adjusted: {adjustments}'
+        adjustment_info = f"Parameters adjusted: {adjustments}"
         logger.info(f"{ModernVisualEngine.format_tool_status(tool, 'RECOVERY', adjustment_info)}")
 
         return adjusted_params
@@ -560,9 +549,9 @@ class IntelligentErrorHandler:
         # Filter alternatives based on context requirements
         filtered_alternatives = []
         for alt in alternatives:
-            if context.get('require_no_privileges') and alt in ['nmap', 'masscan']:
+            if context.get("require_no_privileges") and alt in ["nmap", "masscan"]:
                 continue  # Skip tools that typically require privileges
-            if context.get('prefer_faster_tools') and alt in ['amass', 'w3af']:
+            if context.get("prefer_faster_tools") and alt in ["amass", "w3af"]:
                 continue  # Skip slower tools
             filtered_alternatives.append(alt)
 
@@ -586,12 +575,14 @@ class IntelligentErrorHandler:
             "context": {
                 "parameters": context.parameters,
                 "system_resources": context.system_resources,
-                "recent_errors": [e.error_message for e in context.previous_errors[-5:]]
-            }
+                "recent_errors": [e.error_message for e in context.previous_errors[-5:]],
+            },
         }
 
         # Log escalation with enhanced formatting
-        logger.error(f"{ModernVisualEngine.format_error_card('CRITICAL', context.tool_name, context.error_message, 'HUMAN ESCALATION REQUIRED')}")
+        logger.error(
+            f"{ModernVisualEngine.format_error_card('CRITICAL', context.tool_name, context.error_message, 'HUMAN ESCALATION REQUIRED')}"
+        )
         logger.error(f"{ModernVisualEngine.format_highlighted_text('ESCALATION DETAILS', 'RED')}")
         logger.error(f"{json.dumps(escalation_data, indent=2)}")
 
@@ -602,29 +593,25 @@ class IntelligentErrorHandler:
         suggestions = []
 
         if context.error_type == ErrorType.PERMISSION_DENIED:
-            suggestions.extend([
-                "Run the command with sudo privileges",
-                "Check file/directory permissions",
-                "Verify user is in required groups"
-            ])
+            suggestions.extend(
+                [
+                    "Run the command with sudo privileges",
+                    "Check file/directory permissions",
+                    "Verify user is in required groups",
+                ]
+            )
         elif context.error_type == ErrorType.TOOL_NOT_FOUND:
-            suggestions.extend([
-                f"Install {context.tool_name} using package manager",
-                "Check if tool is in PATH",
-                "Verify tool installation"
-            ])
+            suggestions.extend(
+                [
+                    f"Install {context.tool_name} using package manager",
+                    "Check if tool is in PATH",
+                    "Verify tool installation",
+                ]
+            )
         elif context.error_type == ErrorType.NETWORK_UNREACHABLE:
-            suggestions.extend([
-                "Check network connectivity",
-                "Verify target is accessible",
-                "Check firewall rules"
-            ])
+            suggestions.extend(["Check network connectivity", "Verify target is accessible", "Check firewall rules"])
         elif context.error_type == ErrorType.RATE_LIMITED:
-            suggestions.extend([
-                "Wait before retrying",
-                "Use slower scan rates",
-                "Check API rate limits"
-            ])
+            suggestions.extend(["Wait before retrying", "Use slower scan rates", "Check API rate limits"])
         else:
             suggestions.append("Review error details and logs")
 
@@ -636,9 +623,9 @@ class IntelligentErrorHandler:
             return {
                 "cpu_percent": psutil.cpu_percent(),
                 "memory_percent": psutil.virtual_memory().percent,
-                "disk_percent": psutil.disk_usage('/').percent,
-                "load_average": os.getloadavg() if hasattr(os, 'getloadavg') else None,
-                "active_processes": len(psutil.pids())
+                "disk_percent": psutil.disk_usage("/").percent,
+                "load_average": os.getloadavg() if hasattr(os, "getloadavg") else None,
+                "active_processes": len(psutil.pids()),
             }
         except Exception:
             return {"error": "Unable to get system resources"}
@@ -649,7 +636,7 @@ class IntelligentErrorHandler:
 
         # Maintain history size limit
         if len(self.error_history) > self.max_history_size:
-            self.error_history = self.error_history[-self.max_history_size:]
+            self.error_history = self.error_history[-self.max_history_size :]
 
     def get_error_statistics(self) -> Dict[str, Any]:
         """Get error statistics for monitoring"""
@@ -670,18 +657,14 @@ class IntelligentErrorHandler:
 
             # Recent errors (last hour)
             if (datetime.now() - error.timestamp).total_seconds() < 3600:
-                recent_errors.append({
-                    "tool": tool,
-                    "error_type": error_type,
-                    "timestamp": error.timestamp.isoformat()
-                })
+                recent_errors.append({"tool": tool, "error_type": error_type, "timestamp": error.timestamp.isoformat()})
 
         return {
             "total_errors": len(self.error_history),
             "error_counts_by_type": error_counts,
             "error_counts_by_tool": tool_errors,
             "recent_errors_count": len(recent_errors),
-            "recent_errors": recent_errors[-10:]  # Last 10 recent errors
+            "recent_errors": recent_errors[-10:],  # Last 10 recent errors
         }
 
 

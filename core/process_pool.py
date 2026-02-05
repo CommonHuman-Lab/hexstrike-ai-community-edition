@@ -6,11 +6,12 @@ task execution and resource management.
 """
 
 import logging
-import time
 import queue
 import threading
+import time
+from typing import Any, Callable, Dict
+
 import psutil
-from typing import Dict, Any, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ class ProcessPool:
             "tasks_failed": 0,
             "avg_task_time": 0.0,
             "cpu_usage": 0.0,
-            "memory_usage": 0.0
+            "memory_usage": 0.0,
         }
 
         # Initialize minimum workers
@@ -50,7 +51,7 @@ class ProcessPool:
             "args": args,
             "kwargs": kwargs,
             "submitted_at": time.time(),
-            "status": "queued"
+            "status": "queued",
         }
 
         with self.pool_lock:
@@ -103,15 +104,16 @@ class ProcessPool:
                             "result": result,
                             "execution_time": execution_time,
                             "worker_id": worker_id,
-                            "completed_at": time.time()
+                            "completed_at": time.time(),
                         }
 
                         # Update performance metrics
                         self.performance_metrics["tasks_completed"] += 1
                         self.performance_metrics["avg_task_time"] = (
-                            (self.performance_metrics["avg_task_time"] * (self.performance_metrics["tasks_completed"] - 1) + execution_time) /
-                            self.performance_metrics["tasks_completed"]
-                        )
+                            self.performance_metrics["avg_task_time"]
+                            * (self.performance_metrics["tasks_completed"] - 1)
+                            + execution_time
+                        ) / self.performance_metrics["tasks_completed"]
 
                         # Remove from active tasks
                         if task_id in self.active_tasks:
@@ -127,7 +129,7 @@ class ProcessPool:
                             "error": str(e),
                             "execution_time": time.time() - start_time,
                             "worker_id": worker_id,
-                            "failed_at": time.time()
+                            "failed_at": time.time(),
                         }
 
                         self.performance_metrics["tasks_failed"] += 1
@@ -160,20 +162,24 @@ class ProcessPool:
                 if active_workers > 0:
                     load_ratio = (active_tasks_count + queue_size) / active_workers
                 else:
-                    load_ratio = float('inf')
+                    load_ratio = float("inf")
 
                 # Auto-scaling logic
                 if load_ratio > self.scale_threshold and active_workers < self.max_workers:
                     # Scale up
                     new_workers = min(2, self.max_workers - active_workers)
                     self._scale_up(new_workers)
-                    logger.info(f"📈 Scaled up process pool: +{new_workers} workers (total: {active_workers + new_workers})")
+                    logger.info(
+                        f"📈 Scaled up process pool: +{new_workers} workers (total: {active_workers + new_workers})"
+                    )
 
                 elif load_ratio < 0.3 and active_workers > self.min_workers:
                     # Scale down
                     workers_to_remove = min(1, active_workers - self.min_workers)
                     self._scale_down(workers_to_remove)
-                    logger.info(f"📉 Scaled down process pool: -{workers_to_remove} workers (total: {active_workers - workers_to_remove})")
+                    logger.info(
+                        f"📉 Scaled down process pool: -{workers_to_remove} workers (total: {active_workers - workers_to_remove})"
+                    )
 
                 # Update performance metrics
                 try:
@@ -220,5 +226,5 @@ class ProcessPool:
                 "active_tasks": len(self.active_tasks),
                 "performance_metrics": self.performance_metrics.copy(),
                 "min_workers": self.min_workers,
-                "max_workers": self.max_workers
+                "max_workers": self.max_workers,
             }

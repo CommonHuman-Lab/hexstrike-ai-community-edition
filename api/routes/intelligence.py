@@ -4,19 +4,22 @@ Handles target analysis, tool selection, parameter optimization, and attack chai
 """
 
 import logging
-from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
-from flask import Blueprint, request, jsonify
+from datetime import datetime
+
+from flask import Blueprint, jsonify, request
+
 from agents.decision_engine import TechnologyStack
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-intelligence_bp = Blueprint('intelligence', __name__, url_prefix='/api/intelligence')
+intelligence_bp = Blueprint("intelligence", __name__, url_prefix="/api/intelligence")
 
 # Dependencies will be injected via init_app
 decision_engine = None
 tool_executors = None  # Dictionary of tool execution functions
+
 
 def init_app(dec_engine, executors):
     """Initialize blueprint with dependencies"""
@@ -30,10 +33,10 @@ def analyze_target():
     """Analyze target and create comprehensive profile using Intelligent Decision Engine"""
     try:
         data = request.get_json()
-        if not data or 'target' not in data:
+        if not data or "target" not in data:
             return jsonify({"error": "Target is required"}), 400
 
-        target = data['target']
+        target = data["target"]
         logger.info(f"🧠 Analyzing target: {target}")
 
         # Use the decision engine to analyze the target
@@ -42,11 +45,7 @@ def analyze_target():
         logger.info(f"✅ Target analysis completed for {target}")
         logger.info(f"📊 Target type: {profile.target_type.value}, Risk level: {profile.risk_level}")
 
-        return jsonify({
-            "success": True,
-            "target_profile": profile.to_dict(),
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify({"success": True, "target_profile": profile.to_dict(), "timestamp": datetime.now().isoformat()})
 
     except Exception as e:
         logger.error(f"💥 Error analyzing target: {str(e)}")
@@ -58,11 +57,11 @@ def select_optimal_tools():
     """Select optimal tools based on target profile and objective"""
     try:
         data = request.get_json()
-        if not data or 'target' not in data:
+        if not data or "target" not in data:
             return jsonify({"error": "Target is required"}), 400
 
-        target = data['target']
-        objective = data.get('objective', 'comprehensive')  # comprehensive, quick, stealth
+        target = data["target"]
+        objective = data.get("objective", "comprehensive")  # comprehensive, quick, stealth
 
         logger.info(f"🎯 Selecting optimal tools for {target} with objective: {objective}")
 
@@ -74,15 +73,17 @@ def select_optimal_tools():
 
         logger.info(f"✅ Selected {len(selected_tools)} tools for {target}")
 
-        return jsonify({
-            "success": True,
-            "target": target,
-            "objective": objective,
-            "target_profile": profile.to_dict(),
-            "selected_tools": selected_tools,
-            "tool_count": len(selected_tools),
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify(
+            {
+                "success": True,
+                "target": target,
+                "objective": objective,
+                "target_profile": profile.to_dict(),
+                "selected_tools": selected_tools,
+                "tool_count": len(selected_tools),
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     except Exception as e:
         logger.error(f"💥 Error selecting tools: {str(e)}")
@@ -94,12 +95,12 @@ def optimize_tool_parameters():
     """Optimize tool parameters based on target profile and context"""
     try:
         data = request.get_json()
-        if not data or 'target' not in data or 'tool' not in data:
+        if not data or "target" not in data or "tool" not in data:
             return jsonify({"error": "Target and tool are required"}), 400
 
-        target = data['target']
-        tool = data['tool']
-        context = data.get('context', {})
+        target = data["target"]
+        tool = data["tool"]
+        context = data.get("context", {})
 
         logger.info(f"⚙️  Optimizing parameters for {tool} against {target}")
 
@@ -111,15 +112,17 @@ def optimize_tool_parameters():
 
         logger.info(f"✅ Parameters optimized for {tool}")
 
-        return jsonify({
-            "success": True,
-            "target": target,
-            "tool": tool,
-            "context": context,
-            "target_profile": profile.to_dict(),
-            "optimized_parameters": optimized_params,
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify(
+            {
+                "success": True,
+                "target": target,
+                "tool": tool,
+                "context": context,
+                "target_profile": profile.to_dict(),
+                "optimized_parameters": optimized_params,
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     except Exception as e:
         logger.error(f"💥 Error optimizing parameters: {str(e)}")
@@ -131,11 +134,11 @@ def create_attack_chain():
     """Create an intelligent attack chain based on target profile"""
     try:
         data = request.get_json()
-        if not data or 'target' not in data:
+        if not data or "target" not in data:
             return jsonify({"error": "Target is required"}), 400
 
-        target = data['target']
-        objective = data.get('objective', 'comprehensive')
+        target = data["target"]
+        objective = data.get("objective", "comprehensive")
 
         logger.info(f"⚔️  Creating attack chain for {target} with objective: {objective}")
 
@@ -146,16 +149,20 @@ def create_attack_chain():
         attack_chain = decision_engine.create_attack_chain(profile, objective)
 
         logger.info(f"✅ Attack chain created with {len(attack_chain.steps)} steps")
-        logger.info(f"📊 Success probability: {attack_chain.success_probability:.2f}, Estimated time: {attack_chain.estimated_time}s")
+        logger.info(
+            f"📊 Success probability: {attack_chain.success_probability:.2f}, Estimated time: {attack_chain.estimated_time}s"
+        )
 
-        return jsonify({
-            "success": True,
-            "target": target,
-            "objective": objective,
-            "target_profile": profile.to_dict(),
-            "attack_chain": attack_chain.to_dict(),
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify(
+            {
+                "success": True,
+                "target": target,
+                "objective": objective,
+                "target_profile": profile.to_dict(),
+                "attack_chain": attack_chain.to_dict(),
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     except Exception as e:
         logger.error(f"💥 Error creating attack chain: {str(e)}")
@@ -167,12 +174,12 @@ def intelligent_smart_scan():
     """Execute an intelligent scan using AI-driven tool selection and parameter optimization with parallel execution"""
     try:
         data = request.get_json()
-        if not data or 'target' not in data:
+        if not data or "target" not in data:
             return jsonify({"error": "Target is required"}), 400
 
-        target = data['target']
-        objective = data.get('objective', 'comprehensive')
-        max_tools = data.get('max_tools', 5)
+        target = data["target"]
+        objective = data.get("objective", "comprehensive")
+        max_tools = data.get("max_tools", 5)
 
         logger.info(f"🚀 Starting intelligent smart scan for {target}")
 
@@ -189,7 +196,7 @@ def intelligent_smart_scan():
             "tools_executed": [],
             "total_vulnerabilities": 0,
             "execution_summary": {},
-            "combined_output": ""
+            "combined_output": "",
         }
 
         def execute_single_tool(tool_name, target, profile):
@@ -209,23 +216,32 @@ def intelligent_smart_scan():
 
                     # Extract vulnerability count from result
                     vuln_count = 0
-                    if result.get('success') and result.get('stdout'):
+                    if result.get("success") and result.get("stdout"):
                         # Simple vulnerability detection based on common patterns
-                        output = result.get('stdout', '')
-                        vuln_indicators = ['CRITICAL', 'HIGH', 'MEDIUM', 'VULNERABILITY', 'EXPLOIT', 'SQL injection', 'XSS', 'CSRF']
+                        output = result.get("stdout", "")
+                        vuln_indicators = [
+                            "CRITICAL",
+                            "HIGH",
+                            "MEDIUM",
+                            "VULNERABILITY",
+                            "EXPLOIT",
+                            "SQL injection",
+                            "XSS",
+                            "CSRF",
+                        ]
                         vuln_count = sum(1 for indicator in vuln_indicators if indicator.lower() in output.lower())
 
                     return {
                         "tool": tool_name,
                         "parameters": optimized_params,
-                        "status": "success" if result.get('success') else "failed",
+                        "status": "success" if result.get("success") else "failed",
                         "timestamp": datetime.now().isoformat(),
-                        "execution_time": result.get('execution_time', 0),
-                        "stdout": result.get('stdout', ''),
-                        "stderr": result.get('stderr', ''),
+                        "execution_time": result.get("execution_time", 0),
+                        "stdout": result.get("stdout", ""),
+                        "stderr": result.get("stderr", ""),
                         "vulnerabilities_found": vuln_count,
-                        "command": result.get('command', ''),
-                        "success": result.get('success', False)
+                        "command": result.get("command", ""),
+                        "success": result.get("success", False),
                     }
                 else:
                     logger.warning(f"⚠️ No execution mapping found for tool: {tool_name}")
@@ -235,7 +251,7 @@ def intelligent_smart_scan():
                         "status": "skipped",
                         "timestamp": datetime.now().isoformat(),
                         "error": f"Tool {tool_name} not implemented in execution map",
-                        "success": False
+                        "success": False,
                     }
 
             except Exception as e:
@@ -245,15 +261,14 @@ def intelligent_smart_scan():
                     "status": "failed",
                     "timestamp": datetime.now().isoformat(),
                     "error": str(e),
-                    "success": False
+                    "success": False,
                 }
 
         # Execute tools in parallel using ThreadPoolExecutor
         with ThreadPoolExecutor(max_workers=min(len(selected_tools), 5)) as executor:
             # Submit all tool executions
             future_to_tool = {
-                executor.submit(execute_single_tool, tool, target, profile): tool
-                for tool in selected_tools
+                executor.submit(execute_single_tool, tool, target, profile): tool for tool in selected_tools
             }
 
             # Collect results as they complete
@@ -269,7 +284,7 @@ def intelligent_smart_scan():
                 if tool_result.get("stdout"):
                     scan_results["combined_output"] += f"\n=== {tool_result['tool'].upper()} OUTPUT ===\n"
                     scan_results["combined_output"] += tool_result["stdout"]
-                    scan_results["combined_output"] += "\n" + "="*50 + "\n"
+                    scan_results["combined_output"] += "\n" + "=" * 50 + "\n"
 
         # Create execution summary
         successful_tools = [t for t in scan_results["tools_executed"] if t.get("success")]
@@ -281,17 +296,15 @@ def intelligent_smart_scan():
             "failed_tools": len(failed_tools),
             "success_rate": len(successful_tools) / len(selected_tools) * 100 if selected_tools else 0,
             "total_execution_time": sum(t.get("execution_time", 0) for t in scan_results["tools_executed"]),
-            "tools_used": [t["tool"] for t in successful_tools]
+            "tools_used": [t["tool"] for t in successful_tools],
         }
 
         logger.info(f"✅ Intelligent smart scan completed for {target}")
-        logger.info(f"📊 Results: {len(successful_tools)}/{len(selected_tools)} tools successful, {scan_results['total_vulnerabilities']} vulnerabilities found")
+        logger.info(
+            f"📊 Results: {len(successful_tools)}/{len(selected_tools)} tools successful, {scan_results['total_vulnerabilities']} vulnerabilities found"
+        )
 
-        return jsonify({
-            "success": True,
-            "scan_results": scan_results,
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify({"success": True, "scan_results": scan_results, "timestamp": datetime.now().isoformat()})
 
     except Exception as e:
         logger.error(f"💥 Error in intelligent smart scan: {str(e)}")
@@ -303,10 +316,10 @@ def detect_technologies():
     """Detect technologies and create technology-specific testing recommendations"""
     try:
         data = request.get_json()
-        if not data or 'target' not in data:
+        if not data or "target" not in data:
             return jsonify({"error": "Target is required"}), 400
 
-        target = data['target']
+        target = data["target"]
 
         logger.info(f"🔍 Detecting technologies for {target}")
 
@@ -320,32 +333,34 @@ def detect_technologies():
                 tech_recommendations["WordPress"] = {
                     "tools": ["wpscan", "nuclei"],
                     "focus_areas": ["plugin vulnerabilities", "theme issues", "user enumeration"],
-                    "priority": "high"
+                    "priority": "high",
                 }
             elif tech == TechnologyStack.PHP:
                 tech_recommendations["PHP"] = {
                     "tools": ["nikto", "sqlmap", "ffuf"],
                     "focus_areas": ["code injection", "file inclusion", "SQL injection"],
-                    "priority": "high"
+                    "priority": "high",
                 }
             elif tech == TechnologyStack.NODEJS:
                 tech_recommendations["Node.js"] = {
                     "tools": ["nuclei", "ffuf"],
                     "focus_areas": ["prototype pollution", "dependency vulnerabilities"],
-                    "priority": "medium"
+                    "priority": "medium",
                 }
 
         logger.info(f"✅ Technology detection completed for {target}")
 
-        return jsonify({
-            "success": True,
-            "target": target,
-            "detected_technologies": [tech.value for tech in profile.technologies],
-            "cms_type": profile.cms_type,
-            "technology_recommendations": tech_recommendations,
-            "target_profile": profile.to_dict(),
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify(
+            {
+                "success": True,
+                "target": target,
+                "detected_technologies": [tech.value for tech in profile.technologies],
+                "cms_type": profile.cms_type,
+                "technology_recommendations": tech_recommendations,
+                "target_profile": profile.to_dict(),
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     except Exception as e:
         logger.error(f"💥 Error detecting technologies: {str(e)}")

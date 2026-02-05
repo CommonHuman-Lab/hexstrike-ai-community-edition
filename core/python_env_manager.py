@@ -32,8 +32,7 @@ class PythonEnvironmentManager:
         pip_path = env_path / "bin" / "pip"
 
         try:
-            result = subprocess.run([str(pip_path), "install", package],
-                                  capture_output=True, text=True, timeout=300)
+            result = subprocess.run([str(pip_path), "install", package], capture_output=True, text=True, timeout=300)
             if result.returncode == 0:
                 logger.info(f"Installed package {package} in {env_name}")
                 return True

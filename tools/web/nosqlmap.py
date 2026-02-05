@@ -1,7 +1,9 @@
 """
 NoSQLMap tool implementation for NoSQL injection testing
 """
-from typing import Dict, Any, List
+
+from typing import Any, Dict, List
+
 from tools.base import BaseTool
 
 
@@ -63,13 +65,13 @@ class NoSQLMapTool(BaseTool):
             "returncode": returncode,
             "vulnerable": False,
             "injection_type": "",
-            "databases": []
+            "databases": [],
         }
 
         if "vulnerable" in stdout.lower() or "injection" in stdout.lower():
             result["vulnerable"] = True
 
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         for line in lines:
             if "database" in line.lower() and ":" in line:
                 result["databases"].append(line.strip())

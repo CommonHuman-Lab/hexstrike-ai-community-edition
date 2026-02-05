@@ -4,16 +4,18 @@ Handles OSINT, subdomain enumeration, and reconnaissance tools
 """
 
 import logging
-from flask import Blueprint, request, jsonify
+
+from flask import Blueprint, jsonify, request
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-tools_recon_bp = Blueprint('tools_recon', __name__, url_prefix='/api/tools')
+tools_recon_bp = Blueprint("tools_recon", __name__, url_prefix="/api/tools")
 
 # Dependencies will be injected via init_app
 execute_command = None
 execute_command_with_recovery = None
+
 
 def init_app(exec_command, exec_command_with_recovery):
     """Initialize blueprint with dependencies"""

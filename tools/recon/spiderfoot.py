@@ -1,7 +1,9 @@
 """
 SpiderFoot tool implementation for OSINT automation
 """
-from typing import Dict, Any, List
+
+from typing import Any, Dict, List
+
 from tools.base import BaseTool
 
 
@@ -63,12 +65,7 @@ class SpiderFootTool(BaseTool):
         """Parse spiderfoot output"""
         import json
 
-        result = {
-            "raw_output": stdout,
-            "stderr": stderr,
-            "returncode": returncode,
-            "findings": []
-        }
+        result = {"raw_output": stdout, "stderr": stderr, "returncode": returncode, "findings": []}
 
         # Try to parse JSON output
         try:
@@ -77,7 +74,7 @@ class SpiderFootTool(BaseTool):
             result["finding_count"] = len(data) if isinstance(data, list) else 1
         except json.JSONDecodeError:
             # Fallback to raw parsing
-            lines = stdout.split('\n')
+            lines = stdout.split("\n")
             for line in lines:
                 if line.strip():
                     result["findings"].append(line.strip())

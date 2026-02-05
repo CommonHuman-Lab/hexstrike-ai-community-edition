@@ -13,8 +13,8 @@ Comprehensive test coverage: 35+ tests
 """
 
 import unittest
+from typing import Any, Dict
 from unittest.mock import Mock, patch
-from typing import Dict, Any
 
 from tools.recon.subfinder import SubfinderTool
 
@@ -31,6 +31,7 @@ class TestSubfinderToolInitialization(unittest.TestCase):
     def test_inheritance(self):
         """Test that SubfinderTool inherits from BaseTool."""
         from tools.base import BaseTool
+
         tool = SubfinderTool()
         self.assertIsInstance(tool, BaseTool)
 
@@ -66,61 +67,45 @@ class TestSubfinderCommandBuilding(unittest.TestCase):
 
     def test_command_with_silent_flag(self):
         """Test command with silent output flag."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-silent"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-silent"})
         self.assertEqual(cmd, ["subfinder", "-d", "example.com", "-silent"])
 
     def test_command_with_recursive_flag(self):
         """Test command with recursive enumeration."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-recursive"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-recursive"})
         self.assertIn("-recursive", cmd)
 
     def test_command_with_output_file(self):
         """Test command with output file specification."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-o output.txt"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-o output.txt"})
         self.assertIn("-o", cmd)
         self.assertIn("output.txt", cmd)
 
     def test_command_with_json_output(self):
         """Test command with JSON output format."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-json"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-json"})
         self.assertIn("-json", cmd)
 
     def test_command_with_verbose_flag(self):
         """Test command with verbose output."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-v"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-v"})
         self.assertIn("-v", cmd)
 
     def test_command_with_sources_filter(self):
         """Test command with specific sources."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-sources crtsh,virustotal"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-sources crtsh,virustotal"})
         self.assertIn("-sources", cmd)
         self.assertIn("crtsh,virustotal", cmd)
 
     def test_command_with_exclude_sources(self):
         """Test command with excluded sources."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-exclude-sources shodan"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-exclude-sources shodan"})
         self.assertIn("-exclude-sources", cmd)
         self.assertIn("shodan", cmd)
 
     def test_command_with_multiple_additional_args(self):
         """Test command with multiple additional arguments."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-silent -recursive -timeout 30"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-silent -recursive -timeout 30"})
         self.assertIn("-silent", cmd)
         self.assertIn("-recursive", cmd)
         self.assertIn("-timeout", cmd)
@@ -128,40 +113,30 @@ class TestSubfinderCommandBuilding(unittest.TestCase):
 
     def test_command_with_empty_additional_args(self):
         """Test command with empty additional_args."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": ""
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": ""})
         self.assertEqual(cmd, ["subfinder", "-d", "example.com"])
 
     def test_command_with_config_file(self):
         """Test command with configuration file."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-config /etc/subfinder/config.yaml"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-config /etc/subfinder/config.yaml"})
         self.assertIn("-config", cmd)
         self.assertIn("/etc/subfinder/config.yaml", cmd)
 
     def test_command_with_rate_limit(self):
         """Test command with rate limiting."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-rate-limit 150"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-rate-limit 150"})
         self.assertIn("-rate-limit", cmd)
         self.assertIn("150", cmd)
 
     def test_command_with_timeout(self):
         """Test command with timeout specification."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-timeout 60"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-timeout 60"})
         self.assertIn("-timeout", cmd)
         self.assertIn("60", cmd)
 
     def test_command_with_max_time(self):
         """Test command with maximum time limit."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-max-time 120"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-max-time 120"})
         self.assertIn("-max-time", cmd)
         self.assertIn("120", cmd)
 
@@ -311,7 +286,7 @@ class TestSubfinderToolExecution(unittest.TestCase):
             "stderr": "",
             "returncode": 0,
             "execution_time": 8.5,
-            "cached": False
+            "cached": False,
         }
 
         result = self.tool.execute("example.com", {}, self.mock_execute_func)
@@ -324,18 +299,9 @@ class TestSubfinderToolExecution(unittest.TestCase):
 
     def test_execution_with_parameters(self):
         """Test execution with custom parameters."""
-        self.mock_execute_func.return_value = {
-            "success": True,
-            "stdout": "output",
-            "stderr": "",
-            "returncode": 0
-        }
+        self.mock_execute_func.return_value = {"success": True, "stdout": "output", "stderr": "", "returncode": 0}
 
-        result = self.tool.execute(
-            "example.com",
-            {"additional_args": "-silent -recursive"},
-            self.mock_execute_func
-        )
+        result = self.tool.execute("example.com", {"additional_args": "-silent -recursive"}, self.mock_execute_func)
 
         self.assertTrue(result["success"])
         self.assertIn("-silent", result["command"])
@@ -347,7 +313,7 @@ class TestSubfinderToolExecution(unittest.TestCase):
             "success": False,
             "error": "subfinder: command not found",
             "stderr": "subfinder: command not found",
-            "returncode": 127
+            "returncode": 127,
         }
 
         result = self.tool.execute("example.com", {}, self.mock_execute_func)
@@ -362,15 +328,10 @@ class TestSubfinderToolExecution(unittest.TestCase):
             "stdout": "cached output",
             "stderr": "",
             "returncode": 0,
-            "cached": True
+            "cached": True,
         }
 
-        result = self.tool.execute(
-            "example.com",
-            {},
-            self.mock_execute_func,
-            use_cache=True
-        )
+        result = self.tool.execute("example.com", {}, self.mock_execute_func, use_cache=True)
 
         self.assertTrue(result["success"])
         self.assertTrue(result["cached"])
@@ -382,43 +343,28 @@ class TestSubfinderToolExecution(unittest.TestCase):
             "stdout": "fresh output",
             "stderr": "",
             "returncode": 0,
-            "cached": False
+            "cached": False,
         }
 
-        result = self.tool.execute(
-            "example.com",
-            {},
-            self.mock_execute_func,
-            use_cache=False
-        )
+        result = self.tool.execute("example.com", {}, self.mock_execute_func, use_cache=False)
 
         self.assertTrue(result["success"])
         call_args = self.mock_execute_func.call_args
-        self.assertEqual(call_args[1].get('use_cache'), False)
+        self.assertEqual(call_args[1].get("use_cache"), False)
 
     def test_execution_command_string_format(self):
         """Test that execution command is properly formatted."""
-        self.mock_execute_func.return_value = {
-            "success": True,
-            "stdout": "",
-            "stderr": "",
-            "returncode": 0
-        }
+        self.mock_execute_func.return_value = {"success": True, "stdout": "", "stderr": "", "returncode": 0}
 
         result = self.tool.execute("example.com", {}, self.mock_execute_func)
 
         self.assertIsInstance(result["command"], str)
         self.assertIn("subfinder -d example.com", result["command"])
 
-    @patch('tools.base.logger')
+    @patch("tools.base.logger")
     def test_logging_during_execution(self, mock_logger):
         """Test that execution is logged."""
-        self.mock_execute_func.return_value = {
-            "success": True,
-            "stdout": "output",
-            "stderr": "",
-            "returncode": 0
-        }
+        self.mock_execute_func.return_value = {"success": True, "stdout": "output", "stderr": "", "returncode": 0}
 
         self.tool.execute("example.com", {}, self.mock_execute_func)
 
@@ -433,14 +379,10 @@ class TestSubfinderToolExecution(unittest.TestCase):
             "success": True,
             "stdout": '{"host":"sub.example.com"}',
             "stderr": "",
-            "returncode": 0
+            "returncode": 0,
         }
 
-        result = self.tool.execute(
-            "example.com",
-            {"additional_args": "-json"},
-            self.mock_execute_func
-        )
+        result = self.tool.execute("example.com", {"additional_args": "-json"}, self.mock_execute_func)
 
         self.assertTrue(result["success"])
         self.assertIn("-json", result["command"])
@@ -465,9 +407,7 @@ class TestSubfinderEdgeCases(unittest.TestCase):
 
     def test_whitespace_in_additional_args(self):
         """Test with extra whitespace in additional_args."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "  -silent   -recursive  "
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "  -silent   -recursive  "})
         self.assertIn("-silent", cmd)
         self.assertIn("-recursive", cmd)
 
@@ -484,9 +424,7 @@ class TestSubfinderEdgeCases(unittest.TestCase):
 
     def test_additional_args_with_paths(self):
         """Test additional args with file paths."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-o /tmp/output.txt -config /etc/config.yaml"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-o /tmp/output.txt -config /etc/config.yaml"})
         self.assertIn("-o", cmd)
         self.assertIn("/tmp/output.txt", cmd)
 
@@ -502,19 +440,21 @@ class TestSubfinderIntegration(unittest.TestCase):
     def test_realistic_basic_enumeration(self):
         """Test realistic basic enumeration scenario."""
         tool = SubfinderTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": """www.example.com
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": """www.example.com
 mail.example.com
 ftp.example.com
 blog.example.com
 shop.example.com
 api.example.com""",
-            "stderr": "",
-            "returncode": 0,
-            "execution_time": 12.3,
-            "cached": False
-        })
+                "stderr": "",
+                "returncode": 0,
+                "execution_time": 12.3,
+                "cached": False,
+            }
+        )
 
         result = tool.execute("example.com", {}, mock_execute)
 
@@ -525,19 +465,17 @@ api.example.com""",
     def test_realistic_silent_mode(self):
         """Test realistic silent mode execution."""
         tool = SubfinderTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": "sub1.example.com\nsub2.example.com",
-            "stderr": "",
-            "returncode": 0,
-            "execution_time": 8.7
-        })
-
-        result = tool.execute(
-            "example.com",
-            {"additional_args": "-silent"},
-            mock_execute
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": "sub1.example.com\nsub2.example.com",
+                "stderr": "",
+                "returncode": 0,
+                "execution_time": 8.7,
+            }
         )
+
+        result = tool.execute("example.com", {"additional_args": "-silent"}, mock_execute)
 
         self.assertTrue(result["success"])
         self.assertIn("-silent", result["command"])
@@ -545,12 +483,14 @@ api.example.com""",
     def test_realistic_error_handling(self):
         """Test realistic error scenario."""
         tool = SubfinderTool()
-        mock_execute = Mock(return_value={
-            "success": False,
-            "error": "Network timeout",
-            "stderr": "Error: failed to connect to sources",
-            "returncode": 1
-        })
+        mock_execute = Mock(
+            return_value={
+                "success": False,
+                "error": "Network timeout",
+                "stderr": "Error: failed to connect to sources",
+                "returncode": 1,
+            }
+        )
 
         result = tool.execute("example.com", {}, mock_execute)
 
@@ -560,23 +500,21 @@ api.example.com""",
     def test_realistic_recursive_enumeration(self):
         """Test realistic recursive enumeration."""
         tool = SubfinderTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": "deep.sub.example.com\ndeeper.deep.sub.example.com",
-            "stderr": "",
-            "returncode": 0,
-            "execution_time": 45.2
-        })
-
-        result = tool.execute(
-            "example.com",
-            {"additional_args": "-recursive"},
-            mock_execute
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": "deep.sub.example.com\ndeeper.deep.sub.example.com",
+                "stderr": "",
+                "returncode": 0,
+                "execution_time": 45.2,
+            }
         )
+
+        result = tool.execute("example.com", {"additional_args": "-recursive"}, mock_execute)
 
         self.assertTrue(result["success"])
         self.assertIn("-recursive", result["command"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

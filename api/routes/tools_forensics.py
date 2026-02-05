@@ -4,16 +4,17 @@ Handles memory forensics, file carving, steganography, and metadata analysis too
 """
 
 import logging
-import os
-from flask import Blueprint, request, jsonify
+
+from flask import Blueprint, jsonify, request
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-tools_forensics_bp = Blueprint('tools_forensics', __name__, url_prefix='/api/tools')
+tools_forensics_bp = Blueprint("tools_forensics", __name__, url_prefix="/api/tools")
 
 # Dependencies will be injected via init_app
 execute_command = None
+
 
 def init_app(exec_command):
     """Initialize blueprint with dependencies"""
@@ -32,15 +33,11 @@ def volatility3():
 
         if not memory_file:
             logger.warning("🧠 Volatility3 called without memory_file parameter")
-            return jsonify({
-                "error": "Memory file parameter is required"
-            }), 400
+            return jsonify({"error": "Memory file parameter is required"}), 400
 
         if not plugin:
             logger.warning("🧠 Volatility3 called without plugin parameter")
-            return jsonify({
-                "error": "Plugin parameter is required"
-            }), 400
+            return jsonify({"error": "Plugin parameter is required"}), 400
 
         command = f"vol3 -f {memory_file} {plugin}"
 
@@ -53,9 +50,8 @@ def volatility3():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in volatility3 endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_forensics_bp.route("/foremost", methods=["POST"])
 def foremost():
@@ -69,9 +65,7 @@ def foremost():
 
         if not input_file:
             logger.warning("🔍 Foremost called without input_file parameter")
-            return jsonify({
-                "error": "Input file parameter is required"
-            }), 400
+            return jsonify({"error": "Input file parameter is required"}), 400
 
         command = f"foremost -o {output_dir}"
 
@@ -89,9 +83,8 @@ def foremost():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in foremost endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_forensics_bp.route("/steghide", methods=["POST"])
 def steghide():
@@ -106,9 +99,7 @@ def steghide():
 
         if not file_path:
             logger.warning("🔒 Steghide called without file_path parameter")
-            return jsonify({
-                "error": "File path parameter is required"
-            }), 400
+            return jsonify({"error": "File path parameter is required"}), 400
 
         if operation == "extract":
             command = f"steghide extract -sf {file_path}"
@@ -118,9 +109,7 @@ def steghide():
             command = f"steghide info {file_path}"
         else:
             logger.warning(f"🔒 Steghide called with invalid operation: {operation}")
-            return jsonify({
-                "error": "Operation must be 'extract' or 'info'"
-            }), 400
+            return jsonify({"error": "Operation must be 'extract' or 'info'"}), 400
 
         if passphrase:
             command += f" -p {passphrase}"
@@ -136,9 +125,8 @@ def steghide():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in steghide endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_forensics_bp.route("/exiftool", methods=["POST"])
 def exiftool():
@@ -152,27 +140,21 @@ def exiftool():
 
         if not file_path:
             logger.warning("📸 ExifTool called without file_path parameter")
-            return jsonify({
-                "error": "File path parameter is required"
-            }), 400
+            return jsonify({"error": "File path parameter is required"}), 400
 
         if operation == "read":
             command = f"exiftool {file_path}"
         elif operation == "write":
             if not metadata:
                 logger.warning("📸 ExifTool write operation called without metadata")
-                return jsonify({
-                    "error": "Metadata parameter is required for write operation"
-                }), 400
+                return jsonify({"error": "Metadata parameter is required for write operation"}), 400
             command = f"exiftool"
             for key, value in metadata.items():
                 command += f" -{key}='{value}'"
             command += f" {file_path}"
         else:
             logger.warning(f"📸 ExifTool called with invalid operation: {operation}")
-            return jsonify({
-                "error": "Operation must be 'read' or 'write'"
-            }), 400
+            return jsonify({"error": "Operation must be 'read' or 'write'"}), 400
 
         if additional_args:
             command += f" {additional_args}"
@@ -183,9 +165,8 @@ def exiftool():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in exiftool endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_forensics_bp.route("/hashpump", methods=["POST"])
 def hashpump():
@@ -201,27 +182,19 @@ def hashpump():
 
         if not signature:
             logger.warning("🔐 HashPump called without signature parameter")
-            return jsonify({
-                "error": "Signature parameter is required"
-            }), 400
+            return jsonify({"error": "Signature parameter is required"}), 400
 
         if not data:
             logger.warning("🔐 HashPump called without data parameter")
-            return jsonify({
-                "error": "Data parameter is required"
-            }), 400
+            return jsonify({"error": "Data parameter is required"}), 400
 
         if not append:
             logger.warning("🔐 HashPump called without append parameter")
-            return jsonify({
-                "error": "Append parameter is required"
-            }), 400
+            return jsonify({"error": "Append parameter is required"}), 400
 
         if not key_length:
             logger.warning("🔐 HashPump called without key_length parameter")
-            return jsonify({
-                "error": "Key length parameter is required"
-            }), 400
+            return jsonify({"error": "Key length parameter is required"}), 400
 
         command = f"hashpump -s '{signature}' -d '{data}' -a '{append}' -k {key_length}"
 
@@ -237,9 +210,7 @@ def hashpump():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in hashpump endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 
 @tools_forensics_bp.route("/zsteg", methods=["POST"])
@@ -387,4 +358,3 @@ def bulk_extractor():
     except Exception as e:
         logger.error(f"💥 Error in bulk-extractor endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
-

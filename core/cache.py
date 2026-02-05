@@ -5,13 +5,12 @@ This module provides a caching layer with TTL (time-to-live) support,
 LRU eviction, and statistics tracking for command results.
 """
 
-import json
 import hashlib
-import time
+import json
 import logging
+import time
 from collections import OrderedDict
-from typing import Dict, Any, Optional
-
+from typing import Any, Dict, Optional
 
 # Get logger
 logger = logging.getLogger(__name__)
@@ -87,5 +86,5 @@ class HexStrikeCache:
             "hit_rate": f"{hit_rate:.1f}%",
             "hits": self.stats["hits"],
             "misses": self.stats["misses"],
-            "evictions": self.stats["evictions"]
+            "evictions": self.stats["evictions"],
         }

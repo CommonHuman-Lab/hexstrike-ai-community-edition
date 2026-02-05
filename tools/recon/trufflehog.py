@@ -1,7 +1,9 @@
 """
 TruffleHog tool implementation for Git repository secret scanning
 """
-from typing import Dict, Any, List
+
+from typing import Any, Dict, List
+
 from tools.base import BaseTool
 
 
@@ -64,11 +66,11 @@ class TruffleHogTool(BaseTool):
             "returncode": returncode,
             "secrets": [],
             "verified_secrets": [],
-            "unverified_secrets": []
+            "unverified_secrets": [],
         }
 
         # Parse JSON lines output
-        lines = stdout.strip().split('\n')
+        lines = stdout.strip().split("\n")
         for line in lines:
             if not line.strip():
                 continue

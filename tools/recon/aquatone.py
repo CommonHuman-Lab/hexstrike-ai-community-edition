@@ -1,7 +1,9 @@
 """
 Aquatone tool implementation for visual inspection of websites
 """
-from typing import Dict, Any, List
+
+from typing import Any, Dict, List
+
 from tools.base import BaseTool
 
 
@@ -72,17 +74,18 @@ class AquatoneTool(BaseTool):
             "stderr": stderr,
             "returncode": returncode,
             "screenshots": [],
-            "pages_processed": 0
+            "pages_processed": 0,
         }
 
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         for line in lines:
             if "screenshot" in line.lower():
                 result["screenshots"].append(line.strip())
             if "pages" in line.lower() and "processed" in line.lower():
                 # Try to extract page count
                 import re
-                match = re.search(r'(\d+)\s*pages', line)
+
+                match = re.search(r"(\d+)\s*pages", line)
                 if match:
                     result["pages_processed"] = int(match.group(1))
 

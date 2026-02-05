@@ -3,7 +3,8 @@ CTF Team Coordinator
 Coordinate team efforts in CTF competitions
 """
 
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
 from agents.ctf.workflow_manager import CTFChallenge
 
 
@@ -16,7 +17,9 @@ class CTFTeamCoordinator:
         self.team_communication = []
         self.shared_resources = {}
 
-    def optimize_team_strategy(self, challenges: List[CTFChallenge], team_skills: Dict[str, List[str]]) -> Dict[str, Any]:
+    def optimize_team_strategy(
+        self, challenges: List[CTFChallenge], team_skills: Dict[str, List[str]]
+    ) -> Dict[str, Any]:
         """Optimize team strategy based on member skills and challenge types"""
         strategy = {
             "assignments": {},
@@ -24,7 +27,7 @@ class CTFTeamCoordinator:
             "collaboration_opportunities": [],
             "resource_sharing": {},
             "estimated_total_score": 0,
-            "time_allocation": {}
+            "time_allocation": {},
         }
 
         # Analyze team skills
@@ -37,7 +40,7 @@ class CTFTeamCoordinator:
                 "forensics": "forensics" in skills or "investigation" in skills,
                 "rev": "reverse" in skills or "reversing" in skills,
                 "osint": "osint" in skills or "intelligence" in skills,
-                "misc": True  # Everyone can handle misc
+                "misc": True,  # Everyone can handle misc
             }
 
         # Score challenges for each team member
@@ -52,21 +55,19 @@ class CTFTeamCoordinator:
                 if skill_matrix[member].get(challenge.category, False):
                     skill_multiplier = 1.5  # 50% bonus for skill match
 
-                difficulty_penalty = {
-                    "easy": 1.0,
-                    "medium": 0.9,
-                    "hard": 0.7,
-                    "insane": 0.5,
-                    "unknown": 0.8
-                }[challenge.difficulty]
+                difficulty_penalty = {"easy": 1.0, "medium": 0.9, "hard": 0.7, "insane": 0.5, "unknown": 0.8}[
+                    challenge.difficulty
+                ]
 
                 final_score = base_score * skill_multiplier * difficulty_penalty
 
-                member_challenge_scores[member].append({
-                    "challenge": challenge,
-                    "score": final_score,
-                    "estimated_time": self._estimate_solve_time(challenge, skill_matrix[member])
-                })
+                member_challenge_scores[member].append(
+                    {
+                        "challenge": challenge,
+                        "score": final_score,
+                        "estimated_time": self._estimate_solve_time(challenge, skill_matrix[member]),
+                    }
+                )
 
         # Assign challenges using Hungarian algorithm approximation
         assignments = self._assign_challenges_optimally(member_challenge_scores)
@@ -76,12 +77,14 @@ class CTFTeamCoordinator:
         all_assignments = []
         for member, challenges in assignments.items():
             for challenge_info in challenges:
-                all_assignments.append({
-                    "member": member,
-                    "challenge": challenge_info["challenge"].name,
-                    "priority": challenge_info["score"],
-                    "estimated_time": challenge_info["estimated_time"]
-                })
+                all_assignments.append(
+                    {
+                        "member": member,
+                        "challenge": challenge_info["challenge"].name,
+                        "priority": challenge_info["score"],
+                        "estimated_time": challenge_info["estimated_time"],
+                    }
+                )
 
         strategy["priority_queue"] = sorted(all_assignments, key=lambda x: x["priority"], reverse=True)
 
@@ -93,11 +96,11 @@ class CTFTeamCoordinator:
     def _estimate_solve_time(self, challenge: CTFChallenge, member_skills: Dict[str, bool]) -> int:
         """Estimate solve time for a challenge based on member skills"""
         base_times = {
-            "easy": 1800,    # 30 minutes
+            "easy": 1800,  # 30 minutes
             "medium": 3600,  # 1 hour
-            "hard": 7200,    # 2 hours
-            "insane": 14400, # 4 hours
-            "unknown": 5400  # 1.5 hours
+            "hard": 7200,  # 2 hours
+            "insane": 14400,  # 4 hours
+            "unknown": 5400,  # 1.5 hours
         }
 
         base_time = base_times[challenge.difficulty]
@@ -133,7 +136,9 @@ class CTFTeamCoordinator:
 
         return assignments
 
-    def _identify_collaboration_opportunities(self, challenges: List[CTFChallenge], team_skills: Dict[str, List[str]]) -> List[Dict[str, Any]]:
+    def _identify_collaboration_opportunities(
+        self, challenges: List[CTFChallenge], team_skills: Dict[str, List[str]]
+    ) -> List[Dict[str, Any]]:
         """Identify challenges that would benefit from team collaboration"""
         collaboration_opportunities = []
 
@@ -146,10 +151,12 @@ class CTFTeamCoordinator:
                         relevant_members.append(member)
 
                 if len(relevant_members) >= 2:
-                    collaboration_opportunities.append({
-                        "challenge": challenge.name,
-                        "recommended_team": relevant_members,
-                        "reason": f"High-difficulty {challenge.category} challenge benefits from collaboration"
-                    })
+                    collaboration_opportunities.append(
+                        {
+                            "challenge": challenge.name,
+                            "recommended_team": relevant_members,
+                            "reason": f"High-difficulty {challenge.category} challenge benefits from collaboration",
+                        }
+                    )
 
         return collaboration_opportunities

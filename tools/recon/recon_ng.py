@@ -1,7 +1,9 @@
 """
 Recon-ng tool implementation for web reconnaissance framework
 """
-from typing import Dict, Any, List
+
+from typing import Any, Dict, List
+
 from tools.base import BaseTool
 
 
@@ -71,10 +73,10 @@ class ReconNgTool(BaseTool):
             "returncode": returncode,
             "findings": [],
             "hosts": [],
-            "contacts": []
+            "contacts": [],
         }
 
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         for line in lines:
             line = line.strip()
             if "[*]" in line or "[+]" in line:

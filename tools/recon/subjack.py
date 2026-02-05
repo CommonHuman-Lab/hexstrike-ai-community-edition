@@ -1,7 +1,9 @@
 """
 Subjack tool implementation for subdomain takeover detection
 """
-from typing import Dict, Any, List
+
+from typing import Any, Dict, List
+
 from tools.base import BaseTool
 
 
@@ -72,15 +74,9 @@ class SubjackTool(BaseTool):
 
     def parse_output(self, stdout: str, stderr: str, returncode: int) -> Dict[str, Any]:
         """Parse subjack output to extract vulnerable subdomains"""
-        result = {
-            "raw_output": stdout,
-            "stderr": stderr,
-            "returncode": returncode,
-            "vulnerable": [],
-            "checked": []
-        }
+        result = {"raw_output": stdout, "stderr": stderr, "returncode": returncode, "vulnerable": [], "checked": []}
 
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         for line in lines:
             line = line.strip()
             if not line:

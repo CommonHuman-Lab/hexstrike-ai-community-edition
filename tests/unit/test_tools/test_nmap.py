@@ -11,8 +11,8 @@ Tests cover:
 """
 
 import unittest
+from typing import Any, Dict
 from unittest.mock import Mock, patch
-from typing import Dict, Any
 
 from tools.network.nmap import NmapTool
 
@@ -57,47 +57,33 @@ class TestNmapCommandBuilding(unittest.TestCase):
 
     def test_command_with_port_specification(self):
         """Test command with port specification."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "scan_type": "-sV",
-            "ports": "80,443"
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"scan_type": "-sV", "ports": "80,443"})
         self.assertEqual(cmd, ["nmap", "-sV", "-p", "80,443", "192.168.1.1"])
 
     def test_command_with_port_range(self):
         """Test command with port range."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "ports": "1-1000"
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"ports": "1-1000"})
         self.assertEqual(cmd, ["nmap", "-sV", "-p", "1-1000", "192.168.1.1"])
 
     def test_command_with_multiple_ports(self):
         """Test command with multiple specific ports."""
-        cmd = self.tool.build_command("example.com", {
-            "scan_type": "-sT",
-            "ports": "22,80,443,8080"
-        })
+        cmd = self.tool.build_command("example.com", {"scan_type": "-sT", "ports": "22,80,443,8080"})
         self.assertEqual(cmd, ["nmap", "-sT", "-p", "22,80,443,8080", "example.com"])
 
     def test_command_with_additional_args(self):
         """Test command with additional arguments."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "scan_type": "-sS",
-            "additional_args": "-O -v"
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"scan_type": "-sS", "additional_args": "-O -v"})
         self.assertEqual(cmd, ["nmap", "-sS", "-O", "-v", "192.168.1.1"])
 
     def test_command_with_all_parameters(self):
         """Test command with all parameters."""
-        cmd = self.tool.build_command("192.168.1.0/24", {
-            "scan_type": "-sV",
-            "ports": "1-65535",
-            "additional_args": "-O -T4 --version-intensity 5"
-        })
-        self.assertEqual(cmd, [
-            "nmap", "-sV", "-p", "1-65535",
-            "-O", "-T4", "--version-intensity", "5",
-            "192.168.1.0/24"
-        ])
+        cmd = self.tool.build_command(
+            "192.168.1.0/24",
+            {"scan_type": "-sV", "ports": "1-65535", "additional_args": "-O -T4 --version-intensity 5"},
+        )
+        self.assertEqual(
+            cmd, ["nmap", "-sV", "-p", "1-65535", "-O", "-T4", "--version-intensity", "5", "192.168.1.0/24"]
+        )
 
     def test_command_hostname_target(self):
         """Test command with hostname target."""
@@ -111,10 +97,7 @@ class TestNmapCommandBuilding(unittest.TestCase):
 
     def test_command_with_empty_additional_args(self):
         """Test command with empty additional_args."""
-        cmd = self.tool.build_command("192.168.1.1", {
-            "scan_type": "-sS",
-            "additional_args": ""
-        })
+        cmd = self.tool.build_command("192.168.1.1", {"scan_type": "-sS", "additional_args": ""})
         self.assertEqual(cmd, ["nmap", "-sS", "192.168.1.1"])
 
 
@@ -359,7 +342,7 @@ class TestNmapToolExecution(unittest.TestCase):
             "stderr": "",
             "returncode": 0,
             "execution_time": 2.5,
-            "cached": False
+            "cached": False,
         }
 
         result = self.tool.execute("example.com", {}, self.mock_execute_func)
@@ -372,21 +355,10 @@ class TestNmapToolExecution(unittest.TestCase):
 
     def test_scan_with_custom_parameters(self):
         """Test scan with custom parameters."""
-        self.mock_execute_func.return_value = {
-            "success": True,
-            "stdout": "Nmap output",
-            "stderr": "",
-            "returncode": 0
-        }
+        self.mock_execute_func.return_value = {"success": True, "stdout": "Nmap output", "stderr": "", "returncode": 0}
 
         result = self.tool.execute(
-            "192.168.1.1",
-            {
-                "scan_type": "-sS",
-                "ports": "80,443",
-                "additional_args": "-O"
-            },
-            self.mock_execute_func
+            "192.168.1.1", {"scan_type": "-sS", "ports": "80,443", "additional_args": "-O"}, self.mock_execute_func
         )
 
         self.assertTrue(result["success"])
@@ -396,11 +368,7 @@ class TestNmapToolExecution(unittest.TestCase):
 
     def test_scan_with_invalid_ports(self):
         """Test scan with invalid port specification."""
-        result = self.tool.execute(
-            "example.com",
-            {"ports": "invalid"},
-            self.mock_execute_func
-        )
+        result = self.tool.execute("example.com", {"ports": "invalid"}, self.mock_execute_func)
 
         self.assertFalse(result["success"])
         self.assertIn("Parameter validation failed", result["error"])
@@ -411,7 +379,7 @@ class TestNmapToolExecution(unittest.TestCase):
             "success": False,
             "error": "nmap: command not found",
             "stderr": "nmap: command not found",
-            "returncode": 127
+            "returncode": 127,
         }
 
         result = self.tool.execute("example.com", {}, self.mock_execute_func)
@@ -426,15 +394,10 @@ class TestNmapToolExecution(unittest.TestCase):
             "stdout": "cached output",
             "stderr": "",
             "returncode": 0,
-            "cached": True
+            "cached": True,
         }
 
-        result = self.tool.execute(
-            "example.com",
-            {},
-            self.mock_execute_func,
-            use_cache=True
-        )
+        result = self.tool.execute("example.com", {}, self.mock_execute_func, use_cache=True)
 
         self.assertTrue(result["success"])
         self.assertTrue(result["cached"])
@@ -445,27 +408,18 @@ class TestNmapToolExecution(unittest.TestCase):
             "success": True,
             "stdout": "Nmap scan report",
             "stderr": "",
-            "returncode": 0
+            "returncode": 0,
         }
 
-        result = self.tool.execute(
-            "192.168.1.0/24",
-            {"scan_type": "-sn"},
-            self.mock_execute_func
-        )
+        result = self.tool.execute("192.168.1.0/24", {"scan_type": "-sn"}, self.mock_execute_func)
 
         self.assertTrue(result["success"])
         self.assertIn("192.168.1.0/24", result["command"])
 
-    @patch('tools.base.logger')
+    @patch("tools.base.logger")
     def test_logging_during_execution(self, mock_logger):
         """Test that execution is logged."""
-        self.mock_execute_func.return_value = {
-            "success": True,
-            "stdout": "output",
-            "stderr": "",
-            "returncode": 0
-        }
+        self.mock_execute_func.return_value = {"success": True, "stdout": "output", "stderr": "", "returncode": 0}
 
         self.tool.execute("example.com", {}, self.mock_execute_func)
 
@@ -499,9 +453,7 @@ class TestNmapEdgeCases(unittest.TestCase):
 
     def test_complex_port_range(self):
         """Test complex port range specification."""
-        cmd = self.tool.build_command("target.com", {
-            "ports": "1-1000,2000-3000,8080,8443"
-        })
+        cmd = self.tool.build_command("target.com", {"ports": "1-1000,2000-3000,8080,8443"})
         self.assertIn("1-1000,2000-3000,8080,8443", cmd)
 
     def test_all_ports(self):
@@ -516,16 +468,12 @@ class TestNmapEdgeCases(unittest.TestCase):
 
     def test_timing_template(self):
         """Test with timing template."""
-        cmd = self.tool.build_command("target.com", {
-            "additional_args": "-T4"
-        })
+        cmd = self.tool.build_command("target.com", {"additional_args": "-T4"})
         self.assertIn("-T4", cmd)
 
     def test_output_format_args(self):
         """Test with output format arguments."""
-        cmd = self.tool.build_command("target.com", {
-            "additional_args": "-oN output.txt -oX output.xml"
-        })
+        cmd = self.tool.build_command("target.com", {"additional_args": "-oN output.txt -oX output.xml"})
         self.assertIn("-oN", cmd)
         self.assertIn("output.txt", cmd)
         self.assertIn("-oX", cmd)
@@ -538,9 +486,10 @@ class TestNmapIntegration(unittest.TestCase):
     def test_realistic_service_scan(self):
         """Test realistic service version detection scan."""
         tool = NmapTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": """
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": """
 Starting Nmap 7.80 ( https://nmap.org )
 Nmap scan report for webserver.local (192.168.1.100)
 Host is up (0.0010s latency).
@@ -553,17 +502,14 @@ PORT    STATE SERVICE VERSION
 Service detection performed. Please report any incorrect results.
 Nmap done: 1 IP address (1 host up) scanned in 12.34 seconds
 """,
-            "stderr": "",
-            "returncode": 0,
-            "execution_time": 12.34,
-            "cached": False
-        })
-
-        result = tool.execute(
-            "192.168.1.100",
-            {"scan_type": "-sV", "ports": "22,80,443"},
-            mock_execute
+                "stderr": "",
+                "returncode": 0,
+                "execution_time": 12.34,
+                "cached": False,
+            }
         )
+
+        result = tool.execute("192.168.1.100", {"scan_type": "-sV", "ports": "22,80,443"}, mock_execute)
 
         self.assertTrue(result["success"])
         self.assertEqual(result["output"]["open_ports_count"], 3)
@@ -574,9 +520,10 @@ Nmap done: 1 IP address (1 host up) scanned in 12.34 seconds
     def test_realistic_stealth_scan(self):
         """Test realistic SYN stealth scan."""
         tool = NmapTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": """
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": """
 Nmap scan report for target.example.com
 Host is up (0.050s latency).
 PORT     STATE SERVICE
@@ -586,18 +533,13 @@ PORT     STATE SERVICE
 
 Nmap done: 1 IP address scanned
 """,
-            "stderr": "",
-            "returncode": 0
-        })
+                "stderr": "",
+                "returncode": 0,
+            }
+        )
 
         result = tool.execute(
-            "target.example.com",
-            {
-                "scan_type": "-sS",
-                "ports": "80,443,8080",
-                "additional_args": "-T4"
-            },
-            mock_execute
+            "target.example.com", {"scan_type": "-sS", "ports": "80,443,8080", "additional_args": "-T4"}, mock_execute
         )
 
         self.assertTrue(result["success"])
@@ -606,5 +548,5 @@ Nmap done: 1 IP address scanned
         self.assertEqual(result["output"]["open_ports_count"], 3)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

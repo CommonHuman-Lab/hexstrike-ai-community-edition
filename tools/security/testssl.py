@@ -1,10 +1,12 @@
 """
 testssl.sh tool implementation for SSL/TLS testing
 """
-from typing import Dict, Any, List
-from tools.base import BaseTool
-import re
+
 import json
+import re
+from typing import Any, Dict, List
+
+from tools.base import BaseTool
 
 
 class TestSSLTool(BaseTool):
@@ -40,7 +42,7 @@ class TestSSLTool(BaseTool):
 
         # Protocols
         if params.get("protocols"):
-            for protocol in params["protocols"].split(','):
+            for protocol in params["protocols"].split(","):
                 cmd_parts.append(f"-{protocol}")
         else:
             # Default: test all protocols
@@ -125,20 +127,14 @@ class TestSSLTool(BaseTool):
         server_preferences = {}
         security_headers = {}
         certificate_info = {}
-        findings_by_severity = {
-            'CRITICAL': [],
-            'HIGH': [],
-            'MEDIUM': [],
-            'LOW': [],
-            'INFO': []
-        }
+        findings_by_severity = {"CRITICAL": [], "HIGH": [], "MEDIUM": [], "LOW": [], "INFO": []}
 
         # Try to parse JSON output
         json_data = None
         try:
             # testssl.sh outputs JSON objects, try to find and parse them
-            for line in stdout.split('\n'):
-                if line.strip().startswith('{'):
+            for line in stdout.split("\n"):
+                if line.strip().startswith("{"):
                     try:
                         json_data = json.loads(line)
                         break
@@ -149,29 +145,23 @@ class TestSSLTool(BaseTool):
 
         if json_data:
             # Parse JSON format
-            for finding in json_data.get('scanResult', []):
-                finding_id = finding.get('id', '')
-                severity = finding.get('severity', 'INFO').upper()
-                finding_text = finding.get('finding', '')
+            for finding in json_data.get("scanResult", []):
+                finding_id = finding.get("id", "")
+                severity = finding.get("severity", "INFO").upper()
+                finding_text = finding.get("finding", "")
 
                 if severity in findings_by_severity:
-                    findings_by_severity[severity].append({
-                        'id': finding_id,
-                        'finding': finding_text,
-                        'severity': severity
-                    })
+                    findings_by_severity[severity].append(
+                        {"id": finding_id, "finding": finding_text, "severity": severity}
+                    )
 
                 # Categorize vulnerabilities (HIGH and CRITICAL)
-                if severity in ['HIGH', 'CRITICAL']:
-                    vulnerabilities.append({
-                        'id': finding_id,
-                        'finding': finding_text,
-                        'severity': severity
-                    })
+                if severity in ["HIGH", "CRITICAL"]:
+                    vulnerabilities.append({"id": finding_id, "finding": finding_text, "severity": severity})
 
         else:
             # Parse text output
-            lines = stdout.split('\n')
+            lines = stdout.split("\n")
             current_section = None
 
             for line in lines:
@@ -179,36 +169,35 @@ class TestSSLTool(BaseTool):
 
                 # Detect vulnerabilities
                 vuln_patterns = [
-                    r'(VULNERABLE|NOT ok|CRITICAL|HIGH)',
-                    r'(Heartbleed|CCS|CRIME|BREACH|POODLE|FREAK|DROWN|LOGJAM|SWEET32|ROBOT)',
+                    r"(VULNERABLE|NOT ok|CRITICAL|HIGH)",
+                    r"(Heartbleed|CCS|CRIME|BREACH|POODLE|FREAK|DROWN|LOGJAM|SWEET32|ROBOT)",
                 ]
 
                 for pattern in vuln_patterns:
                     if re.search(pattern, line, re.IGNORECASE):
-                        vulnerabilities.append({
-                            'finding': line_stripped,
-                            'severity': 'HIGH' if 'CRITICAL' not in line else 'CRITICAL'
-                        })
+                        vulnerabilities.append(
+                            {"finding": line_stripped, "severity": "HIGH" if "CRITICAL" not in line else "CRITICAL"}
+                        )
                         break
 
                 # Protocol support
-                protocol_match = re.search(r'(SSLv2|SSLv3|TLS 1\.0|TLS 1\.1|TLS 1\.2|TLS 1\.3)\s+(.+)', line)
+                protocol_match = re.search(r"(SSLv2|SSLv3|TLS 1\.0|TLS 1\.1|TLS 1\.2|TLS 1\.3)\s+(.+)", line)
                 if protocol_match:
                     protocol = protocol_match.group(1)
                     status = protocol_match.group(2)
                     protocols[protocol] = status
 
                 # Certificate info
-                if 'Certificate' in line or 'Subject' in line or 'Issuer' in line:
-                    cert_match = re.search(r'([^:]+):\s+(.+)', line)
+                if "Certificate" in line or "Subject" in line or "Issuer" in line:
+                    cert_match = re.search(r"([^:]+):\s+(.+)", line)
                     if cert_match:
                         cert_key = cert_match.group(1).strip()
                         cert_value = cert_match.group(2).strip()
                         certificate_info[cert_key] = cert_value
 
                 # Security headers
-                if 'Strict-Transport-Security' in line or 'Public-Key-Pins' in line or 'X-Frame-Options' in line:
-                    header_match = re.search(r'([^:]+):\s+(.+)', line)
+                if "Strict-Transport-Security" in line or "Public-Key-Pins" in line or "X-Frame-Options" in line:
+                    header_match = re.search(r"([^:]+):\s+(.+)", line)
                     if header_match:
                         header_name = header_match.group(1).strip()
                         header_value = header_match.group(2).strip()
@@ -231,5 +220,5 @@ class TestSSLTool(BaseTool):
             "severity_counts": severity_counts,
             "raw_output": stdout,
             "stderr": stderr,
-            "returncode": returncode
+            "returncode": returncode,
         }
