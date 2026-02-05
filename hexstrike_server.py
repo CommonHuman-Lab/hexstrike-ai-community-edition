@@ -5,17 +5,6 @@ HexStrike AI - Advanced Penetration Testing Framework Server
 Enhanced with AI-Powered Intelligence & Automation
 🚀 Bug Bounty | CTF | Red Team | Security Research
 
-RECENT ENHANCEMENTS (v6.0):
-✅ Complete color consistency with reddish hacker theme
-✅ Removed duplicate classes (PythonEnvironmentManager, CVEIntelligenceManager)
-✅ Enhanced visual output with ModernVisualEngine
-✅ Organized code structure with proper section headers
-✅ 100+ security tools with intelligent parameter optimization
-✅ AI-driven decision engine for tool selection
-✅ Advanced error handling and recovery systems
-
-Architecture: Two-script system (hexstrike_server.py + hexstrike_mcp.py)
-Framework: FastMCP integration for AI agent communication
 """
 
 import argparse
