@@ -72,7 +72,6 @@ hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888
 ```bash
 docker build -t hexstrike-ai .
 docker run -d -p 8888:8888 --name hexstrike hexstrike-ai
-curl http://localhost:8888/health
 ```
 
 ### Verify Installation
