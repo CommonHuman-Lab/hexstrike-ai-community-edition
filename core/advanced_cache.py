@@ -131,5 +131,5 @@ class AdvancedCache:
                 "hit_count": self.hit_count,
                 "miss_count": self.miss_count,
                 "hit_rate": hit_rate,
-                "utilization": (len(self.cache) / self.max_size * 100)
+                "utilization": (len(self.cache) / self.max_size * 100),
             }

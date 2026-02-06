@@ -13,7 +13,6 @@ Features:
 """
 
 import logging
-from typing import Dict, Any, List
 
 logger = logging.getLogger(__name__)
 
@@ -27,14 +26,14 @@ class VulnerabilityCorrelator:
             "remote_execution": ["remote", "network", "rce", "code execution"],
             "persistence": ["service", "registry", "scheduled", "startup"],
             "lateral_movement": ["smb", "wmi", "ssh", "rdp"],
-            "data_exfiltration": ["file", "database", "memory", "network"]
+            "data_exfiltration": ["file", "database", "memory", "network"],
         }
 
         self.software_relationships = {
             "windows": ["iis", "office", "exchange", "sharepoint"],
             "linux": ["apache", "nginx", "mysql", "postgresql"],
             "web": ["php", "nodejs", "python", "java"],
-            "database": ["mysql", "postgresql", "oracle", "mssql"]
+            "database": ["mysql", "postgresql", "oracle", "mssql"],
         }
 
     def find_attack_chains(self, target_software, max_depth=3):
@@ -60,33 +59,37 @@ class VulnerabilityCorrelator:
                             "stage": 1,
                             "objective": "Initial Access",
                             "vulnerability": initial_vuln,
-                            "success_probability": 0.75
+                            "success_probability": 0.75,
                         }
                     ],
                     "overall_probability": 0.75,
-                    "complexity": "MEDIUM"
+                    "complexity": "MEDIUM",
                 }
 
                 # Find privilege escalation
                 priv_esc_vulns = self._find_vulnerabilities_by_pattern(base_software, "privilege_escalation")
                 if priv_esc_vulns:
-                    chain["stages"].append({
-                        "stage": 2,
-                        "objective": "Privilege Escalation",
-                        "vulnerability": priv_esc_vulns[0],
-                        "success_probability": 0.60
-                    })
+                    chain["stages"].append(
+                        {
+                            "stage": 2,
+                            "objective": "Privilege Escalation",
+                            "vulnerability": priv_esc_vulns[0],
+                            "success_probability": 0.60,
+                        }
+                    )
                     chain["overall_probability"] *= 0.60
 
                 # Find persistence
                 persistence_vulns = self._find_vulnerabilities_by_pattern(base_software, "persistence")
                 if persistence_vulns and len(chain["stages"]) < max_depth:
-                    chain["stages"].append({
-                        "stage": 3,
-                        "objective": "Persistence",
-                        "vulnerability": persistence_vulns[0],
-                        "success_probability": 0.80
-                    })
+                    chain["stages"].append(
+                        {
+                            "stage": 3,
+                            "objective": "Persistence",
+                            "vulnerability": persistence_vulns[0],
+                            "success_probability": 0.80,
+                        }
+                    )
                     chain["overall_probability"] *= 0.80
 
                 chains.append(chain)
@@ -96,7 +99,7 @@ class VulnerabilityCorrelator:
                 "target_software": target_software,
                 "total_chains": len(chains),
                 "attack_chains": chains,
-                "recommendation": self._generate_chain_recommendations(chains)
+                "recommendation": self._generate_chain_recommendations(chains),
             }
 
         except Exception as e:
@@ -111,14 +114,14 @@ class VulnerabilityCorrelator:
                 "cve_id": "CVE-2024-1234",
                 "description": f"Remote code execution in {software}",
                 "cvss_score": 9.8,
-                "exploitability": "HIGH"
+                "exploitability": "HIGH",
             },
             {
                 "cve_id": "CVE-2024-5678",
                 "description": f"Privilege escalation in {software}",
                 "cvss_score": 7.8,
-                "exploitability": "MEDIUM"
-            }
+                "exploitability": "MEDIUM",
+            },
         ]
 
         return mock_vulnerabilities
@@ -134,7 +137,7 @@ class VulnerabilityCorrelator:
             "Recommendations:",
             "- Test chains in order of probability",
             "- Prepare fallback methods for each stage",
-            "- Consider detection evasion at each stage"
+            "- Consider detection evasion at each stage",
         ]
 
         return "\n".join(recommendations)

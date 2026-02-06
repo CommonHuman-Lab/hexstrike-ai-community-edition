@@ -3,7 +3,8 @@ Gobuster Tool Implementation
 Directory and file brute-forcing tool
 """
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 from ..base import BaseTool
 
 
@@ -47,18 +48,18 @@ class GobusterTool(BaseTool):
         cmd_parts = [self.binary_name]
 
         # Add mode (dir, dns, vhost)
-        mode = params.get('mode', 'dir')
+        mode = params.get("mode", "dir")
         cmd_parts.append(mode)
 
         # Add target URL
-        cmd_parts.extend(['-u', target])
+        cmd_parts.extend(["-u", target])
 
         # Add wordlist
-        wordlist = params.get('wordlist', '/usr/share/wordlists/dirb/common.txt')
-        cmd_parts.extend(['-w', wordlist])
+        wordlist = params.get("wordlist", "/usr/share/wordlists/dirb/common.txt")
+        cmd_parts.extend(["-w", wordlist])
 
         # Add any additional arguments
-        additional_args = params.get('additional_args', '')
+        additional_args = params.get("additional_args", "")
         if additional_args:
             cmd_parts.extend(additional_args.split())
 
@@ -76,23 +77,19 @@ class GobusterTool(BaseTool):
         Returns:
             Dictionary containing parsed results
         """
-        result = {
-            "raw_output": stdout,
-            "stderr": stderr,
-            "returncode": returncode
-        }
+        result = {"raw_output": stdout, "stderr": stderr, "returncode": returncode}
 
         # Parse found directories/files
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         found_items = []
 
         for line in lines:
-            if line.strip() and ('Status:' in line or '/' in line):
+            if line.strip() and ("Status:" in line or "/" in line):
                 # Gobuster output format typically includes status codes
                 found_items.append(line.strip())
 
         if found_items:
-            result['found_items'] = found_items
-            result['found_count'] = len(found_items)
+            result["found_items"] = found_items
+            result["found_count"] = len(found_items)
 
         return result

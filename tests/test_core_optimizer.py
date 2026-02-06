@@ -9,14 +9,16 @@ Tests for ParameterOptimizer and related classes:
 - ParameterOptimizer
 """
 
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
+
 from core.optimizer import (
-    TechnologyDetector,
-    RateLimitDetector,
     FailureRecoverySystem,
+    ParameterOptimizer,
     PerformanceMonitor,
-    ParameterOptimizer
+    RateLimitDetector,
+    TechnologyDetector,
 )
 
 
@@ -39,10 +41,7 @@ class TestTechnologyDetector:
         detector = TechnologyDetector()
         headers = {"Server": "Apache/2.4.41"}
 
-        result = detector.detect_technologies(
-            target="example.com",
-            headers=headers
-        )
+        result = detector.detect_technologies(target="example.com", headers=headers)
 
         assert "apache" in result["web_servers"]
 
@@ -51,10 +50,7 @@ class TestTechnologyDetector:
         detector = TechnologyDetector()
         headers = {"Server": "nginx/1.18.0"}
 
-        result = detector.detect_technologies(
-            target="example.com",
-            headers=headers
-        )
+        result = detector.detect_technologies(target="example.com", headers=headers)
 
         assert "nginx" in result["web_servers"]
 
@@ -63,10 +59,7 @@ class TestTechnologyDetector:
         detector = TechnologyDetector()
         content = "<html><head><link rel='stylesheet' href='/wp-content/themes/theme.css'></head></html>"
 
-        result = detector.detect_technologies(
-            target="example.com",
-            content=content
-        )
+        result = detector.detect_technologies(target="example.com", content=content)
 
         assert "wordpress" in result["cms"]
 
@@ -75,10 +68,7 @@ class TestTechnologyDetector:
         detector = TechnologyDetector()
         headers = {"X-Powered-By": "PHP/7.4.3"}
 
-        result = detector.detect_technologies(
-            target="example.com",
-            headers=headers
-        )
+        result = detector.detect_technologies(target="example.com", headers=headers)
 
         assert "php" in result["languages"]
 
@@ -87,10 +77,7 @@ class TestTechnologyDetector:
         detector = TechnologyDetector()
         ports = [22, 80, 443, 3306]
 
-        result = detector.detect_technologies(
-            target="example.com",
-            ports=ports
-        )
+        result = detector.detect_technologies(target="example.com", ports=ports)
 
         assert "ssh" in result["services"]
         assert "http" in result["services"]
@@ -102,10 +89,7 @@ class TestTechnologyDetector:
         detector = TechnologyDetector()
         headers = {"CF-RAY": "12345-SJC", "Server": "cloudflare"}
 
-        result = detector.detect_technologies(
-            target="example.com",
-            headers=headers
-        )
+        result = detector.detect_technologies(target="example.com", headers=headers)
 
         assert "cloudflare" in result["security"] or len(result["security"]) > 0
 
@@ -125,10 +109,7 @@ class TestRateLimitDetector:
         """Test detecting rate limiting from HTTP 429 status"""
         detector = RateLimitDetector()
 
-        result = detector.detect_rate_limiting(
-            response_text="Rate limit exceeded",
-            status_code=429
-        )
+        result = detector.detect_rate_limiting(response_text="Rate limit exceeded", status_code=429)
 
         assert result["detected"] is True
         assert result["confidence"] >= 0.8
@@ -139,10 +120,7 @@ class TestRateLimitDetector:
         """Test detecting rate limiting from response text"""
         detector = RateLimitDetector()
 
-        result = detector.detect_rate_limiting(
-            response_text="Too many requests, please slow down",
-            status_code=200
-        )
+        result = detector.detect_rate_limiting(response_text="Too many requests, please slow down", status_code=200)
 
         assert result["detected"] is True
         assert result["confidence"] > 0
@@ -152,11 +130,7 @@ class TestRateLimitDetector:
         detector = RateLimitDetector()
         headers = {"X-RateLimit-Remaining": "0", "Retry-After": "60"}
 
-        result = detector.detect_rate_limiting(
-            response_text="",
-            status_code=200,
-            headers=headers
-        )
+        result = detector.detect_rate_limiting(response_text="", status_code=200, headers=headers)
 
         assert result["detected"] is True
         assert result["confidence"] > 0
@@ -204,10 +178,7 @@ class TestFailureRecoverySystem:
         """Test analyzing timeout failure"""
         system = FailureRecoverySystem()
 
-        result = system.analyze_failure(
-            error_output="Connection timed out after 30 seconds",
-            exit_code=124
-        )
+        result = system.analyze_failure(error_output="Connection timed out after 30 seconds", exit_code=124)
 
         assert result["failure_type"] == "timeout"
         assert result["confidence"] > 0.5
@@ -217,10 +188,7 @@ class TestFailureRecoverySystem:
         """Test analyzing permission denied failure"""
         system = FailureRecoverySystem()
 
-        result = system.analyze_failure(
-            error_output="Permission denied: cannot access file",
-            exit_code=126
-        )
+        result = system.analyze_failure(error_output="Permission denied: cannot access file", exit_code=126)
 
         assert result["failure_type"] == "permission_denied"
         assert result["confidence"] > 0.5
@@ -230,10 +198,7 @@ class TestFailureRecoverySystem:
         """Test analyzing rate limited failure"""
         system = FailureRecoverySystem()
 
-        result = system.analyze_failure(
-            error_output="Rate limit exceeded, too many requests",
-            exit_code=1
-        )
+        result = system.analyze_failure(error_output="Rate limit exceeded, too many requests", exit_code=1)
 
         assert result["failure_type"] == "rate_limited"
         assert "Use stealth timing profile" in result["recovery_strategies"]
@@ -242,10 +207,7 @@ class TestFailureRecoverySystem:
         """Test suggesting alternative tools for nmap"""
         system = FailureRecoverySystem()
 
-        result = system.analyze_failure(
-            error_output="nmap failed with timeout",
-            exit_code=1
-        )
+        result = system.analyze_failure(error_output="nmap failed with timeout", exit_code=1)
 
         assert "rustscan" in result["alternative_tools"] or "masscan" in result["alternative_tools"]
 
@@ -269,10 +231,10 @@ class TestPerformanceMonitor:
         assert "cpu_high" in monitor.resource_thresholds
         assert "high_cpu" in monitor.optimization_rules
 
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
-    @patch('psutil.net_io_counters')
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
+    @patch("psutil.net_io_counters")
     def test_monitor_system_resources(self, mock_net, mock_disk, mock_mem, mock_cpu):
         """Test monitoring system resources"""
         # Mock psutil functions
@@ -371,7 +333,7 @@ class TestParameterOptimizer:
             "frameworks": [],
             "databases": [],
             "security": [],
-            "services": []
+            "services": [],
         }
 
         result = optimizer._apply_technology_optimizations("gobuster", params, detected_tech)
@@ -391,7 +353,7 @@ class TestParameterOptimizer:
             "frameworks": [],
             "databases": [],
             "security": ["cloudflare"],
-            "services": []
+            "services": [],
         }
 
         result = optimizer._apply_technology_optimizations("gobuster", params, detected_tech)
@@ -426,10 +388,7 @@ class TestParameterOptimizer:
         params = {"timeout": 30, "threads": 50}
 
         recovery = optimizer.handle_tool_failure(
-            tool="nmap",
-            error_output="Connection timeout",
-            exit_code=124,
-            current_params=params
+            tool="nmap", error_output="Connection timeout", exit_code=124, current_params=params
         )
 
         assert recovery["original_tool"] == "nmap"
@@ -443,17 +402,14 @@ class TestParameterOptimizer:
         params = {"threads": 50, "delay": 0}
 
         recovery = optimizer.handle_tool_failure(
-            tool="gobuster",
-            error_output="Rate limit exceeded",
-            exit_code=1,
-            current_params=params
+            tool="gobuster", error_output="Rate limit exceeded", exit_code=1, current_params=params
         )
 
         # Should apply stealth timing
         assert recovery["adjusted_parameters"]["threads"] <= params["threads"]
         assert "stealth" in recovery["recovery_actions"][0].lower()
 
-    @patch.object(PerformanceMonitor, 'monitor_system_resources')
+    @patch.object(PerformanceMonitor, "monitor_system_resources")
     def test_optimize_parameters_advanced(self, mock_monitor):
         """Test advanced parameter optimization"""
         mock_monitor.return_value = {
@@ -462,7 +418,7 @@ class TestParameterOptimizer:
             "disk_percent": 70.0,
             "network_bytes_sent": 1000,
             "network_bytes_recv": 2000,
-            "timestamp": 1234567890
+            "timestamp": 1234567890,
         }
 
         optimizer = ParameterOptimizer()
@@ -486,26 +442,28 @@ def test_full_optimization_workflow():
     context = {
         "headers": {"Server": "Apache/2.4", "X-Powered-By": "PHP/7.4"},
         "content": "<html>wp-content</html>",
-        "optimization_profile": "normal"
+        "optimization_profile": "normal",
     }
 
-    with patch.object(PerformanceMonitor, 'monitor_system_resources') as mock_monitor:
+    with patch.object(PerformanceMonitor, "monitor_system_resources") as mock_monitor:
         mock_monitor.return_value = {
             "cpu_percent": 50.0,
             "memory_percent": 60.0,
             "disk_percent": 70.0,
             "network_bytes_sent": 1000,
             "network_bytes_recv": 2000,
-            "timestamp": 1234567890
+            "timestamp": 1234567890,
         }
 
         result = optimizer.optimize_parameters_advanced("gobuster", profile, context)
 
         # Should have detected WordPress + Apache + PHP
         metadata = result["_optimization_metadata"]
-        assert "apache" in metadata["detected_technologies"]["web_servers"] or \
-               "wordpress" in metadata["detected_technologies"]["cms"] or \
-               "php" in metadata["detected_technologies"]["languages"]
+        assert (
+            "apache" in metadata["detected_technologies"]["web_servers"]
+            or "wordpress" in metadata["detected_technologies"]["cms"]
+            or "php" in metadata["detected_technologies"]["languages"]
+        )
 
         # Should have optimization metadata
         assert "resource_usage" in metadata

@@ -7,13 +7,14 @@ Provides real-time stdout/stderr monitoring with visual progress indicators.
 
 import logging
 import subprocess
-import time
 import threading
+import time
 import traceback
-from typing import Dict, Any
 from datetime import datetime
-from core.visual import ModernVisualEngine
+from typing import Any, Dict
+
 from core.telemetry import TelemetryCollector
+from core.visual import ModernVisualEngine
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ class ProcessManager:
                 "status": "running",
                 "progress": 0.0,
                 "last_output": "",
-                "bytes_processed": 0
+                "bytes_processed": 0,
             }
             logger.info(f"🆔 REGISTERED: Process {pid} - {command[:50]}...")
 
@@ -99,7 +100,7 @@ class EnhancedCommandExecutor:
     def _read_stdout(self):
         """Thread function to continuously read and display stdout"""
         try:
-            for line in iter(self.process.stdout.readline, ''):
+            for line in iter(self.process.stdout.readline, ""):
                 if line:
                     self.stdout_data += line
                     # Real-time output display
@@ -110,7 +111,7 @@ class EnhancedCommandExecutor:
     def _read_stderr(self):
         """Thread function to continuously read and display stderr"""
         try:
-            for line in iter(self.process.stderr.readline, ''):
+            for line in iter(self.process.stderr.readline, ""):
                 if line:
                     self.stderr_data += line
                     # Real-time error output display
@@ -121,7 +122,7 @@ class EnhancedCommandExecutor:
     def _show_progress(self, duration: float):
         """Show enhanced progress indication for long-running commands"""
         if duration > 2:  # Show progress for commands taking more than 2 seconds
-            progress_chars = ModernVisualEngine.PROGRESS_STYLES['dots']
+            progress_chars = ModernVisualEngine.PROGRESS_STYLES["dots"]
             start = time.time()
             i = 0
             while self.process and self.process.poll() is None:
@@ -143,20 +144,12 @@ class EnhancedCommandExecutor:
 
                 # Update process manager with progress
                 ProcessManager.update_process_progress(
-                    self.process.pid,
-                    progress_fraction,
-                    f"Running for {elapsed:.1f}s",
-                    bytes_processed
+                    self.process.pid, progress_fraction, f"Running for {elapsed:.1f}s", bytes_processed
                 )
 
                 # Create beautiful progress bar using ModernVisualEngine
                 progress_bar = ModernVisualEngine.render_progress_bar(
-                    progress_fraction,
-                    width=30,
-                    style='cyber',
-                    label=f"⚡ PROGRESS {char}",
-                    eta=eta,
-                    speed=speed
+                    progress_fraction, width=30, style="cyber", label=f"⚡ PROGRESS {char}", eta=eta, speed=speed
                 )
 
                 logger.info(f"{progress_bar} | {elapsed:.1f}s | PID: {self.process.pid}")
@@ -174,18 +167,13 @@ class EnhancedCommandExecutor:
 
         try:
             self.process = subprocess.Popen(
-                self.command,
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                bufsize=1
+                self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1
             )
 
             pid = self.process.pid
             logger.info(f"🆔 PROCESS: PID {pid} started")
 
-            # Register process with ProcessManager (v5.0 enhancement)
+            # Register process with ProcessManager
             ProcessManager.register_process(pid, self.command, self.process)
 
             # Start threads to read output continuously
@@ -212,14 +200,18 @@ class EnhancedCommandExecutor:
 
                 execution_time = self.end_time - self.start_time
 
-                # Cleanup process from registry (v5.0 enhancement)
+                # Cleanup process from registry
                 ProcessManager.cleanup_process(pid)
 
                 if self.return_code == 0:
-                    logger.info(f"✅ SUCCESS: Command completed | Exit Code: {self.return_code} | Duration: {execution_time:.2f}s")
+                    logger.info(
+                        f"✅ SUCCESS: Command completed | Exit Code: {self.return_code} | Duration: {execution_time:.2f}s"
+                    )
                     self.telemetry.record_execution(True, execution_time)
                 else:
-                    logger.warning(f"⚠️  WARNING: Command completed with errors | Exit Code: {self.return_code} | Duration: {execution_time:.2f}s")
+                    logger.warning(
+                        f"⚠️  WARNING: Command completed with errors | Exit Code: {self.return_code} | Duration: {execution_time:.2f}s"
+                    )
                     self.telemetry.record_execution(False, execution_time)
 
             except subprocess.TimeoutExpired:
@@ -228,7 +220,9 @@ class EnhancedCommandExecutor:
 
                 # Process timed out but we might have partial results
                 self.timed_out = True
-                logger.warning(f"⏰ TIMEOUT: Command timed out after {self.timeout}s | Terminating PID {self.process.pid}")
+                logger.warning(
+                    f"⏰ TIMEOUT: Command timed out after {self.timeout}s | Terminating PID {self.process.pid}"
+                )
 
                 # Try to terminate gracefully first
                 self.process.terminate()
@@ -251,8 +245,14 @@ class EnhancedCommandExecutor:
 
             # Create status summary
             status_icon = "✅" if success else "❌"
-            status_color = ModernVisualEngine.COLORS['MATRIX_GREEN'] if success else ModernVisualEngine.COLORS['HACKER_RED']
-            timeout_status = f" {ModernVisualEngine.COLORS['WARNING']}[TIMEOUT]{ModernVisualEngine.COLORS['RESET']}" if self.timed_out else ""
+            status_color = (
+                ModernVisualEngine.COLORS["MATRIX_GREEN"] if success else ModernVisualEngine.COLORS["HACKER_RED"]
+            )
+            timeout_status = (
+                f" {ModernVisualEngine.COLORS['WARNING']}[TIMEOUT]{ModernVisualEngine.COLORS['RESET']}"
+                if self.timed_out
+                else ""
+            )
 
             # Create beautiful results summary
             results_summary = f"""
@@ -268,7 +268,7 @@ class EnhancedCommandExecutor:
 """
 
             # Log the beautiful summary
-            for line in results_summary.strip().split('\n'):
+            for line in results_summary.strip().split("\n"):
                 if line.strip():
                     logger.info(line)
 
@@ -280,7 +280,7 @@ class EnhancedCommandExecutor:
                 "timed_out": self.timed_out,
                 "partial_results": self.timed_out and (self.stdout_data or self.stderr_data),
                 "execution_time": self.end_time - self.start_time if self.end_time else 0,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
 
         except Exception as e:
@@ -299,5 +299,5 @@ class EnhancedCommandExecutor:
                 "timed_out": False,
                 "partial_results": bool(self.stdout_data or self.stderr_data),
                 "execution_time": execution_time,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }

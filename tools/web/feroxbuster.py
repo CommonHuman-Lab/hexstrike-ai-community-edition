@@ -3,7 +3,8 @@ Feroxbuster Tool Implementation
 Fast content discovery tool written in Rust
 """
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 from ..base import BaseTool
 
 
@@ -42,14 +43,14 @@ class FeroxbusterTool(BaseTool):
             >>> tool.build_command('example.com', {})
             ['feroxbuster', '-u', 'example.com', '-w', '/usr/share/wordlists/dirb/common.txt']
         """
-        cmd_parts = [self.binary_name, '-u', target]
+        cmd_parts = [self.binary_name, "-u", target]
 
         # Add wordlist
-        wordlist = params.get('wordlist', '/usr/share/wordlists/dirb/common.txt')
-        cmd_parts.extend(['-w', wordlist])
+        wordlist = params.get("wordlist", "/usr/share/wordlists/dirb/common.txt")
+        cmd_parts.extend(["-w", wordlist])
 
         # Add any additional arguments
-        additional_args = params.get('additional_args', '')
+        additional_args = params.get("additional_args", "")
         if additional_args:
             cmd_parts.extend(additional_args.split())
 
@@ -67,23 +68,19 @@ class FeroxbusterTool(BaseTool):
         Returns:
             Dictionary containing parsed results
         """
-        result = {
-            "raw_output": stdout,
-            "stderr": stderr,
-            "returncode": returncode
-        }
+        result = {"raw_output": stdout, "stderr": stderr, "returncode": returncode}
 
         # Parse discovered URLs
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         discovered_urls = []
 
         for line in lines:
-            if line.strip() and ('200' in line or '301' in line or '302' in line):
+            if line.strip() and ("200" in line or "301" in line or "302" in line):
                 # Feroxbuster shows status codes for discovered resources
                 discovered_urls.append(line.strip())
 
         if discovered_urls:
-            result['discovered_urls'] = discovered_urls
-            result['discovered_count'] = len(discovered_urls)
+            result["discovered_urls"] = discovered_urls
+            result["discovered_count"] = len(discovered_urls)
 
         return result

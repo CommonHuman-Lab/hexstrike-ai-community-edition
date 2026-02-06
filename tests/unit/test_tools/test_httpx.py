@@ -13,8 +13,8 @@ Comprehensive test coverage: 30+ tests
 """
 
 import unittest
+from typing import Any, Dict
 from unittest.mock import Mock, patch
-from typing import Dict, Any
 
 from tools.network.httpx import HttpxTool
 
@@ -31,6 +31,7 @@ class TestHttpxToolInitialization(unittest.TestCase):
     def test_inheritance(self):
         """Test that HttpxTool inherits from BaseTool."""
         from tools.base import BaseTool
+
         tool = HttpxTool()
         self.assertIsInstance(tool, BaseTool)
 
@@ -78,78 +79,60 @@ class TestHttpxCommandBuilding(unittest.TestCase):
 
     def test_command_with_custom_additional_args(self):
         """Test command with custom additional arguments."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-silent -mc 200"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-silent -mc 200"})
         self.assertIn("-silent", cmd)
         self.assertIn("-mc", cmd)
         self.assertIn("200", cmd)
 
     def test_command_with_title_flag(self):
         """Test command with title extraction."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-title"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-title"})
         self.assertIn("-title", cmd)
 
     def test_command_with_content_length(self):
         """Test command with content length."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-content-length"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-content-length"})
         self.assertIn("-content-length", cmd)
 
     def test_command_with_status_code_filter(self):
         """Test command with status code matching."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-mc 200,301,302"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-mc 200,301,302"})
         self.assertIn("-mc", cmd)
         self.assertIn("200,301,302", cmd)
 
     def test_command_with_threads(self):
         """Test command with thread specification."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-threads 50"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-threads 50"})
         self.assertIn("-threads", cmd)
         self.assertIn("50", cmd)
 
     def test_command_with_timeout(self):
         """Test command with timeout."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-timeout 10"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-timeout 10"})
         self.assertIn("-timeout", cmd)
         self.assertIn("10", cmd)
 
     def test_command_with_follow_redirects(self):
         """Test command with follow redirects."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-follow-redirects"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-follow-redirects"})
         self.assertIn("-follow-redirects", cmd)
 
     def test_command_with_json_output(self):
         """Test command with JSON output format."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-json"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-json"})
         self.assertIn("-json", cmd)
 
     def test_command_with_empty_additional_args(self):
         """Test command with explicitly empty additional_args."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": ""
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": ""})
         # Should only have echo, target, pipe, httpx
         self.assertEqual(len(cmd), 4)
 
     def test_command_with_multiple_flags(self):
         """Test command with multiple flags."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-title -status-code -content-length -tech-detect"
-        })
+        cmd = self.tool.build_command(
+            "example.com", {"additional_args": "-title -status-code -content-length -tech-detect"}
+        )
         self.assertIn("-title", cmd)
         self.assertIn("-status-code", cmd)
         self.assertIn("-content-length", cmd)
@@ -272,7 +255,7 @@ class TestHttpxToolExecution(unittest.TestCase):
             "stderr": "",
             "returncode": 0,
             "execution_time": 2.5,
-            "cached": False
+            "cached": False,
         }
 
         result = self.tool.execute("example.com", {}, self.mock_execute_func)
@@ -284,18 +267,9 @@ class TestHttpxToolExecution(unittest.TestCase):
 
     def test_execution_with_parameters(self):
         """Test execution with custom parameters."""
-        self.mock_execute_func.return_value = {
-            "success": True,
-            "stdout": "output",
-            "stderr": "",
-            "returncode": 0
-        }
+        self.mock_execute_func.return_value = {"success": True, "stdout": "output", "stderr": "", "returncode": 0}
 
-        result = self.tool.execute(
-            "example.com",
-            {"additional_args": "-silent -json"},
-            self.mock_execute_func
-        )
+        result = self.tool.execute("example.com", {"additional_args": "-silent -json"}, self.mock_execute_func)
 
         self.assertTrue(result["success"])
         self.assertIn("-silent", result["command"])
@@ -307,7 +281,7 @@ class TestHttpxToolExecution(unittest.TestCase):
             "success": False,
             "error": "httpx: command not found",
             "stderr": "httpx: command not found",
-            "returncode": 127
+            "returncode": 127,
         }
 
         result = self.tool.execute("example.com", {}, self.mock_execute_func)
@@ -322,28 +296,18 @@ class TestHttpxToolExecution(unittest.TestCase):
             "stdout": "cached output",
             "stderr": "",
             "returncode": 0,
-            "cached": True
+            "cached": True,
         }
 
-        result = self.tool.execute(
-            "example.com",
-            {},
-            self.mock_execute_func,
-            use_cache=True
-        )
+        result = self.tool.execute("example.com", {}, self.mock_execute_func, use_cache=True)
 
         self.assertTrue(result["success"])
         self.assertTrue(result["cached"])
 
-    @patch('tools.base.logger')
+    @patch("tools.base.logger")
     def test_logging_during_execution(self, mock_logger):
         """Test that execution is logged."""
-        self.mock_execute_func.return_value = {
-            "success": True,
-            "stdout": "output",
-            "stderr": "",
-            "returncode": 0
-        }
+        self.mock_execute_func.return_value = {"success": True, "stdout": "output", "stderr": "", "returncode": 0}
 
         self.tool.execute("example.com", {}, self.mock_execute_func)
 
@@ -375,9 +339,7 @@ class TestHttpxEdgeCases(unittest.TestCase):
 
     def test_whitespace_in_additional_args(self):
         """Test with extra whitespace in additional_args."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "  -silent   -json  "
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "  -silent   -json  "})
         self.assertIn("-silent", cmd)
         self.assertIn("-json", cmd)
 
@@ -393,15 +355,17 @@ class TestHttpxIntegration(unittest.TestCase):
     def test_realistic_probing(self):
         """Test realistic HTTP probing scenario."""
         tool = HttpxTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": """https://example.com [200] [Apache/2.4.41] [Example Domain]
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": """https://example.com [200] [Apache/2.4.41] [Example Domain]
 https://www.example.com [301] [nginx/1.18.0]""",
-            "stderr": "",
-            "returncode": 0,
-            "execution_time": 3.2,
-            "cached": False
-        })
+                "stderr": "",
+                "returncode": 0,
+                "execution_time": 3.2,
+                "cached": False,
+            }
+        )
 
         result = tool.execute("example.com", {}, mock_execute)
 
@@ -409,5 +373,5 @@ https://www.example.com [301] [nginx/1.18.0]""",
         self.assertIn("200", result["output"]["raw_output"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

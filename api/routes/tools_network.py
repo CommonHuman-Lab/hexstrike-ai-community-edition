@@ -4,16 +4,18 @@ Handles network scanning, enumeration, and reconnaissance tools
 """
 
 import logging
-from flask import Blueprint, request, jsonify
+
+from flask import Blueprint, jsonify, request
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-tools_network_bp = Blueprint('tools_network', __name__, url_prefix='/api/tools')
+tools_network_bp = Blueprint("tools_network", __name__, url_prefix="/api/tools")
 
 # Dependencies will be injected via init_app
 execute_command = None
 execute_command_with_recovery = None
+
 
 def init_app(exec_command, exec_command_with_recovery):
     """Initialize blueprint with dependencies"""
@@ -35,9 +37,7 @@ def nmap():
 
         if not target:
             logger.warning("🎯 Nmap called without target parameter")
-            return jsonify({
-                "error": "Target parameter is required"
-            }), 400
+            return jsonify({"error": "Target parameter is required"}), 400
 
         command = f"nmap {scan_type}"
 
@@ -53,12 +53,7 @@ def nmap():
 
         # Use intelligent error handling if enabled
         if use_recovery:
-            tool_params = {
-                "target": target,
-                "scan_type": scan_type,
-                "ports": ports,
-                "additional_args": additional_args
-            }
+            tool_params = {"target": target, "scan_type": scan_type, "ports": ports, "additional_args": additional_args}
             result = execute_command_with_recovery("nmap", command, tool_params)
         else:
             result = execute_command(command)
@@ -68,9 +63,8 @@ def nmap():
 
     except Exception as e:
         logger.error(f"💥 Error in nmap endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_network_bp.route("/rustscan", methods=["POST"])
 def rustscan():
@@ -107,6 +101,7 @@ def rustscan():
     except Exception as e:
         logger.error(f"💥 Error in rustscan endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_network_bp.route("/masscan", methods=["POST"])
 def masscan():
@@ -150,6 +145,7 @@ def masscan():
     except Exception as e:
         logger.error(f"💥 Error in masscan endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_network_bp.route("/nmap-advanced", methods=["POST"])
 def nmap_advanced():
@@ -206,6 +202,7 @@ def nmap_advanced():
         logger.error(f"💥 Error in advanced nmap endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
+
 @tools_network_bp.route("/autorecon", methods=["POST"])
 def autorecon():
     """Execute AutoRecon for comprehensive automated reconnaissance"""
@@ -242,6 +239,7 @@ def autorecon():
         logger.error(f"💥 Error in autorecon endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
+
 @tools_network_bp.route("/enum4linux", methods=["POST"])
 def enum4linux():
     """Execute enum4linux with enhanced logging"""
@@ -252,9 +250,7 @@ def enum4linux():
 
         if not target:
             logger.warning("🎯 Enum4linux called without target parameter")
-            return jsonify({
-                "error": "Target parameter is required"
-            }), 400
+            return jsonify({"error": "Target parameter is required"}), 400
 
         command = f"enum4linux {additional_args} {target}"
 
@@ -264,9 +260,8 @@ def enum4linux():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in enum4linux endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_network_bp.route("/enum4linux-ng", methods=["POST"])
 def enum4linux_ng():
@@ -323,6 +318,7 @@ def enum4linux_ng():
         logger.error(f"💥 Error in enum4linux-ng endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
+
 @tools_network_bp.route("/rpcclient", methods=["POST"])
 def rpcclient():
     """Execute rpcclient for RPC enumeration with enhanced logging"""
@@ -367,6 +363,7 @@ def rpcclient():
         logger.error(f"💥 Error in rpcclient endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
+
 @tools_network_bp.route("/nbtscan", methods=["POST"])
 def nbtscan():
     """Execute nbtscan for NetBIOS name scanning with enhanced logging"""
@@ -398,6 +395,7 @@ def nbtscan():
     except Exception as e:
         logger.error(f"💥 Error in nbtscan endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_network_bp.route("/arp-scan", methods=["POST"])
 def arp_scan():
@@ -435,6 +433,7 @@ def arp_scan():
     except Exception as e:
         logger.error(f"💥 Error in arp-scan endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_network_bp.route("/responder", methods=["POST"])
 def responder():
@@ -478,6 +477,7 @@ def responder():
         logger.error(f"💥 Error in responder endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
+
 @tools_network_bp.route("/netexec", methods=["POST"])
 def netexec():
     """Execute NetExec (formerly CrackMapExec) with enhanced logging"""
@@ -493,9 +493,7 @@ def netexec():
 
         if not target:
             logger.warning("🎯 NetExec called without target parameter")
-            return jsonify({
-                "error": "Target parameter is required"
-            }), 400
+            return jsonify({"error": "Target parameter is required"}), 400
 
         command = f"nxc {protocol} {target}"
 
@@ -520,9 +518,8 @@ def netexec():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in netexec endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_network_bp.route("/amass", methods=["POST"])
 def amass():
@@ -535,9 +532,7 @@ def amass():
 
         if not domain:
             logger.warning("🌐 Amass called without domain parameter")
-            return jsonify({
-                "error": "Domain parameter is required"
-            }), 400
+            return jsonify({"error": "Domain parameter is required"}), 400
 
         command = f"amass {mode}"
 
@@ -555,9 +550,8 @@ def amass():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in amass endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_network_bp.route("/subfinder", methods=["POST"])
 def subfinder():
@@ -571,9 +565,7 @@ def subfinder():
 
         if not domain:
             logger.warning("🌐 Subfinder called without domain parameter")
-            return jsonify({
-                "error": "Domain parameter is required"
-            }), 400
+            return jsonify({"error": "Domain parameter is required"}), 400
 
         command = f"subfinder -d {domain}"
 
@@ -592,9 +584,8 @@ def subfinder():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in subfinder endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_network_bp.route("/smbmap", methods=["POST"])
 def smbmap():
@@ -609,9 +600,7 @@ def smbmap():
 
         if not target:
             logger.warning("🎯 SMBMap called without target parameter")
-            return jsonify({
-                "error": "Target parameter is required"
-            }), 400
+            return jsonify({"error": "Target parameter is required"}), 400
 
         command = f"smbmap -H {target}"
 
@@ -633,6 +622,4 @@ def smbmap():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in smbmap endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500

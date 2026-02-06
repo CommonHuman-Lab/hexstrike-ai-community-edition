@@ -15,22 +15,23 @@ Tests cover:
 Target: 95%+ code coverage with 40+ comprehensive tests
 """
 
-import pytest
-import sys
 import os
-from unittest.mock import patch, MagicMock
-from typing import Dict, List, Any
+import sys
+from typing import Any, Dict, List
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Add parent directories to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
 from agents.decision_engine import (
+    AttackChain,
+    AttackStep,
     IntelligentDecisionEngine,
     TargetProfile,
     TargetType,
     TechnologyStack,
-    AttackChain,
-    AttackStep
 )
 
 
@@ -53,7 +54,7 @@ class TestDecisionEngineInitialization:
             TargetType.NETWORK_HOST.value,
             TargetType.API_ENDPOINT.value,
             TargetType.CLOUD_SERVICE.value,
-            TargetType.BINARY_FILE.value
+            TargetType.BINARY_FILE.value,
         ]
         for target_type in expected_types:
             assert target_type in engine.tool_effectiveness
@@ -70,12 +71,7 @@ class TestDecisionEngineInitialization:
     def test_attack_patterns_initialized(self):
         """Test attack patterns are initialized with common scenarios"""
         engine = IntelligentDecisionEngine()
-        expected_patterns = [
-            "web_reconnaissance",
-            "api_testing",
-            "network_discovery",
-            "vulnerability_assessment"
-        ]
+        expected_patterns = ["web_reconnaissance", "api_testing", "network_discovery", "vulnerability_assessment"]
         for pattern in expected_patterns:
             assert pattern in engine.attack_patterns
             assert isinstance(engine.attack_patterns[pattern], list)
@@ -155,7 +151,7 @@ class TestTargetTypeDetection:
 class TestTargetAnalysis:
     """Test target analysis and profiling"""
 
-    @patch('socket.gethostbyname')
+    @patch("socket.gethostbyname")
     def test_analyze_web_target(self, mock_gethostbyname):
         """Test analysis of web application target"""
         mock_gethostbyname.return_value = "93.184.216.34"
@@ -168,7 +164,7 @@ class TestTargetAnalysis:
         assert profile.attack_surface_score > 0
         assert profile.confidence_score > 0
 
-    @patch('socket.gethostbyname')
+    @patch("socket.gethostbyname")
     def test_analyze_wordpress_site(self, mock_gethostbyname):
         """Test analysis of WordPress site"""
         mock_gethostbyname.return_value = "93.184.216.34"
@@ -186,7 +182,7 @@ class TestTargetAnalysis:
         assert profile.target_type == TargetType.NETWORK_HOST
         assert profile.target == "192.168.1.100"
 
-    @patch('socket.gethostbyname')
+    @patch("socket.gethostbyname")
     def test_analyze_api_endpoint(self, mock_gethostbyname):
         """Test analysis of API endpoint"""
         mock_gethostbyname.return_value = "93.184.216.34"
@@ -204,7 +200,7 @@ class TestTargetAnalysis:
             target_type=TargetType.WEB_APPLICATION,
             technologies=[TechnologyStack.PHP, TechnologyStack.APACHE],
             open_ports=[80, 443, 8080],
-            cms_type="WordPress"
+            cms_type="WordPress",
         )
         score = engine._calculate_attack_surface(profile)
         assert score > 0
@@ -246,7 +242,7 @@ class TestTargetAnalysis:
             target_type=TargetType.WEB_APPLICATION,
             ip_addresses=["93.184.216.34"],
             technologies=[TechnologyStack.PHP],
-            cms_type="WordPress"
+            cms_type="WordPress",
         )
         confidence = engine._calculate_confidence(profile)
         assert 0.0 <= confidence <= 1.0
@@ -258,10 +254,7 @@ class TestToolSelection:
     def test_select_tools_for_web_application(self):
         """Test tool selection for web application"""
         engine = IntelligentDecisionEngine()
-        profile = TargetProfile(
-            target="https://example.com",
-            target_type=TargetType.WEB_APPLICATION
-        )
+        profile = TargetProfile(target="https://example.com", target_type=TargetType.WEB_APPLICATION)
         tools = engine.select_optimal_tools(profile, objective="comprehensive")
         assert isinstance(tools, list)
         assert len(tools) > 0
@@ -270,10 +263,7 @@ class TestToolSelection:
     def test_select_tools_quick_mode(self):
         """Test tool selection in quick mode"""
         engine = IntelligentDecisionEngine()
-        profile = TargetProfile(
-            target="https://example.com",
-            target_type=TargetType.WEB_APPLICATION
-        )
+        profile = TargetProfile(target="https://example.com", target_type=TargetType.WEB_APPLICATION)
         tools = engine.select_optimal_tools(profile, objective="quick")
         assert isinstance(tools, list)
         assert len(tools) == 3  # Should select top 3 tools
@@ -281,10 +271,7 @@ class TestToolSelection:
     def test_select_tools_stealth_mode(self):
         """Test tool selection in stealth mode"""
         engine = IntelligentDecisionEngine()
-        profile = TargetProfile(
-            target="https://example.com",
-            target_type=TargetType.WEB_APPLICATION
-        )
+        profile = TargetProfile(target="https://example.com", target_type=TargetType.WEB_APPLICATION)
         tools = engine.select_optimal_tools(profile, objective="stealth")
         assert isinstance(tools, list)
         # Should only include passive tools
@@ -297,7 +284,7 @@ class TestToolSelection:
         profile = TargetProfile(
             target="https://example.com",
             target_type=TargetType.WEB_APPLICATION,
-            technologies=[TechnologyStack.WORDPRESS]
+            technologies=[TechnologyStack.WORDPRESS],
         )
         tools = engine.select_optimal_tools(profile, objective="comprehensive")
         assert "wpscan" in tools
@@ -305,10 +292,7 @@ class TestToolSelection:
     def test_select_tools_for_network_host(self):
         """Test tool selection for network host"""
         engine = IntelligentDecisionEngine()
-        profile = TargetProfile(
-            target="192.168.1.100",
-            target_type=TargetType.NETWORK_HOST
-        )
+        profile = TargetProfile(target="192.168.1.100", target_type=TargetType.NETWORK_HOST)
         tools = engine.select_optimal_tools(profile, objective="comprehensive")
         assert isinstance(tools, list)
         assert any(tool in tools for tool in ["nmap", "masscan"])
@@ -316,10 +300,7 @@ class TestToolSelection:
     def test_select_tools_for_api(self):
         """Test tool selection for API endpoint"""
         engine = IntelligentDecisionEngine()
-        profile = TargetProfile(
-            target="https://api.example.com",
-            target_type=TargetType.API_ENDPOINT
-        )
+        profile = TargetProfile(target="https://api.example.com", target_type=TargetType.API_ENDPOINT)
         tools = engine.select_optimal_tools(profile, objective="comprehensive")
         assert isinstance(tools, list)
         assert any(tool in tools for tool in ["arjun", "ffuf", "httpx"])
@@ -331,40 +312,28 @@ class TestParameterOptimization:
     def test_optimize_nmap_parameters(self):
         """Test nmap parameter optimization"""
         engine = IntelligentDecisionEngine()
-        profile = TargetProfile(
-            target="192.168.1.100",
-            target_type=TargetType.NETWORK_HOST
-        )
+        profile = TargetProfile(target="192.168.1.100", target_type=TargetType.NETWORK_HOST)
         params = engine.optimize_parameters("nmap", profile)
         assert isinstance(params, dict)
 
     def test_optimize_gobuster_parameters(self):
         """Test gobuster parameter optimization"""
         engine = IntelligentDecisionEngine()
-        profile = TargetProfile(
-            target="https://example.com",
-            target_type=TargetType.WEB_APPLICATION
-        )
+        profile = TargetProfile(target="https://example.com", target_type=TargetType.WEB_APPLICATION)
         params = engine.optimize_parameters("gobuster", profile)
         assert isinstance(params, dict)
 
     def test_optimize_nuclei_parameters(self):
         """Test nuclei parameter optimization"""
         engine = IntelligentDecisionEngine()
-        profile = TargetProfile(
-            target="https://example.com",
-            target_type=TargetType.WEB_APPLICATION
-        )
+        profile = TargetProfile(target="https://example.com", target_type=TargetType.WEB_APPLICATION)
         params = engine.optimize_parameters("nuclei", profile)
         assert isinstance(params, dict)
 
     def test_optimize_unknown_tool(self):
         """Test parameter optimization for unknown tool"""
         engine = IntelligentDecisionEngine()
-        profile = TargetProfile(
-            target="https://example.com",
-            target_type=TargetType.WEB_APPLICATION
-        )
+        profile = TargetProfile(target="https://example.com", target_type=TargetType.WEB_APPLICATION)
         # Should use advanced optimizer for unknown tools
         params = engine.optimize_parameters("unknown_tool", profile)
         assert isinstance(params, dict)
@@ -372,10 +341,7 @@ class TestParameterOptimization:
     def test_parameter_optimization_with_context(self):
         """Test parameter optimization with additional context"""
         engine = IntelligentDecisionEngine()
-        profile = TargetProfile(
-            target="https://example.com",
-            target_type=TargetType.WEB_APPLICATION
-        )
+        profile = TargetProfile(target="https://example.com", target_type=TargetType.WEB_APPLICATION)
         context = {"user_preference": "aggressive"}
         params = engine.optimize_parameters("nmap", profile, context)
         assert isinstance(params, dict)
@@ -448,7 +414,7 @@ class TestTechnologyDetection:
 class TestDomainResolution:
     """Test domain name resolution"""
 
-    @patch('socket.gethostbyname')
+    @patch("socket.gethostbyname")
     def test_resolve_domain_success(self, mock_gethostbyname):
         """Test successful domain resolution"""
         mock_gethostbyname.return_value = "93.184.216.34"
@@ -458,7 +424,7 @@ class TestDomainResolution:
         assert len(ips) > 0
         assert "93.184.216.34" in ips
 
-    @patch('socket.gethostbyname')
+    @patch("socket.gethostbyname")
     def test_resolve_domain_with_http(self, mock_gethostbyname):
         """Test domain resolution from http URL"""
         mock_gethostbyname.return_value = "93.184.216.34"
@@ -467,7 +433,7 @@ class TestDomainResolution:
         assert isinstance(ips, list)
         assert len(ips) > 0
 
-    @patch('socket.gethostbyname')
+    @patch("socket.gethostbyname")
     def test_resolve_domain_failure(self, mock_gethostbyname):
         """Test domain resolution failure handling"""
         mock_gethostbyname.side_effect = Exception("DNS resolution failed")
@@ -506,7 +472,7 @@ class TestEdgeCases:
             technologies=[TechnologyStack.PHP] * 20,  # Many technologies
             open_ports=list(range(100)),  # Many open ports
             subdomains=["sub" + str(i) for i in range(100)],  # Many subdomains
-            cms_type="WordPress"
+            cms_type="WordPress",
         )
         score = engine._calculate_attack_surface(profile)
         assert score <= 10.0
@@ -519,7 +485,7 @@ class TestEdgeCases:
             target_type=TargetType.WEB_APPLICATION,
             ip_addresses=["1.2.3.4"],
             technologies=[TechnologyStack.PHP],
-            cms_type="WordPress"
+            cms_type="WordPress",
         )
         confidence = engine._calculate_confidence(profile)
         assert confidence <= 1.0
@@ -527,10 +493,7 @@ class TestEdgeCases:
     def test_select_tools_with_invalid_objective(self):
         """Test tool selection with invalid objective"""
         engine = IntelligentDecisionEngine()
-        profile = TargetProfile(
-            target="https://example.com",
-            target_type=TargetType.WEB_APPLICATION
-        )
+        profile = TargetProfile(target="https://example.com", target_type=TargetType.WEB_APPLICATION)
         tools = engine.select_optimal_tools(profile, objective="invalid_objective")
         assert isinstance(tools, list)
         # Should return base tools for unknown objective
@@ -538,10 +501,7 @@ class TestEdgeCases:
     def test_optimize_parameters_with_none_context(self):
         """Test parameter optimization with None context"""
         engine = IntelligentDecisionEngine()
-        profile = TargetProfile(
-            target="https://example.com",
-            target_type=TargetType.WEB_APPLICATION
-        )
+        profile = TargetProfile(target="https://example.com", target_type=TargetType.WEB_APPLICATION)
         params = engine.optimize_parameters("nmap", profile, context=None)
         assert isinstance(params, dict)
 
@@ -551,10 +511,7 @@ class TestAttackChain:
 
     def test_create_attack_chain(self):
         """Test creating an attack chain"""
-        profile = TargetProfile(
-            target="https://example.com",
-            target_type=TargetType.WEB_APPLICATION
-        )
+        profile = TargetProfile(target="https://example.com", target_type=TargetType.WEB_APPLICATION)
         chain = AttackChain(profile)
         assert chain.target_profile == profile
         assert len(chain.steps) == 0
@@ -570,7 +527,7 @@ class TestAttackChain:
             parameters={"scan_type": "-sV"},
             expected_outcome="Identify open ports",
             success_probability=0.9,
-            execution_time_estimate=30
+            execution_time_estimate=30,
         )
 
         chain.add_step(step)
@@ -588,14 +545,14 @@ class TestAttackChain:
             parameters={},
             expected_outcome="Find ports",
             success_probability=0.9,
-            execution_time_estimate=30
+            execution_time_estimate=30,
         )
         step2 = AttackStep(
             tool="gobuster",
             parameters={},
             expected_outcome="Find directories",
             success_probability=0.8,
-            execution_time_estimate=60
+            execution_time_estimate=60,
         )
 
         chain.add_step(step1)
@@ -616,7 +573,7 @@ class TestAttackChain:
             expected_outcome="Identify services",
             success_probability=0.9,
             execution_time_estimate=30,
-            dependencies=[]
+            dependencies=[],
         )
 
         chain.add_step(step)
@@ -636,10 +593,7 @@ class TestTargetProfile:
 
     def test_target_profile_creation(self):
         """Test creating a target profile"""
-        profile = TargetProfile(
-            target="https://example.com",
-            target_type=TargetType.WEB_APPLICATION
-        )
+        profile = TargetProfile(target="https://example.com", target_type=TargetType.WEB_APPLICATION)
         assert profile.target == "https://example.com"
         assert profile.target_type == TargetType.WEB_APPLICATION
 
@@ -649,7 +603,7 @@ class TestTargetProfile:
             target="https://example.com",
             target_type=TargetType.WEB_APPLICATION,
             technologies=[TechnologyStack.PHP, TechnologyStack.APACHE],
-            cms_type="WordPress"
+            cms_type="WordPress",
         )
 
         result = profile.to_dict()

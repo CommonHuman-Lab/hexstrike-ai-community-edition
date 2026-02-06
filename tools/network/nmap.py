@@ -3,7 +3,8 @@ Nmap Tool Implementation
 Network port scanner
 """
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 from ..base import BaseTool
 
 
@@ -47,16 +48,16 @@ class NmapTool(BaseTool):
         cmd_parts = [self.binary_name]
 
         # Add scan type (default to service version detection)
-        scan_type = params.get('scan_type', '-sV')
+        scan_type = params.get("scan_type", "-sV")
         cmd_parts.append(scan_type)
 
         # Add port specification if provided
-        ports = params.get('ports', '')
+        ports = params.get("ports", "")
         if ports:
-            cmd_parts.extend(['-p', ports])
+            cmd_parts.extend(["-p", ports])
 
         # Add any additional arguments
-        additional_args = params.get('additional_args', '')
+        additional_args = params.get("additional_args", "")
         if additional_args:
             cmd_parts.extend(additional_args.split())
 
@@ -76,21 +77,18 @@ class NmapTool(BaseTool):
             ValueError: If parameters are invalid
         """
         # Validate scan type if provided
-        scan_type = params.get('scan_type', '-sV')
-        valid_scan_types = [
-            '-sS', '-sT', '-sU', '-sV', '-sA', '-sW', '-sM',
-            '-sN', '-sF', '-sX', '-sO', '-sY', '-sZ'
-        ]
+        scan_type = params.get("scan_type", "-sV")
+        valid_scan_types = ["-sS", "-sT", "-sU", "-sV", "-sA", "-sW", "-sM", "-sN", "-sF", "-sX", "-sO", "-sY", "-sZ"]
 
         if scan_type and not any(scan_type.startswith(st) for st in valid_scan_types):
             # Allow it but log a warning - nmap has many scan types
             pass
 
         # Validate ports format if provided (basic validation)
-        ports = params.get('ports', '')
+        ports = params.get("ports", "")
         if ports:
             # Basic check - should contain only digits, commas, hyphens
-            if not all(c.isdigit() or c in ',-' for c in ports):
+            if not all(c.isdigit() or c in ",-" for c in ports):
                 raise ValueError(f"Invalid port specification: {ports}")
 
     def parse_output(self, stdout: str, stderr: str, returncode: int) -> Dict[str, Any]:
@@ -109,34 +107,30 @@ class NmapTool(BaseTool):
             Dictionary containing parsed results
         """
         # Basic parsing - extract key information
-        result = {
-            "raw_output": stdout,
-            "stderr": stderr,
-            "returncode": returncode
-        }
+        result = {"raw_output": stdout, "stderr": stderr, "returncode": returncode}
 
         # Try to extract basic information
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
 
         # Extract host information
         for line in lines:
-            if 'Nmap scan report for' in line:
-                result['scan_target'] = line.split('Nmap scan report for ')[-1].strip()
+            if "Nmap scan report for" in line:
+                result["scan_target"] = line.split("Nmap scan report for ")[-1].strip()
                 break
 
         # Count open ports
         open_ports = []
         for line in lines:
-            if '/tcp' in line and 'open' in line:
+            if "/tcp" in line and "open" in line:
                 parts = line.split()
                 if parts:
                     port_info = parts[0]
-                    if '/' in port_info:
-                        port_num = port_info.split('/')[0]
+                    if "/" in port_info:
+                        port_num = port_info.split("/")[0]
                         open_ports.append(port_num)
 
         if open_ports:
-            result['open_ports'] = open_ports
-            result['open_ports_count'] = len(open_ports)
+            result["open_ports"] = open_ports
+            result["open_ports_count"] = len(open_ports)
 
         return result

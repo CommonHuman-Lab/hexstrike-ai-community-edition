@@ -18,6 +18,7 @@ class TestDalfoxToolInitialization(unittest.TestCase):
 
     def test_inheritance(self):
         from tools.base import BaseTool
+
         tool = DalfoxTool()
         self.assertIsInstance(tool, BaseTool)
 
@@ -39,27 +40,19 @@ class TestDalfoxCommandBuilding(unittest.TestCase):
         self.assertEqual(cmd[1], "url")
 
     def test_command_with_pipe_mode(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "--pipe"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "--pipe"})
         self.assertIn("--pipe", cmd)
 
     def test_command_with_silence(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "--silence"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "--silence"})
         self.assertIn("--silence", cmd)
 
     def test_command_with_output_file(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-o output.txt"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-o output.txt"})
         self.assertIn("-o", cmd)
 
     def test_command_with_custom_payload(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "--custom-payload payloads.txt"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "--custom-payload payloads.txt"})
         self.assertIn("--custom-payload", cmd)
 
 
@@ -87,7 +80,7 @@ class TestDalfoxToolExecution(unittest.TestCase):
             "success": True,
             "stdout": "[V] XSS detected",
             "stderr": "",
-            "returncode": 0
+            "returncode": 0,
         }
 
         result = self.tool.execute("https://example.com?q=test", {}, self.mock_execute_func)
@@ -99,7 +92,7 @@ class TestDalfoxToolExecution(unittest.TestCase):
             "success": False,
             "error": "dalfox: command not found",
             "stderr": "dalfox: command not found",
-            "returncode": 127
+            "returncode": 127,
         }
 
         result = self.tool.execute("https://example.com", {}, self.mock_execute_func)
@@ -118,16 +111,18 @@ class TestDalfoxEdgeCases(unittest.TestCase):
 class TestDalfoxIntegration(unittest.TestCase):
     def test_realistic_scan(self):
         tool = DalfoxTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": "[V] Reflected XSS in parameter: search",
-            "stderr": "",
-            "returncode": 0
-        })
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": "[V] Reflected XSS in parameter: search",
+                "stderr": "",
+                "returncode": 0,
+            }
+        )
 
         result = tool.execute("https://example.com?search=test", {}, mock_execute)
         self.assertTrue(result["success"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

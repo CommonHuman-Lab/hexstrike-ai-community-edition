@@ -3,7 +3,8 @@ Dalfox Tool Implementation
 XSS vulnerability scanner
 """
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 from ..base import BaseTool
 
 
@@ -33,11 +34,11 @@ class DalfoxTool(BaseTool):
         cmd_parts = [self.binary_name]
 
         # Dalfox uses 'url' subcommand
-        cmd_parts.append('url')
+        cmd_parts.append("url")
         cmd_parts.append(target)
 
         # Add any additional arguments
-        additional_args = params.get('additional_args', '')
+        additional_args = params.get("additional_args", "")
         if additional_args:
             cmd_parts.extend(additional_args.split())
 
@@ -45,8 +46,4 @@ class DalfoxTool(BaseTool):
 
     def parse_output(self, stdout: str, stderr: str, returncode: int) -> Dict[str, Any]:
         """Parse dalfox output."""
-        return {
-            "raw_output": stdout,
-            "stderr": stderr,
-            "returncode": returncode
-        }
+        return {"raw_output": stdout, "stderr": stderr, "returncode": returncode}

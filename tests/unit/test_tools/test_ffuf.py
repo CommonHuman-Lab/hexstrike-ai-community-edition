@@ -18,6 +18,7 @@ class TestFfufToolInitialization(unittest.TestCase):
 
     def test_inheritance(self):
         from tools.base import BaseTool
+
         tool = FfufTool()
         self.assertIsInstance(tool, BaseTool)
 
@@ -53,9 +54,7 @@ class TestFfufCommandBuilding(unittest.TestCase):
         self.assertEqual(url, "https://example.com/FUZZ")
 
     def test_command_with_custom_wordlist(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "wordlist": "/custom/wordlist.txt"
-        })
+        cmd = self.tool.build_command("https://example.com", {"wordlist": "/custom/wordlist.txt"})
         self.assertIn("/custom/wordlist.txt", cmd)
 
     def test_command_with_default_wordlist(self):
@@ -63,45 +62,31 @@ class TestFfufCommandBuilding(unittest.TestCase):
         self.assertIn("/usr/share/wordlists/dirb/common.txt", cmd)
 
     def test_command_with_match_codes(self):
-        cmd = self.tool.build_command("https://example.com/FUZZ", {
-            "additional_args": "-mc 200,301,302"
-        })
+        cmd = self.tool.build_command("https://example.com/FUZZ", {"additional_args": "-mc 200,301,302"})
         self.assertIn("-mc", cmd)
 
     def test_command_with_filter_codes(self):
-        cmd = self.tool.build_command("https://example.com/FUZZ", {
-            "additional_args": "-fc 404"
-        })
+        cmd = self.tool.build_command("https://example.com/FUZZ", {"additional_args": "-fc 404"})
         self.assertIn("-fc", cmd)
 
     def test_command_with_filter_size(self):
-        cmd = self.tool.build_command("https://example.com/FUZZ", {
-            "additional_args": "-fs 1234"
-        })
+        cmd = self.tool.build_command("https://example.com/FUZZ", {"additional_args": "-fs 1234"})
         self.assertIn("-fs", cmd)
 
     def test_command_with_threads(self):
-        cmd = self.tool.build_command("https://example.com/FUZZ", {
-            "additional_args": "-t 40"
-        })
+        cmd = self.tool.build_command("https://example.com/FUZZ", {"additional_args": "-t 40"})
         self.assertIn("-t", cmd)
 
     def test_command_with_extensions(self):
-        cmd = self.tool.build_command("https://example.com/FUZZ", {
-            "additional_args": "-e .php,.html,.txt"
-        })
+        cmd = self.tool.build_command("https://example.com/FUZZ", {"additional_args": "-e .php,.html,.txt"})
         self.assertIn("-e", cmd)
 
     def test_command_with_recursion(self):
-        cmd = self.tool.build_command("https://example.com/FUZZ", {
-            "additional_args": "-recursion"
-        })
+        cmd = self.tool.build_command("https://example.com/FUZZ", {"additional_args": "-recursion"})
         self.assertIn("-recursion", cmd)
 
     def test_command_with_timeout(self):
-        cmd = self.tool.build_command("https://example.com/FUZZ", {
-            "additional_args": "-timeout 10"
-        })
+        cmd = self.tool.build_command("https://example.com/FUZZ", {"additional_args": "-timeout 10"})
         self.assertIn("-timeout", cmd)
 
 
@@ -158,7 +143,7 @@ class TestFfufToolExecution(unittest.TestCase):
             "success": True,
             "stdout": "[Status: 200] https://example.com/admin",
             "stderr": "",
-            "returncode": 0
+            "returncode": 0,
         }
 
         result = self.tool.execute("https://example.com", {}, self.mock_execute_func)
@@ -170,7 +155,7 @@ class TestFfufToolExecution(unittest.TestCase):
             "success": False,
             "error": "ffuf: command not found",
             "stderr": "ffuf: command not found",
-            "returncode": 127
+            "returncode": 127,
         }
 
         result = self.tool.execute("https://example.com", {}, self.mock_execute_func)
@@ -188,9 +173,7 @@ class TestFfufEdgeCases(unittest.TestCase):
         self.assertIn("8443", url)
 
     def test_whitespace_in_args(self):
-        cmd = self.tool.build_command("https://example.com/FUZZ", {
-            "additional_args": "  -mc  200   -fc  404  "
-        })
+        cmd = self.tool.build_command("https://example.com/FUZZ", {"additional_args": "  -mc  200   -fc  404  "})
         self.assertIn("-mc", cmd)
         self.assertIn("-fc", cmd)
 
@@ -198,18 +181,20 @@ class TestFfufEdgeCases(unittest.TestCase):
 class TestFfufIntegration(unittest.TestCase):
     def test_realistic_fuzzing(self):
         tool = FfufTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": """[Status: 200, Size: 1234] https://example.com/admin
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": """[Status: 200, Size: 1234] https://example.com/admin
 [Status: 301, Size: 234] https://example.com/uploads
 [Status: 200, Size: 5678] https://example.com/api""",
-            "stderr": "",
-            "returncode": 0
-        })
+                "stderr": "",
+                "returncode": 0,
+            }
+        )
 
         result = tool.execute("https://example.com/FUZZ", {}, mock_execute)
         self.assertTrue(result["success"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

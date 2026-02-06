@@ -1,10 +1,12 @@
 """
 Waybackurls tool implementation for fetching URLs from web archives
 """
-from typing import Dict, Any, List
-from tools.base import BaseTool
+
 import re
+from typing import Any, Dict, List
 from urllib.parse import urlparse
+
+from tools.base import BaseTool
 
 
 class WaybackURLsTool(BaseTool):
@@ -82,20 +84,46 @@ class WaybackURLsTool(BaseTool):
 
         # Interesting patterns
         interesting_patterns = [
-            r'admin', r'login', r'config', r'backup', r'\.env', r'\.git',
-            r'api', r'debug', r'test', r'\.sql', r'\.db', r'upload',
-            r'password', r'secret', r'key', r'token', r'auth'
+            r"admin",
+            r"login",
+            r"config",
+            r"backup",
+            r"\.env",
+            r"\.git",
+            r"api",
+            r"debug",
+            r"test",
+            r"\.sql",
+            r"\.db",
+            r"upload",
+            r"password",
+            r"secret",
+            r"key",
+            r"token",
+            r"auth",
         ]
 
         # Interesting extensions
         interesting_extensions = [
-            '.sql', '.db', '.backup', '.bak', '.old', '.config', '.env',
-            '.git', '.svn', '.zip', '.tar', '.gz', '.rar', '.7z'
+            ".sql",
+            ".db",
+            ".backup",
+            ".bak",
+            ".old",
+            ".config",
+            ".env",
+            ".git",
+            ".svn",
+            ".zip",
+            ".tar",
+            ".gz",
+            ".rar",
+            ".7z",
         ]
 
-        for line in stdout.split('\n'):
+        for line in stdout.split("\n"):
             line = line.strip()
-            if not line or not line.startswith('http'):
+            if not line or not line.startswith("http"):
                 continue
 
             urls.append(line)
@@ -110,14 +138,14 @@ class WaybackURLsTool(BaseTool):
 
                 # Categorize by extension
                 path = parsed.path
-                if '.' in path:
-                    ext = '.' + path.split('.')[-1].lower()
+                if "." in path:
+                    ext = "." + path.split(".")[-1].lower()
                     if ext not in urls_by_extension:
                         urls_by_extension[ext] = []
                     urls_by_extension[ext].append(line)
 
                 # Categorize by path depth
-                path_depth = len([p for p in path.split('/') if p])
+                path_depth = len([p for p in path.split("/") if p])
                 depth_key = f"depth_{path_depth}"
                 if depth_key not in urls_by_path_depth:
                     urls_by_path_depth[depth_key] = []
@@ -127,19 +155,13 @@ class WaybackURLsTool(BaseTool):
                 line_lower = line.lower()
                 for pattern in interesting_patterns:
                     if re.search(pattern, line_lower):
-                        interesting_urls.append({
-                            'url': line,
-                            'reason': f'Matches pattern: {pattern}'
-                        })
+                        interesting_urls.append({"url": line, "reason": f"Matches pattern: {pattern}"})
                         break
 
                 # Check for interesting extensions
                 for ext in interesting_extensions:
                     if line_lower.endswith(ext):
-                        interesting_urls.append({
-                            'url': line,
-                            'reason': f'Interesting extension: {ext}'
-                        })
+                        interesting_urls.append({"url": line, "reason": f"Interesting extension: {ext}"})
                         break
 
             except Exception:
@@ -164,5 +186,5 @@ class WaybackURLsTool(BaseTool):
             "subdomain_count": len(subdomains),
             "raw_output": stdout,
             "stderr": stderr,
-            "returncode": returncode
+            "returncode": returncode,
         }

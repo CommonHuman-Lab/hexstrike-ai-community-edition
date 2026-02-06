@@ -13,16 +13,17 @@ Tests cover:
 Target: 90%+ code coverage
 """
 
-import pytest
-import sys
 import os
+import sys
 import time
 from unittest.mock import patch
+
+import pytest
 
 # Add parent directories to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
-from hexstrike_server import HexStrikeCache
+from core.cache import HexStrikeCache
 
 
 class TestCacheInitialization:
@@ -102,11 +103,8 @@ class TestKeyGeneration:
         cache = HexStrikeCache()
         params = {
             "target": "example.com",
-            "options": {
-                "timeout": 30,
-                "threads": 10
-            },
-            "flags": ["verbose", "aggressive"]
+            "options": {"timeout": 30, "threads": 10},
+            "flags": ["verbose", "aggressive"],
         }
         key = cache._generate_key("nmap", params)
         assert isinstance(key, str)
@@ -203,7 +201,7 @@ class TestCacheExpiration:
         old_time = time.time() - 20  # 20 seconds ago
         assert cache._is_expired(old_time)
 
-    @patch('time.time')
+    @patch("time.time")
     def test_get_returns_none_for_expired_entry(self, mock_time):
         """Test that get returns None for expired entries"""
         cache = HexStrikeCache(ttl=10)
@@ -218,7 +216,7 @@ class TestCacheExpiration:
 
         assert result is None
 
-    @patch('time.time')
+    @patch("time.time")
     def test_expired_entry_removed_on_get(self, mock_time):
         """Test that expired entries are removed when accessed"""
         cache = HexStrikeCache(ttl=10)
@@ -235,7 +233,7 @@ class TestCacheExpiration:
         # Cache should be smaller
         assert len(cache.cache) < initial_size
 
-    @patch('time.time')
+    @patch("time.time")
     def test_non_expired_entry_accessible(self, mock_time):
         """Test that non-expired entries remain accessible"""
         cache = HexStrikeCache(ttl=60)
@@ -372,7 +370,7 @@ class TestCacheStatistics:
 
         stats = cache.get_stats()
         hit_rate_str = stats["hit_rate"]
-        hit_rate = float(hit_rate_str.rstrip('%'))
+        hit_rate = float(hit_rate_str.rstrip("%"))
 
         # Should be approximately 66.7%
         assert 66.0 <= hit_rate <= 67.0
@@ -508,7 +506,7 @@ class TestCacheIntegration:
             result = cache.get(f"cmd{i}", {"param": i})
             assert result is not None
 
-    @patch('time.time')
+    @patch("time.time")
     def test_mixed_expired_and_valid_entries(self, mock_time):
         """Test cache with mix of expired and valid entries"""
         cache = HexStrikeCache(max_size=10, ttl=60)

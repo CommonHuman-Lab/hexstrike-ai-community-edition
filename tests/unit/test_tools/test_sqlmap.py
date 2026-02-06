@@ -20,6 +20,7 @@ class TestSQLMapToolInitialization(unittest.TestCase):
 
     def test_inheritance(self):
         from tools.base import BaseTool
+
         tool = SQLMapTool()
         self.assertIsInstance(tool, BaseTool)
 
@@ -58,84 +59,60 @@ class TestSQLMapCommandBuilding(unittest.TestCase):
         self.assertIn("--random-agent", cmd)
 
     def test_command_with_custom_additional_args(self):
-        cmd = self.tool.build_command("https://example.com?id=1", {
-            "additional_args": "--dbs --level 3"
-        })
+        cmd = self.tool.build_command("https://example.com?id=1", {"additional_args": "--dbs --level 3"})
         self.assertIn("--dbs", cmd)
         self.assertIn("--level", cmd)
         self.assertIn("3", cmd)
 
     def test_command_with_empty_additional_args(self):
-        cmd = self.tool.build_command("https://example.com?id=1", {
-            "additional_args": ""
-        })
+        cmd = self.tool.build_command("https://example.com?id=1", {"additional_args": ""})
         # Should only have sqlmap -u url
         self.assertEqual(cmd, ["sqlmap", "-u", "https://example.com?id=1"])
 
     def test_command_with_database_enumeration(self):
-        cmd = self.tool.build_command("https://example.com?id=1", {
-            "additional_args": "--dbs"
-        })
+        cmd = self.tool.build_command("https://example.com?id=1", {"additional_args": "--dbs"})
         self.assertIn("--dbs", cmd)
 
     def test_command_with_table_enumeration(self):
-        cmd = self.tool.build_command("https://example.com?id=1", {
-            "additional_args": "--tables -D database_name"
-        })
+        cmd = self.tool.build_command("https://example.com?id=1", {"additional_args": "--tables -D database_name"})
         self.assertIn("--tables", cmd)
         self.assertIn("-D", cmd)
 
     def test_command_with_column_enumeration(self):
-        cmd = self.tool.build_command("https://example.com?id=1", {
-            "additional_args": "--columns -T users -D mydb"
-        })
+        cmd = self.tool.build_command("https://example.com?id=1", {"additional_args": "--columns -T users -D mydb"})
         self.assertIn("--columns", cmd)
         self.assertIn("-T", cmd)
         self.assertIn("users", cmd)
 
     def test_command_with_data_dump(self):
-        cmd = self.tool.build_command("https://example.com?id=1", {
-            "additional_args": "--dump -T users -D mydb"
-        })
+        cmd = self.tool.build_command("https://example.com?id=1", {"additional_args": "--dump -T users -D mydb"})
         self.assertIn("--dump", cmd)
 
     def test_command_with_risk_level(self):
-        cmd = self.tool.build_command("https://example.com?id=1", {
-            "additional_args": "--risk 3"
-        })
+        cmd = self.tool.build_command("https://example.com?id=1", {"additional_args": "--risk 3"})
         self.assertIn("--risk", cmd)
         self.assertIn("3", cmd)
 
     def test_command_with_level(self):
-        cmd = self.tool.build_command("https://example.com?id=1", {
-            "additional_args": "--level 5"
-        })
+        cmd = self.tool.build_command("https://example.com?id=1", {"additional_args": "--level 5"})
         self.assertIn("--level", cmd)
         self.assertIn("5", cmd)
 
     def test_command_with_technique(self):
-        cmd = self.tool.build_command("https://example.com?id=1", {
-            "additional_args": "--technique=BEUST"
-        })
+        cmd = self.tool.build_command("https://example.com?id=1", {"additional_args": "--technique=BEUST"})
         self.assertIn("--technique=BEUST", cmd)
 
     def test_command_with_threads(self):
-        cmd = self.tool.build_command("https://example.com?id=1", {
-            "additional_args": "--threads 10"
-        })
+        cmd = self.tool.build_command("https://example.com?id=1", {"additional_args": "--threads 10"})
         self.assertIn("--threads", cmd)
         self.assertIn("10", cmd)
 
     def test_command_with_timeout(self):
-        cmd = self.tool.build_command("https://example.com?id=1", {
-            "additional_args": "--timeout 30"
-        })
+        cmd = self.tool.build_command("https://example.com?id=1", {"additional_args": "--timeout 30"})
         self.assertIn("--timeout", cmd)
 
     def test_command_with_cookie(self):
-        cmd = self.tool.build_command("https://example.com?id=1", {
-            "additional_args": "--cookie='session=abc123'"
-        })
+        cmd = self.tool.build_command("https://example.com?id=1", {"additional_args": "--cookie='session=abc123'"})
         self.assertIn("--cookie='session=abc123'", cmd)
 
 
@@ -192,7 +169,7 @@ class TestSQLMapToolExecution(unittest.TestCase):
             "stderr": "",
             "returncode": 0,
             "execution_time": 120.5,
-            "cached": False
+            "cached": False,
         }
 
         result = self.tool.execute("https://example.com?id=1", {}, self.mock_execute_func)
@@ -200,17 +177,10 @@ class TestSQLMapToolExecution(unittest.TestCase):
         self.assertEqual(result["tool"], "SQLMap")
 
     def test_execution_with_custom_params(self):
-        self.mock_execute_func.return_value = {
-            "success": True,
-            "stdout": "",
-            "stderr": "",
-            "returncode": 0
-        }
+        self.mock_execute_func.return_value = {"success": True, "stdout": "", "stderr": "", "returncode": 0}
 
         result = self.tool.execute(
-            "https://example.com?id=1",
-            {"additional_args": "--dbs --level 3"},
-            self.mock_execute_func
+            "https://example.com?id=1", {"additional_args": "--dbs --level 3"}, self.mock_execute_func
         )
         self.assertTrue(result["success"])
         self.assertIn("--dbs", result["command"])
@@ -220,20 +190,15 @@ class TestSQLMapToolExecution(unittest.TestCase):
             "success": False,
             "error": "sqlmap: command not found",
             "stderr": "sqlmap: command not found",
-            "returncode": 127
+            "returncode": 127,
         }
 
         result = self.tool.execute("https://example.com?id=1", {}, self.mock_execute_func)
         self.assertFalse(result["success"])
 
-    @patch('tools.base.logger')
+    @patch("tools.base.logger")
     def test_logging(self, mock_logger):
-        self.mock_execute_func.return_value = {
-            "success": True,
-            "stdout": "",
-            "stderr": "",
-            "returncode": 0
-        }
+        self.mock_execute_func.return_value = {"success": True, "stdout": "", "stderr": "", "returncode": 0}
 
         self.tool.execute("https://example.com?id=1", {}, self.mock_execute_func)
         mock_logger.info.assert_called()
@@ -250,16 +215,14 @@ class TestSQLMapEdgeCases(unittest.TestCase):
         self.assertIn("https://example.com?id=1&name=test", cmd)
 
     def test_post_request(self):
-        cmd = self.tool.build_command("https://example.com/login", {
-            "additional_args": "--data='username=admin&password=pass'"
-        })
+        cmd = self.tool.build_command(
+            "https://example.com/login", {"additional_args": "--data='username=admin&password=pass'"}
+        )
         # Check that --data argument is in command (with or without =)
         self.assertTrue(any("--data" in str(arg) for arg in cmd))
 
     def test_whitespace_in_args(self):
-        cmd = self.tool.build_command("https://example.com?id=1", {
-            "additional_args": "  --batch   --dbs  "
-        })
+        cmd = self.tool.build_command("https://example.com?id=1", {"additional_args": "  --batch   --dbs  "})
         self.assertIn("--batch", cmd)
         self.assertIn("--dbs", cmd)
 
@@ -269,29 +232,29 @@ class TestSQLMapIntegration(unittest.TestCase):
 
     def test_realistic_sql_injection_scan(self):
         tool = SQLMapTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": """[INFO] testing for SQL injection
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": """[INFO] testing for SQL injection
 [INFO] GET parameter 'id' appears to be vulnerable
 sqlmap identified the following injection point(s):
 Parameter: id (GET)
     Type: boolean-based blind
     Title: AND boolean-based blind - WHERE or HAVING clause
     Payload: id=1 AND 1=1""",
-            "stderr": "",
-            "returncode": 0,
-            "execution_time": 180.5
-        })
+                "stderr": "",
+                "returncode": 0,
+                "execution_time": 180.5,
+            }
+        )
 
         result = tool.execute(
-            "https://example.com/page?id=1",
-            {"additional_args": "--batch --random-agent"},
-            mock_execute
+            "https://example.com/page?id=1", {"additional_args": "--batch --random-agent"}, mock_execute
         )
 
         self.assertTrue(result["success"])
         self.assertTrue(result["output"]["is_vulnerable"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

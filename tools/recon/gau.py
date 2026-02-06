@@ -1,10 +1,12 @@
 """
 GAU (GetAllURLs) tool implementation for fetching URLs from multiple sources
 """
-from typing import Dict, Any, List
-from tools.base import BaseTool
+
 import re
-from urllib.parse import urlparse, parse_qs
+from typing import Any, Dict, List
+from urllib.parse import parse_qs, urlparse
+
+from tools.base import BaseTool
 
 
 class GAUTool(BaseTool):
@@ -115,20 +117,53 @@ class GAUTool(BaseTool):
 
         # Interesting patterns
         interesting_patterns = [
-            r'admin', r'login', r'config', r'backup', r'\.env', r'\.git',
-            r'api', r'debug', r'test', r'\.sql', r'\.db', r'upload',
-            r'password', r'secret', r'key', r'token', r'auth', r'swagger',
-            r'graphql', r'phpinfo', r'install', r'setup'
+            r"admin",
+            r"login",
+            r"config",
+            r"backup",
+            r"\.env",
+            r"\.git",
+            r"api",
+            r"debug",
+            r"test",
+            r"\.sql",
+            r"\.db",
+            r"upload",
+            r"password",
+            r"secret",
+            r"key",
+            r"token",
+            r"auth",
+            r"swagger",
+            r"graphql",
+            r"phpinfo",
+            r"install",
+            r"setup",
         ]
 
         # Interesting parameters
         interesting_param_names = [
-            'id', 'file', 'path', 'url', 'redirect', 'next', 'callback',
-            'cmd', 'exec', 'query', 'search', 'email', 'password', 'token',
-            'api_key', 'secret', 'auth', 'session'
+            "id",
+            "file",
+            "path",
+            "url",
+            "redirect",
+            "next",
+            "callback",
+            "cmd",
+            "exec",
+            "query",
+            "search",
+            "email",
+            "password",
+            "token",
+            "api_key",
+            "secret",
+            "auth",
+            "session",
         ]
 
-        for line in stdout.split('\n'):
+        for line in stdout.split("\n"):
             line = line.strip()
             if not line:
                 continue
@@ -140,12 +175,13 @@ class GAUTool(BaseTool):
             # Try to parse as JSON
             try:
                 import json
+
                 data = json.loads(line)
-                url = data.get('url', '')
-                source = data.get('source', 'unknown')
+                url = data.get("url", "")
+                source = data.get("source", "unknown")
             except:
                 # Not JSON, treat as plain URL
-                if not line.startswith('http'):
+                if not line.startswith("http"):
                     continue
 
             if not url:
@@ -175,15 +211,12 @@ class GAUTool(BaseTool):
 
                         # Check for interesting parameters
                         if param_name.lower() in interesting_param_names:
-                            interesting_urls.append({
-                                'url': url,
-                                'reason': f'Interesting parameter: {param_name}'
-                            })
+                            interesting_urls.append({"url": url, "reason": f"Interesting parameter: {param_name}"})
 
                 # Categorize by extension
                 path = parsed.path
-                if '.' in path:
-                    ext = '.' + path.split('.')[-1].lower()
+                if "." in path:
+                    ext = "." + path.split(".")[-1].lower()
                     if ext not in urls_by_extension:
                         urls_by_extension[ext] = []
                     urls_by_extension[ext].append(url)
@@ -192,11 +225,8 @@ class GAUTool(BaseTool):
                 url_lower = url.lower()
                 for pattern in interesting_patterns:
                     if re.search(pattern, url_lower):
-                        if url not in [u['url'] for u in interesting_urls]:
-                            interesting_urls.append({
-                                'url': url,
-                                'reason': f'Matches pattern: {pattern}'
-                            })
+                        if url not in [u["url"] for u in interesting_urls]:
+                            interesting_urls.append({"url": url, "reason": f"Matches pattern: {pattern}"})
                         break
 
             except Exception:
@@ -229,5 +259,5 @@ class GAUTool(BaseTool):
             "subdomain_count": len(subdomains),
             "raw_output": stdout,
             "stderr": stderr,
-            "returncode": returncode
+            "returncode": returncode,
         }

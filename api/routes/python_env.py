@@ -5,17 +5,19 @@ Handles Python package installation and script execution in virtual environments
 
 import logging
 import time
-from flask import Blueprint, request, jsonify
+
+from flask import Blueprint, jsonify, request
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-python_env_bp = Blueprint('python_env', __name__, url_prefix='/api/python')
+python_env_bp = Blueprint("python_env", __name__, url_prefix="/api/python")
 
 # Dependencies will be injected via init_app
 env_manager = None
 file_manager = None
 execute_command = None
+
 
 def init_app(environment_manager, file_operations_manager, command_executor):
     """Initialize blueprint with dependencies"""
@@ -40,20 +42,16 @@ def install_python_package():
         success = env_manager.install_package(env_name, package)
 
         if success:
-            return jsonify({
-                "success": True,
-                "message": f"Package {package} installed successfully",
-                "env_name": env_name
-            })
+            return jsonify(
+                {"success": True, "message": f"Package {package} installed successfully", "env_name": env_name}
+            )
         else:
-            return jsonify({
-                "success": False,
-                "error": f"Failed to install package {package}"
-            }), 500
+            return jsonify({"success": False, "error": f"Failed to install package {package}"}), 500
 
     except Exception as e:
         logger.error(f"💥 Error installing Python package: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @python_env_bp.route("/execute", methods=["POST"])
 def execute_python_script():

@@ -14,18 +14,20 @@ Functions:
 import logging
 import time
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
-from core.command_executor import EnhancedCommandExecutor
 from core.cache import HexStrikeCache
-from core.visual import ModernVisualEngine
-from core.error_handler import IntelligentErrorHandler, ErrorType, RecoveryAction, ErrorContext
+from core.command_executor import EnhancedCommandExecutor
 from core.degradation import GracefulDegradation
+from core.error_handler import ErrorContext, ErrorType, IntelligentErrorHandler, RecoveryAction
+from core.visual import ModernVisualEngine
 
 logger = logging.getLogger(__name__)
 
 
-def execute_command(command: str, use_cache: bool = True, cache_instance: Optional[HexStrikeCache] = None) -> Dict[str, Any]:
+def execute_command(
+    command: str, use_cache: bool = True, cache_instance: Optional[HexStrikeCache] = None
+) -> Dict[str, Any]:
     """
     Execute a shell command with enhanced features
 
@@ -55,11 +57,16 @@ def execute_command(command: str, use_cache: bool = True, cache_instance: Option
     return result
 
 
-def execute_command_with_recovery(tool_name: str, command: str, parameters: Dict[str, Any] = None,
-                                 use_cache: bool = True, max_attempts: int = 3,
-                                 cache_instance: Optional[HexStrikeCache] = None,
-                                 error_handler_instance: Optional[IntelligentErrorHandler] = None,
-                                 degradation_manager_instance: Optional[GracefulDegradation] = None) -> Dict[str, Any]:
+def execute_command_with_recovery(
+    tool_name: str,
+    command: str,
+    parameters: Dict[str, Any] = None,
+    use_cache: bool = True,
+    max_attempts: int = 3,
+    cache_instance: Optional[HexStrikeCache] = None,
+    error_handler_instance: Optional[IntelligentErrorHandler] = None,
+    degradation_manager_instance: Optional[GracefulDegradation] = None,
+) -> Dict[str, Any]:
     """
     Execute a command with intelligent error handling and recovery
 
@@ -100,7 +107,7 @@ def execute_command_with_recovery(tool_name: str, command: str, parameters: Dict
                 result["recovery_info"] = {
                     "attempts_made": attempt_count,
                     "recovery_applied": len(recovery_history) > 0,
-                    "recovery_history": recovery_history
+                    "recovery_history": recovery_history,
                 }
                 return result
 
@@ -114,7 +121,7 @@ def execute_command_with_recovery(tool_name: str, command: str, parameters: Dict
                     "attempts_made": attempt_count,
                     "recovery_applied": False,
                     "recovery_history": recovery_history,
-                    "note": "Error handler not available"
+                    "note": "Error handler not available",
                 }
                 return result
 
@@ -123,17 +130,19 @@ def execute_command_with_recovery(tool_name: str, command: str, parameters: Dict
                 "target": parameters.get("target", "unknown"),
                 "parameters": parameters,
                 "attempt_count": attempt_count,
-                "command": command
+                "command": command,
             }
 
             # Get recovery strategy from error handler
             recovery_strategy = error_handler.handle_tool_failure(tool_name, exception, context)
-            recovery_history.append({
-                "attempt": attempt_count,
-                "error": error_message,
-                "recovery_action": recovery_strategy.action.value,
-                "timestamp": datetime.now().isoformat()
-            })
+            recovery_history.append(
+                {
+                    "attempt": attempt_count,
+                    "error": error_message,
+                    "recovery_action": recovery_strategy.action.value,
+                    "timestamp": datetime.now().isoformat(),
+                }
+            )
 
             # Apply recovery strategy
             if recovery_strategy.action == RecoveryAction.RETRY_WITH_BACKOFF:
@@ -141,7 +150,7 @@ def execute_command_with_recovery(tool_name: str, command: str, parameters: Dict
                 backoff = recovery_strategy.parameters.get("max_delay", 60)
                 actual_delay = min(delay * (recovery_strategy.backoff_multiplier ** (attempt_count - 1)), backoff)
 
-                retry_info = f'Retrying in {actual_delay}s (attempt {attempt_count}/{max_attempts})'
+                retry_info = f"Retrying in {actual_delay}s (attempt {attempt_count}/{max_attempts})"
                 logger.info(f"{ModernVisualEngine.format_tool_status(tool_name, 'RECOVERY', retry_info)}")
                 time.sleep(actual_delay)
                 continue
@@ -149,9 +158,7 @@ def execute_command_with_recovery(tool_name: str, command: str, parameters: Dict
             elif recovery_strategy.action == RecoveryAction.RETRY_WITH_REDUCED_SCOPE:
                 # Adjust parameters to reduce scope
                 adjusted_params = error_handler.auto_adjust_parameters(
-                    tool_name,
-                    error_handler.classify_error(error_message, exception),
-                    parameters
+                    tool_name, error_handler.classify_error(error_message, exception), parameters
                 )
 
                 # Rebuild command with adjusted parameters
@@ -164,7 +171,7 @@ def execute_command_with_recovery(tool_name: str, command: str, parameters: Dict
                 alternative_tool = error_handler.get_alternative_tool(tool_name, recovery_strategy.parameters)
 
                 if alternative_tool:
-                    switch_info = f'Switching to alternative: {alternative_tool}'
+                    switch_info = f"Switching to alternative: {alternative_tool}"
                     logger.info(f"{ModernVisualEngine.format_tool_status(tool_name, 'RECOVERY', switch_info)}")
                     # This would require the calling function to handle tool switching
                     result["alternative_tool_suggested"] = alternative_tool
@@ -172,7 +179,7 @@ def execute_command_with_recovery(tool_name: str, command: str, parameters: Dict
                         "attempts_made": attempt_count,
                         "recovery_applied": True,
                         "recovery_history": recovery_history,
-                        "final_action": "tool_switch_suggested"
+                        "final_action": "tool_switch_suggested",
                     }
                     return result
                 else:
@@ -199,12 +206,11 @@ def execute_command_with_recovery(tool_name: str, command: str, parameters: Dict
                     attempt_count=attempt_count,
                     timestamp=datetime.now(),
                     stack_trace="",
-                    system_resources=error_handler._get_system_resources()
+                    system_resources=error_handler._get_system_resources(),
                 )
 
                 escalation_data = error_handler.escalate_to_human(
-                    error_context,
-                    recovery_strategy.parameters.get("urgency", "medium")
+                    error_context, recovery_strategy.parameters.get("urgency", "medium")
                 )
 
                 result["human_escalation"] = escalation_data
@@ -212,7 +218,7 @@ def execute_command_with_recovery(tool_name: str, command: str, parameters: Dict
                     "attempts_made": attempt_count,
                     "recovery_applied": True,
                     "recovery_history": recovery_history,
-                    "final_action": "human_escalation"
+                    "final_action": "human_escalation",
                 }
                 return result
 
@@ -220,17 +226,13 @@ def execute_command_with_recovery(tool_name: str, command: str, parameters: Dict
                 # Apply graceful degradation if manager available
                 if degradation_manager:
                     operation = _determine_operation_type(tool_name)
-                    degraded_result = degradation_manager.handle_partial_failure(
-                        operation,
-                        result,
-                        [tool_name]
-                    )
+                    degraded_result = degradation_manager.handle_partial_failure(operation, result, [tool_name])
 
                     degraded_result["recovery_info"] = {
                         "attempts_made": attempt_count,
                         "recovery_applied": True,
                         "recovery_history": recovery_history,
-                        "final_action": "graceful_degradation"
+                        "final_action": "graceful_degradation",
                     }
                     return degraded_result
                 else:
@@ -242,7 +244,7 @@ def execute_command_with_recovery(tool_name: str, command: str, parameters: Dict
                     "attempts_made": attempt_count,
                     "recovery_applied": True,
                     "recovery_history": recovery_history,
-                    "final_action": "operation_aborted"
+                    "final_action": "operation_aborted",
                 }
                 return result
 
@@ -250,6 +252,7 @@ def execute_command_with_recovery(tool_name: str, command: str, parameters: Dict
 
         except Exception as e:
             import traceback
+
             last_error = e
             logger.error(f"💥 Unexpected error in recovery attempt {attempt_count}: {str(e)}")
 
@@ -264,7 +267,7 @@ def execute_command_with_recovery(tool_name: str, command: str, parameters: Dict
                     attempt_count=attempt_count,
                     timestamp=datetime.now(),
                     stack_trace=traceback.format_exc(),
-                    system_resources=error_handler._get_system_resources()
+                    system_resources=error_handler._get_system_resources(),
                 )
 
                 escalation_data = error_handler.escalate_to_human(error_context, "high")
@@ -277,8 +280,8 @@ def execute_command_with_recovery(tool_name: str, command: str, parameters: Dict
                         "attempts_made": attempt_count,
                         "recovery_applied": True,
                         "recovery_history": recovery_history,
-                        "final_action": "human_escalation_after_failure"
-                    }
+                        "final_action": "human_escalation_after_failure",
+                    },
                 }
 
     # All attempts exhausted
@@ -290,8 +293,8 @@ def execute_command_with_recovery(tool_name: str, command: str, parameters: Dict
             "attempts_made": attempt_count,
             "recovery_applied": True,
             "recovery_history": recovery_history,
-            "final_action": "all_attempts_exhausted"
-        }
+            "final_action": "all_attempts_exhausted",
+        },
     }
 
 
@@ -339,7 +342,7 @@ def _determine_operation_type(tool_name: str) -> str:
         "assetfinder": "subdomain_enumeration",
         "arjun": "parameter_discovery",
         "paramspider": "parameter_discovery",
-        "x8": "parameter_discovery"
+        "x8": "parameter_discovery",
     }
 
     return operation_mapping.get(tool_name, "unknown_operation")

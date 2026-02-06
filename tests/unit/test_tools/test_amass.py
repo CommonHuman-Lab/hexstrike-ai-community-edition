@@ -13,8 +13,8 @@ Comprehensive test coverage: 35+ tests
 """
 
 import unittest
+from typing import Any, Dict
 from unittest.mock import Mock, patch
-from typing import Dict, Any
 
 from tools.recon.amass import AmassTool
 
@@ -31,6 +31,7 @@ class TestAmassToolInitialization(unittest.TestCase):
     def test_inheritance(self):
         """Test that AmassTool inherits from BaseTool."""
         from tools.base import BaseTool
+
         tool = AmassTool()
         self.assertIsInstance(tool, BaseTool)
 
@@ -72,38 +73,28 @@ class TestAmassCommandBuilding(unittest.TestCase):
 
     def test_command_with_additional_args_passive(self):
         """Test command with passive enumeration flag."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-passive"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-passive"})
         self.assertEqual(cmd, ["amass", "enum", "-d", "example.com", "-passive"])
 
     def test_command_with_additional_args_active(self):
         """Test command with active enumeration flag."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-active"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-active"})
         self.assertIn("-active", cmd)
 
     def test_command_with_brute_force(self):
         """Test command with brute force option."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-brute"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-brute"})
         self.assertIn("-brute", cmd)
 
     def test_command_with_output_format(self):
         """Test command with JSON output format."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-json output.json"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-json output.json"})
         self.assertIn("-json", cmd)
         self.assertIn("output.json", cmd)
 
     def test_command_with_multiple_additional_args(self):
         """Test command with multiple additional arguments."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-passive -timeout 30 -max-depth 3"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-passive -timeout 30 -max-depth 3"})
         self.assertIn("-passive", cmd)
         self.assertIn("-timeout", cmd)
         self.assertIn("30", cmd)
@@ -112,32 +103,24 @@ class TestAmassCommandBuilding(unittest.TestCase):
 
     def test_command_with_empty_additional_args(self):
         """Test command with empty additional_args."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": ""
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": ""})
         self.assertEqual(cmd, ["amass", "enum", "-d", "example.com"])
 
     def test_command_with_config_file(self):
         """Test command with configuration file."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-config /etc/amass/config.ini"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-config /etc/amass/config.ini"})
         self.assertIn("-config", cmd)
         self.assertIn("/etc/amass/config.ini", cmd)
 
     def test_command_with_wordlist(self):
         """Test command with custom wordlist."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-w /path/to/wordlist.txt"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-w /path/to/wordlist.txt"})
         self.assertIn("-w", cmd)
         self.assertIn("/path/to/wordlist.txt", cmd)
 
     def test_command_with_data_source(self):
         """Test command with specific data sources."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "-src virustotal,crtsh"
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "-src virustotal,crtsh"})
         self.assertIn("-src", cmd)
         self.assertIn("virustotal,crtsh", cmd)
 
@@ -278,7 +261,7 @@ class TestAmassToolExecution(unittest.TestCase):
             "stderr": "",
             "returncode": 0,
             "execution_time": 15.5,
-            "cached": False
+            "cached": False,
         }
 
         result = self.tool.execute("example.com", {}, self.mock_execute_func)
@@ -291,18 +274,9 @@ class TestAmassToolExecution(unittest.TestCase):
 
     def test_execution_with_parameters(self):
         """Test execution with custom parameters."""
-        self.mock_execute_func.return_value = {
-            "success": True,
-            "stdout": "output",
-            "stderr": "",
-            "returncode": 0
-        }
+        self.mock_execute_func.return_value = {"success": True, "stdout": "output", "stderr": "", "returncode": 0}
 
-        result = self.tool.execute(
-            "example.com",
-            {"additional_args": "-passive -timeout 60"},
-            self.mock_execute_func
-        )
+        result = self.tool.execute("example.com", {"additional_args": "-passive -timeout 60"}, self.mock_execute_func)
 
         self.assertTrue(result["success"])
         self.assertIn("-passive", result["command"])
@@ -314,7 +288,7 @@ class TestAmassToolExecution(unittest.TestCase):
             "success": False,
             "error": "amass: command not found",
             "stderr": "amass: command not found",
-            "returncode": 127
+            "returncode": 127,
         }
 
         result = self.tool.execute("example.com", {}, self.mock_execute_func)
@@ -329,15 +303,10 @@ class TestAmassToolExecution(unittest.TestCase):
             "stdout": "cached output",
             "stderr": "",
             "returncode": 0,
-            "cached": True
+            "cached": True,
         }
 
-        result = self.tool.execute(
-            "example.com",
-            {},
-            self.mock_execute_func,
-            use_cache=True
-        )
+        result = self.tool.execute("example.com", {}, self.mock_execute_func, use_cache=True)
 
         self.assertTrue(result["success"])
         self.assertTrue(result["cached"])
@@ -349,29 +318,19 @@ class TestAmassToolExecution(unittest.TestCase):
             "stdout": "fresh output",
             "stderr": "",
             "returncode": 0,
-            "cached": False
+            "cached": False,
         }
 
-        result = self.tool.execute(
-            "example.com",
-            {},
-            self.mock_execute_func,
-            use_cache=False
-        )
+        result = self.tool.execute("example.com", {}, self.mock_execute_func, use_cache=False)
 
         self.assertTrue(result["success"])
         # Verify use_cache was passed to execute function
         call_args = self.mock_execute_func.call_args
-        self.assertEqual(call_args[1].get('use_cache'), False)
+        self.assertEqual(call_args[1].get("use_cache"), False)
 
     def test_execution_command_string_format(self):
         """Test that execution command is properly formatted."""
-        self.mock_execute_func.return_value = {
-            "success": True,
-            "stdout": "",
-            "stderr": "",
-            "returncode": 0
-        }
+        self.mock_execute_func.return_value = {"success": True, "stdout": "", "stderr": "", "returncode": 0}
 
         result = self.tool.execute("example.com", {}, self.mock_execute_func)
 
@@ -379,15 +338,10 @@ class TestAmassToolExecution(unittest.TestCase):
         self.assertIsInstance(result["command"], str)
         self.assertIn("amass enum -d example.com", result["command"])
 
-    @patch('tools.base.logger')
+    @patch("tools.base.logger")
     def test_logging_during_execution(self, mock_logger):
         """Test that execution is logged."""
-        self.mock_execute_func.return_value = {
-            "success": True,
-            "stdout": "output",
-            "stderr": "",
-            "returncode": 0
-        }
+        self.mock_execute_func.return_value = {"success": True, "stdout": "output", "stderr": "", "returncode": 0}
 
         self.tool.execute("example.com", {}, self.mock_execute_func)
 
@@ -417,9 +371,7 @@ class TestAmassEdgeCases(unittest.TestCase):
 
     def test_whitespace_in_additional_args(self):
         """Test with extra whitespace in additional_args."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": "  -passive   -timeout   30  "
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": "  -passive   -timeout   30  "})
         # split() should handle extra whitespace
         self.assertIn("-passive", cmd)
         self.assertIn("-timeout", cmd)
@@ -443,9 +395,7 @@ class TestAmassEdgeCases(unittest.TestCase):
 
     def test_additional_args_with_quotes(self):
         """Test additional args containing quoted strings."""
-        cmd = self.tool.build_command("example.com", {
-            "additional_args": '-config "/path/with spaces/config.ini"'
-        })
+        cmd = self.tool.build_command("example.com", {"additional_args": '-config "/path/with spaces/config.ini"'})
         self.assertIn("-config", cmd)
 
 
@@ -455,24 +405,22 @@ class TestAmassIntegration(unittest.TestCase):
     def test_realistic_passive_enumeration(self):
         """Test realistic passive enumeration scenario."""
         tool = AmassTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": """www.example.com
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": """www.example.com
 mail.example.com
 ftp.example.com
 blog.example.com
 shop.example.com""",
-            "stderr": "",
-            "returncode": 0,
-            "execution_time": 45.2,
-            "cached": False
-        })
-
-        result = tool.execute(
-            "example.com",
-            {"additional_args": "-passive"},
-            mock_execute
+                "stderr": "",
+                "returncode": 0,
+                "execution_time": 45.2,
+                "cached": False,
+            }
         )
+
+        result = tool.execute("example.com", {"additional_args": "-passive"}, mock_execute)
 
         self.assertTrue(result["success"])
         self.assertIn("-passive", result["command"])
@@ -481,19 +429,17 @@ shop.example.com""",
     def test_realistic_active_enumeration(self):
         """Test realistic active enumeration scenario."""
         tool = AmassTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": "active enumeration output",
-            "stderr": "",
-            "returncode": 0,
-            "execution_time": 120.5
-        })
-
-        result = tool.execute(
-            "example.com",
-            {"additional_args": "-active -brute"},
-            mock_execute
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": "active enumeration output",
+                "stderr": "",
+                "returncode": 0,
+                "execution_time": 120.5,
+            }
         )
+
+        result = tool.execute("example.com", {"additional_args": "-active -brute"}, mock_execute)
 
         self.assertTrue(result["success"])
         self.assertIn("-active", result["command"])
@@ -502,12 +448,14 @@ shop.example.com""",
     def test_realistic_error_handling(self):
         """Test realistic error scenario."""
         tool = AmassTool()
-        mock_execute = Mock(return_value={
-            "success": False,
-            "error": "Connection timeout",
-            "stderr": "Error: unable to connect to data sources",
-            "returncode": 1
-        })
+        mock_execute = Mock(
+            return_value={
+                "success": False,
+                "error": "Connection timeout",
+                "stderr": "Error: unable to connect to data sources",
+                "returncode": 1,
+            }
+        )
 
         result = tool.execute("example.com", {}, mock_execute)
 
@@ -515,5 +463,5 @@ shop.example.com""",
         self.assertIn("error", result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

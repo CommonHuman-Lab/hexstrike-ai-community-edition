@@ -15,25 +15,20 @@ Tests cover:
 Target: 95%+ code coverage with 30+ comprehensive tests
 """
 
-import pytest
-import sys
 import os
-import psutil
+import sys
 import traceback
-from unittest.mock import patch, MagicMock
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+from unittest.mock import MagicMock, patch
+
+import psutil
+import pytest
 
 # Add parent directories to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
-from core.error_handler import (
-    IntelligentErrorHandler,
-    ErrorType,
-    RecoveryAction,
-    ErrorContext,
-    RecoveryStrategy
-)
+from core.error_handler import ErrorContext, ErrorType, IntelligentErrorHandler, RecoveryAction, RecoveryStrategy
 
 
 class TestErrorHandlerInitialization:
@@ -194,10 +189,10 @@ class TestErrorClassification:
 class TestRecoveryStrategySelection:
     """Test recovery strategy selection logic"""
 
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
-    @patch('psutil.pids')
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
+    @patch("psutil.pids")
     def test_handle_tool_failure_timeout(self, mock_pids, mock_disk, mock_mem, mock_cpu):
         """Test handling of timeout failure"""
         # Mock system resources
@@ -208,20 +203,16 @@ class TestRecoveryStrategySelection:
 
         handler = IntelligentErrorHandler()
         error = Exception("Connection timed out")
-        context = {
-            'target': 'example.com',
-            'parameters': {'timeout': 30},
-            'attempt_count': 1
-        }
+        context = {"target": "example.com", "parameters": {"timeout": 30}, "attempt_count": 1}
 
         strategy = handler.handle_tool_failure("nmap", error, context)
         assert isinstance(strategy, RecoveryStrategy)
         assert strategy.action in [RecoveryAction.RETRY_WITH_BACKOFF, RecoveryAction.RETRY_WITH_REDUCED_SCOPE]
 
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
-    @patch('psutil.pids')
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
+    @patch("psutil.pids")
     def test_handle_tool_failure_tool_not_found(self, mock_pids, mock_disk, mock_mem, mock_cpu):
         """Test handling of tool not found failure"""
         mock_cpu.return_value = 50.0
@@ -231,11 +222,7 @@ class TestRecoveryStrategySelection:
 
         handler = IntelligentErrorHandler()
         error = Exception("command not found: gobuster")
-        context = {
-            'target': 'example.com',
-            'parameters': {},
-            'attempt_count': 1
-        }
+        context = {"target": "example.com", "parameters": {}, "attempt_count": 1}
 
         strategy = handler.handle_tool_failure("gobuster", error, context)
         assert isinstance(strategy, RecoveryStrategy)
@@ -255,7 +242,7 @@ class TestRecoveryStrategySelection:
             attempt_count=1,
             timestamp=datetime.now(),
             stack_trace="",
-            system_resources={}
+            system_resources={},
         )
 
         best = handler._select_best_strategy(strategies, context)
@@ -276,7 +263,7 @@ class TestRecoveryStrategySelection:
             attempt_count=100,  # Exceeds max attempts
             timestamp=datetime.now(),
             stack_trace="",
-            system_resources={}
+            system_resources={},
         )
 
         best = handler._select_best_strategy(strategies, context)
@@ -409,7 +396,7 @@ class TestHumanEscalation:
             attempt_count=3,
             timestamp=datetime.now(),
             stack_trace="traceback...",
-            system_resources={"cpu_percent": 50.0}
+            system_resources={"cpu_percent": 50.0},
         )
 
         escalation = handler.escalate_to_human(context)
@@ -431,7 +418,7 @@ class TestHumanEscalation:
             attempt_count=1,
             timestamp=datetime.now(),
             stack_trace="",
-            system_resources={}
+            system_resources={},
         )
 
         suggestions = handler._get_human_suggestions(context)
@@ -451,7 +438,7 @@ class TestHumanEscalation:
             attempt_count=1,
             timestamp=datetime.now(),
             stack_trace="",
-            system_resources={}
+            system_resources={},
         )
 
         suggestions = handler._get_human_suggestions(context)
@@ -470,7 +457,7 @@ class TestHumanEscalation:
             attempt_count=1,
             timestamp=datetime.now(),
             stack_trace="",
-            system_resources={}
+            system_resources={},
         )
 
         suggestions = handler._get_human_suggestions(context)
@@ -481,10 +468,10 @@ class TestHumanEscalation:
 class TestErrorHistory:
     """Test error history tracking"""
 
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
-    @patch('psutil.pids')
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
+    @patch("psutil.pids")
     def test_error_history_tracking(self, mock_pids, mock_disk, mock_mem, mock_cpu):
         """Test that errors are added to history"""
         mock_cpu.return_value = 50.0
@@ -496,7 +483,7 @@ class TestErrorHistory:
         initial_count = len(handler.error_history)
 
         error = Exception("Test error")
-        context = {'target': 'example.com', 'parameters': {}, 'attempt_count': 1}
+        context = {"target": "example.com", "parameters": {}, "attempt_count": 1}
         handler.handle_tool_failure("nmap", error, context)
 
         assert len(handler.error_history) == initial_count + 1
@@ -517,7 +504,7 @@ class TestErrorHistory:
                 attempt_count=1,
                 timestamp=datetime.now(),
                 stack_trace="",
-                system_resources={}
+                system_resources={},
             )
             handler._add_to_history(context)
 
@@ -535,11 +522,11 @@ class TestErrorHistory:
 class TestSystemResources:
     """Test system resource monitoring"""
 
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
-    @patch('psutil.pids')
-    @patch('os.getloadavg')
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
+    @patch("psutil.pids")
+    @patch("os.getloadavg")
     def test_get_system_resources_success(self, mock_loadavg, mock_pids, mock_disk, mock_mem, mock_cpu):
         """Test successful system resource retrieval"""
         mock_cpu.return_value = 45.5
@@ -560,7 +547,7 @@ class TestSystemResources:
         assert resources["memory_percent"] == 60.2
         assert resources["active_processes"] == 100
 
-    @patch('psutil.cpu_percent')
+    @patch("psutil.cpu_percent")
     def test_get_system_resources_failure(self, mock_cpu):
         """Test system resource retrieval failure handling"""
         mock_cpu.side_effect = Exception("psutil error")
@@ -605,10 +592,10 @@ class TestEdgeCases:
         # Should preserve original params
         assert "key" in adjusted
 
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
-    @patch('psutil.pids')
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
+    @patch("psutil.pids")
     def test_handle_tool_failure_with_empty_context(self, mock_pids, mock_disk, mock_mem, mock_cpu):
         """Test handling failure with minimal context"""
         mock_cpu.return_value = 50.0
@@ -634,7 +621,7 @@ class TestRecoveryStrategy:
             max_attempts=3,
             backoff_multiplier=2.0,
             success_probability=0.7,
-            estimated_time=30
+            estimated_time=30,
         )
 
         assert strategy.action == RecoveryAction.RETRY_WITH_BACKOFF
@@ -657,7 +644,7 @@ class TestErrorContext:
             attempt_count=2,
             timestamp=datetime.now(),
             stack_trace="traceback...",
-            system_resources={"cpu_percent": 50.0}
+            system_resources={"cpu_percent": 50.0},
         )
 
         assert context.tool_name == "nmap"
@@ -676,7 +663,7 @@ class TestErrorContext:
             attempt_count=1,
             timestamp=datetime.now(),
             stack_trace="",
-            system_resources={}
+            system_resources={},
         )
 
         context = ErrorContext(
@@ -689,7 +676,7 @@ class TestErrorContext:
             timestamp=datetime.now(),
             stack_trace="",
             system_resources={},
-            previous_errors=[previous]
+            previous_errors=[previous],
         )
 
         assert len(context.previous_errors) == 1

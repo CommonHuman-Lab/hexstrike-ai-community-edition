@@ -3,7 +3,8 @@ SQLMap Tool Implementation
 Automated SQL injection and database takeover tool
 """
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 from ..base import BaseTool
 
 
@@ -40,10 +41,10 @@ class SQLMapTool(BaseTool):
             >>> tool.build_command('example.com/page?id=1', {})
             ['sqlmap', '-u', 'example.com/page?id=1', '--batch', '--random-agent']
         """
-        cmd_parts = [self.binary_name, '-u', target]
+        cmd_parts = [self.binary_name, "-u", target]
 
         # Add additional arguments (default includes batch mode and random agent)
-        additional_args = params.get('additional_args', '--batch --random-agent')
+        additional_args = params.get("additional_args", "--batch --random-agent")
         if additional_args:
             cmd_parts.extend(additional_args.split())
 
@@ -61,14 +62,10 @@ class SQLMapTool(BaseTool):
         Returns:
             Dictionary containing parsed results
         """
-        result = {
-            "raw_output": stdout,
-            "stderr": stderr,
-            "returncode": returncode
-        }
+        result = {"raw_output": stdout, "stderr": stderr, "returncode": returncode}
 
         # Check for SQL injection vulnerabilities
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
 
         # Look for key indicators
         is_vulnerable = False
@@ -76,16 +73,16 @@ class SQLMapTool(BaseTool):
         injection_type = None
 
         for line in lines:
-            if 'sqlmap identified the following injection' in line.lower():
+            if "sqlmap identified the following injection" in line.lower():
                 is_vulnerable = True
-            if 'Type:' in line:
+            if "Type:" in line:
                 injection_type = line.strip()
-            if 'available databases' in line.lower():
+            if "available databases" in line.lower():
                 # Next lines might contain database names
                 pass
 
-        result['is_vulnerable'] = is_vulnerable
+        result["is_vulnerable"] = is_vulnerable
         if injection_type:
-            result['injection_type'] = injection_type
+            result["injection_type"] = injection_type
 
         return result

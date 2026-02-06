@@ -6,7 +6,7 @@ Advanced resource monitoring with historical tracking
 import logging
 import threading
 import time
-from typing import Dict, Any
+from typing import Any, Dict
 
 import psutil
 
@@ -26,7 +26,7 @@ class ResourceMonitor:
         try:
             cpu_percent = psutil.cpu_percent(interval=1)
             memory = psutil.virtual_memory()
-            disk = psutil.disk_usage('/')
+            disk = psutil.disk_usage("/")
             network = psutil.net_io_counters()
 
             usage = {
@@ -37,7 +37,7 @@ class ResourceMonitor:
                 "disk_free_gb": disk.free / (1024**3),
                 "network_bytes_sent": network.bytes_sent,
                 "network_bytes_recv": network.bytes_recv,
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }
 
             # Add to history
@@ -58,7 +58,7 @@ class ResourceMonitor:
                 "disk_free_gb": 0,
                 "network_bytes_sent": 0,
                 "network_bytes_recv": 0,
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }
 
     def get_process_usage(self, pid: int) -> Dict[str, Any]:
@@ -70,7 +70,7 @@ class ResourceMonitor:
                 "memory_percent": process.memory_percent(),
                 "memory_rss_mb": process.memory_info().rss / (1024**2),
                 "num_threads": process.num_threads(),
-                "status": process.status()
+                "status": process.status(),
             }
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             return {}
@@ -90,5 +90,5 @@ class ResourceMonitor:
                 "cpu_avg_10": cpu_trend,
                 "memory_avg_10": memory_trend,
                 "measurements": len(self.usage_history),
-                "trend_period_minutes": len(recent) * 15 / 60  # 15 second intervals
+                "trend_period_minutes": len(recent) * 15 / 60,  # 15 second intervals
             }

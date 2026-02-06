@@ -8,7 +8,6 @@ import os
 import signal
 import threading
 import time
-from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +31,7 @@ class ProcessManager:
                 "status": "running",
                 "progress": 0.0,
                 "last_output": "",
-                "bytes_processed": 0
+                "bytes_processed": 0,
             }
             logger.info(f"REGISTERED: Process {pid} - {command[:50]}...")
 

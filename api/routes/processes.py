@@ -3,20 +3,23 @@ Process Management API Routes
 Handles process listing, status, control (pause/resume/terminate), and dashboard
 """
 
-import time
 import logging
-import psutil
+import time
 from datetime import datetime
+
+import psutil
 from flask import Blueprint, jsonify
+
 from core.visual import ModernVisualEngine
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-processes_bp = Blueprint('processes', __name__, url_prefix='/api/processes')
+processes_bp = Blueprint("processes", __name__, url_prefix="/api/processes")
 
 # Dependencies will be injected via init_app
 process_manager = None
+
 
 def init_app(proc_manager):
     """Initialize blueprint with dependencies"""
@@ -41,11 +44,7 @@ def list_processes():
             else:
                 info["eta_formatted"] = "Unknown"
 
-        return jsonify({
-            "success": True,
-            "active_processes": processes,
-            "total_count": len(processes)
-        })
+        return jsonify({"success": True, "active_processes": processes, "total_count": len(processes)})
     except Exception as e:
         logger.error(f"💥 Error listing processes: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
@@ -68,15 +67,9 @@ def get_process_status(pid):
             else:
                 process_info["eta_formatted"] = "Unknown"
 
-            return jsonify({
-                "success": True,
-                "process": process_info
-            })
+            return jsonify({"success": True, "process": process_info})
         else:
-            return jsonify({
-                "success": False,
-                "error": f"Process {pid} not found"
-            }), 404
+            return jsonify({"success": False, "error": f"Process {pid} not found"}), 404
 
     except Exception as e:
         logger.error(f"💥 Error getting process status: {str(e)}")
@@ -91,15 +84,9 @@ def terminate_process(pid):
 
         if success:
             logger.info(f"🛑 Process {pid} terminated successfully")
-            return jsonify({
-                "success": True,
-                "message": f"Process {pid} terminated successfully"
-            })
+            return jsonify({"success": True, "message": f"Process {pid} terminated successfully"})
         else:
-            return jsonify({
-                "success": False,
-                "error": f"Failed to terminate process {pid} or process not found"
-            }), 404
+            return jsonify({"success": False, "error": f"Failed to terminate process {pid} or process not found"}), 404
 
     except Exception as e:
         logger.error(f"💥 Error terminating process {pid}: {str(e)}")
@@ -114,15 +101,9 @@ def pause_process(pid):
 
         if success:
             logger.info(f"⏸️ Process {pid} paused successfully")
-            return jsonify({
-                "success": True,
-                "message": f"Process {pid} paused successfully"
-            })
+            return jsonify({"success": True, "message": f"Process {pid} paused successfully"})
         else:
-            return jsonify({
-                "success": False,
-                "error": f"Failed to pause process {pid} or process not found"
-            }), 404
+            return jsonify({"success": False, "error": f"Failed to pause process {pid} or process not found"}), 404
 
     except Exception as e:
         logger.error(f"💥 Error pausing process {pid}: {str(e)}")
@@ -137,15 +118,9 @@ def resume_process(pid):
 
         if success:
             logger.info(f"▶️ Process {pid} resumed successfully")
-            return jsonify({
-                "success": True,
-                "message": f"Process {pid} resumed successfully"
-            })
+            return jsonify({"success": True, "message": f"Process {pid} resumed successfully"})
         else:
-            return jsonify({
-                "success": False,
-                "error": f"Failed to resume process {pid} or process not found"
-            }), 404
+            return jsonify({"success": False, "error": f"Failed to resume process {pid} or process not found"}), 404
 
     except Exception as e:
         logger.error(f"💥 Error resuming process {pid}: {str(e)}")
@@ -170,8 +145,8 @@ def process_dashboard():
             "system_load": {
                 "cpu_percent": psutil.cpu_percent(interval=1),
                 "memory_percent": psutil.virtual_memory().percent,
-                "active_connections": len(psutil.net_connections())
-            }
+                "active_connections": len(psutil.net_connections()),
+            },
         }
 
         for pid, info in processes.items():
@@ -180,10 +155,7 @@ def process_dashboard():
 
             # Create beautiful progress bar using ModernVisualEngine
             progress_bar = ModernVisualEngine.render_progress_bar(
-                progress_fraction,
-                width=25,
-                style='cyber',
-                eta=info.get("eta", 0)
+                progress_fraction, width=25, style="cyber", eta=info.get("eta", 0)
             )
 
             process_status = {
@@ -193,9 +165,9 @@ def process_dashboard():
                 "runtime": f"{runtime:.1f}s",
                 "progress_percent": f"{progress_fraction * 100:.1f}%",
                 "progress_bar": progress_bar,
-                "eta": f"{info.get('eta', 0):.0f}s" if info.get('eta', 0) > 0 else "Calculating...",
+                "eta": f"{info.get('eta', 0):.0f}s" if info.get("eta", 0) > 0 else "Calculating...",
                 "bytes_processed": info.get("bytes_processed", 0),
-                "last_output": info.get("last_output", "")[:100]
+                "last_output": info.get("last_output", "")[:100],
             }
             dashboard["processes"].append(process_status)
 

@@ -6,15 +6,17 @@ Handles cloud security assessment, container scanning, IaC security, and Kuberne
 import logging
 import os
 from pathlib import Path
-from flask import Blueprint, request, jsonify
+
+from flask import Blueprint, jsonify, request
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-tools_cloud_bp = Blueprint('tools_cloud', __name__, url_prefix='/api/tools')
+tools_cloud_bp = Blueprint("tools_cloud", __name__, url_prefix="/api/tools")
 
 # Dependencies will be injected via init_app
 execute_command = None
+
 
 def init_app(exec_cmd):
     """Initialize blueprint with dependencies"""
@@ -62,9 +64,8 @@ def prowler():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in prowler endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_cloud_bp.route("/trivy", methods=["POST"])
 def trivy():
@@ -80,9 +81,7 @@ def trivy():
 
         if not target:
             logger.warning("🎯 Trivy called without target parameter")
-            return jsonify({
-                "error": "Target parameter is required"
-            }), 400
+            return jsonify({"error": "Target parameter is required"}), 400
 
         command = f"trivy {scan_type} {target}"
 
@@ -106,9 +105,8 @@ def trivy():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in trivy endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_cloud_bp.route("/scout-suite", methods=["POST"])
 def scout_suite():
@@ -150,6 +148,7 @@ def scout_suite():
         logger.error(f"💥 Error in scout-suite endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
+
 @tools_cloud_bp.route("/cloudmapper", methods=["POST"])
 def cloudmapper():
     """Execute CloudMapper for AWS network visualization and security analysis"""
@@ -182,6 +181,7 @@ def cloudmapper():
     except Exception as e:
         logger.error(f"💥 Error in cloudmapper endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_cloud_bp.route("/pacu", methods=["POST"])
 def pacu():
@@ -226,7 +226,7 @@ def pacu():
         # Cleanup
         try:
             os.remove(command_file)
-        except:
+        except Exception:
             pass
 
         logger.info(f"📊 Pacu exploitation completed")
@@ -234,6 +234,7 @@ def pacu():
     except Exception as e:
         logger.error(f"💥 Error in pacu endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_cloud_bp.route("/kube-hunter", methods=["POST"])
 def kube_hunter():
@@ -279,6 +280,7 @@ def kube_hunter():
         logger.error(f"💥 Error in kube-hunter endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
+
 @tools_cloud_bp.route("/kube-bench", methods=["POST"])
 def kube_bench():
     """Execute kube-bench for CIS Kubernetes benchmark checks"""
@@ -315,6 +317,7 @@ def kube_bench():
         logger.error(f"💥 Error in kube-bench endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
+
 @tools_cloud_bp.route("/docker-bench-security", methods=["POST"])
 def docker_bench_security():
     """Execute Docker Bench for Security for Docker security assessment"""
@@ -347,6 +350,7 @@ def docker_bench_security():
     except Exception as e:
         logger.error(f"💥 Error in docker-bench-security endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_cloud_bp.route("/clair", methods=["POST"])
 def clair():
@@ -382,6 +386,7 @@ def clair():
         logger.error(f"💥 Error in clair endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
+
 @tools_cloud_bp.route("/falco", methods=["POST"])
 def falco():
     """Execute Falco for runtime security monitoring"""
@@ -414,6 +419,7 @@ def falco():
     except Exception as e:
         logger.error(f"💥 Error in falco endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_cloud_bp.route("/checkov", methods=["POST"])
 def checkov():
@@ -451,6 +457,7 @@ def checkov():
     except Exception as e:
         logger.error(f"💥 Error in checkov endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_cloud_bp.route("/terrascan", methods=["POST"])
 def terrascan():

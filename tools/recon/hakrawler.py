@@ -1,10 +1,12 @@
 """
 Hakrawler tool implementation for web crawling and endpoint discovery
 """
-from typing import Dict, Any, List
-from tools.base import BaseTool
+
 import re
+from typing import Any, Dict, List
 from urllib.parse import urlparse
+
+from tools.base import BaseTool
 
 
 class HakrawlerTool(BaseTool):
@@ -145,33 +147,45 @@ class HakrawlerTool(BaseTool):
         subdomains = set()
 
         # Patterns for different resource types
-        js_pattern = r'\.js(\?.*)?$'
-        api_patterns = [
-            r'/api/', r'/v\d+/', r'/graphql', r'/rest/', r'/ajax/',
-            r'/json', r'/xml', r'/endpoint'
-        ]
+        js_pattern = r"\.js(\?.*)?$"
+        api_patterns = [r"/api/", r"/v\d+/", r"/graphql", r"/rest/", r"/ajax/", r"/json", r"/xml", r"/endpoint"]
 
         # Interesting endpoint patterns
         interesting_patterns = [
-            r'admin', r'login', r'auth', r'api', r'config', r'debug',
-            r'test', r'upload', r'download', r'delete', r'user', r'password',
-            r'token', r'key', r'secret', r'backup', r'install', r'setup'
+            r"admin",
+            r"login",
+            r"auth",
+            r"api",
+            r"config",
+            r"debug",
+            r"test",
+            r"upload",
+            r"download",
+            r"delete",
+            r"user",
+            r"password",
+            r"token",
+            r"key",
+            r"secret",
+            r"backup",
+            r"install",
+            r"setup",
         ]
 
         target_domain = None
 
-        for line in stdout.split('\n'):
+        for line in stdout.split("\n"):
             line = line.strip()
             if not line:
                 continue
 
             # Handle form data (starts with 'form')
-            if line.startswith('form'):
+            if line.startswith("form"):
                 forms.append(line)
                 continue
 
             # Handle URLs
-            if line.startswith('http'):
+            if line.startswith("http"):
                 urls.append(line)
 
                 try:
@@ -207,10 +221,7 @@ class HakrawlerTool(BaseTool):
                     line_lower = line.lower()
                     for pattern in interesting_patterns:
                         if re.search(pattern, line_lower):
-                            interesting_endpoints.append({
-                                'url': line,
-                                'reason': f'Matches pattern: {pattern}'
-                            })
+                            interesting_endpoints.append({"url": line, "reason": f"Matches pattern: {pattern}"})
                             break
 
                 except Exception:
@@ -236,5 +247,5 @@ class HakrawlerTool(BaseTool):
             "subdomain_count": len(subdomains),
             "raw_output": stdout,
             "stderr": stderr,
-            "returncode": returncode
+            "returncode": returncode,
         }

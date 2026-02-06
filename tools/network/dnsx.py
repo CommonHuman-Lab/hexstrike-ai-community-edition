@@ -1,9 +1,11 @@
 """
 DNSx tool implementation for fast DNS toolkit and DNS resolution
 """
-from typing import Dict, Any, List
-from tools.base import BaseTool
+
 import json
+from typing import Any, Dict, List
+
+from tools.base import BaseTool
 
 
 class DNSxTool(BaseTool):
@@ -131,16 +133,7 @@ class DNSxTool(BaseTool):
                 - returncode: Command return code
         """
         records = []
-        records_by_type = {
-            'A': [],
-            'AAAA': [],
-            'CNAME': [],
-            'MX': [],
-            'NS': [],
-            'TXT': [],
-            'PTR': [],
-            'SOA': []
-        }
+        records_by_type = {"A": [], "AAAA": [], "CNAME": [], "MX": [], "NS": [], "TXT": [], "PTR": [], "SOA": []}
 
         a_records = []
         aaaa_records = []
@@ -149,7 +142,7 @@ class DNSxTool(BaseTool):
         ns_records = []
         txt_records = []
 
-        for line in stdout.split('\n'):
+        for line in stdout.split("\n"):
             line = line.strip()
             if not line:
                 continue
@@ -160,51 +153,41 @@ class DNSxTool(BaseTool):
                 records.append(record)
 
                 # Extract host and response
-                host = record.get('host', '')
-                record_type = record.get('type', '').upper()
-                response = record.get('value', record.get('a', record.get('aaaa', '')))
+                host = record.get("host", "")
+                record_type = record.get("type", "").upper()
+                response = record.get("value", record.get("a", record.get("aaaa", "")))
 
                 if record_type and response:
-                    records_by_type[record_type].append({
-                        'host': host,
-                        'value': response
-                    })
+                    records_by_type[record_type].append({"host": host, "value": response})
 
                 # Categorize by type
-                if 'a' in record and record['a']:
-                    a_records.extend(record['a'] if isinstance(record['a'], list) else [record['a']])
-                if 'aaaa' in record and record['aaaa']:
-                    aaaa_records.extend(record['aaaa'] if isinstance(record['aaaa'], list) else [record['aaaa']])
-                if 'cname' in record and record['cname']:
-                    cname_records.extend(record['cname'] if isinstance(record['cname'], list) else [record['cname']])
-                if 'mx' in record and record['mx']:
-                    mx_records.extend(record['mx'] if isinstance(record['mx'], list) else [record['mx']])
-                if 'ns' in record and record['ns']:
-                    ns_records.extend(record['ns'] if isinstance(record['ns'], list) else [record['ns']])
-                if 'txt' in record and record['txt']:
-                    txt_records.extend(record['txt'] if isinstance(record['txt'], list) else [record['txt']])
+                if "a" in record and record["a"]:
+                    a_records.extend(record["a"] if isinstance(record["a"], list) else [record["a"]])
+                if "aaaa" in record and record["aaaa"]:
+                    aaaa_records.extend(record["aaaa"] if isinstance(record["aaaa"], list) else [record["aaaa"]])
+                if "cname" in record and record["cname"]:
+                    cname_records.extend(record["cname"] if isinstance(record["cname"], list) else [record["cname"]])
+                if "mx" in record and record["mx"]:
+                    mx_records.extend(record["mx"] if isinstance(record["mx"], list) else [record["mx"]])
+                if "ns" in record and record["ns"]:
+                    ns_records.extend(record["ns"] if isinstance(record["ns"], list) else [record["ns"]])
+                if "txt" in record and record["txt"]:
+                    txt_records.extend(record["txt"] if isinstance(record["txt"], list) else [record["txt"]])
 
             except json.JSONDecodeError:
                 # Not JSON, parse as plain text
                 # Format: domain [record_type] value
-                if '[' in line and ']' in line:
+                if "[" in line and "]" in line:
                     parts = line.split()
                     if len(parts) >= 3:
                         host = parts[0]
-                        record_type = parts[1].strip('[]').upper()
-                        value = ' '.join(parts[2:])
+                        record_type = parts[1].strip("[]").upper()
+                        value = " ".join(parts[2:])
 
-                        records.append({
-                            'host': host,
-                            'type': record_type,
-                            'value': value
-                        })
+                        records.append({"host": host, "type": record_type, "value": value})
 
                         if record_type in records_by_type:
-                            records_by_type[record_type].append({
-                                'host': host,
-                                'value': value
-                            })
+                            records_by_type[record_type].append({"host": host, "value": value})
 
         # Get statistics by type
         type_stats = {k: len(v) for k, v in records_by_type.items() if v}
@@ -228,5 +211,5 @@ class DNSxTool(BaseTool):
             "txt_count": len(set(txt_records)),
             "raw_output": stdout,
             "stderr": stderr,
-            "returncode": returncode
+            "returncode": returncode,
         }

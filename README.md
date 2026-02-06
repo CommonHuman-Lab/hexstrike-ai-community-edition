@@ -10,9 +10,9 @@
 [![Security](https://img.shields.io/badge/Security-Penetration%20Testing-red.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![Version](https://img.shields.io/badge/Version-1.0.1-orange.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/releases)
-[![Tools](https://img.shields.io/badge/Security%20Tools-150%2B-brightgreen.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
+[![Tools](https://img.shields.io/badge/Security%20Tools-170%2B-brightgreen.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 
-**Advanced AI-powered penetration testing MCP framework with 64 essential security tools and 6+ autonomous AI agents**
+**Advanced AI-powered penetration testing MCP framework with 170+ security tools and 12+ autonomous AI agents**
 
 [📡 Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki)
 
@@ -62,6 +62,14 @@ pip3 install -r requirements.txt
 python3 hexstrike_server.py
 ```
 
+### Docker Setup
+
+```bash
+docker build -t hexstrike-ai .
+docker run -d -p 8888:8888 --name hexstrike hexstrike-ai
+curl http://localhost:8888/health
+```
+
 ### Verify Installation
 
 ```bash
@@ -103,7 +111,7 @@ Refer to the video above for step-by-step instructions and integration examples 
 <summary>Claude Desktop Integration or Cursor</summary>
 
 Edit `~/.config/Claude/claude_desktop_config.json`:
-  
+
 ```json
 {
   "mcpServers": {
@@ -127,7 +135,7 @@ Edit `~/.config/Claude/claude_desktop_config.json`:
 <summary>VS Code Copilot Integration</summary>
 
 Configure VS Code settings in `.vscode/settings.json`:
-  
+
 ```json
 {
   "servers": {
@@ -373,7 +381,7 @@ Configure VS Code settings in `.vscode/settings.json`:
 
 <details>
 <summary><b>12+ Specialized AI Agents:</b></summary>
-  
+
 - **IntelligentDecisionEngine** - Tool selection and parameter optimization
 - **BugBountyWorkflowManager** - Bug bounty hunting workflows
 - **CTFWorkflowManager** - CTF challenge solving
@@ -386,18 +394,18 @@ Configure VS Code settings in `.vscode/settings.json`:
 - **PerformanceMonitor** - System optimization
 - **ParameterOptimizer** - Context-aware optimization
 - **GracefulDegradation** - Fault-tolerant operation
-  
+
 </details>
 <details>
 <summary><b>Advanced Features</b></summary>
-  
+
 - **Smart Caching System** - Intelligent result caching with LRU eviction
 - **Real-time Process Management** - Live command control and monitoring
 - **Vulnerability Intelligence** - CVE monitoring and exploit analysis
 - **Browser Agent** - Headless Chrome automation for web testing
 - **API Security Testing** - GraphQL, JWT, REST API security assessment
 - **Modern Visual Engine** - Real-time dashboards and progress tracking
-  
+
 </details>
 
 ---

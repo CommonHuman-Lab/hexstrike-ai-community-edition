@@ -3,7 +3,8 @@ WPScan Tool Implementation
 WordPress vulnerability scanner
 """
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 from ..base import BaseTool
 
 
@@ -33,10 +34,10 @@ class WpscanTool(BaseTool):
         cmd_parts = [self.binary_name]
 
         # Add target URL
-        cmd_parts.extend(['--url', target])
+        cmd_parts.extend(["--url", target])
 
         # Add any additional arguments (default: enumerate plugins, themes, users)
-        additional_args = params.get('additional_args', '--enumerate p,t,u')
+        additional_args = params.get("additional_args", "--enumerate p,t,u")
         if additional_args:
             cmd_parts.extend(additional_args.split())
 
@@ -44,8 +45,4 @@ class WpscanTool(BaseTool):
 
     def parse_output(self, stdout: str, stderr: str, returncode: int) -> Dict[str, Any]:
         """Parse wpscan output."""
-        return {
-            "raw_output": stdout,
-            "stderr": stderr,
-            "returncode": returncode
-        }
+        return {"raw_output": stdout, "stderr": stderr, "returncode": returncode}

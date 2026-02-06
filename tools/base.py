@@ -3,9 +3,9 @@ Base Tool Abstraction Layer
 Eliminates duplication in tool execution patterns
 """
 
-from abc import ABC, abstractmethod
-from typing import Dict, List, Any, Optional
 import logging
+from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -66,11 +66,7 @@ class BaseTool(ABC):
         Returns:
             Parsed output dictionary
         """
-        return {
-            "raw_output": stdout,
-            "stderr": stderr,
-            "returncode": returncode
-        }
+        return {"raw_output": stdout, "stderr": stderr, "returncode": returncode}
 
     def validate_params(self, params: Dict[str, Any]) -> None:
         """
@@ -88,8 +84,9 @@ class BaseTool(ABC):
         _ = params  # Acknowledged - subclasses override this
         pass
 
-    def execute(self, target: str, params: Dict[str, Any],
-                execute_func: callable, use_cache: bool = True) -> Dict[str, Any]:
+    def execute(
+        self, target: str, params: Dict[str, Any], execute_func: callable, use_cache: bool = True
+    ) -> Dict[str, Any]:
         """
         Execute the tool with the given parameters.
 
@@ -123,7 +120,7 @@ class BaseTool(ABC):
 
             # Build command
             cmd_parts = self.build_command(target, params)
-            command = ' '.join(cmd_parts)
+            command = " ".join(cmd_parts)
 
             logger.info(f"Executing {self.name}: {command}")
 
@@ -138,14 +135,12 @@ class BaseTool(ABC):
                     "target": target,
                     "command": command,
                     "error": result.get("error", "Unknown execution error"),
-                    "stderr": result.get("stderr", "")
+                    "stderr": result.get("stderr", ""),
                 }
 
             # Parse output if execution was successful
             parsed_output = self.parse_output(
-                result.get("stdout", ""),
-                result.get("stderr", ""),
-                result.get("returncode", 0)
+                result.get("stdout", ""), result.get("stderr", ""), result.get("returncode", 0)
             )
 
             return {
@@ -155,7 +150,7 @@ class BaseTool(ABC):
                 "command": command,
                 "output": parsed_output,
                 "execution_time": result.get("execution_time", 0),
-                "cached": result.get("cached", False)
+                "cached": result.get("cached", False),
             }
 
         except ValueError as e:
@@ -165,18 +160,13 @@ class BaseTool(ABC):
                 "success": False,
                 "tool": self.name,
                 "target": target,
-                "error": f"Parameter validation failed: {str(e)}"
+                "error": f"Parameter validation failed: {str(e)}",
             }
 
         except Exception as e:
             # Unexpected error
             logger.error(f"{self.name} execution failed: {e}", exc_info=True)
-            return {
-                "success": False,
-                "tool": self.name,
-                "target": target,
-                "error": str(e)
-            }
+            return {"success": False, "tool": self.name, "target": target, "error": str(e)}
 
     def __str__(self) -> str:
         """String representation of the tool."""
@@ -200,8 +190,7 @@ class SimpleCommandTool(BaseTool):
                 super().__init__("Nikto", target_flag="-h")
     """
 
-    def __init__(self, name: str, binary_name: Optional[str] = None,
-                 target_flag: Optional[str] = None):
+    def __init__(self, name: str, binary_name: Optional[str] = None, target_flag: Optional[str] = None):
         """
         Initialize a simple command tool.
 
@@ -222,7 +211,7 @@ class SimpleCommandTool(BaseTool):
         cmd_parts = [self.binary_name]
 
         # Add additional arguments if provided
-        additional_args = params.get('additional_args', '')
+        additional_args = params.get("additional_args", "")
         if additional_args:
             cmd_parts.extend(additional_args.split())
 

@@ -5,13 +5,15 @@ Handles vulnerability cards, summary reports, and tool output formatting
 
 import logging
 from datetime import datetime
-from flask import Blueprint, request, jsonify
+
+from flask import Blueprint, jsonify, request
+
 from core.visual import ModernVisualEngine
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-visual_bp = Blueprint('visual', __name__, url_prefix='/api/visual')
+visual_bp = Blueprint("visual", __name__, url_prefix="/api/visual")
 
 
 @visual_bp.route("/vulnerability-card", methods=["POST"])
@@ -25,11 +27,7 @@ def create_vulnerability_card():
         # Create vulnerability card
         card = ModernVisualEngine.render_vulnerability_card(data)
 
-        return jsonify({
-            "success": True,
-            "vulnerability_card": card,
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify({"success": True, "vulnerability_card": card, "timestamp": datetime.now().isoformat()})
 
     except Exception as e:
         logger.error(f"💥 Error creating vulnerability card: {str(e)}")
@@ -48,11 +46,7 @@ def create_summary_report():
         visual_engine = ModernVisualEngine()
         report = visual_engine.create_summary_report(data)
 
-        return jsonify({
-            "success": True,
-            "summary_report": report,
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify({"success": True, "summary_report": report, "timestamp": datetime.now().isoformat()})
 
     except Exception as e:
         logger.error(f"💥 Error creating summary report: {str(e)}")
@@ -64,21 +58,17 @@ def format_tool_output():
     """Format tool output using ModernVisualEngine"""
     try:
         data = request.get_json()
-        if not data or 'tool' not in data or 'output' not in data:
+        if not data or "tool" not in data or "output" not in data:
             return jsonify({"error": "Tool and output data required"}), 400
 
-        tool = data['tool']
-        output = data['output']
-        success = data.get('success', True)
+        tool = data["tool"]
+        output = data["output"]
+        success = data.get("success", True)
 
         # Format tool output
         formatted_output = ModernVisualEngine.format_tool_output(tool, output, success)
 
-        return jsonify({
-            "success": True,
-            "formatted_output": formatted_output,
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify({"success": True, "formatted_output": formatted_output, "timestamp": datetime.now().isoformat()})
 
     except Exception as e:
         logger.error(f"💥 Error formatting tool output: {str(e)}")

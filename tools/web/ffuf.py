@@ -3,7 +3,8 @@ FFUF Tool Implementation
 Fast web fuzzer
 """
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 from ..base import BaseTool
 
 
@@ -34,18 +35,18 @@ class FfufTool(BaseTool):
         cmd_parts = [self.binary_name]
 
         # Ensure target has FUZZ placeholder
-        if 'FUZZ' not in target:
-            target = target.rstrip('/') + '/FUZZ'
+        if "FUZZ" not in target:
+            target = target.rstrip("/") + "/FUZZ"
 
         # Add target URL
-        cmd_parts.extend(['-u', target])
+        cmd_parts.extend(["-u", target])
 
         # Add wordlist
-        wordlist = params.get('wordlist', '/usr/share/wordlists/dirb/common.txt')
-        cmd_parts.extend(['-w', wordlist])
+        wordlist = params.get("wordlist", "/usr/share/wordlists/dirb/common.txt")
+        cmd_parts.extend(["-w", wordlist])
 
         # Add any additional arguments
-        additional_args = params.get('additional_args', '')
+        additional_args = params.get("additional_args", "")
         if additional_args:
             cmd_parts.extend(additional_args.split())
 
@@ -53,8 +54,4 @@ class FfufTool(BaseTool):
 
     def parse_output(self, stdout: str, stderr: str, returncode: int) -> Dict[str, Any]:
         """Parse ffuf output."""
-        return {
-            "raw_output": stdout,
-            "stderr": stderr,
-            "returncode": returncode
-        }
+        return {"raw_output": stdout, "stderr": stderr, "returncode": returncode}

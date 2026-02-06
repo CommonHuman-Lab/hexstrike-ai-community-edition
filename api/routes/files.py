@@ -4,15 +4,17 @@ Handles file creation, modification, deletion, and listing
 """
 
 import logging
-from flask import Blueprint, request, jsonify
+
+from flask import Blueprint, jsonify, request
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-files_bp = Blueprint('files', __name__, url_prefix='/api/files')
+files_bp = Blueprint("files", __name__, url_prefix="/api/files")
 
 # File manager will be injected via init_app
 file_manager = None
+
 
 def init_app(manager):
     """Initialize blueprint with file manager dependency"""

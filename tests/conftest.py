@@ -28,6 +28,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # PYTEST CONFIGURATION HOOKS
 # ============================================================================
 
+
 def pytest_configure(config):
     """Configure pytest with custom settings"""
     # Register custom markers
@@ -54,13 +55,14 @@ def pytest_collection_modifyitems(config, items):
 # FLASK APPLICATION FIXTURES
 # ============================================================================
 
+
 @pytest.fixture
 def app():
     """Create and configure a Flask test application"""
     app = Flask(__name__)
-    app.config['TESTING'] = True
-    app.config['JSON_SORT_KEYS'] = False
-    app.config['SECRET_KEY'] = 'test-secret-key'
+    app.config["TESTING"] = True
+    app.config["JSON_SORT_KEYS"] = False
+    app.config["SECRET_KEY"] = "test-secret-key"
     return app
 
 
@@ -80,11 +82,11 @@ def runner(app):
 # SUBPROCESS & COMMAND EXECUTION MOCKING
 # ============================================================================
 
+
 @pytest.fixture
 def mock_subprocess():
     """Mock subprocess execution to prevent actual tool execution"""
-    with patch('subprocess.Popen') as mock_popen, \
-         patch('subprocess.run') as mock_run:
+    with patch("subprocess.Popen") as mock_popen, patch("subprocess.run") as mock_run:
 
         # Configure Popen mock
         process_mock = MagicMock()
@@ -94,8 +96,8 @@ def mock_subprocess():
         process_mock.wait.return_value = 0
         process_mock.stdout = MagicMock()
         process_mock.stderr = MagicMock()
-        process_mock.stdout.readline = MagicMock(return_value='')
-        process_mock.stderr.readline = MagicMock(return_value='')
+        process_mock.stdout.readline = MagicMock(return_value="")
+        process_mock.stderr.readline = MagicMock(return_value="")
 
         mock_popen.return_value = process_mock
 
@@ -106,12 +108,7 @@ def mock_subprocess():
         run_result.stderr = b""
         mock_run.return_value = run_result
 
-        yield {
-            'popen': mock_popen,
-            'run': mock_run,
-            'process': process_mock,
-            'result': run_result
-        }
+        yield {"popen": mock_popen, "run": mock_run, "process": process_mock, "result": run_result}
 
 
 @pytest.fixture
@@ -126,56 +123,52 @@ def mock_tool_execution():
             self.calls = []
             self.responses = {}
 
-        def add_response(self, tool_name: str, stdout: str = "", stderr: str = "",
-                        returncode: int = 0):
+        def add_response(self, tool_name: str, stdout: str = "", stderr: str = "", returncode: int = 0):
             """Add a mock response for a specific tool"""
             self.responses[tool_name] = {
-                'stdout': stdout.encode() if isinstance(stdout, str) else stdout,
-                'stderr': stderr.encode() if isinstance(stderr, str) else stderr,
-                'returncode': returncode
+                "stdout": stdout.encode() if isinstance(stdout, str) else stdout,
+                "stderr": stderr.encode() if isinstance(stderr, str) else stderr,
+                "returncode": returncode,
             }
 
         def get_response(self, command: str):
             """Get mock response based on command"""
             # Extract tool name from command
-            tool_name = command.split()[0] if command else ''
+            tool_name = command.split()[0] if command else ""
 
             # Return configured response or default
             if tool_name in self.responses:
                 return self.responses[tool_name]
 
             # Default response
-            return {
-                'stdout': b"Mock tool output",
-                'stderr': b"",
-                'returncode': 0
-            }
+            return {"stdout": b"Mock tool output", "stderr": b"", "returncode": 0}
 
         def mock_popen(self, *args, **kwargs):
             """Mock Popen call"""
             self.call_count += 1
-            command = args[0] if args else kwargs.get('args', [''])[0]
+            command = args[0] if args else kwargs.get("args", [""])[0]
             self.calls.append(command)
 
-            response = self.get_response(command if isinstance(command, str) else ' '.join(command))
+            response = self.get_response(command if isinstance(command, str) else " ".join(command))
 
             process = MagicMock()
-            process.returncode = response['returncode']
-            process.communicate.return_value = (response['stdout'], response['stderr'])
-            process.poll.return_value = response['returncode']
-            process.wait.return_value = response['returncode']
+            process.returncode = response["returncode"]
+            process.communicate.return_value = (response["stdout"], response["stderr"])
+            process.poll.return_value = response["returncode"]
+            process.wait.return_value = response["returncode"]
 
             return process
 
     executor = MockToolExecutor()
 
-    with patch('subprocess.Popen', side_effect=executor.mock_popen):
+    with patch("subprocess.Popen", side_effect=executor.mock_popen):
         yield executor
 
 
 # ============================================================================
 # FILE SYSTEM & TEMP DIRECTORY FIXTURES
 # ============================================================================
+
 
 @pytest.fixture
 def temp_dir():
@@ -198,11 +191,12 @@ def temp_file():
 # TIME & DATETIME MOCKING
 # ============================================================================
 
+
 @pytest.fixture
 def frozen_time():
     """Mock time.time() to return a fixed value"""
     fixed_time = 1234567890.0
-    with patch('time.time', return_value=fixed_time):
+    with patch("time.time", return_value=fixed_time):
         yield fixed_time
 
 
@@ -216,7 +210,7 @@ def mock_datetime():
         def now(cls):
             return fixed_datetime
 
-    with patch('datetime.datetime', MockDateTime):
+    with patch("datetime.datetime", MockDateTime):
         yield fixed_datetime
 
 
@@ -224,13 +218,16 @@ def mock_datetime():
 # NETWORK & HTTP MOCKING
 # ============================================================================
 
+
 @pytest.fixture
 def mock_requests():
     """Mock requests library for HTTP calls"""
-    with patch('requests.get') as mock_get, \
-         patch('requests.post') as mock_post, \
-         patch('requests.put') as mock_put, \
-         patch('requests.delete') as mock_delete:
+    with (
+        patch("requests.get") as mock_get,
+        patch("requests.post") as mock_post,
+        patch("requests.put") as mock_put,
+        patch("requests.delete") as mock_delete,
+    ):
 
         # Configure default responses
         response = MagicMock()
@@ -244,26 +241,23 @@ def mock_requests():
         mock_put.return_value = response
         mock_delete.return_value = response
 
-        yield {
-            'get': mock_get,
-            'post': mock_post,
-            'put': mock_put,
-            'delete': mock_delete,
-            'response': response
-        }
+        yield {"get": mock_get, "post": mock_post, "put": mock_put, "delete": mock_delete, "response": response}
 
 
 # ============================================================================
 # SYSTEM METRICS MOCKING
 # ============================================================================
 
+
 @pytest.fixture
 def mock_psutil():
     """Mock psutil for system metrics"""
-    with patch('psutil.cpu_percent', return_value=50.0), \
-         patch('psutil.virtual_memory') as mock_mem, \
-         patch('psutil.disk_usage') as mock_disk, \
-         patch('psutil.net_io_counters') as mock_net:
+    with (
+        patch("psutil.cpu_percent", return_value=50.0),
+        patch("psutil.virtual_memory") as mock_mem,
+        patch("psutil.disk_usage") as mock_disk,
+        patch("psutil.net_io_counters") as mock_net,
+    ):
 
         # Configure memory mock
         mem = MagicMock()
@@ -277,23 +271,16 @@ def mock_psutil():
 
         # Configure network mock
         net = MagicMock()
-        net._asdict.return_value = {
-            'bytes_sent': 1000,
-            'bytes_recv': 2000
-        }
+        net._asdict.return_value = {"bytes_sent": 1000, "bytes_recv": 2000}
         mock_net.return_value = net
 
-        yield {
-            'cpu': 50.0,
-            'memory': mem,
-            'disk': disk,
-            'network': net
-        }
+        yield {"cpu": 50.0, "memory": mem, "disk": disk, "network": net}
 
 
 # ============================================================================
 # SAMPLE TOOL OUTPUT FIXTURES
 # ============================================================================
+
 
 @pytest.fixture
 def sample_nmap_output():
@@ -395,44 +382,46 @@ def sample_nikto_output():
 # SAMPLE VULNERABILITY DATA
 # ============================================================================
 
+
 @pytest.fixture
 def sample_vulnerability_data():
     """Return sample vulnerability data for testing"""
     return {
-        'critical': {
-            'name': 'SQL Injection in login form',
-            'severity': 'critical',
-            'description': 'The login form is vulnerable to SQL injection attacks',
-            'cvss_score': 9.8,
-            'cve_id': 'CVE-2024-12345'
+        "critical": {
+            "name": "SQL Injection in login form",
+            "severity": "critical",
+            "description": "The login form is vulnerable to SQL injection attacks",
+            "cvss_score": 9.8,
+            "cve_id": "CVE-2024-12345",
         },
-        'high': {
-            'name': 'Remote Code Execution',
-            'severity': 'high',
-            'description': 'Unauthenticated RCE via file upload',
-            'cvss_score': 8.5,
-            'cve_id': 'CVE-2024-67890'
+        "high": {
+            "name": "Remote Code Execution",
+            "severity": "high",
+            "description": "Unauthenticated RCE via file upload",
+            "cvss_score": 8.5,
+            "cve_id": "CVE-2024-67890",
         },
-        'medium': {
-            'name': 'Cross-Site Scripting (XSS)',
-            'severity': 'medium',
-            'description': 'Reflected XSS in search parameter',
-            'cvss_score': 6.1,
-            'cve_id': None
+        "medium": {
+            "name": "Cross-Site Scripting (XSS)",
+            "severity": "medium",
+            "description": "Reflected XSS in search parameter",
+            "cvss_score": 6.1,
+            "cve_id": None,
         },
-        'low': {
-            'name': 'Information Disclosure',
-            'severity': 'low',
-            'description': 'Server version exposed in headers',
-            'cvss_score': 3.7,
-            'cve_id': None
-        }
+        "low": {
+            "name": "Information Disclosure",
+            "severity": "low",
+            "description": "Server version exposed in headers",
+            "cvss_score": 3.7,
+            "cve_id": None,
+        },
     }
 
 
 # ============================================================================
 # CACHE & STORAGE FIXTURES
 # ============================================================================
+
 
 @pytest.fixture
 def mock_cache():
@@ -459,11 +448,7 @@ def mock_cache():
         def get_stats(self):
             total = self.stats["hits"] + self.stats["misses"]
             hit_rate = (self.stats["hits"] / total * 100) if total > 0 else 0
-            return {
-                "size": len(self.storage),
-                "hit_rate": f"{hit_rate:.1f}%",
-                **self.stats
-            }
+            return {"size": len(self.storage), "hit_rate": f"{hit_rate:.1f}%", **self.stats}
 
     return MockCache()
 
@@ -472,10 +457,12 @@ def mock_cache():
 # LOGGING & OUTPUT FIXTURES
 # ============================================================================
 
+
 @pytest.fixture
 def capture_logs(caplog):
     """Fixture to capture and analyze log output"""
     import logging
+
     caplog.set_level(logging.DEBUG)
     return caplog
 
@@ -484,36 +471,33 @@ def capture_logs(caplog):
 def suppress_output(monkeypatch):
     """Suppress stdout/stderr during tests"""
     import io
-    monkeypatch.setattr('sys.stdout', io.StringIO())
-    monkeypatch.setattr('sys.stderr', io.StringIO())
+
+    monkeypatch.setattr("sys.stdout", io.StringIO())
+    monkeypatch.setattr("sys.stderr", io.StringIO())
 
 
 # ============================================================================
 # COMMON TEST DATA
 # ============================================================================
 
+
 @pytest.fixture
 def sample_target_data():
     """Return sample target data for testing"""
     return {
-        'web_app': {
-            'url': 'http://example.com',
-            'type': 'web_application',
-            'ports': [80, 443],
-            'technologies': ['Apache', 'PHP', 'MySQL']
+        "web_app": {
+            "url": "http://example.com",
+            "type": "web_application",
+            "ports": [80, 443],
+            "technologies": ["Apache", "PHP", "MySQL"],
         },
-        'network_host': {
-            'ip': '192.168.1.100',
-            'type': 'network_host',
-            'hostname': 'target.local',
-            'open_ports': [22, 80, 443, 3306]
+        "network_host": {
+            "ip": "192.168.1.100",
+            "type": "network_host",
+            "hostname": "target.local",
+            "open_ports": [22, 80, 443, 3306],
         },
-        'api': {
-            'url': 'https://api.example.com',
-            'type': 'api_endpoint',
-            'version': 'v1',
-            'auth': 'bearer_token'
-        }
+        "api": {"url": "https://api.example.com", "type": "api_endpoint", "version": "v1", "auth": "bearer_token"},
     }
 
 
@@ -521,30 +505,26 @@ def sample_target_data():
 def sample_scan_results():
     """Return sample scan results for testing"""
     return {
-        'nmap': {
-            'tool': 'nmap',
-            'target': '192.168.1.100',
-            'open_ports': [22, 80, 443],
-            'services': {
-                22: 'ssh',
-                80: 'http',
-                443: 'https'
-            },
-            'duration': 12.34
+        "nmap": {
+            "tool": "nmap",
+            "target": "192.168.1.100",
+            "open_ports": [22, 80, 443],
+            "services": {22: "ssh", 80: "http", 443: "https"},
+            "duration": 12.34,
         },
-        'gobuster': {
-            'tool': 'gobuster',
-            'target': 'http://example.com',
-            'found_paths': ['/admin', '/uploads', '/api'],
-            'total_requests': 4615,
-            'duration': 45.67
+        "gobuster": {
+            "tool": "gobuster",
+            "target": "http://example.com",
+            "found_paths": ["/admin", "/uploads", "/api"],
+            "total_requests": 4615,
+            "duration": 45.67,
         },
-        'sqlmap': {
-            'tool': 'sqlmap',
-            'target': 'http://example.com/login?id=1',
-            'vulnerable': True,
-            'injection_type': 'boolean-based blind',
-            'parameter': 'id',
-            'duration': 120.5
-        }
+        "sqlmap": {
+            "tool": "sqlmap",
+            "target": "http://example.com/login?id=1",
+            "vulnerable": True,
+            "injection_type": "boolean-based blind",
+            "parameter": "id",
+            "duration": 120.5,
+        },
     }

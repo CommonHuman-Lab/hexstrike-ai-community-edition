@@ -18,6 +18,7 @@ class TestArjunToolInitialization(unittest.TestCase):
 
     def test_inheritance(self):
         from tools.base import BaseTool
+
         tool = ArjunTool()
         self.assertIsInstance(tool, BaseTool)
 
@@ -39,27 +40,19 @@ class TestArjunCommandBuilding(unittest.TestCase):
         self.assertIn("-u", cmd)
 
     def test_command_with_methods(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-m GET POST"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-m GET POST"})
         self.assertIn("-m", cmd)
 
     def test_command_with_threads(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-t 20"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-t 20"})
         self.assertIn("-t", cmd)
 
     def test_command_with_delay(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-d 2"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-d 2"})
         self.assertIn("-d", cmd)
 
     def test_command_with_include(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-i custom.txt"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-i custom.txt"})
         self.assertIn("-i", cmd)
 
 
@@ -87,7 +80,7 @@ class TestArjunToolExecution(unittest.TestCase):
             "success": True,
             "stdout": "[+] Found parameters: id, name",
             "stderr": "",
-            "returncode": 0
+            "returncode": 0,
         }
 
         result = self.tool.execute("https://example.com", {}, self.mock_execute_func)
@@ -99,7 +92,7 @@ class TestArjunToolExecution(unittest.TestCase):
             "success": False,
             "error": "arjun: command not found",
             "stderr": "arjun: command not found",
-            "returncode": 127
+            "returncode": 127,
         }
 
         result = self.tool.execute("https://example.com", {}, self.mock_execute_func)
@@ -118,16 +111,18 @@ class TestArjunEdgeCases(unittest.TestCase):
 class TestArjunIntegration(unittest.TestCase):
     def test_realistic_scan(self):
         tool = ArjunTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": "[+] Detected parameters: id, page, limit",
-            "stderr": "",
-            "returncode": 0
-        })
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": "[+] Detected parameters: id, page, limit",
+                "stderr": "",
+                "returncode": 0,
+            }
+        )
 
         result = tool.execute("https://example.com/api", {}, mock_execute)
         self.assertTrue(result["success"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

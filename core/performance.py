@@ -5,7 +5,7 @@ Real-time performance monitoring dashboard
 
 import threading
 import time
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 class PerformanceDashboard:
@@ -25,7 +25,7 @@ class PerformanceDashboard:
                 "success": result.get("success", False),
                 "execution_time": result.get("execution_time", 0),
                 "return_code": result.get("return_code", -1),
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }
 
             self.execution_history.append(execution_record)
@@ -56,5 +56,5 @@ class PerformanceDashboard:
                 "recent_executions": total_executions,
                 "success_rate": (successful_executions / total_executions * 100) if total_executions > 0 else 0,
                 "avg_execution_time": avg_execution_time,
-                "system_metrics_count": len(self.system_metrics)
+                "system_metrics_count": len(self.system_metrics),
             }

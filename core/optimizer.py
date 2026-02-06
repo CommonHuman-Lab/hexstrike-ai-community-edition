@@ -7,12 +7,13 @@ technology detection, rate limiting, failure recovery, and performance monitorin
 Extracted from hexstrike_server.py for modularity and reusability.
 """
 
+import logging
 import re
 import time
-import logging
-import psutil
-from typing import Dict, Any, List
 from datetime import datetime
+from typing import Any, Dict, List
+
+import psutil
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ class TechnologyDetector:
                 "iis": ["Microsoft-IIS", "IIS"],
                 "tomcat": ["Tomcat", "Apache-Coyote"],
                 "jetty": ["Jetty"],
-                "lighttpd": ["lighttpd"]
+                "lighttpd": ["lighttpd"],
             },
             "frameworks": {
                 "django": ["Django", "django", "csrftoken"],
@@ -38,7 +39,7 @@ class TechnologyDetector:
                 "symfony": ["Symfony", "symfony"],
                 "rails": ["Ruby on Rails", "rails", "_session_id"],
                 "spring": ["Spring", "JSESSIONID"],
-                "struts": ["Struts", "struts"]
+                "struts": ["Struts", "struts"],
             },
             "cms": {
                 "wordpress": ["wp-content", "wp-includes", "WordPress", "/wp-admin/"],
@@ -46,7 +47,7 @@ class TechnologyDetector:
                 "joomla": ["Joomla", "joomla", "/administrator/", "com_content"],
                 "magento": ["Magento", "magento", "Mage.Cookies"],
                 "prestashop": ["PrestaShop", "prestashop"],
-                "opencart": ["OpenCart", "opencart"]
+                "opencart": ["OpenCart", "opencart"],
             },
             "databases": {
                 "mysql": ["MySQL", "mysql", "phpMyAdmin"],
@@ -54,7 +55,7 @@ class TechnologyDetector:
                 "mssql": ["Microsoft SQL Server", "MSSQL"],
                 "oracle": ["Oracle", "oracle"],
                 "mongodb": ["MongoDB", "mongo"],
-                "redis": ["Redis", "redis"]
+                "redis": ["Redis", "redis"],
             },
             "languages": {
                 "php": ["PHP", "php", ".php", "X-Powered-By: PHP"],
@@ -64,13 +65,13 @@ class TechnologyDetector:
                 "nodejs": ["Node.js", "node", ".js"],
                 "ruby": ["Ruby", "ruby", ".rb"],
                 "go": ["Go", "golang"],
-                "rust": ["Rust", "rust"]
+                "rust": ["Rust", "rust"],
             },
             "security": {
                 "waf": ["cloudflare", "CloudFlare", "X-CF-Ray", "incapsula", "Incapsula", "sucuri", "Sucuri"],
                 "load_balancer": ["F5", "BigIP", "HAProxy", "nginx", "AWS-ALB"],
-                "cdn": ["CloudFront", "Fastly", "KeyCDN", "MaxCDN", "Cloudflare"]
-            }
+                "cdn": ["CloudFront", "Fastly", "KeyCDN", "MaxCDN", "Cloudflare"],
+            },
         }
 
         self.port_services = {
@@ -93,10 +94,12 @@ class TechnologyDetector:
             8080: "http-alt",
             8443: "https-alt",
             9200: "elasticsearch",
-            11211: "memcached"
+            11211: "memcached",
         }
 
-    def detect_technologies(self, target: str, headers: Dict[str, str] = None, content: str = "", ports: List[int] = None) -> Dict[str, List[str]]:
+    def detect_technologies(
+        self, target: str, headers: Dict[str, str] = None, content: str = "", ports: List[int] = None
+    ) -> Dict[str, List[str]]:
         """Comprehensive technology detection"""
         detected = {
             "web_servers": [],
@@ -105,7 +108,7 @@ class TechnologyDetector:
             "databases": [],
             "languages": [],
             "security": [],
-            "services": []
+            "services": [],
         }
 
         # Header-based detection
@@ -152,17 +155,19 @@ class RateLimitDetector:
             "retry after",
             "quota exceeded",
             "api limit",
-            "request limit"
+            "request limit",
         ]
 
         self.timing_profiles = {
             "aggressive": {"delay": 0.1, "threads": 50, "timeout": 5},
             "normal": {"delay": 0.5, "threads": 20, "timeout": 10},
             "conservative": {"delay": 1.0, "threads": 10, "timeout": 15},
-            "stealth": {"delay": 2.0, "threads": 5, "timeout": 30}
+            "stealth": {"delay": 2.0, "threads": 5, "timeout": 30},
         }
 
-    def detect_rate_limiting(self, response_text: str, status_code: int, headers: Dict[str, str] = None) -> Dict[str, Any]:
+    def detect_rate_limiting(
+        self, response_text: str, status_code: int, headers: Dict[str, str] = None
+    ) -> Dict[str, Any]:
         """Detect rate limiting from response"""
         rate_limit_detected = False
         confidence = 0.0
@@ -198,7 +203,7 @@ class RateLimitDetector:
             "detected": rate_limit_detected,
             "confidence": confidence,
             "indicators": indicators_found,
-            "recommended_profile": self._recommend_timing_profile(confidence)
+            "recommended_profile": self._recommend_timing_profile(confidence),
         }
 
     def _recommend_timing_profile(self, confidence: float) -> str:
@@ -231,9 +236,9 @@ class RateLimitDetector:
             args = adjusted_params["additional_args"]
 
             # Remove existing timing arguments
-            args = re.sub(r'-t\s+\d+', '', args)
-            args = re.sub(r'--threads\s+\d+', '', args)
-            args = re.sub(r'--delay\s+[\d.]+', '', args)
+            args = re.sub(r"-t\s+\d+", "", args)
+            args = re.sub(r"--threads\s+\d+", "", args)
+            args = re.sub(r"--delay\s+[\d.]+", "", args)
 
             # Add new timing arguments
             args += f" -t {timing['threads']}"
@@ -257,7 +262,7 @@ class FailureRecoverySystem:
             "hydra": ["medusa", "ncrack", "patator"],
             "hashcat": ["john", "ophcrack", "rainbowcrack"],
             "amass": ["subfinder", "sublist3r", "assetfinder"],
-            "ffuf": ["wfuzz", "gobuster", "dirb"]
+            "ffuf": ["wfuzz", "gobuster", "dirb"],
         }
 
         self.failure_patterns = {
@@ -266,7 +271,7 @@ class FailureRecoverySystem:
             "not_found": ["not found", "command not found", "no such file"],
             "network_error": ["network unreachable", "connection refused", "host unreachable"],
             "rate_limited": ["rate limit", "too many requests", "throttled"],
-            "authentication_required": ["authentication required", "unauthorized", "login required"]
+            "authentication_required": ["authentication required", "unauthorized", "login required"],
         }
 
     def analyze_failure(self, error_output: str, exit_code: int) -> Dict[str, Any]:
@@ -303,34 +308,34 @@ class FailureRecoverySystem:
                 "Increase timeout values",
                 "Reduce thread count",
                 "Use alternative faster tool",
-                "Split target into smaller chunks"
+                "Split target into smaller chunks",
             ]
         elif failure_type == "permission_denied":
             recovery_strategies = [
                 "Run with elevated privileges",
                 "Check file permissions",
-                "Use alternative tool with different approach"
+                "Use alternative tool with different approach",
             ]
         elif failure_type == "rate_limited":
             recovery_strategies = [
                 "Implement delays between requests",
                 "Reduce thread count",
                 "Use stealth timing profile",
-                "Rotate IP addresses if possible"
+                "Rotate IP addresses if possible",
             ]
         elif failure_type == "network_error":
             recovery_strategies = [
                 "Check network connectivity",
                 "Try alternative network routes",
                 "Use proxy or VPN",
-                "Verify target is accessible"
+                "Verify target is accessible",
             ]
 
         return {
             "failure_type": failure_type,
             "confidence": confidence,
             "recovery_strategies": recovery_strategies,
-            "alternative_tools": self.tool_alternatives.get(self._extract_tool_name(error_output), [])
+            "alternative_tools": self.tool_alternatives.get(self._extract_tool_name(error_output), []),
         }
 
     def _extract_tool_name(self, error_output: str) -> str:
@@ -346,34 +351,17 @@ class PerformanceMonitor:
 
     def __init__(self):
         self.performance_metrics = {}
-        self.resource_thresholds = {
-            "cpu_high": 80.0,
-            "memory_high": 85.0,
-            "disk_high": 90.0,
-            "network_high": 80.0
-        }
+        self.resource_thresholds = {"cpu_high": 80.0, "memory_high": 85.0, "disk_high": 90.0, "network_high": 80.0}
 
         self.optimization_rules = {
-            "high_cpu": {
-                "reduce_threads": 0.5,
-                "increase_delay": 2.0,
-                "enable_nice": True
-            },
-            "high_memory": {
-                "reduce_batch_size": 0.6,
-                "enable_streaming": True,
-                "clear_cache": True
-            },
-            "high_disk": {
-                "reduce_output_verbosity": True,
-                "enable_compression": True,
-                "cleanup_temp_files": True
-            },
+            "high_cpu": {"reduce_threads": 0.5, "increase_delay": 2.0, "enable_nice": True},
+            "high_memory": {"reduce_batch_size": 0.6, "enable_streaming": True, "clear_cache": True},
+            "high_disk": {"reduce_output_verbosity": True, "enable_compression": True, "cleanup_temp_files": True},
             "high_network": {
                 "reduce_concurrent_connections": 0.7,
                 "increase_timeout": 1.5,
-                "enable_connection_pooling": True
-            }
+                "enable_connection_pooling": True,
+            },
         }
 
     def monitor_system_resources(self) -> Dict[str, float]:
@@ -381,7 +369,7 @@ class PerformanceMonitor:
         try:
             cpu_percent = psutil.cpu_percent(interval=1)
             memory = psutil.virtual_memory()
-            disk = psutil.disk_usage('/')
+            disk = psutil.disk_usage("/")
             network = psutil.net_io_counters()
 
             return {
@@ -390,13 +378,15 @@ class PerformanceMonitor:
                 "disk_percent": disk.percent,
                 "network_bytes_sent": network.bytes_sent,
                 "network_bytes_recv": network.bytes_recv,
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }
         except Exception as e:
             logger.error(f"Error monitoring system resources: {str(e)}")
             return {}
 
-    def optimize_based_on_resources(self, current_params: Dict[str, Any], resource_usage: Dict[str, float]) -> Dict[str, Any]:
+    def optimize_based_on_resources(
+        self, current_params: Dict[str, Any], resource_usage: Dict[str, float]
+    ) -> Dict[str, Any]:
         """Optimize parameters based on current resource usage"""
         optimized_params = current_params.copy()
         optimizations_applied = []
@@ -405,8 +395,12 @@ class PerformanceMonitor:
         if resource_usage.get("cpu_percent", 0) > self.resource_thresholds["cpu_high"]:
             if "threads" in optimized_params:
                 original_threads = optimized_params["threads"]
-                optimized_params["threads"] = max(1, int(original_threads * self.optimization_rules["high_cpu"]["reduce_threads"]))
-                optimizations_applied.append(f"Reduced threads from {original_threads} to {optimized_params['threads']}")
+                optimized_params["threads"] = max(
+                    1, int(original_threads * self.optimization_rules["high_cpu"]["reduce_threads"])
+                )
+                optimizations_applied.append(
+                    f"Reduced threads from {original_threads} to {optimized_params['threads']}"
+                )
 
             if "delay" in optimized_params:
                 original_delay = optimized_params.get("delay", 0)
@@ -417,8 +411,12 @@ class PerformanceMonitor:
         if resource_usage.get("memory_percent", 0) > self.resource_thresholds["memory_high"]:
             if "batch_size" in optimized_params:
                 original_batch = optimized_params["batch_size"]
-                optimized_params["batch_size"] = max(1, int(original_batch * self.optimization_rules["high_memory"]["reduce_batch_size"]))
-                optimizations_applied.append(f"Reduced batch size from {original_batch} to {optimized_params['batch_size']}")
+                optimized_params["batch_size"] = max(
+                    1, int(original_batch * self.optimization_rules["high_memory"]["reduce_batch_size"])
+                )
+                optimizations_applied.append(
+                    f"Reduced batch size from {original_batch} to {optimized_params['batch_size']}"
+                )
 
         # Network optimization
         if "network_bytes_sent" in resource_usage:
@@ -426,8 +424,12 @@ class PerformanceMonitor:
             if resource_usage["network_bytes_sent"] > 1000000:  # 1MB/s
                 if "concurrent_connections" in optimized_params:
                     original_conn = optimized_params["concurrent_connections"]
-                    optimized_params["concurrent_connections"] = max(1, int(original_conn * self.optimization_rules["high_network"]["reduce_concurrent_connections"]))
-                    optimizations_applied.append(f"Reduced concurrent connections to {optimized_params['concurrent_connections']}")
+                    optimized_params["concurrent_connections"] = max(
+                        1, int(original_conn * self.optimization_rules["high_network"]["reduce_concurrent_connections"])
+                    )
+                    optimizations_applied.append(
+                        f"Reduced concurrent connections to {optimized_params['concurrent_connections']}"
+                    )
 
         optimized_params["_optimizations_applied"] = optimizations_applied
         return optimized_params
@@ -448,56 +450,25 @@ class ParameterOptimizer:
                 "stealth": {
                     "scan_type": "-sS",
                     "timing": "-T2",
-                    "additional_args": "--max-retries 1 --host-timeout 300s"
+                    "additional_args": "--max-retries 1 --host-timeout 300s",
                 },
-                "normal": {
-                    "scan_type": "-sS -sV",
-                    "timing": "-T4",
-                    "additional_args": "--max-retries 2"
-                },
+                "normal": {"scan_type": "-sS -sV", "timing": "-T4", "additional_args": "--max-retries 2"},
                 "aggressive": {
                     "scan_type": "-sS -sV -sC -O",
                     "timing": "-T5",
-                    "additional_args": "--max-retries 3 --min-rate 1000"
-                }
+                    "additional_args": "--max-retries 3 --min-rate 1000",
+                },
             },
             "gobuster": {
-                "stealth": {
-                    "threads": 5,
-                    "delay": "1s",
-                    "timeout": "30s"
-                },
-                "normal": {
-                    "threads": 20,
-                    "delay": "0s",
-                    "timeout": "10s"
-                },
-                "aggressive": {
-                    "threads": 50,
-                    "delay": "0s",
-                    "timeout": "5s"
-                }
+                "stealth": {"threads": 5, "delay": "1s", "timeout": "30s"},
+                "normal": {"threads": 20, "delay": "0s", "timeout": "10s"},
+                "aggressive": {"threads": 50, "delay": "0s", "timeout": "5s"},
             },
             "sqlmap": {
-                "stealth": {
-                    "level": 1,
-                    "risk": 1,
-                    "threads": 1,
-                    "delay": 1
-                },
-                "normal": {
-                    "level": 2,
-                    "risk": 2,
-                    "threads": 5,
-                    "delay": 0
-                },
-                "aggressive": {
-                    "level": 3,
-                    "risk": 3,
-                    "threads": 10,
-                    "delay": 0
-                }
-            }
+                "stealth": {"level": 1, "risk": 1, "threads": 1, "delay": 1},
+                "normal": {"level": 2, "risk": 2, "threads": 5, "delay": 0},
+                "aggressive": {"level": 3, "risk": 3, "threads": 10, "delay": 0},
+            },
         }
 
     def optimize_parameters_advanced(self, tool: str, target_profile, context: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -513,7 +484,7 @@ class ParameterOptimizer:
             target_profile.target,
             headers=context.get("headers", {}),
             content=context.get("content", ""),
-            ports=target_profile.open_ports
+            ports=target_profile.open_ports,
         )
 
         # Apply technology-specific optimizations
@@ -521,7 +492,9 @@ class ParameterOptimizer:
 
         # Monitor system resources and optimize accordingly
         resource_usage = self.performance_monitor.monitor_system_resources()
-        resource_optimized_params = self.performance_monitor.optimize_based_on_resources(tech_optimized_params, resource_usage)
+        resource_optimized_params = self.performance_monitor.optimize_based_on_resources(
+            tech_optimized_params, resource_usage
+        )
 
         # Apply profile-based optimizations
         profile = context.get("optimization_profile", "normal")
@@ -533,7 +506,7 @@ class ParameterOptimizer:
             "resource_usage": resource_usage,
             "optimization_profile": profile,
             "optimizations_applied": resource_optimized_params.get("_optimizations_applied", []),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         return profile_optimized_params
@@ -544,32 +517,25 @@ class ParameterOptimizer:
 
         # Tool-specific base parameters
         if tool == "nmap":
-            base_params.update({
-                "scan_type": "-sS",
-                "ports": "1-1000",
-                "timing": "-T4"
-            })
+            base_params.update({"scan_type": "-sS", "ports": "1-1000", "timing": "-T4"})
         elif tool == "gobuster":
-            base_params.update({
-                "mode": "dir",
-                "threads": 20,
-                "wordlist": "/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt"
-            })
+            base_params.update(
+                {
+                    "mode": "dir",
+                    "threads": 20,
+                    "wordlist": "/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt",
+                }
+            )
         elif tool == "sqlmap":
-            base_params.update({
-                "batch": True,
-                "level": 1,
-                "risk": 1
-            })
+            base_params.update({"batch": True, "level": 1, "risk": 1})
         elif tool == "nuclei":
-            base_params.update({
-                "severity": "critical,high,medium",
-                "threads": 25
-            })
+            base_params.update({"severity": "critical,high,medium", "threads": 25})
 
         return base_params
 
-    def _apply_technology_optimizations(self, tool: str, params: Dict[str, Any], detected_tech: Dict[str, List[str]]) -> Dict[str, Any]:
+    def _apply_technology_optimizations(
+        self, tool: str, params: Dict[str, Any], detected_tech: Dict[str, List[str]]
+    ) -> Dict[str, Any]:
         """Apply technology-specific optimizations"""
         optimized_params = params.copy()
 
@@ -644,7 +610,9 @@ class ParameterOptimizer:
 
         return optimized_params
 
-    def handle_tool_failure(self, tool: str, error_output: str, exit_code: int, current_params: Dict[str, Any]) -> Dict[str, Any]:
+    def handle_tool_failure(
+        self, tool: str, error_output: str, exit_code: int, current_params: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Handle tool failure and suggest recovery"""
         failure_analysis = self.failure_recovery.analyze_failure(error_output, exit_code)
 
@@ -653,7 +621,7 @@ class ParameterOptimizer:
             "failure_analysis": failure_analysis,
             "recovery_actions": [],
             "alternative_tools": failure_analysis["alternative_tools"],
-            "adjusted_parameters": current_params.copy()
+            "adjusted_parameters": current_params.copy(),
         }
 
         # Apply automatic parameter adjustments based on failure type
@@ -661,7 +629,9 @@ class ParameterOptimizer:
             if "timeout" in recovery_plan["adjusted_parameters"]:
                 recovery_plan["adjusted_parameters"]["timeout"] *= 2
             if "threads" in recovery_plan["adjusted_parameters"]:
-                recovery_plan["adjusted_parameters"]["threads"] = max(1, recovery_plan["adjusted_parameters"]["threads"] // 2)
+                recovery_plan["adjusted_parameters"]["threads"] = max(
+                    1, recovery_plan["adjusted_parameters"]["threads"] // 2
+                )
             recovery_plan["recovery_actions"].append("Increased timeout and reduced threads")
 
         elif failure_analysis["failure_type"] == "rate_limited":

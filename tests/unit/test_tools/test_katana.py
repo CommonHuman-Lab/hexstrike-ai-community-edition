@@ -18,6 +18,7 @@ class TestKatanaToolInitialization(unittest.TestCase):
 
     def test_inheritance(self):
         from tools.base import BaseTool
+
         tool = KatanaTool()
         self.assertIsInstance(tool, BaseTool)
 
@@ -39,27 +40,19 @@ class TestKatanaCommandBuilding(unittest.TestCase):
         self.assertIn("-u", cmd)
 
     def test_command_with_depth(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-d 3"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-d 3"})
         self.assertIn("-d", cmd)
 
     def test_command_with_javascript(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-jc"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-jc"})
         self.assertIn("-jc", cmd)
 
     def test_command_with_headless(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-headless"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-headless"})
         self.assertIn("-headless", cmd)
 
     def test_command_with_json_output(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-json"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-json"})
         self.assertIn("-json", cmd)
 
 
@@ -87,7 +80,7 @@ class TestKatanaToolExecution(unittest.TestCase):
             "success": True,
             "stdout": "https://example.com/crawled",
             "stderr": "",
-            "returncode": 0
+            "returncode": 0,
         }
 
         result = self.tool.execute("https://example.com", {}, self.mock_execute_func)
@@ -99,7 +92,7 @@ class TestKatanaToolExecution(unittest.TestCase):
             "success": False,
             "error": "katana: command not found",
             "stderr": "katana: command not found",
-            "returncode": 127
+            "returncode": 127,
         }
 
         result = self.tool.execute("https://example.com", {}, self.mock_execute_func)
@@ -118,18 +111,20 @@ class TestKatanaEdgeCases(unittest.TestCase):
 class TestKatanaIntegration(unittest.TestCase):
     def test_realistic_crawl(self):
         tool = KatanaTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": """https://example.com/
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": """https://example.com/
 https://example.com/about
 https://example.com/contact""",
-            "stderr": "",
-            "returncode": 0
-        })
+                "stderr": "",
+                "returncode": 0,
+            }
+        )
 
         result = tool.execute("https://example.com", {}, mock_execute)
         self.assertTrue(result["success"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

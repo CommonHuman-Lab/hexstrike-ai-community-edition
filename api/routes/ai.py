@@ -5,17 +5,18 @@ Handles AI-powered contextual payload generation and testing
 
 import logging
 from datetime import datetime
-from typing import Dict, Any
-from flask import Blueprint, request, jsonify
+
+from flask import Blueprint, jsonify, request
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-ai_bp = Blueprint('ai', __name__, url_prefix='/api/ai')
+ai_bp = Blueprint("ai", __name__, url_prefix="/api/ai")
 
 # Dependencies will be injected via init_app
 ai_payload_generator = None
 execute_command = None
+
 
 def init_app(payload_gen, exec_cmd):
     """Initialize blueprint with dependencies"""
@@ -33,7 +34,7 @@ def ai_generate_payload():
             "attack_type": params.get("attack_type", "xss"),
             "complexity": params.get("complexity", "basic"),
             "technology": params.get("technology", ""),
-            "url": params.get("url", "")
+            "url": params.get("url", ""),
         }
 
         logger.info(f"🤖 Generating AI payloads for {target_info['attack_type']} attack")
@@ -41,18 +42,12 @@ def ai_generate_payload():
 
         logger.info(f"✅ Generated {result['payload_count']} contextual payloads")
 
-        return jsonify({
-            "success": True,
-            "ai_payload_generation": result,
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify({"success": True, "ai_payload_generation": result, "timestamp": datetime.now().isoformat()})
 
     except Exception as e:
         logger.error(f"💥 Error in AI payload generation: {str(e)}")
-        return jsonify({
-            "success": False,
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"success": False, "error": f"Server error: {str(e)}"}), 500
+
 
 @ai_bp.route("/test_payload", methods=["POST"])
 def ai_test_payload():
@@ -64,10 +59,7 @@ def ai_test_payload():
         method = params.get("method", "GET")
 
         if not payload or not target_url:
-            return jsonify({
-                "success": False,
-                "error": "Payload and target_url are required"
-            }), 400
+            return jsonify({"success": False, "error": "Payload and target_url are required"}), 400
 
         logger.info(f"🧪 Testing AI-generated payload against {target_url}")
 
@@ -92,25 +84,20 @@ def ai_test_payload():
             "recommendations": [
                 "Analyze response for payload reflection",
                 "Check for error messages indicating vulnerability",
-                "Monitor application behavior changes"
-            ]
+                "Monitor application behavior changes",
+            ],
         }
 
         logger.info(f"🔍 Payload test completed | Potential vuln: {analysis['potential_vulnerability']}")
 
-        return jsonify({
-            "success": True,
-            "test_result": result,
-            "ai_analysis": analysis,
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify(
+            {"success": True, "test_result": result, "ai_analysis": analysis, "timestamp": datetime.now().isoformat()}
+        )
 
     except Exception as e:
         logger.error(f"💥 Error in AI payload testing: {str(e)}")
-        return jsonify({
-            "success": False,
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"success": False, "error": f"Server error: {str(e)}"}), 500
+
 
 @ai_bp.route("/advanced-payload-generation", methods=["POST"])
 def advanced_payload_generation():
@@ -124,12 +111,7 @@ def advanced_payload_generation():
         url = params.get("url", "")
 
         # Build target info for AI payload generator
-        target_info = {
-            "attack_type": attack_type,
-            "complexity": complexity,
-            "technology": technology,
-            "url": url
-        }
+        target_info = {"attack_type": attack_type, "complexity": complexity, "technology": technology, "url": url}
 
         # Merge additional context
         if target_context:
@@ -140,15 +122,10 @@ def advanced_payload_generation():
 
         logger.info(f"✅ Generated {result['payload_count']} advanced contextual payloads")
 
-        return jsonify({
-            "success": True,
-            "advanced_payload_generation": result,
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify(
+            {"success": True, "advanced_payload_generation": result, "timestamp": datetime.now().isoformat()}
+        )
 
     except Exception as e:
         logger.error(f"💥 Error in advanced payload generation: {str(e)}")
-        return jsonify({
-            "success": False,
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"success": False, "error": f"Server error: {str(e)}"}), 500

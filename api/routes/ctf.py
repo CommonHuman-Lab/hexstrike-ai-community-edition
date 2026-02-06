@@ -7,13 +7,15 @@ import logging
 import re
 import subprocess
 from datetime import datetime
-from flask import Blueprint, request, jsonify
+
+from flask import Blueprint, jsonify, request
+
 from agents.ctf import CTFChallenge
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-ctf_bp = Blueprint('ctf', __name__, url_prefix='/api/ctf')
+ctf_bp = Blueprint("ctf", __name__, url_prefix="/api/ctf")
 
 # Dependencies will be injected via init_app
 ctf_manager = None
@@ -53,19 +55,21 @@ def create_ctf_challenge_workflow():
             difficulty=difficulty,
             points=points,
             description=description,
-            target=target
+            target=target,
         )
 
         # Generate workflow
         workflow = ctf_manager.create_ctf_challenge_workflow(challenge)
 
         logger.info(f"🎯 CTF workflow created for {challenge_name} | Category: {category} | Difficulty: {difficulty}")
-        return jsonify({
-            "success": True,
-            "workflow": workflow,
-            "challenge": challenge.to_dict(),
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify(
+            {
+                "success": True,
+                "workflow": workflow,
+                "challenge": challenge.to_dict(),
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     except Exception as e:
         logger.error(f"💥 Error creating CTF workflow: {str(e)}")
@@ -94,19 +98,21 @@ def auto_solve_ctf_challenge():
             difficulty=difficulty,
             points=points,
             description=description,
-            target=target
+            target=target,
         )
 
         # Attempt automated solving
         result = ctf_automator.auto_solve_challenge(challenge)
 
         logger.info(f"🤖 CTF auto-solve attempted for {challenge_name} | Status: {result['status']}")
-        return jsonify({
-            "success": True,
-            "solve_result": result,
-            "challenge": challenge.to_dict(),
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify(
+            {
+                "success": True,
+                "solve_result": result,
+                "challenge": challenge.to_dict(),
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     except Exception as e:
         logger.error(f"💥 Error in CTF auto-solve: {str(e)}")
@@ -133,7 +139,7 @@ def create_ctf_team_strategy():
                 difficulty=challenge_data.get("difficulty", "unknown"),
                 points=challenge_data.get("points", 100),
                 description=challenge_data.get("description", ""),
-                target=challenge_data.get("target", "")
+                target=challenge_data.get("target", ""),
             )
             challenges.append(challenge)
 
@@ -141,13 +147,15 @@ def create_ctf_team_strategy():
         strategy = ctf_coordinator.optimize_team_strategy(challenges, team_skills)
 
         logger.info(f"👥 CTF team strategy created | Challenges: {len(challenges)} | Team members: {len(team_skills)}")
-        return jsonify({
-            "success": True,
-            "strategy": strategy,
-            "challenges_count": len(challenges),
-            "team_size": len(team_skills),
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify(
+            {
+                "success": True,
+                "strategy": strategy,
+                "challenges_count": len(challenges),
+                "team_size": len(team_skills),
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     except Exception as e:
         logger.error(f"💥 Error creating CTF team strategy: {str(e)}")
@@ -174,18 +182,20 @@ def suggest_ctf_tools():
         for tool in suggested_tools:
             try:
                 tool_commands[tool] = ctf_tools.get_tool_command(tool, "TARGET")
-            except:
+            except Exception:
                 tool_commands[tool] = f"{tool} TARGET"
 
         logger.info(f"🔧 CTF tools suggested | Category: {category} | Tools: {len(suggested_tools)}")
-        return jsonify({
-            "success": True,
-            "suggested_tools": suggested_tools,
-            "category_tools": category_tools,
-            "tool_commands": tool_commands,
-            "category": category,
-            "timestamp": datetime.now().isoformat()
-        })
+        return jsonify(
+            {
+                "success": True,
+                "suggested_tools": suggested_tools,
+                "category_tools": category_tools,
+                "tool_commands": tool_commands,
+                "category": category,
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     except Exception as e:
         logger.error(f"💥 Error suggesting CTF tools: {str(e)}")
@@ -209,37 +219,34 @@ def ctf_cryptography_solver():
         results = {
             "cipher_text": cipher_text,
             "cipher_type": cipher_type,
+            "key_hint": key_hint,
+            "known_plaintext": known_plaintext,
             "analysis_results": [],
             "potential_solutions": [],
             "recommended_tools": [],
-            "next_steps": []
+            "next_steps": [],
         }
 
         # Cipher type identification
         if cipher_type == "unknown":
             # Basic cipher identification heuristics
-            if re.match(r'^[0-9a-fA-F]+$', cipher_text.replace(' ', '')):
+            if re.match(r"^[0-9a-fA-F]+$", cipher_text.replace(" ", "")):
                 results["analysis_results"].append("Possible hexadecimal encoding")
                 results["recommended_tools"].extend(["hex", "xxd"])
 
-            if re.match(r'^[A-Za-z0-9+/]+=*$', cipher_text.replace(' ', '')):
+            if re.match(r"^[A-Za-z0-9+/]+=*$", cipher_text.replace(" ", "")):
                 results["analysis_results"].append("Possible Base64 encoding")
                 results["recommended_tools"].append("base64")
 
-            if len(set(cipher_text.upper().replace(' ', ''))) <= 26:
+            if len(set(cipher_text.upper().replace(" ", ""))) <= 26:
                 results["analysis_results"].append("Possible substitution cipher")
                 results["recommended_tools"].extend(["frequency-analysis", "substitution-solver"])
 
         # Hash identification
-        hash_patterns = {
-            32: "MD5",
-            40: "SHA1",
-            64: "SHA256",
-            128: "SHA512"
-        }
+        hash_patterns = {32: "MD5", 40: "SHA1", 64: "SHA256", 128: "SHA512"}
 
-        clean_text = cipher_text.replace(' ', '').replace('\n', '')
-        if len(clean_text) in hash_patterns and re.match(r'^[0-9a-fA-F]+$', clean_text):
+        clean_text = cipher_text.replace(" ", "").replace("\n", "")
+        if len(clean_text) in hash_patterns and re.match(r"^[0-9a-fA-F]+$", clean_text):
             hash_type = hash_patterns[len(clean_text)]
             results["analysis_results"].append(f"Possible {hash_type} hash")
             results["recommended_tools"].extend(["hashcat", "john", "hash-identifier"])
@@ -253,38 +260,42 @@ def ctf_cryptography_solver():
 
             if char_freq:
                 most_common = max(char_freq, key=char_freq.get)
-                results["analysis_results"].append(f"Most frequent character: {most_common} ({char_freq[most_common]} occurrences)")
+                results["analysis_results"].append(
+                    f"Most frequent character: {most_common} ({char_freq[most_common]} occurrences)"
+                )
                 results["next_steps"].append("Try substituting most frequent character with 'E'")
 
         # ROT/Caesar cipher detection
-        if cipher_type == "caesar" or len(set(cipher_text.upper().replace(' ', ''))) <= 26:
+        if cipher_type == "caesar" or len(set(cipher_text.upper().replace(" ", ""))) <= 26:
             results["recommended_tools"].append("rot13")
             results["next_steps"].append("Try all ROT values (1-25)")
 
         # RSA-specific analysis
         if cipher_type == "rsa" or "rsa" in additional_info.lower():
             results["recommended_tools"].extend(["rsatool", "factordb", "yafu"])
-            results["next_steps"].extend([
-                "Check if modulus can be factored",
-                "Look for small public exponent attacks",
-                "Check for common modulus attacks"
-            ])
+            results["next_steps"].extend(
+                [
+                    "Check if modulus can be factored",
+                    "Look for small public exponent attacks",
+                    "Check for common modulus attacks",
+                ]
+            )
 
         # Vigenère cipher analysis
         if cipher_type == "vigenere" or "vigenere" in additional_info.lower():
             results["recommended_tools"].append("vigenere-solver")
-            results["next_steps"].extend([
-                "Perform Kasiski examination for key length",
-                "Use index of coincidence analysis",
-                "Try common key words"
-            ])
+            results["next_steps"].extend(
+                [
+                    "Perform Kasiski examination for key length",
+                    "Use index of coincidence analysis",
+                    "Try common key words",
+                ]
+            )
 
-        logger.info(f"🔐 CTF crypto analysis completed | Type: {cipher_type} | Tools: {len(results['recommended_tools'])}")
-        return jsonify({
-            "success": True,
-            "analysis": results,
-            "timestamp": datetime.now().isoformat()
-        })
+        logger.info(
+            f"🔐 CTF crypto analysis completed | Type: {cipher_type} | Tools: {len(results['recommended_tools'])}"
+        )
+        return jsonify({"success": True, "analysis": results, "timestamp": datetime.now().isoformat()})
 
     except Exception as e:
         logger.error(f"💥 Error in CTF crypto solver: {str(e)}")
@@ -312,13 +323,13 @@ def ctf_forensics_analyzer():
             "hidden_data": [],
             "steganography_results": [],
             "recommended_tools": [],
-            "next_steps": []
+            "next_steps": [],
         }
 
         # Basic file analysis
         try:
             # File command
-            file_result = subprocess.run(['file', file_path], capture_output=True, text=True, timeout=30)
+            file_result = subprocess.run(["file", file_path], capture_output=True, text=True, timeout=30)
             if file_result.returncode == 0:
                 results["file_info"]["type"] = file_result.stdout.strip()
 
@@ -326,38 +337,38 @@ def ctf_forensics_analyzer():
                 file_type = file_result.stdout.lower()
                 if "image" in file_type:
                     results["recommended_tools"].extend(["exiftool", "steghide", "stegsolve", "zsteg"])
-                    results["next_steps"].extend([
-                        "Extract EXIF metadata",
-                        "Check for steganographic content",
-                        "Analyze color channels separately"
-                    ])
+                    results["next_steps"].extend(
+                        [
+                            "Extract EXIF metadata",
+                            "Check for steganographic content",
+                            "Analyze color channels separately",
+                        ]
+                    )
                 elif "audio" in file_type:
                     results["recommended_tools"].extend(["audacity", "sonic-visualizer", "spectrum-analyzer"])
-                    results["next_steps"].extend([
-                        "Analyze audio spectrum",
-                        "Check for hidden data in audio channels",
-                        "Look for DTMF tones or morse code"
-                    ])
+                    results["next_steps"].extend(
+                        [
+                            "Analyze audio spectrum",
+                            "Check for hidden data in audio channels",
+                            "Look for DTMF tones or morse code",
+                        ]
+                    )
                 elif "pdf" in file_type:
                     results["recommended_tools"].extend(["pdfinfo", "pdftotext", "binwalk"])
-                    results["next_steps"].extend([
-                        "Extract text and metadata",
-                        "Check for embedded files",
-                        "Analyze PDF structure"
-                    ])
+                    results["next_steps"].extend(
+                        ["Extract text and metadata", "Check for embedded files", "Analyze PDF structure"]
+                    )
                 elif "zip" in file_type or "archive" in file_type:
                     results["recommended_tools"].extend(["unzip", "7zip", "binwalk"])
-                    results["next_steps"].extend([
-                        "Extract archive contents",
-                        "Check for password protection",
-                        "Look for hidden files"
-                    ])
+                    results["next_steps"].extend(
+                        ["Extract archive contents", "Check for password protection", "Look for hidden files"]
+                    )
         except Exception as e:
             results["file_info"]["error"] = str(e)
 
         # Metadata extraction
         try:
-            exif_result = subprocess.run(['exiftool', file_path], capture_output=True, text=True, timeout=30)
+            exif_result = subprocess.run(["exiftool", file_path], capture_output=True, text=True, timeout=30)
             if exif_result.returncode == 0:
                 results["metadata"]["exif"] = exif_result.stdout
         except Exception as e:
@@ -366,17 +377,13 @@ def ctf_forensics_analyzer():
         # Binwalk analysis for hidden files
         if extract_hidden:
             try:
-                binwalk_result = subprocess.run(['binwalk', '-e', file_path], capture_output=True, text=True, timeout=60)
+                binwalk_result = subprocess.run(
+                    ["binwalk", "-e", file_path], capture_output=True, text=True, timeout=60
+                )
                 if binwalk_result.returncode == 0:
-                    results["hidden_data"].append({
-                        "tool": "binwalk",
-                        "output": binwalk_result.stdout
-                    })
+                    results["hidden_data"].append({"tool": "binwalk", "output": binwalk_result.stdout})
             except Exception as e:
-                results["hidden_data"].append({
-                    "tool": "binwalk",
-                    "error": str(e)
-                })
+                results["hidden_data"].append({"tool": "binwalk", "error": str(e)})
 
         # Steganography checks
         if check_steganography:
@@ -385,50 +392,44 @@ def ctf_forensics_analyzer():
             for tool in steg_tools:
                 try:
                     if tool == "steghide":
-                        steg_result = subprocess.run([tool, 'info', file_path], capture_output=True, text=True, timeout=30)
+                        steg_result = subprocess.run(
+                            [tool, "info", file_path], capture_output=True, text=True, timeout=30
+                        )
                     elif tool == "zsteg":
-                        steg_result = subprocess.run([tool, '-a', file_path], capture_output=True, text=True, timeout=30)
+                        steg_result = subprocess.run(
+                            [tool, "-a", file_path], capture_output=True, text=True, timeout=30
+                        )
                     elif tool == "outguess":
-                        steg_result = subprocess.run([tool, '-r', file_path, '/tmp/outguess_output'], capture_output=True, text=True, timeout=30)
+                        steg_result = subprocess.run(
+                            [tool, "-r", file_path, "/tmp/outguess_output"], capture_output=True, text=True, timeout=30
+                        )
 
                     if steg_result.returncode == 0 and steg_result.stdout.strip():
-                        results["steganography_results"].append({
-                            "tool": tool,
-                            "output": steg_result.stdout
-                        })
+                        results["steganography_results"].append({"tool": tool, "output": steg_result.stdout})
                 except Exception as e:
-                    results["steganography_results"].append({
-                        "tool": tool,
-                        "error": str(e)
-                    })
+                    results["steganography_results"].append({"tool": tool, "error": str(e)})
 
         # Strings analysis
         try:
-            strings_result = subprocess.run(['strings', file_path], capture_output=True, text=True, timeout=30)
+            strings_result = subprocess.run(["strings", file_path], capture_output=True, text=True, timeout=30)
             if strings_result.returncode == 0:
                 # Look for interesting strings (flags, URLs, etc.)
                 interesting_strings = []
-                for line in strings_result.stdout.split('\n'):
-                    if any(keyword in line.lower() for keyword in ['flag', 'password', 'key', 'secret', 'http', 'ftp']):
+                for line in strings_result.stdout.split("\n"):
+                    if any(keyword in line.lower() for keyword in ["flag", "password", "key", "secret", "http", "ftp"]):
                         interesting_strings.append(line.strip())
 
                 if interesting_strings:
-                    results["hidden_data"].append({
-                        "tool": "strings",
-                        "interesting_strings": interesting_strings[:20]  # Limit to first 20
-                    })
+                    results["hidden_data"].append(
+                        {"tool": "strings", "interesting_strings": interesting_strings[:20]}  # Limit to first 20
+                    )
         except Exception as e:
-            results["hidden_data"].append({
-                "tool": "strings",
-                "error": str(e)
-            })
+            results["hidden_data"].append({"tool": "strings", "error": str(e)})
 
-        logger.info(f"🔍 CTF forensics analysis completed | File: {file_path} | Tools used: {len(results['recommended_tools'])}")
-        return jsonify({
-            "success": True,
-            "analysis": results,
-            "timestamp": datetime.now().isoformat()
-        })
+        logger.info(
+            f"🔍 CTF forensics analysis completed | File: {file_path} | Tools used: {len(results['recommended_tools'])}"
+        )
+        return jsonify({"success": True, "analysis": results, "timestamp": datetime.now().isoformat()})
 
     except Exception as e:
         logger.error(f"💥 Error in CTF forensics analyzer: {str(e)}")
@@ -457,12 +458,12 @@ def ctf_binary_analyzer():
             "strings_analysis": {},
             "gadgets": [],
             "recommended_tools": [],
-            "exploitation_hints": []
+            "exploitation_hints": [],
         }
 
         # Basic file information
         try:
-            file_result = subprocess.run(['file', binary_path], capture_output=True, text=True, timeout=30)
+            file_result = subprocess.run(["file", binary_path], capture_output=True, text=True, timeout=30)
             if file_result.returncode == 0:
                 results["file_info"]["type"] = file_result.stdout.strip()
 
@@ -482,14 +483,18 @@ def ctf_binary_analyzer():
         # Security protections check
         if check_protections:
             try:
-                checksec_result = subprocess.run(['checksec', '--file', binary_path], capture_output=True, text=True, timeout=30)
+                checksec_result = subprocess.run(
+                    ["checksec", "--file", binary_path], capture_output=True, text=True, timeout=30
+                )
                 if checksec_result.returncode == 0:
                     results["security_protections"]["checksec"] = checksec_result.stdout
 
                     # Parse protections and provide exploitation hints
                     output = checksec_result.stdout.lower()
                     if "no canary found" in output:
-                        results["exploitation_hints"].append("Stack canary disabled - buffer overflow exploitation possible")
+                        results["exploitation_hints"].append(
+                            "Stack canary disabled - buffer overflow exploitation possible"
+                        )
                     if "nx disabled" in output:
                         results["exploitation_hints"].append("NX disabled - shellcode execution on stack possible")
                     if "no pie" in output:
@@ -501,9 +506,9 @@ def ctf_binary_analyzer():
 
         # Strings analysis
         try:
-            strings_result = subprocess.run(['strings', binary_path], capture_output=True, text=True, timeout=30)
+            strings_result = subprocess.run(["strings", binary_path], capture_output=True, text=True, timeout=30)
             if strings_result.returncode == 0:
-                strings_output = strings_result.stdout.split('\n')
+                strings_output = strings_result.stdout.split("\n")
 
                 # Categorize interesting strings
                 interesting_categories = {
@@ -511,7 +516,7 @@ def ctf_binary_analyzer():
                     "format_strings": [],
                     "file_paths": [],
                     "potential_flags": [],
-                    "system_calls": []
+                    "system_calls": [],
                 }
 
                 for string in strings_output:
@@ -520,37 +525,43 @@ def ctf_binary_analyzer():
                         continue
 
                     # Look for function names
-                    if any(func in string for func in ['printf', 'scanf', 'gets', 'strcpy', 'system', 'execve']):
+                    if any(func in string for func in ["printf", "scanf", "gets", "strcpy", "system", "execve"]):
                         interesting_categories["functions"].append(string)
 
                     # Look for format strings
-                    if '%' in string and any(fmt in string for fmt in ['%s', '%d', '%x', '%n']):
+                    if "%" in string and any(fmt in string for fmt in ["%s", "%d", "%x", "%n"]):
                         interesting_categories["format_strings"].append(string)
 
                     # Look for file paths
-                    if string.startswith('/') or '\\' in string:
+                    if string.startswith("/") or "\\" in string:
                         interesting_categories["file_paths"].append(string)
 
                     # Look for potential flags
-                    if any(keyword in string.lower() for keyword in ['flag', 'ctf', 'key', 'password']):
+                    if any(keyword in string.lower() for keyword in ["flag", "ctf", "key", "password"]):
                         interesting_categories["potential_flags"].append(string)
 
                     # Look for system calls
-                    if string in ['sh', 'bash', '/bin/sh', '/bin/bash', 'cmd.exe']:
+                    if string in ["sh", "bash", "/bin/sh", "/bin/bash", "cmd.exe"]:
                         interesting_categories["system_calls"].append(string)
 
                 results["strings_analysis"] = interesting_categories
 
                 # Add exploitation hints based on strings
                 if interesting_categories["functions"]:
-                    dangerous_funcs = ['gets', 'strcpy', 'sprintf', 'scanf']
-                    found_dangerous = [f for f in dangerous_funcs if any(f in s for s in interesting_categories["functions"])]
+                    dangerous_funcs = ["gets", "strcpy", "sprintf", "scanf"]
+                    found_dangerous = [
+                        f for f in dangerous_funcs if any(f in s for s in interesting_categories["functions"])
+                    ]
                     if found_dangerous:
-                        results["exploitation_hints"].append(f"Dangerous functions found: {', '.join(found_dangerous)} - potential buffer overflow")
+                        results["exploitation_hints"].append(
+                            f"Dangerous functions found: {', '.join(found_dangerous)} - potential buffer overflow"
+                        )
 
                 if interesting_categories["format_strings"]:
-                    if any('%n' in s for s in interesting_categories["format_strings"]):
-                        results["exploitation_hints"].append("Format string with %n found - potential format string vulnerability")
+                    if any("%n" in s for s in interesting_categories["format_strings"]):
+                        results["exploitation_hints"].append(
+                            "Format string with %n found - potential format string vulnerability"
+                        )
 
         except Exception as e:
             results["strings_analysis"]["error"] = str(e)
@@ -558,19 +569,26 @@ def ctf_binary_analyzer():
         # ROP gadgets search
         if find_gadgets and analysis_depth in ["comprehensive", "deep"]:
             try:
-                ropgadget_result = subprocess.run(['ROPgadget', '--binary', binary_path, '--only', 'pop|ret'], capture_output=True, text=True, timeout=60)
+                ropgadget_result = subprocess.run(
+                    ["ROPgadget", "--binary", binary_path, "--only", "pop|ret"],
+                    capture_output=True,
+                    text=True,
+                    timeout=60,
+                )
                 if ropgadget_result.returncode == 0:
-                    gadget_lines = ropgadget_result.stdout.split('\n')
+                    gadget_lines = ropgadget_result.stdout.split("\n")
                     useful_gadgets = []
 
                     for line in gadget_lines:
-                        if 'pop' in line and 'ret' in line:
+                        if "pop" in line and "ret" in line:
                             useful_gadgets.append(line.strip())
 
                     results["gadgets"] = useful_gadgets[:20]  # Limit to first 20 gadgets
 
                     if useful_gadgets:
-                        results["exploitation_hints"].append(f"Found {len(useful_gadgets)} ROP gadgets - ROP chain exploitation possible")
+                        results["exploitation_hints"].append(
+                            f"Found {len(useful_gadgets)} ROP gadgets - ROP chain exploitation possible"
+                        )
                         results["recommended_tools"].append("ropper")
 
             except Exception as e:
@@ -579,11 +597,13 @@ def ctf_binary_analyzer():
         # Function analysis with objdump
         if analysis_depth in ["comprehensive", "deep"]:
             try:
-                objdump_result = subprocess.run(['objdump', '-t', binary_path], capture_output=True, text=True, timeout=30)
+                objdump_result = subprocess.run(
+                    ["objdump", "-t", binary_path], capture_output=True, text=True, timeout=30
+                )
                 if objdump_result.returncode == 0:
                     functions = []
-                    for line in objdump_result.stdout.split('\n'):
-                        if 'F .text' in line:  # Function in text section
+                    for line in objdump_result.stdout.split("\n"):
+                        if "F .text" in line:  # Function in text section
                             parts = line.split()
                             if len(parts) >= 6:
                                 func_name = parts[-1]
@@ -600,12 +620,10 @@ def ctf_binary_analyzer():
         if "format string" in str(results["exploitation_hints"]).lower():
             results["recommended_tools"].append("format-string-exploiter")
 
-        logger.info(f"🔬 CTF binary analysis completed | Binary: {binary_path} | Hints: {len(results['exploitation_hints'])}")
-        return jsonify({
-            "success": True,
-            "analysis": results,
-            "timestamp": datetime.now().isoformat()
-        })
+        logger.info(
+            f"🔬 CTF binary analysis completed | Binary: {binary_path} | Hints: {len(results['exploitation_hints'])}"
+        )
+        return jsonify({"success": True, "analysis": results, "timestamp": datetime.now().isoformat()})
 
     except Exception as e:
         logger.error(f"💥 Error in CTF binary analyzer: {str(e)}")

@@ -1,9 +1,11 @@
 """
 x8 tool implementation for parameter discovery
 """
-from typing import Dict, Any, List
-from tools.base import BaseTool
+
 import json
+from typing import Any, Dict, List
+
+from tools.base import BaseTool
 
 
 class X8Tool(BaseTool):
@@ -139,14 +141,38 @@ class X8Tool(BaseTool):
 
         # Interesting parameter names that might indicate vulnerabilities
         interesting_names = [
-            'id', 'user', 'admin', 'debug', 'test', 'file', 'path', 'url',
-            'redirect', 'next', 'callback', 'return', 'cmd', 'exec', 'command',
-            'query', 'search', 'email', 'password', 'token', 'api', 'key',
-            'secret', 'auth', 'session', 'cookie', 'upload', 'download'
+            "id",
+            "user",
+            "admin",
+            "debug",
+            "test",
+            "file",
+            "path",
+            "url",
+            "redirect",
+            "next",
+            "callback",
+            "return",
+            "cmd",
+            "exec",
+            "command",
+            "query",
+            "search",
+            "email",
+            "password",
+            "token",
+            "api",
+            "key",
+            "secret",
+            "auth",
+            "session",
+            "cookie",
+            "upload",
+            "download",
         ]
 
         # Try to parse JSON output
-        for line in stdout.split('\n'):
+        for line in stdout.split("\n"):
             line = line.strip()
             if not line:
                 continue
@@ -155,24 +181,20 @@ class X8Tool(BaseTool):
                 # x8 with --json outputs one parameter per line as JSON
                 param_data = json.loads(line)
 
-                param_name = param_data.get('parameter', param_data.get('name', ''))
-                param_type = param_data.get('type', 'unknown')
-                is_reflected = param_data.get('reflected', False)
+                param_name = param_data.get("parameter", param_data.get("name", ""))
+                param_type = param_data.get("type", "unknown")
+                is_reflected = param_data.get("reflected", False)
 
                 if param_name:
-                    param_info = {
-                        'name': param_name,
-                        'type': param_type,
-                        'reflected': is_reflected
-                    }
+                    param_info = {"name": param_name, "type": param_type, "reflected": is_reflected}
                     parameters.append(param_info)
 
                     # Categorize by type
-                    if param_type.upper() == 'GET':
+                    if param_type.upper() == "GET":
                         get_parameters.append(param_name)
-                    elif param_type.upper() == 'POST':
+                    elif param_type.upper() == "POST":
                         post_parameters.append(param_name)
-                    elif param_type.upper() == 'JSON':
+                    elif param_type.upper() == "JSON":
                         json_parameters.append(param_name)
 
                     # Track reflected parameters
@@ -181,41 +203,42 @@ class X8Tool(BaseTool):
 
                     # Check if interesting
                     if param_name.lower() in interesting_names:
-                        interesting_parameters.append({
-                            'name': param_name,
-                            'type': param_type,
-                            'reflected': is_reflected,
-                            'reason': 'Common vulnerable parameter name'
-                        })
+                        interesting_parameters.append(
+                            {
+                                "name": param_name,
+                                "type": param_type,
+                                "reflected": is_reflected,
+                                "reason": "Common vulnerable parameter name",
+                            }
+                        )
 
             except json.JSONDecodeError:
                 # Not JSON, try to parse plain text
                 # Format: [TYPE] parameter_name (reflected)
-                if '[' in line and ']' in line:
+                if "[" in line and "]" in line:
                     import re
-                    match = re.search(r'\[(\w+)\]\s+(\w+)(\s+\(reflected\))?', line)
+
+                    match = re.search(r"\[(\w+)\]\s+(\w+)(\s+\(reflected\))?", line)
                     if match:
                         param_type = match.group(1)
                         param_name = match.group(2)
                         is_reflected = match.group(3) is not None
 
-                        param_info = {
-                            'name': param_name,
-                            'type': param_type,
-                            'reflected': is_reflected
-                        }
+                        param_info = {"name": param_name, "type": param_type, "reflected": is_reflected}
                         parameters.append(param_info)
 
                         if is_reflected:
                             reflected_parameters.append(param_name)
 
                         if param_name.lower() in interesting_names:
-                            interesting_parameters.append({
-                                'name': param_name,
-                                'type': param_type,
-                                'reflected': is_reflected,
-                                'reason': 'Common vulnerable parameter name'
-                            })
+                            interesting_parameters.append(
+                                {
+                                    "name": param_name,
+                                    "type": param_type,
+                                    "reflected": is_reflected,
+                                    "reason": "Common vulnerable parameter name",
+                                }
+                            )
 
         return {
             "parameters": parameters,
@@ -232,5 +255,5 @@ class X8Tool(BaseTool):
             "interesting_count": len(interesting_parameters),
             "raw_output": stdout,
             "stderr": stderr,
-            "returncode": returncode
+            "returncode": returncode,
         }

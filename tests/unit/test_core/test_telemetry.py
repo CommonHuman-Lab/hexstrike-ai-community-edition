@@ -13,16 +13,17 @@ Tests cover:
 Target: 90%+ code coverage
 """
 
-import pytest
-import sys
 import os
+import sys
 import time
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Add parent directories to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
-from hexstrike_server import TelemetryCollector
+from core.telemetry import TelemetryCollector
 
 
 class TestTelemetryInitialization:
@@ -32,7 +33,7 @@ class TestTelemetryInitialization:
         """Test that telemetry collector initializes"""
         telemetry = TelemetryCollector()
         assert telemetry is not None
-        assert hasattr(telemetry, 'stats')
+        assert hasattr(telemetry, "stats")
 
     def test_telemetry_stats_initialized(self):
         """Test that statistics are initialized to zero"""
@@ -126,27 +127,27 @@ class TestRecordExecution:
 class TestSystemMetrics:
     """Test system metrics collection"""
 
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
-    @patch('psutil.net_io_counters')
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
+    @patch("psutil.net_io_counters")
     def test_get_system_metrics_returns_dict(self, mock_net, mock_disk, mock_mem, mock_cpu):
         """Test that get_system_metrics returns a dictionary"""
         # Configure mocks
         mock_cpu.return_value = 50.0
         mock_mem.return_value = MagicMock(percent=60.0)
         mock_disk.return_value = MagicMock(percent=70.0)
-        mock_net.return_value = MagicMock(_asdict=lambda: {'bytes_sent': 1000})
+        mock_net.return_value = MagicMock(_asdict=lambda: {"bytes_sent": 1000})
 
         telemetry = TelemetryCollector()
         metrics = telemetry.get_system_metrics()
 
         assert isinstance(metrics, dict)
 
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
-    @patch('psutil.net_io_counters')
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
+    @patch("psutil.net_io_counters")
     def test_get_system_metrics_includes_cpu(self, mock_net, mock_disk, mock_mem, mock_cpu):
         """Test that system metrics include CPU percentage"""
         mock_cpu.return_value = 45.5
@@ -160,10 +161,10 @@ class TestSystemMetrics:
         assert "cpu_percent" in metrics
         assert metrics["cpu_percent"] == 45.5
 
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
-    @patch('psutil.net_io_counters')
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
+    @patch("psutil.net_io_counters")
     def test_get_system_metrics_includes_memory(self, mock_net, mock_disk, mock_mem, mock_cpu):
         """Test that system metrics include memory percentage"""
         mock_cpu.return_value = 50.0
@@ -177,10 +178,10 @@ class TestSystemMetrics:
         assert "memory_percent" in metrics
         assert metrics["memory_percent"] == 75.3
 
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
-    @patch('psutil.net_io_counters')
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
+    @patch("psutil.net_io_counters")
     def test_get_system_metrics_includes_disk(self, mock_net, mock_disk, mock_mem, mock_cpu):
         """Test that system metrics include disk usage"""
         mock_cpu.return_value = 50.0
@@ -194,19 +195,16 @@ class TestSystemMetrics:
         assert "disk_usage" in metrics
         assert metrics["disk_usage"] == 82.1
 
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
-    @patch('psutil.net_io_counters')
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
+    @patch("psutil.net_io_counters")
     def test_get_system_metrics_includes_network(self, mock_net, mock_disk, mock_mem, mock_cpu):
         """Test that system metrics include network I/O"""
         mock_cpu.return_value = 50.0
         mock_mem.return_value = MagicMock(percent=60.0)
         mock_disk.return_value = MagicMock(percent=70.0)
-        mock_net.return_value = MagicMock(_asdict=lambda: {
-            'bytes_sent': 1024,
-            'bytes_recv': 2048
-        })
+        mock_net.return_value = MagicMock(_asdict=lambda: {"bytes_sent": 1024, "bytes_recv": 2048})
 
         telemetry = TelemetryCollector()
         metrics = telemetry.get_system_metrics()
@@ -214,10 +212,10 @@ class TestSystemMetrics:
         assert "network_io" in metrics
         assert isinstance(metrics["network_io"], dict)
 
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
-    @patch('psutil.net_io_counters')
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
+    @patch("psutil.net_io_counters")
     def test_get_system_metrics_handles_no_network(self, mock_net, mock_disk, mock_mem, mock_cpu):
         """Test that system metrics handle when network counters are None"""
         mock_cpu.return_value = 50.0
@@ -235,7 +233,7 @@ class TestSystemMetrics:
 class TestGetStats:
     """Test statistics retrieval and calculation"""
 
-    @patch('time.time')
+    @patch("time.time")
     def test_get_stats_returns_dict(self, mock_time):
         """Test that get_stats returns a dictionary"""
         mock_time.return_value = 1000.0
@@ -244,7 +242,7 @@ class TestGetStats:
 
         assert isinstance(stats, dict)
 
-    @patch('time.time')
+    @patch("time.time")
     def test_get_stats_includes_uptime(self, mock_time):
         """Test that stats include uptime"""
         mock_time.return_value = 1000.0
@@ -256,7 +254,7 @@ class TestGetStats:
         assert "uptime_seconds" in stats
         assert stats["uptime_seconds"] == 60.0
 
-    @patch('time.time')
+    @patch("time.time")
     def test_get_stats_includes_commands_executed(self, mock_time):
         """Test that stats include command count"""
         mock_time.return_value = 1000.0
@@ -269,7 +267,7 @@ class TestGetStats:
         assert "commands_executed" in stats
         assert stats["commands_executed"] == 2
 
-    @patch('time.time')
+    @patch("time.time")
     def test_get_stats_calculates_success_rate(self, mock_time):
         """Test that stats include success rate calculation"""
         mock_time.return_value = 1000.0
@@ -285,10 +283,10 @@ class TestGetStats:
         assert "%" in stats["success_rate"]
 
         # Extract percentage
-        success_rate = float(stats["success_rate"].rstrip('%'))
+        success_rate = float(stats["success_rate"].rstrip("%"))
         assert abs(success_rate - 75.0) < 0.1  # Should be approximately 75%
 
-    @patch('time.time')
+    @patch("time.time")
     def test_get_stats_success_rate_with_no_commands(self, mock_time):
         """Test success rate calculation with no commands executed"""
         mock_time.return_value = 1000.0
@@ -297,10 +295,10 @@ class TestGetStats:
         stats = telemetry.get_stats()
         assert "success_rate" in stats
         # Should handle division by zero gracefully
-        success_rate = float(stats["success_rate"].rstrip('%'))
+        success_rate = float(stats["success_rate"].rstrip("%"))
         assert success_rate == 0.0
 
-    @patch('time.time')
+    @patch("time.time")
     def test_get_stats_calculates_average_execution_time(self, mock_time):
         """Test that stats include average execution time"""
         mock_time.return_value = 1000.0
@@ -316,10 +314,10 @@ class TestGetStats:
         assert "s" in stats["average_execution_time"]  # Should have 's' for seconds
 
         # Extract time value
-        avg_time = float(stats["average_execution_time"].rstrip('s'))
+        avg_time = float(stats["average_execution_time"].rstrip("s"))
         assert abs(avg_time - 20.0) < 0.1  # Should be approximately 20 seconds
 
-    @patch('time.time')
+    @patch("time.time")
     def test_get_stats_avg_time_with_no_commands(self, mock_time):
         """Test average execution time with no commands"""
         mock_time.return_value = 1000.0
@@ -328,14 +326,14 @@ class TestGetStats:
         stats = telemetry.get_stats()
         assert "average_execution_time" in stats
         # Should handle division by zero gracefully
-        avg_time = float(stats["average_execution_time"].rstrip('s'))
+        avg_time = float(stats["average_execution_time"].rstrip("s"))
         assert avg_time == 0.0
 
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
-    @patch('psutil.net_io_counters')
-    @patch('time.time')
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
+    @patch("psutil.net_io_counters")
+    @patch("time.time")
     def test_get_stats_includes_system_metrics(self, mock_time, mock_net, mock_disk, mock_mem, mock_cpu):
         """Test that stats include system metrics"""
         mock_time.return_value = 1000.0
@@ -354,11 +352,11 @@ class TestGetStats:
 class TestTelemetryIntegration:
     """Integration tests for telemetry collector"""
 
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
-    @patch('psutil.net_io_counters')
-    @patch('time.time')
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
+    @patch("psutil.net_io_counters")
+    @patch("time.time")
     def test_realistic_usage_pattern(self, mock_time, mock_net, mock_disk, mock_mem, mock_cpu):
         """Test telemetry with realistic usage pattern"""
         # Configure mocks
@@ -372,12 +370,12 @@ class TestTelemetryIntegration:
 
         # Simulate running several commands
         commands = [
-            (True, 10.5),   # nmap - success
-            (True, 45.2),   # gobuster - success
-            (False, 5.3),   # sqlmap - failed
+            (True, 10.5),  # nmap - success
+            (True, 45.2),  # gobuster - success
+            (False, 5.3),  # sqlmap - failed
             (True, 120.8),  # nuclei - success
-            (True, 30.1),   # nikto - success
-            (False, 2.5),   # hydra - failed
+            (True, 30.1),  # nikto - success
+            (False, 2.5),  # hydra - failed
         ]
 
         for success, exec_time in commands:
@@ -391,7 +389,7 @@ class TestTelemetryIntegration:
         assert "average_execution_time" in stats
         assert "system_metrics" in stats
 
-    @patch('time.time')
+    @patch("time.time")
     def test_long_running_session(self, mock_time):
         """Test telemetry for long-running session"""
         mock_time.return_value = 1000.0
@@ -406,14 +404,14 @@ class TestTelemetryIntegration:
 
         assert stats["commands_executed"] == 100
         # Success rate should be around 67%
-        success_rate = float(stats["success_rate"].rstrip('%'))
+        success_rate = float(stats["success_rate"].rstrip("%"))
         assert 60.0 <= success_rate <= 70.0
 
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
-    @patch('psutil.net_io_counters')
-    @patch('time.time')
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
+    @patch("psutil.net_io_counters")
+    @patch("time.time")
     def test_all_successful_commands(self, mock_time, mock_net, mock_disk, mock_mem, mock_cpu):
         """Test telemetry when all commands succeed"""
         mock_time.return_value = 1000.0
@@ -428,14 +426,14 @@ class TestTelemetryIntegration:
             telemetry.record_execution(success=True, execution_time=5.0)
 
         stats = telemetry.get_stats()
-        success_rate = float(stats["success_rate"].rstrip('%'))
+        success_rate = float(stats["success_rate"].rstrip("%"))
         assert success_rate == 100.0
 
-    @patch('psutil.cpu_percent')
-    @patch('psutil.virtual_memory')
-    @patch('psutil.disk_usage')
-    @patch('psutil.net_io_counters')
-    @patch('time.time')
+    @patch("psutil.cpu_percent")
+    @patch("psutil.virtual_memory")
+    @patch("psutil.disk_usage")
+    @patch("psutil.net_io_counters")
+    @patch("time.time")
     def test_all_failed_commands(self, mock_time, mock_net, mock_disk, mock_mem, mock_cpu):
         """Test telemetry when all commands fail"""
         mock_time.return_value = 1000.0
@@ -450,14 +448,14 @@ class TestTelemetryIntegration:
             telemetry.record_execution(success=False, execution_time=3.0)
 
         stats = telemetry.get_stats()
-        success_rate = float(stats["success_rate"].rstrip('%'))
+        success_rate = float(stats["success_rate"].rstrip("%"))
         assert success_rate == 0.0
 
 
 class TestTelemetryEdgeCases:
     """Test edge cases and error conditions"""
 
-    @patch('time.time')
+    @patch("time.time")
     def test_very_long_uptime(self, mock_time):
         """Test telemetry with very long uptime"""
         mock_time.return_value = 1000.0
@@ -479,7 +477,7 @@ class TestTelemetryEdgeCases:
         stats = telemetry.get_stats()
         assert stats["commands_executed"] == 1000
 
-    @patch('time.time')
+    @patch("time.time")
     def test_negative_time_difference(self, mock_time):
         """Test handling of system time going backwards (edge case)"""
         mock_time.return_value = 2000.0
@@ -501,7 +499,7 @@ class TestTelemetryEdgeCases:
 
         assert telemetry.stats["total_execution_time"] == 0.001234
 
-    @patch('psutil.cpu_percent')
+    @patch("psutil.cpu_percent")
     def test_handles_psutil_exceptions(self, mock_cpu):
         """Test that telemetry handles psutil exceptions gracefully"""
         mock_cpu.side_effect = Exception("psutil error")

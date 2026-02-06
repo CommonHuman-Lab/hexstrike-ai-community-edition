@@ -11,8 +11,8 @@ Tests cover:
 """
 
 import unittest
-from unittest.mock import Mock, patch, MagicMock
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+from unittest.mock import MagicMock, Mock, patch
 
 from tools.base import BaseTool, SimpleCommandTool
 
@@ -23,8 +23,8 @@ class ConcreteTool(BaseTool):
     def build_command(self, target: str, params: Dict[str, Any]) -> List[str]:
         """Build a simple test command."""
         cmd = [self.binary_name]
-        if params.get('flag'):
-            cmd.append(params['flag'])
+        if params.get("flag"):
+            cmd.append(params["flag"])
         cmd.append(target)
         return cmd
 
@@ -37,9 +37,9 @@ class ValidatingTool(BaseTool):
 
     def validate_params(self, params: Dict[str, Any]) -> None:
         """Custom validation that requires 'required_param'."""
-        if 'required_param' not in params:
+        if "required_param" not in params:
             raise ValueError("required_param is missing")
-        if params.get('invalid_value') == 'bad':
+        if params.get("invalid_value") == "bad":
             raise ValueError("invalid_value cannot be 'bad'")
 
 
@@ -52,10 +52,10 @@ class CustomParsingTool(BaseTool):
     def parse_output(self, stdout: str, stderr: str, returncode: int) -> Dict[str, Any]:
         """Custom parser that extracts lines."""
         return {
-            "lines": stdout.split('\n'),
-            "line_count": len(stdout.split('\n')),
+            "lines": stdout.split("\n"),
+            "line_count": len(stdout.split("\n")),
             "has_errors": bool(stderr),
-            "returncode": returncode
+            "returncode": returncode,
         }
 
 
@@ -95,8 +95,10 @@ class TestBaseTool(unittest.TestCase):
         # This is tested by the abstract class mechanism
         # Attempting to create a class without build_command will fail
         with self.assertRaises(TypeError):
+
             class IncompleteTool(BaseTool):
                 pass
+
             IncompleteTool("test")
 
     def test_default_parse_output(self):
@@ -133,14 +135,10 @@ class TestBaseToolExecution(unittest.TestCase):
             "stderr": "",
             "returncode": 0,
             "execution_time": 1.5,
-            "cached": False
+            "cached": False,
         }
 
-        result = self.tool.execute(
-            "target.com",
-            {"flag": "-v"},
-            self.mock_execute_func
-        )
+        result = self.tool.execute("target.com", {"flag": "-v"}, self.mock_execute_func)
 
         self.assertTrue(result["success"])
         self.assertEqual(result["tool"], "TestTool")
@@ -157,15 +155,10 @@ class TestBaseToolExecution(unittest.TestCase):
             "stdout": "cached output",
             "stderr": "",
             "returncode": 0,
-            "cached": True
+            "cached": True,
         }
 
-        result = self.tool.execute(
-            "target.com",
-            {},
-            self.mock_execute_func,
-            use_cache=True
-        )
+        result = self.tool.execute("target.com", {}, self.mock_execute_func, use_cache=True)
 
         self.assertTrue(result["success"])
         self.assertTrue(result["cached"])
@@ -178,20 +171,15 @@ class TestBaseToolExecution(unittest.TestCase):
             "stdout": "fresh output",
             "stderr": "",
             "returncode": 0,
-            "cached": False
+            "cached": False,
         }
 
-        result = self.tool.execute(
-            "target.com",
-            {},
-            self.mock_execute_func,
-            use_cache=False
-        )
+        result = self.tool.execute("target.com", {}, self.mock_execute_func, use_cache=False)
 
         self.assertTrue(result["success"])
         # Check that use_cache=False was passed
         call_args = self.mock_execute_func.call_args
-        self.assertEqual(call_args[1].get('use_cache'), False)
+        self.assertEqual(call_args[1].get("use_cache"), False)
 
     def test_execution_command_failure(self):
         """Test execution when command fails."""
@@ -199,14 +187,10 @@ class TestBaseToolExecution(unittest.TestCase):
             "success": False,
             "error": "Command not found",
             "stderr": "testtool: command not found",
-            "returncode": 127
+            "returncode": 127,
         }
 
-        result = self.tool.execute(
-            "target.com",
-            {},
-            self.mock_execute_func
-        )
+        result = self.tool.execute("target.com", {}, self.mock_execute_func)
 
         self.assertFalse(result["success"])
         self.assertIn("error", result)
@@ -218,11 +202,7 @@ class TestBaseToolExecution(unittest.TestCase):
         validating_tool = ValidatingTool("ValidatingTool")
 
         # Missing required_param
-        result = validating_tool.execute(
-            "target.com",
-            {},
-            self.mock_execute_func
-        )
+        result = validating_tool.execute("target.com", {}, self.mock_execute_func)
 
         self.assertFalse(result["success"])
         self.assertIn("Parameter validation failed", result["error"])
@@ -233,9 +213,7 @@ class TestBaseToolExecution(unittest.TestCase):
         validating_tool = ValidatingTool("ValidatingTool")
 
         result = validating_tool.execute(
-            "target.com",
-            {"required_param": "ok", "invalid_value": "bad"},
-            self.mock_execute_func
+            "target.com", {"required_param": "ok", "invalid_value": "bad"}, self.mock_execute_func
         )
 
         self.assertFalse(result["success"])
@@ -245,11 +223,7 @@ class TestBaseToolExecution(unittest.TestCase):
         """Test execution when unexpected exception occurs."""
         self.mock_execute_func.side_effect = Exception("Unexpected error")
 
-        result = self.tool.execute(
-            "target.com",
-            {},
-            self.mock_execute_func
-        )
+        result = self.tool.execute("target.com", {}, self.mock_execute_func)
 
         self.assertFalse(result["success"])
         self.assertIn("Unexpected error", result["error"])
@@ -262,14 +236,10 @@ class TestBaseToolExecution(unittest.TestCase):
             "success": True,
             "stdout": "line1\nline2\nline3",
             "stderr": "warning message",
-            "returncode": 0
+            "returncode": 0,
         }
 
-        result = parsing_tool.execute(
-            "target.com",
-            {},
-            self.mock_execute_func
-        )
+        result = parsing_tool.execute("target.com", {}, self.mock_execute_func)
 
         self.assertTrue(result["success"])
         output = result["output"]
@@ -277,15 +247,10 @@ class TestBaseToolExecution(unittest.TestCase):
         self.assertTrue(output["has_errors"])
         self.assertEqual(len(output["lines"]), 3)
 
-    @patch('tools.base.logger')
+    @patch("tools.base.logger")
     def test_logging_on_success(self, mock_logger):
         """Test that successful execution logs appropriately."""
-        self.mock_execute_func.return_value = {
-            "success": True,
-            "stdout": "output",
-            "stderr": "",
-            "returncode": 0
-        }
+        self.mock_execute_func.return_value = {"success": True, "stdout": "output", "stderr": "", "returncode": 0}
 
         self.tool.execute("target.com", {}, self.mock_execute_func)
 
@@ -295,7 +260,7 @@ class TestBaseToolExecution(unittest.TestCase):
         self.assertIn("Executing", log_message)
         self.assertIn("TestTool", log_message)
 
-    @patch('tools.base.logger')
+    @patch("tools.base.logger")
     def test_logging_on_validation_error(self, mock_logger):
         """Test that validation errors are logged."""
         validating_tool = ValidatingTool("ValidatingTool")
@@ -307,7 +272,7 @@ class TestBaseToolExecution(unittest.TestCase):
         log_message = mock_logger.error.call_args[0][0]
         self.assertIn("validation failed", log_message)
 
-    @patch('tools.base.logger')
+    @patch("tools.base.logger")
     def test_logging_on_exception(self, mock_logger):
         """Test that exceptions are logged with traceback."""
         self.mock_execute_func.side_effect = RuntimeError("Test error")
@@ -316,7 +281,7 @@ class TestBaseToolExecution(unittest.TestCase):
 
         # Check that error log was called with exc_info
         mock_logger.error.assert_called()
-        self.assertTrue(mock_logger.error.call_args[1].get('exc_info'))
+        self.assertTrue(mock_logger.error.call_args[1].get("exc_info"))
 
 
 class TestSimpleCommandTool(unittest.TestCase):
@@ -351,18 +316,14 @@ class TestSimpleCommandTool(unittest.TestCase):
     def test_build_command_with_additional_args(self):
         """Test command building with additional arguments."""
         tool = SimpleCommandTool("SimpleTool", binary_name="simple", target_flag="-u")
-        cmd = tool.build_command("example.com", {
-            "additional_args": "-v -p 443"
-        })
+        cmd = tool.build_command("example.com", {"additional_args": "-v -p 443"})
 
         self.assertEqual(cmd, ["simple", "-v", "-p", "443", "-u", "example.com"])
 
     def test_build_command_no_flag_with_args(self):
         """Test command building with args but no target flag."""
         tool = SimpleCommandTool("SimpleTool", binary_name="simple")
-        cmd = tool.build_command("example.com", {
-            "additional_args": "--verbose --timeout 30"
-        })
+        cmd = tool.build_command("example.com", {"additional_args": "--verbose --timeout 30"})
 
         self.assertEqual(cmd, ["simple", "--verbose", "--timeout", "30", "example.com"])
 
@@ -376,12 +337,7 @@ class TestSimpleCommandTool(unittest.TestCase):
     def test_integration_with_execute(self):
         """Test SimpleCommandTool integration with execute method."""
         tool = SimpleCommandTool("SimpleTool", binary_name="simple", target_flag="-t")
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": "simple output",
-            "stderr": "",
-            "returncode": 0
-        })
+        mock_execute = Mock(return_value={"success": True, "stdout": "simple output", "stderr": "", "returncode": 0})
 
         result = tool.execute("target.com", {"additional_args": "-v"}, mock_execute)
 
@@ -395,12 +351,7 @@ class TestBaseToolEdgeCases(unittest.TestCase):
     def test_empty_target(self):
         """Test execution with empty target."""
         tool = ConcreteTool("TestTool")
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": "",
-            "stderr": "",
-            "returncode": 0
-        })
+        mock_execute = Mock(return_value={"success": True, "stdout": "", "stderr": "", "returncode": 0})
 
         result = tool.execute("", {}, mock_execute)
         self.assertTrue(result["success"])
@@ -408,12 +359,7 @@ class TestBaseToolEdgeCases(unittest.TestCase):
     def test_empty_params(self):
         """Test execution with empty parameters."""
         tool = ConcreteTool("TestTool")
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": "",
-            "stderr": "",
-            "returncode": 0
-        })
+        mock_execute = Mock(return_value={"success": True, "stdout": "", "stderr": "", "returncode": 0})
 
         result = tool.execute("target.com", {}, mock_execute)
         self.assertTrue(result["success"])
@@ -421,12 +367,7 @@ class TestBaseToolEdgeCases(unittest.TestCase):
     def test_special_characters_in_target(self):
         """Test handling of special characters in target."""
         tool = ConcreteTool("TestTool")
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": "",
-            "stderr": "",
-            "returncode": 0
-        })
+        mock_execute = Mock(return_value={"success": True, "stdout": "", "stderr": "", "returncode": 0})
 
         result = tool.execute("target-with_special.chars@test.com", {}, mock_execute)
         self.assertTrue(result["success"])
@@ -435,12 +376,9 @@ class TestBaseToolEdgeCases(unittest.TestCase):
     def test_multiline_output_parsing(self):
         """Test parsing of multiline output."""
         tool = ConcreteTool("TestTool")
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": "line1\nline2\nline3\n",
-            "stderr": "",
-            "returncode": 0
-        })
+        mock_execute = Mock(
+            return_value={"success": True, "stdout": "line1\nline2\nline3\n", "stderr": "", "returncode": 0}
+        )
 
         result = tool.execute("target.com", {}, mock_execute)
         self.assertEqual(result["output"]["raw_output"], "line1\nline2\nline3\n")
@@ -449,12 +387,7 @@ class TestBaseToolEdgeCases(unittest.TestCase):
         """Test handling of execution result missing optional fields."""
         tool = ConcreteTool("TestTool")
         # Return minimal result without execution_time or cached
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": "output",
-            "stderr": "",
-            "returncode": 0
-        })
+        mock_execute = Mock(return_value={"success": True, "stdout": "output", "stderr": "", "returncode": 0})
 
         result = tool.execute("target.com", {}, mock_execute)
         self.assertTrue(result["success"])
@@ -465,17 +398,19 @@ class TestBaseToolEdgeCases(unittest.TestCase):
     def test_nonzero_returncode_but_success(self):
         """Test handling of non-zero return code with success flag."""
         tool = ConcreteTool("TestTool")
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": "output with warnings",
-            "stderr": "warning messages",
-            "returncode": 1
-        })
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": "output with warnings",
+                "stderr": "warning messages",
+                "returncode": 1,
+            }
+        )
 
         result = tool.execute("target.com", {}, mock_execute)
         self.assertTrue(result["success"])
         self.assertEqual(result["output"]["returncode"], 1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -5,17 +5,19 @@ Handles CVE monitoring, exploit generation, attack chain discovery, threat feeds
 
 import logging
 from datetime import datetime
-from flask import Blueprint, request, jsonify
+
+from flask import Blueprint, jsonify, request
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-vuln_intel_bp = Blueprint('vuln_intel', __name__, url_prefix='/api/vuln-intel')
+vuln_intel_bp = Blueprint("vuln_intel", __name__, url_prefix="/api/vuln-intel")
 
 # Dependencies will be injected via init_app
 cve_intelligence = None
 exploit_generator = None
 vulnerability_correlator = None
+
 
 def init_app(cve_intel, exploit_gen, vuln_correlator):
     """Initialize blueprint with dependencies"""
@@ -66,7 +68,7 @@ def cve_monitor():
             "success": True,
             "cve_monitoring": cve_results,
             "exploitability_analysis": exploitability_analysis,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         logger.info(f"📊 CVE monitoring completed | Found: {len(cve_results.get('cves', []))} CVEs")
@@ -74,10 +76,7 @@ def cve_monitor():
 
     except Exception as e:
         logger.error(f"💥 Error in CVE monitoring: {str(e)}")
-        return jsonify({
-            "success": False,
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"success": False, "error": f"Server error: {str(e)}"}), 500
 
 
 @vuln_intel_bp.route("/exploit-generate", methods=["POST"])
@@ -99,15 +98,12 @@ def exploit_generate():
             "evasion_level": evasion_level,
             "target_ip": params.get("target_ip", "192.168.1.100"),
             "target_port": params.get("target_port", 80),
-            "description": params.get("target_description", f"Target for {cve_id}")
+            "description": params.get("target_description", f"Target for {cve_id}"),
         }
 
         if not cve_id:
             logger.warning("🤖 Exploit generation called without CVE ID")
-            return jsonify({
-                "success": False,
-                "error": "CVE ID parameter is required"
-            }), 400
+            return jsonify({"success": False, "error": "CVE ID parameter is required"}), 400
 
         logger.info(f"🤖 Generating exploit for {cve_id} | Target: {target_os} {target_arch}")
 
@@ -115,17 +111,22 @@ def exploit_generate():
         cve_analysis = cve_intelligence.analyze_cve_exploitability(cve_id)
 
         if not cve_analysis.get("success"):
-            return jsonify({
-                "success": False,
-                "error": f"Failed to analyze CVE {cve_id}: {cve_analysis.get('error', 'Unknown error')}"
-            }), 400
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "error": f"Failed to analyze CVE {cve_id}: {cve_analysis.get('error', 'Unknown error')}",
+                    }
+                ),
+                400,
+            )
 
         # Prepare CVE data for exploit generation
         cve_data = {
             "cve_id": cve_id,
             "description": f"Vulnerability analysis for {cve_id}",
             "exploitability_level": cve_analysis.get("exploitability_level", "UNKNOWN"),
-            "exploitability_score": cve_analysis.get("exploitability_score", 0)
+            "exploitability_score": cve_analysis.get("exploitability_score", 0),
         }
 
         # Generate exploit
@@ -140,7 +141,7 @@ def exploit_generate():
             "exploit_generation": exploit_result,
             "existing_exploits": existing_exploits,
             "target_info": target_info,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         logger.info(f"🎯 Exploit generation completed for {cve_id}")
@@ -148,10 +149,7 @@ def exploit_generate():
 
     except Exception as e:
         logger.error(f"💥 Error in exploit generation: {str(e)}")
-        return jsonify({
-            "success": False,
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"success": False, "error": f"Server error: {str(e)}"}), 500
 
 
 @vuln_intel_bp.route("/attack-chains", methods=["POST"])
@@ -165,10 +163,7 @@ def discover_attack_chains():
 
         if not target_software:
             logger.warning("🔗 Attack chain discovery called without target software")
-            return jsonify({
-                "success": False,
-                "error": "Target software parameter is required"
-            }), 400
+            return jsonify({"success": False, "error": "Target software parameter is required"}), 400
 
         logger.info(f"🔗 Discovering attack chains for {target_software} | Depth: {attack_depth}")
 
@@ -200,7 +195,7 @@ def discover_attack_chains():
 
                             if exploit_result.get("success"):
                                 enhanced_stage["exploit_code"] = exploit_result.get("exploit_code", "")[:500] + "..."
-                        except:
+                        except Exception:
                             enhanced_stage["exploit_available"] = False
 
                     enhanced_stages.append(enhanced_stage)
@@ -216,20 +211,19 @@ def discover_attack_chains():
             "parameters": {
                 "target_software": target_software,
                 "attack_depth": attack_depth,
-                "include_zero_days": include_zero_days
+                "include_zero_days": include_zero_days,
             },
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
-        logger.info(f"🎯 Attack chain discovery completed | Found: {len(chain_results.get('attack_chains', []))} chains")
+        logger.info(
+            f"🎯 Attack chain discovery completed | Found: {len(chain_results.get('attack_chains', []))} chains"
+        )
         return jsonify(result)
 
     except Exception as e:
         logger.error(f"💥 Error in attack chain discovery: {str(e)}")
-        return jsonify({
-            "success": False,
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"success": False, "error": f"Server error: {str(e)}"}), 500
 
 
 @vuln_intel_bp.route("/threat-feeds", methods=["POST"])
@@ -246,10 +240,7 @@ def threat_intelligence_feeds():
 
         if not indicators:
             logger.warning("🧠 Threat intelligence called without indicators")
-            return jsonify({
-                "success": False,
-                "error": "Indicators parameter is required"
-            }), 400
+            return jsonify({"success": False, "error": "Indicators parameter is required"}), 400
 
         logger.info(f"🧠 Correlating threat intelligence for {len(indicators)} indicators")
 
@@ -259,25 +250,29 @@ def threat_intelligence_feeds():
             "sources": sources,
             "correlations": [],
             "threat_score": 0,
-            "recommendations": []
+            "recommendations": [],
         }
 
         # Analyze each indicator
         cve_indicators = [i for i in indicators if i.startswith("CVE-")]
         ip_indicators = [i for i in indicators if i.replace(".", "").isdigit()]
-        hash_indicators = [i for i in indicators if len(i) in [32, 40, 64] and all(c in "0123456789abcdef" for c in i.lower())]
+        hash_indicators = [
+            i for i in indicators if len(i) in [32, 40, 64] and all(c in "0123456789abcdef" for c in i.lower())
+        ]
 
         # Process CVE indicators
         for cve_id in cve_indicators:
             try:
                 cve_analysis = cve_intelligence.analyze_cve_exploitability(cve_id)
                 if cve_analysis.get("success"):
-                    correlation_results["correlations"].append({
-                        "indicator": cve_id,
-                        "type": "cve",
-                        "analysis": cve_analysis,
-                        "threat_level": cve_analysis.get("exploitability_level", "UNKNOWN")
-                    })
+                    correlation_results["correlations"].append(
+                        {
+                            "indicator": cve_id,
+                            "type": "cve",
+                            "analysis": cve_analysis,
+                            "threat_level": cve_analysis.get("exploitability_level", "UNKNOWN"),
+                        }
+                    )
 
                     # Add to threat score
                     exploit_score = cve_analysis.get("exploitability_score", 0)
@@ -286,12 +281,14 @@ def threat_intelligence_feeds():
                 # Search for existing exploits
                 exploits = cve_intelligence.search_existing_exploits(cve_id)
                 if exploits.get("success") and exploits.get("total_exploits", 0) > 0:
-                    correlation_results["correlations"].append({
-                        "indicator": cve_id,
-                        "type": "exploit_availability",
-                        "exploits_found": exploits.get("total_exploits", 0),
-                        "threat_level": "HIGH"
-                    })
+                    correlation_results["correlations"].append(
+                        {
+                            "indicator": cve_id,
+                            "type": "exploit_availability",
+                            "exploits_found": exploits.get("total_exploits", 0),
+                            "threat_level": "HIGH",
+                        }
+                    )
                     correlation_results["threat_score"] += 25
 
             except Exception as e:
@@ -300,29 +297,29 @@ def threat_intelligence_feeds():
         # Process IP indicators (basic reputation check simulation)
         for ip in ip_indicators:
             # Simulate threat intelligence lookup
-            correlation_results["correlations"].append({
-                "indicator": ip,
-                "type": "ip_reputation",
-                "analysis": {
-                    "reputation": "unknown",
-                    "geolocation": "unknown",
-                    "associated_threats": []
-                },
-                "threat_level": "MEDIUM"  # Default for unknown IPs
-            })
+            correlation_results["correlations"].append(
+                {
+                    "indicator": ip,
+                    "type": "ip_reputation",
+                    "analysis": {"reputation": "unknown", "geolocation": "unknown", "associated_threats": []},
+                    "threat_level": "MEDIUM",  # Default for unknown IPs
+                }
+            )
 
         # Process hash indicators
         for hash_val in hash_indicators:
-            correlation_results["correlations"].append({
-                "indicator": hash_val,
-                "type": "file_hash",
-                "analysis": {
-                    "hash_type": f"hash{len(hash_val)}",
-                    "malware_family": "unknown",
-                    "detection_rate": "unknown"
-                },
-                "threat_level": "MEDIUM"
-            })
+            correlation_results["correlations"].append(
+                {
+                    "indicator": hash_val,
+                    "type": "file_hash",
+                    "analysis": {
+                        "hash_type": f"hash{len(hash_val)}",
+                        "malware_family": "unknown",
+                        "detection_rate": "unknown",
+                    },
+                    "threat_level": "MEDIUM",
+                }
+            )
 
         # Calculate overall threat score and generate recommendations
         total_indicators = len(indicators)
@@ -334,38 +331,33 @@ def threat_intelligence_feeds():
                     "Immediate threat response required",
                     "Block identified indicators",
                     "Enhance monitoring for related IOCs",
-                    "Implement emergency patches for identified CVEs"
+                    "Implement emergency patches for identified CVEs",
                 ]
             elif correlation_results["threat_score"] >= 50:
                 correlation_results["recommendations"] = [
                     "Elevated threat level detected",
                     "Increase monitoring for identified indicators",
                     "Plan patching for identified vulnerabilities",
-                    "Review security controls"
+                    "Review security controls",
                 ]
             else:
                 correlation_results["recommendations"] = [
                     "Low to medium threat level",
                     "Continue standard monitoring",
                     "Plan routine patching",
-                    "Consider additional threat intelligence sources"
+                    "Consider additional threat intelligence sources",
                 ]
 
-        result = {
-            "success": True,
-            "threat_intelligence": correlation_results,
-            "timestamp": datetime.now().isoformat()
-        }
+        result = {"success": True, "threat_intelligence": correlation_results, "timestamp": datetime.now().isoformat()}
 
-        logger.info(f"🎯 Threat intelligence correlation completed | Threat Score: {correlation_results['threat_score']:.1f}")
+        logger.info(
+            f"🎯 Threat intelligence correlation completed | Threat Score: {correlation_results['threat_score']:.1f}"
+        )
         return jsonify(result)
 
     except Exception as e:
         logger.error(f"💥 Error in threat intelligence: {str(e)}")
-        return jsonify({
-            "success": False,
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"success": False, "error": f"Server error: {str(e)}"}), 500
 
 
 @vuln_intel_bp.route("/zero-day-research", methods=["POST"])
@@ -379,10 +371,7 @@ def zero_day_research():
 
         if not target_software:
             logger.warning("🔬 Zero-day research called without target software")
-            return jsonify({
-                "success": False,
-                "error": "Target software parameter is required"
-            }), 400
+            return jsonify({"success": False, "error": "Target software parameter is required"}), 400
 
         logger.info(f"🔬 Starting zero-day research for {target_software} | Depth: {analysis_depth}")
 
@@ -392,7 +381,7 @@ def zero_day_research():
             "research_areas": [],
             "potential_vulnerabilities": [],
             "risk_assessment": {},
-            "recommendations": []
+            "recommendations": [],
         }
 
         # Define research areas based on software type
@@ -403,7 +392,7 @@ def zero_day_research():
             "Authorization flaws",
             "Cryptographic weaknesses",
             "Race conditions",
-            "Logic flaws"
+            "Logic flaws",
         ]
 
         # Software-specific research areas
@@ -412,7 +401,7 @@ def zero_day_research():
             "SQL injection",
             "Server-side request forgery (SSRF)",
             "Insecure deserialization",
-            "Template injection"
+            "Template injection",
         ]
 
         system_research_areas = [
@@ -420,7 +409,7 @@ def zero_day_research():
             "Privilege escalation",
             "Kernel vulnerabilities",
             "Service exploitation",
-            "Configuration weaknesses"
+            "Configuration weaknesses",
         ]
 
         # Determine research areas based on target
@@ -444,12 +433,14 @@ def zero_day_research():
                 "description": f"Potential {research_results['research_areas'][i % len(research_results['research_areas'])].lower()} in {target_software}",
                 "attack_vector": "To be determined through further analysis",
                 "impact": "To be assessed",
-                "proof_of_concept": "Research phase - PoC development needed"
+                "proof_of_concept": "Research phase - PoC development needed",
             }
             research_results["potential_vulnerabilities"].append(potential_vuln)
 
         # Risk assessment
-        high_risk_count = sum(1 for v in research_results["potential_vulnerabilities"] if v["severity"] in ["HIGH", "CRITICAL"])
+        high_risk_count = sum(
+            1 for v in research_results["potential_vulnerabilities"] if v["severity"] in ["HIGH", "CRITICAL"]
+        )
         total_vulns = len(research_results["potential_vulnerabilities"])
 
         research_results["risk_assessment"] = {
@@ -457,7 +448,7 @@ def zero_day_research():
             "potential_vulnerabilities_found": total_vulns,
             "high_risk_findings": high_risk_count,
             "risk_score": min((high_risk_count * 25 + (total_vulns - high_risk_count) * 10), 100),
-            "research_confidence": analysis_depth
+            "research_confidence": analysis_depth,
         }
 
         # Generate recommendations
@@ -467,14 +458,14 @@ def zero_day_research():
                 "Conduct focused penetration testing",
                 "Implement additional security controls",
                 "Consider bug bounty program for target software",
-                "Perform code review in identified areas"
+                "Perform code review in identified areas",
             ]
         else:
             research_results["recommendations"] = [
                 "Continue standard security testing",
                 "Monitor for new vulnerability research",
                 "Implement defense-in-depth strategies",
-                "Regular security assessments recommended"
+                "Regular security assessments recommended",
             ]
 
         # Source code analysis simulation
@@ -485,16 +476,16 @@ def zero_day_research():
                 "findings": [
                     "Static analysis patterns identified",
                     "Potential code quality issues detected",
-                    "Security-relevant functions located"
+                    "Security-relevant functions located",
                 ],
-                "recommendation": "Manual code review recommended for identified areas"
+                "recommendation": "Manual code review recommended for identified areas",
             }
 
         result = {
             "success": True,
             "zero_day_research": research_results,
             "disclaimer": "This is simulated research for demonstration. Real zero-day research requires extensive manual analysis.",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         logger.info(f"🎯 Zero-day research completed | Risk Score: {research_results['risk_assessment']['risk_score']}")
@@ -502,7 +493,4 @@ def zero_day_research():
 
     except Exception as e:
         logger.error(f"💥 Error in zero-day research: {str(e)}")
-        return jsonify({
-            "success": False,
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"success": False, "error": f"Server error: {str(e)}"}), 500

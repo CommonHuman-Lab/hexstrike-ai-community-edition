@@ -4,15 +4,17 @@ Handles api_fuzzer, graphql_scanner, jwt_analyzer, and api_schema_analyzer tools
 """
 
 import logging
-from flask import Blueprint, request, jsonify
+
+from flask import Blueprint, jsonify, request
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-tools_api_bp = Blueprint('tools_api', __name__, url_prefix='/api/tools')
+tools_api_bp = Blueprint("tools_api", __name__, url_prefix="/api/tools")
 
 # Dependencies will be injected via init_app
 execute_command = None
+
 
 def init_app(exec_command):
     """Initialize blueprint with dependencies"""
@@ -32,9 +34,7 @@ def api_fuzzer():
 
         if not url:
             logger.warning("🌐 API Fuzzer called without URL parameter")
-            return jsonify({
-                "error": "URL parameter is required"
-            }), 400
+            return jsonify({"error": "URL parameter is required"}), 400
 
         command = f"ffuf -u {url}/FUZZ -w {wordlist} -X {method}"
 
@@ -47,9 +47,8 @@ def api_fuzzer():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in api_fuzzer endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_api_bp.route("/graphql-scanner", methods=["POST"])
 def graphql_scanner():
@@ -61,9 +60,7 @@ def graphql_scanner():
 
         if not url:
             logger.warning("🎯 GraphQL Scanner called without URL parameter")
-            return jsonify({
-                "error": "URL parameter is required"
-            }), 400
+            return jsonify({"error": "URL parameter is required"}), 400
 
         command = f"graphql-cop -t {url}"
 
@@ -76,9 +73,8 @@ def graphql_scanner():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in graphql_scanner endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_api_bp.route("/jwt-analyzer", methods=["POST"])
 def jwt_analyzer():
@@ -91,9 +87,7 @@ def jwt_analyzer():
 
         if not token:
             logger.warning("🎯 JWT Analyzer called without token parameter")
-            return jsonify({
-                "error": "Token parameter is required"
-            }), 400
+            return jsonify({"error": "Token parameter is required"}), 400
 
         command = f"jwt_tool {token}"
 
@@ -109,9 +103,8 @@ def jwt_analyzer():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in jwt_analyzer endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_api_bp.route("/api-schema-analyzer", methods=["POST"])
 def api_schema_analyzer():
@@ -124,9 +117,7 @@ def api_schema_analyzer():
 
         if not url:
             logger.warning("🌐 API Schema Analyzer called without URL parameter")
-            return jsonify({
-                "error": "URL parameter is required"
-            }), 400
+            return jsonify({"error": "URL parameter is required"}), 400
 
         if schema_type == "openapi":
             command = f"openapi-scanner -u {url}"
@@ -144,6 +135,53 @@ def api_schema_analyzer():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in api_schema_analyzer endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+@tools_api_bp.route("/postman", methods=["POST"])
+def postman():
+    """Execute Newman (Postman CLI) for automated API collection testing"""
+    try:
+        params = request.json
+        collection = params.get("collection", "")
+        environment = params.get("environment", "")
+        globals_file = params.get("globals", "")
+        iterations = params.get("iterations", 1)
+        delay = params.get("delay", 0)
+        timeout = params.get("timeout", 30000)
+        reporters = params.get("reporters", "cli,json")
+        env_var = params.get("env_var", "")
+        additional_args = params.get("additional_args", "")
+
+        if not collection:
+            logger.warning("🎯 Postman called without collection parameter")
+            return jsonify({"error": "Collection parameter is required"}), 400
+
+        command = f"newman run {collection} --timeout-request {timeout} -r {reporters}"
+
+        if environment:
+            command += f" -e {environment}"
+
+        if globals_file:
+            command += f" -g {globals_file}"
+
+        if iterations > 1:
+            command += f" -n {iterations}"
+
+        if delay:
+            command += f" --delay-request {delay}"
+
+        if env_var:
+            for var in env_var.split(","):
+                command += f" --env-var {var.strip()}"
+
+        if additional_args:
+            command += f" {additional_args}"
+
+        logger.info(f"📬 Starting Newman/Postman collection run")
+        result = execute_command(command)
+        logger.info(f"📊 Newman/Postman collection run completed")
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"💥 Error in postman endpoint: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500

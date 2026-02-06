@@ -1,9 +1,11 @@
 """
 Fierce tool implementation for DNS reconnaissance
 """
-from typing import Dict, Any, List
-from tools.base import BaseTool
+
 import re
+from typing import Any, Dict, List
+
+from tools.base import BaseTool
 
 
 class FierceTool(BaseTool):
@@ -97,7 +99,7 @@ class FierceTool(BaseTool):
         dns_servers = []
         ip_ranges = []
 
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
 
         for line in lines:
             line = line.strip()
@@ -105,34 +107,28 @@ class FierceTool(BaseTool):
                 continue
 
             # DNS servers
-            if 'NS:' in line:
-                ns_match = re.search(r'NS:\s+([\w\.-]+)', line)
+            if "NS:" in line:
+                ns_match = re.search(r"NS:\s+([\w\.-]+)", line)
                 if ns_match:
                     dns_servers.append(ns_match.group(1))
 
             # Subdomain with IP
             # Format: subdomain.example.com - A: 1.2.3.4
-            subdomain_match = re.search(r'^([\w\.-]+)\s+-\s+(?:A|AAAA):\s+([\d\.:a-fA-F]+)', line)
+            subdomain_match = re.search(r"^([\w\.-]+)\s+-\s+(?:A|AAAA):\s+([\d\.:a-fA-F]+)", line)
             if subdomain_match:
                 subdomain = subdomain_match.group(1)
                 ip = subdomain_match.group(2)
-                subdomains.append({
-                    'subdomain': subdomain,
-                    'ip': ip
-                })
+                subdomains.append({"subdomain": subdomain, "ip": ip})
                 ip_addresses.add(ip)
 
             # Nearby hosts (found during IP traversal)
-            if 'Nearby' in line or 'Found' in line:
-                nearby_match = re.search(r'([\w\.-]+)\s+-\s+([\d\.]+)', line)
+            if "Nearby" in line or "Found" in line:
+                nearby_match = re.search(r"([\w\.-]+)\s+-\s+([\d\.]+)", line)
                 if nearby_match:
-                    nearby_hosts.append({
-                        'hostname': nearby_match.group(1),
-                        'ip': nearby_match.group(2)
-                    })
+                    nearby_hosts.append({"hostname": nearby_match.group(1), "ip": nearby_match.group(2)})
 
             # IP ranges
-            range_match = re.search(r'(\d+\.\d+\.\d+\.\d+/\d+)', line)
+            range_match = re.search(r"(\d+\.\d+\.\d+\.\d+/\d+)", line)
             if range_match:
                 ip_ranges.append(range_match.group(1))
 
@@ -149,5 +145,5 @@ class FierceTool(BaseTool):
             "range_count": len(set(ip_ranges)),
             "raw_output": stdout,
             "stderr": stderr,
-            "returncode": returncode
+            "returncode": returncode,
         }

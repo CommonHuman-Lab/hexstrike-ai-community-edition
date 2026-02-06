@@ -3,7 +3,8 @@ Nikto Tool Implementation
 Web server scanner for security issues
 """
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 from ..base import BaseTool
 
 
@@ -40,10 +41,10 @@ class NiktoTool(BaseTool):
             >>> tool.build_command('example.com', {})
             ['nikto', '-h', 'example.com']
         """
-        cmd_parts = [self.binary_name, '-h', target]
+        cmd_parts = [self.binary_name, "-h", target]
 
         # Add any additional arguments
-        additional_args = params.get('additional_args', '')
+        additional_args = params.get("additional_args", "")
         if additional_args:
             cmd_parts.extend(additional_args.split())
 
@@ -61,29 +62,25 @@ class NiktoTool(BaseTool):
         Returns:
             Dictionary containing parsed results
         """
-        result = {
-            "raw_output": stdout,
-            "stderr": stderr,
-            "returncode": returncode
-        }
+        result = {"raw_output": stdout, "stderr": stderr, "returncode": returncode}
 
         # Parse findings
-        lines = stdout.split('\n')
+        lines = stdout.split("\n")
         findings = []
         target_info = None
 
         for line in lines:
-            if '+ Target' in line:
+            if "+ Target" in line:
                 target_info = line.strip()
-            elif line.strip().startswith('+') and len(line.strip()) > 2:
+            elif line.strip().startswith("+") and len(line.strip()) > 2:
                 # Nikto findings typically start with +
                 findings.append(line.strip())
 
         if target_info:
-            result['target_info'] = target_info
+            result["target_info"] = target_info
 
         if findings:
-            result['findings'] = findings
-            result['findings_count'] = len(findings)
+            result["findings"] = findings
+            result["findings_count"] = len(findings)
 
         return result

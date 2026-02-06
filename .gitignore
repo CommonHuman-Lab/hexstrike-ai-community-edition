@@ -5,3 +5,6 @@ __pycache__/
 *.log
 .coverage
 coverage.xml
+TOOL_INTEGRATION_LOG.md
+MODULAR_ARCHITECTURE_BREAKDOWN.md
+ARCHITECTURE_COMPARISON.md

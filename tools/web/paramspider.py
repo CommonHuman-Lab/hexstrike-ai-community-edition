@@ -1,10 +1,12 @@
 """
 ParamSpider tool implementation for parameter mining and discovery
 """
-from typing import Dict, Any, List
-from tools.base import BaseTool
+
 import re
-from urllib.parse import urlparse, parse_qs
+from typing import Any, Dict, List
+from urllib.parse import parse_qs, urlparse
+
+from tools.base import BaseTool
 
 
 class ParamSpiderTool(BaseTool):
@@ -86,18 +88,46 @@ class ParamSpiderTool(BaseTool):
 
         # Interesting parameter names that might indicate vulnerabilities
         interesting_param_names = [
-            'id', 'user', 'admin', 'debug', 'test', 'file', 'path', 'url', 'redirect',
-            'next', 'callback', 'return', 'page', 'template', 'theme', 'lang', 'locale',
-            'cmd', 'exec', 'command', 'query', 'search', 'keyword', 'email', 'password',
-            'token', 'api', 'key', 'secret', 'auth', 'session', 'cookie'
+            "id",
+            "user",
+            "admin",
+            "debug",
+            "test",
+            "file",
+            "path",
+            "url",
+            "redirect",
+            "next",
+            "callback",
+            "return",
+            "page",
+            "template",
+            "theme",
+            "lang",
+            "locale",
+            "cmd",
+            "exec",
+            "command",
+            "query",
+            "search",
+            "keyword",
+            "email",
+            "password",
+            "token",
+            "api",
+            "key",
+            "secret",
+            "auth",
+            "session",
+            "cookie",
         ]
 
         interesting_params = []
 
         # Parse URLs from output
-        for line in stdout.split('\n'):
+        for line in stdout.split("\n"):
             line = line.strip()
-            if not line or not line.startswith('http'):
+            if not line or not line.startswith("http"):
                 continue
 
             urls_with_params.append(line)
@@ -115,12 +145,10 @@ class ParamSpiderTool(BaseTool):
 
                     # Check if parameter is interesting
                     if param_name.lower() in interesting_param_names:
-                        if param_name not in [p['parameter'] for p in interesting_params]:
-                            interesting_params.append({
-                                'parameter': param_name,
-                                'url': line,
-                                'reason': 'Common vulnerable parameter name'
-                            })
+                        if param_name not in [p["parameter"] for p in interesting_params]:
+                            interesting_params.append(
+                                {"parameter": param_name, "url": line, "reason": "Common vulnerable parameter name"}
+                            )
 
             except Exception as e:
                 # Skip malformed URLs
@@ -130,8 +158,7 @@ class ParamSpiderTool(BaseTool):
         sorted_parameters = sorted(list(parameters))
 
         # Sort parameter frequency by count (descending)
-        sorted_frequency = dict(sorted(parameter_frequency.items(),
-                                      key=lambda x: x[1], reverse=True))
+        sorted_frequency = dict(sorted(parameter_frequency.items(), key=lambda x: x[1], reverse=True))
 
         return {
             "parameters": sorted_parameters,
@@ -143,5 +170,5 @@ class ParamSpiderTool(BaseTool):
             "interesting_count": len(interesting_params),
             "raw_output": stdout,
             "stderr": stderr,
-            "returncode": returncode
+            "returncode": returncode,
         }

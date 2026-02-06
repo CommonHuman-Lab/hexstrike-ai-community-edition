@@ -18,6 +18,7 @@ class TestFeroxbusterToolInitialization(unittest.TestCase):
 
     def test_inheritance(self):
         from tools.base import BaseTool
+
         tool = FeroxbusterTool()
         self.assertIsInstance(tool, BaseTool)
 
@@ -42,33 +43,23 @@ class TestFeroxbusterCommandBuilding(unittest.TestCase):
         self.assertIn("/usr/share/wordlists/dirb/common.txt", cmd)
 
     def test_command_with_custom_wordlist(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "wordlist": "/custom/wordlist.txt"
-        })
+        cmd = self.tool.build_command("https://example.com", {"wordlist": "/custom/wordlist.txt"})
         self.assertIn("/custom/wordlist.txt", cmd)
 
     def test_command_with_extensions(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-x php,html,txt"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-x php,html,txt"})
         self.assertIn("-x", cmd)
 
     def test_command_with_threads(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-t 50"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-t 50"})
         self.assertIn("-t", cmd)
 
     def test_command_with_depth(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-d 3"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-d 3"})
         self.assertIn("-d", cmd)
 
     def test_command_with_status_codes(self):
-        cmd = self.tool.build_command("https://example.com", {
-            "additional_args": "-s 200,301,302"
-        })
+        cmd = self.tool.build_command("https://example.com", {"additional_args": "-s 200,301,302"})
         self.assertIn("-s", cmd)
 
 
@@ -103,7 +94,7 @@ class TestFeroxbusterToolExecution(unittest.TestCase):
             "success": True,
             "stdout": "200      GET       50l      120w     1234c https://example.com/admin",
             "stderr": "",
-            "returncode": 0
+            "returncode": 0,
         }
 
         result = self.tool.execute("https://example.com", {}, self.mock_execute_func)
@@ -115,7 +106,7 @@ class TestFeroxbusterToolExecution(unittest.TestCase):
             "success": False,
             "error": "feroxbuster: command not found",
             "stderr": "feroxbuster: command not found",
-            "returncode": 127
+            "returncode": 127,
         }
 
         result = self.tool.execute("https://example.com", {}, self.mock_execute_func)
@@ -134,19 +125,21 @@ class TestFeroxbusterEdgeCases(unittest.TestCase):
 class TestFeroxbusterIntegration(unittest.TestCase):
     def test_realistic_scan(self):
         tool = FeroxbusterTool()
-        mock_execute = Mock(return_value={
-            "success": True,
-            "stdout": """200      GET       50l      120w     1234c https://example.com/admin
+        mock_execute = Mock(
+            return_value={
+                "success": True,
+                "stdout": """200      GET       50l      120w     1234c https://example.com/admin
 301      GET        9l       28w      312c https://example.com/uploads
 200      GET      100l      250w     5678c https://example.com/api""",
-            "stderr": "",
-            "returncode": 0
-        })
+                "stderr": "",
+                "returncode": 0,
+            }
+        )
 
         result = tool.execute("https://example.com", {}, mock_execute)
         self.assertTrue(result["success"])
         self.assertEqual(result["output"]["discovered_count"], 3)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

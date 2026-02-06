@@ -7,9 +7,10 @@ providing fallback chains and alternative methods for critical operations.
 
 import logging
 import socket
-import requests
-from typing import Dict, Any, List, Set
 from datetime import datetime
+from typing import Any, Dict, List, Set
+
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -27,38 +28,33 @@ class GracefulDegradation:
             "network_discovery": [
                 ["nmap", "rustscan", "masscan"],
                 ["rustscan", "nmap"],
-                ["ping", "telnet"]  # Basic fallback
+                ["ping", "telnet"],  # Basic fallback
             ],
             "web_discovery": [
                 ["gobuster", "feroxbuster", "dirsearch"],
                 ["feroxbuster", "ffuf"],
-                ["curl", "wget"]  # Basic fallback
+                ["curl", "wget"],  # Basic fallback
             ],
             "vulnerability_scanning": [
                 ["nuclei", "jaeles", "nikto"],
                 ["nikto", "w3af"],
-                ["curl"]  # Basic manual testing
+                ["curl"],  # Basic manual testing
             ],
             "subdomain_enumeration": [
                 ["subfinder", "amass", "assetfinder"],
                 ["amass", "findomain"],
-                ["dig", "nslookup"]  # Basic DNS tools
+                ["dig", "nslookup"],  # Basic DNS tools
             ],
             "parameter_discovery": [
                 ["arjun", "paramspider", "x8"],
                 ["ffuf", "wfuzz"],
-                ["manual_testing"]  # Manual parameter testing
-            ]
+                ["manual_testing"],  # Manual parameter testing
+            ],
         }
 
     def _initialize_critical_operations(self) -> Set[str]:
         """Initialize set of critical operations that must not fail completely"""
-        return {
-            "network_discovery",
-            "web_discovery",
-            "vulnerability_scanning",
-            "subdomain_enumeration"
-        }
+        return {"network_discovery", "web_discovery", "vulnerability_scanning", "subdomain_enumeration"}
 
     def create_fallback_chain(self, operation: str, failed_tools: List[str] = None) -> List[str]:
         """Create fallback tool chain for critical operations"""
@@ -79,15 +75,16 @@ class GracefulDegradation:
             "network_discovery": ["ping"],
             "web_discovery": ["curl"],
             "vulnerability_scanning": ["curl"],
-            "subdomain_enumeration": ["dig"]
+            "subdomain_enumeration": ["dig"],
         }
 
         fallback = basic_fallbacks.get(operation, ["manual_testing"])
         logger.warning(f"⚠️  Using basic fallback for {operation}: {fallback}")
         return fallback
 
-    def handle_partial_failure(self, operation: str, partial_results: Dict[str, Any],
-                             failed_components: List[str]) -> Dict[str, Any]:
+    def handle_partial_failure(
+        self, operation: str, partial_results: Dict[str, Any], failed_components: List[str]
+    ) -> Dict[str, Any]:
         """Handle partial results and fill gaps with alternative methods"""
 
         enhanced_results = partial_results.copy()
@@ -96,7 +93,7 @@ class GracefulDegradation:
             "failed_components": failed_components,
             "partial_success": True,
             "fallback_applied": True,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         # Try to fill gaps based on operation type
@@ -113,9 +110,7 @@ class GracefulDegradation:
             enhanced_results["vulnerabilities"] = self._basic_security_check(partial_results.get("target"))
 
         # Add recommendations for manual follow-up
-        enhanced_results["manual_recommendations"] = self._get_manual_recommendations(
-            operation, failed_components
-        )
+        enhanced_results["manual_recommendations"] = self._get_manual_recommendations(operation, failed_components)
 
         logger.info(f"🛡️  Graceful degradation applied for {operation}")
         return enhanced_results
@@ -177,24 +172,28 @@ class GracefulDegradation:
                 "X-Content-Type-Options": "MIME type sniffing protection missing",
                 "X-XSS-Protection": "XSS protection missing",
                 "Strict-Transport-Security": "HTTPS enforcement missing",
-                "Content-Security-Policy": "Content Security Policy missing"
+                "Content-Security-Policy": "Content Security Policy missing",
             }
 
             for header, description in security_headers.items():
                 if header not in headers:
-                    vulnerabilities.append({
-                        "type": "missing_security_header",
-                        "severity": "medium",
-                        "description": description,
-                        "header": header
-                    })
+                    vulnerabilities.append(
+                        {
+                            "type": "missing_security_header",
+                            "severity": "medium",
+                            "description": description,
+                            "header": header,
+                        }
+                    )
 
         except Exception as e:
-            vulnerabilities.append({
-                "type": "connection_error",
-                "severity": "info",
-                "description": f"Could not perform basic security check: {str(e)}"
-            })
+            vulnerabilities.append(
+                {
+                    "type": "connection_error",
+                    "severity": "info",
+                    "description": f"Could not perform basic security check: {str(e)}",
+                }
+            )
 
         return vulnerabilities
 
@@ -206,23 +205,23 @@ class GracefulDegradation:
             "network_discovery": [
                 "Manually test common ports using telnet or nc",
                 "Check for service banners manually",
-                "Use online port scanners as alternative"
+                "Use online port scanners as alternative",
             ],
             "web_discovery": [
                 "Manually browse common directories",
                 "Check robots.txt and sitemap.xml",
-                "Use browser developer tools for endpoint discovery"
+                "Use browser developer tools for endpoint discovery",
             ],
             "vulnerability_scanning": [
                 "Manually test for common vulnerabilities",
                 "Check security headers using browser tools",
-                "Perform manual input validation testing"
+                "Perform manual input validation testing",
             ],
             "subdomain_enumeration": [
                 "Use online subdomain discovery tools",
                 "Check certificate transparency logs",
-                "Perform manual DNS queries"
-            ]
+                "Perform manual DNS queries",
+            ],
         }
 
         recommendations.extend(base_recommendations.get(operation, []))

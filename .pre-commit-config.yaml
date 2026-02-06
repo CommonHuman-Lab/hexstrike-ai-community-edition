@@ -1,0 +1,55 @@
+# Pre-commit hooks for HexStrike AI
+# Based on skills/senior-engineering coding standards:
+# - clean-code: formatting, no dead code, consistent style
+# - code-review-checklist: security, no hardcoded secrets, no debug left in
+# - deployment-procedures: all tests/lint clean before commit
+#
+# Usage:
+#   pre-commit install          (one-time setup)
+#   pre-commit run --all-files  (manual full check)
+#   git commit                  (runs automatically)
+
+repos:
+  # ── Formatting ──────────────────────────────────────────────────
+  - repo: https://github.com/psf/black
+    rev: 25.1.0
+    hooks:
+      - id: black
+        language_version: python3
+        args: ['--line-length=120', '--target-version=py311']
+
+  # ── Import Sorting ─────────────────────────────────────────────
+  - repo: https://github.com/pycqa/isort
+    rev: 6.0.1
+    hooks:
+      - id: isort
+        args: ['--profile=black', '--line-length=120']
+
+  # ── Linting (errors & code smells) ─────────────────────────────
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.3.0
+    hooks:
+      - id: flake8
+        args: ['--config=setup.cfg']
+
+  # ── Built-in checks ────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      # Security: catch accidental secret commits
+      - id: detect-private-key
+      # Git hygiene: no giant files
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      # Code quality: valid Python syntax
+      - id: check-ast
+      # Code quality: no merge conflict markers left
+      - id: check-merge-conflict
+      # Code quality: valid YAML
+      - id: check-yaml
+      # Code quality: files end with newline
+      - id: end-of-file-fixer
+      # Code quality: no trailing whitespace
+      - id: trailing-whitespace
+      # Security: no debug statements (pdb, breakpoint)
+      - id: debug-statements

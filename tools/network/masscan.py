@@ -3,7 +3,8 @@ Masscan Tool Implementation
 High-speed port scanner
 """
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 from ..base import BaseTool
 
 
@@ -38,15 +39,15 @@ class MasscanTool(BaseTool):
         cmd_parts.append(target)
 
         # Add port range
-        ports = params.get('ports', '0-65535')
-        cmd_parts.extend(['-p', ports])
+        ports = params.get("ports", "0-65535")
+        cmd_parts.extend(["-p", ports])
 
         # Add scan rate
-        rate = params.get('rate', '1000')
-        cmd_parts.extend(['--rate', str(rate)])
+        rate = params.get("rate", "1000")
+        cmd_parts.extend(["--rate", str(rate)])
 
         # Add any additional arguments
-        additional_args = params.get('additional_args', '')
+        additional_args = params.get("additional_args", "")
         if additional_args:
             cmd_parts.extend(additional_args.split())
 
@@ -54,8 +55,4 @@ class MasscanTool(BaseTool):
 
     def parse_output(self, stdout: str, stderr: str, returncode: int) -> Dict[str, Any]:
         """Parse masscan output."""
-        return {
-            "raw_output": stdout,
-            "stderr": stderr,
-            "returncode": returncode
-        }
+        return {"raw_output": stdout, "stderr": stderr, "returncode": returncode}

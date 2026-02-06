@@ -3,7 +3,8 @@ HTTPX Tool Implementation
 HTTP toolkit
 """
 
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 from ..base import BaseTool
 
 
@@ -31,20 +32,16 @@ class HttpxTool(BaseTool):
             List of command arguments (using echo pipe pattern)
         """
         # HTTPX typically uses echo piping pattern
-        additional_args = params.get('additional_args', '-tech-detect -status-code')
+        additional_args = params.get("additional_args", "-tech-detect -status-code")
 
         # Handle None additional_args
         if additional_args is None:
-            additional_args = '-tech-detect -status-code'
+            additional_args = "-tech-detect -status-code"
 
         # Return as shell command components that will be joined
         # Pattern: echo target | httpx args
-        return ['echo', target, '|', 'httpx'] + additional_args.split()
+        return ["echo", target, "|", "httpx"] + additional_args.split()
 
     def parse_output(self, stdout: str, stderr: str, returncode: int) -> Dict[str, Any]:
         """Parse httpx output."""
-        return {
-            "raw_output": stdout,
-            "stderr": stderr,
-            "returncode": returncode
-        }
+        return {"raw_output": stdout, "stderr": stderr, "returncode": returncode}

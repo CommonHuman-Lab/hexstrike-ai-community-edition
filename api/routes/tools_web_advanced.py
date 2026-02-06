@@ -4,15 +4,17 @@ Handles gobuster, nuclei, feroxbuster, dirsearch, httpx, katana, gau, waybackurl
 """
 
 import logging
-from flask import Blueprint, request, jsonify
+
+from flask import Blueprint, jsonify, request
 
 logger = logging.getLogger(__name__)
 
 # Create blueprint
-tools_web_advanced_bp = Blueprint('tools_web_advanced', __name__, url_prefix='/api/tools')
+tools_web_advanced_bp = Blueprint("tools_web_advanced", __name__, url_prefix="/api/tools")
 
 # Dependencies will be injected via init_app
 execute_command = None
+
 
 def init_app(exec_command):
     """Initialize blueprint with dependencies"""
@@ -33,9 +35,7 @@ def gobuster():
 
         if not target:
             logger.warning("🎯 Gobuster called without target parameter")
-            return jsonify({
-                "error": "Target parameter is required"
-            }), 400
+            return jsonify({"error": "Target parameter is required"}), 400
 
         command = f"gobuster {mode} -u {target} -w {wordlist}"
 
@@ -51,9 +51,8 @@ def gobuster():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in gobuster endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_advanced_bp.route("/nuclei", methods=["POST"])
 def nuclei():
@@ -68,9 +67,7 @@ def nuclei():
 
         if not target:
             logger.warning("🎯 Nuclei called without target parameter")
-            return jsonify({
-                "error": "Target parameter is required"
-            }), 400
+            return jsonify({"error": "Target parameter is required"}), 400
 
         command = f"nuclei -u {target}"
 
@@ -92,9 +89,8 @@ def nuclei():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in nuclei endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_advanced_bp.route("/feroxbuster", methods=["POST"])
 def feroxbuster():
@@ -110,9 +106,7 @@ def feroxbuster():
 
         if not target:
             logger.warning("🎯 Feroxbuster called without target parameter")
-            return jsonify({
-                "error": "Target parameter is required"
-            }), 400
+            return jsonify({"error": "Target parameter is required"}), 400
 
         command = f"feroxbuster -u {target} -w {wordlist} -t {threads} -d {depth}"
 
@@ -128,9 +122,8 @@ def feroxbuster():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in feroxbuster endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_advanced_bp.route("/dirsearch", methods=["POST"])
 def dirsearch():
@@ -145,9 +138,7 @@ def dirsearch():
 
         if not target:
             logger.warning("🎯 Dirsearch called without target parameter")
-            return jsonify({
-                "error": "Target parameter is required"
-            }), 400
+            return jsonify({"error": "Target parameter is required"}), 400
 
         command = f"dirsearch -u {target} -w {wordlist} -e {extensions} -t {threads}"
 
@@ -160,9 +151,8 @@ def dirsearch():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in dirsearch endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_advanced_bp.route("/httpx", methods=["POST"])
 def httpx():
@@ -178,9 +168,7 @@ def httpx():
 
         if not target:
             logger.warning("🎯 Httpx called without target parameter")
-            return jsonify({
-                "error": "Target parameter is required"
-            }), 400
+            return jsonify({"error": "Target parameter is required"}), 400
 
         command = f"httpx -u {target} -threads {threads}"
 
@@ -202,9 +190,8 @@ def httpx():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in httpx endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_advanced_bp.route("/katana", methods=["POST"])
 def katana():
@@ -219,9 +206,7 @@ def katana():
 
         if not target:
             logger.warning("🎯 Katana called without target parameter")
-            return jsonify({
-                "error": "Target parameter is required"
-            }), 400
+            return jsonify({"error": "Target parameter is required"}), 400
 
         command = f"katana -u {target} -d {depth}"
 
@@ -240,9 +225,8 @@ def katana():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in katana endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_advanced_bp.route("/gau", methods=["POST"])
 def gau():
@@ -257,9 +241,7 @@ def gau():
 
         if not target:
             logger.warning("🎯 GAU called without target parameter")
-            return jsonify({
-                "error": "Target parameter is required"
-            }), 400
+            return jsonify({"error": "Target parameter is required"}), 400
 
         command = f"gau {target} --threads {threads}"
 
@@ -278,9 +260,8 @@ def gau():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in gau endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_advanced_bp.route("/waybackurls", methods=["POST"])
 def waybackurls():
@@ -293,9 +274,7 @@ def waybackurls():
 
         if not target:
             logger.warning("🎯 Waybackurls called without target parameter")
-            return jsonify({
-                "error": "Target parameter is required"
-            }), 400
+            return jsonify({"error": "Target parameter is required"}), 400
 
         command = f"echo {target} | waybackurls"
 
@@ -311,9 +290,8 @@ def waybackurls():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in waybackurls endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_advanced_bp.route("/hakrawler", methods=["POST"])
 def hakrawler():
@@ -328,9 +306,7 @@ def hakrawler():
 
         if not target:
             logger.warning("🎯 Hakrawler called without target parameter")
-            return jsonify({
-                "error": "Target parameter is required"
-            }), 400
+            return jsonify({"error": "Target parameter is required"}), 400
 
         command = f"echo {target} | hakrawler -d {depth}"
 
@@ -349,9 +325,8 @@ def hakrawler():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in hakrawler endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_advanced_bp.route("/dnsenum", methods=["POST"])
 def dnsenum():
@@ -366,9 +341,7 @@ def dnsenum():
 
         if not target:
             logger.warning("🎯 Dnsenum called without target parameter")
-            return jsonify({
-                "error": "Target parameter is required"
-            }), 400
+            return jsonify({"error": "Target parameter is required"}), 400
 
         command = f"dnsenum --threads {threads}"
 
@@ -389,9 +362,8 @@ def dnsenum():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in dnsenum endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_advanced_bp.route("/fierce", methods=["POST"])
 def fierce():
@@ -405,9 +377,7 @@ def fierce():
 
         if not target:
             logger.warning("🎯 Fierce called without target parameter")
-            return jsonify({
-                "error": "Target parameter is required"
-            }), 400
+            return jsonify({"error": "Target parameter is required"}), 400
 
         command = f"fierce --domain {target} --threads {threads}"
 
@@ -423,9 +393,8 @@ def fierce():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in fierce endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
 
 @tools_web_advanced_bp.route("/wafw00f", methods=["POST"])
 def wafw00f():
@@ -438,9 +407,7 @@ def wafw00f():
 
         if not target:
             logger.warning("🎯 Wafw00f called without target parameter")
-            return jsonify({
-                "error": "Target parameter is required"
-            }), 400
+            return jsonify({"error": "Target parameter is required"}), 400
 
         command = f"wafw00f {target}"
 
@@ -456,6 +423,4 @@ def wafw00f():
         return jsonify(result)
     except Exception as e:
         logger.error(f"💥 Error in wafw00f endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500

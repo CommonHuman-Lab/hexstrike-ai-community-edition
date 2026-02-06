@@ -15,19 +15,17 @@ Tests cover:
 Target: 95%+ code coverage with 30+ comprehensive tests
 """
 
-import pytest
-import sys
 import os
-from unittest.mock import patch, MagicMock
-from typing import Dict, List, Any
+import sys
+from typing import Any, Dict, List
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Add parent directories to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 
-from hexstrike_server import (
-    BugBountyWorkflowManager,
-    BugBountyTarget
-)
+from agents.bugbounty import BugBountyTarget, BugBountyWorkflowManager
 
 
 class TestBugBountyManagerInitialization:
@@ -83,9 +81,7 @@ class TestBugBountyTarget:
     def test_create_target_with_scope(self):
         """Test creating target with scope definition"""
         target = BugBountyTarget(
-            domain="example.com",
-            scope=["*.example.com", "api.example.com"],
-            out_of_scope=["blog.example.com"]
+            domain="example.com", scope=["*.example.com", "api.example.com"], out_of_scope=["blog.example.com"]
         )
         assert len(target.scope) == 2
         assert len(target.out_of_scope) == 1
@@ -99,10 +95,7 @@ class TestBugBountyTarget:
 
     def test_create_api_target(self):
         """Test creating API program target"""
-        target = BugBountyTarget(
-            domain="api.example.com",
-            program_type="api"
-        )
+        target = BugBountyTarget(domain="api.example.com", program_type="api")
         assert target.program_type == "api"
 
 
@@ -211,10 +204,7 @@ class TestVulnerabilityHuntingWorkflow:
     def test_vulnerability_workflow_sorted_by_priority(self):
         """Test vulnerabilities are sorted by priority"""
         manager = BugBountyWorkflowManager()
-        target = BugBountyTarget(
-            domain="example.com",
-            priority_vulns=["xss", "rce", "sqli"]
-        )
+        target = BugBountyTarget(domain="example.com", priority_vulns=["xss", "rce", "sqli"])
 
         workflow = manager.create_vulnerability_hunting_workflow(target)
         tests = workflow["vulnerability_tests"]
@@ -226,10 +216,7 @@ class TestVulnerabilityHuntingWorkflow:
     def test_vulnerability_workflow_includes_tools(self):
         """Test vulnerability tests include appropriate tools"""
         manager = BugBountyWorkflowManager()
-        target = BugBountyTarget(
-            domain="example.com",
-            priority_vulns=["sqli"]
-        )
+        target = BugBountyTarget(domain="example.com", priority_vulns=["sqli"])
 
         workflow = manager.create_vulnerability_hunting_workflow(target)
         sqli_test = workflow["vulnerability_tests"][0]
@@ -240,10 +227,7 @@ class TestVulnerabilityHuntingWorkflow:
     def test_vulnerability_workflow_has_test_scenarios(self):
         """Test vulnerability tests include test scenarios"""
         manager = BugBountyWorkflowManager()
-        target = BugBountyTarget(
-            domain="example.com",
-            priority_vulns=["rce"]
-        )
+        target = BugBountyTarget(domain="example.com", priority_vulns=["rce"])
 
         workflow = manager.create_vulnerability_hunting_workflow(target)
         rce_test = workflow["vulnerability_tests"][0]
@@ -447,10 +431,7 @@ class TestEdgeCases:
     def test_create_workflow_empty_priority_vulns(self):
         """Test workflow creation with empty priority vulnerabilities"""
         manager = BugBountyWorkflowManager()
-        target = BugBountyTarget(
-            domain="example.com",
-            priority_vulns=[]
-        )
+        target = BugBountyTarget(domain="example.com", priority_vulns=[])
 
         workflow = manager.create_vulnerability_hunting_workflow(target)
 
@@ -460,10 +441,7 @@ class TestEdgeCases:
     def test_create_workflow_unknown_vulns(self):
         """Test workflow creation with unknown vulnerability types"""
         manager = BugBountyWorkflowManager()
-        target = BugBountyTarget(
-            domain="example.com",
-            priority_vulns=["unknown_vuln1", "unknown_vuln2"]
-        )
+        target = BugBountyTarget(domain="example.com", priority_vulns=["unknown_vuln1", "unknown_vuln2"])
 
         workflow = manager.create_vulnerability_hunting_workflow(target)
 
@@ -473,10 +451,7 @@ class TestEdgeCases:
     def test_recon_workflow_with_mobile_target(self):
         """Test reconnaissance workflow with mobile app target"""
         manager = BugBountyWorkflowManager()
-        target = BugBountyTarget(
-            domain="example.com",
-            program_type="mobile"
-        )
+        target = BugBountyTarget(domain="example.com", program_type="mobile")
 
         workflow = manager.create_reconnaissance_workflow(target)
 
@@ -486,10 +461,7 @@ class TestEdgeCases:
     def test_vuln_workflow_single_priority(self):
         """Test vulnerability workflow with single priority vulnerability"""
         manager = BugBountyWorkflowManager()
-        target = BugBountyTarget(
-            domain="example.com",
-            priority_vulns=["rce"]
-        )
+        target = BugBountyTarget(domain="example.com", priority_vulns=["rce"])
 
         workflow = manager.create_vulnerability_hunting_workflow(target)
 
@@ -542,10 +514,7 @@ class TestVulnerabilityPrioritization:
     def test_high_priority_vulns_first(self):
         """Test high priority vulnerabilities are tested first"""
         manager = BugBountyWorkflowManager()
-        target = BugBountyTarget(
-            domain="example.com",
-            priority_vulns=["csrf", "rce", "xss"]  # Mixed priorities
-        )
+        target = BugBountyTarget(domain="example.com", priority_vulns=["csrf", "rce", "xss"])  # Mixed priorities
 
         workflow = manager.create_vulnerability_hunting_workflow(target)
         tests = workflow["vulnerability_tests"]
@@ -557,10 +526,7 @@ class TestVulnerabilityPrioritization:
     def test_priority_score_calculation(self):
         """Test overall priority score calculation"""
         manager = BugBountyWorkflowManager()
-        target = BugBountyTarget(
-            domain="example.com",
-            priority_vulns=["rce", "sqli"]
-        )
+        target = BugBountyTarget(domain="example.com", priority_vulns=["rce", "sqli"])
 
         workflow = manager.create_vulnerability_hunting_workflow(target)
 
@@ -571,10 +537,7 @@ class TestVulnerabilityPrioritization:
     def test_time_allocation_by_priority(self):
         """Test time allocation based on vulnerability priority"""
         manager = BugBountyWorkflowManager()
-        target = BugBountyTarget(
-            domain="example.com",
-            priority_vulns=["rce"]
-        )
+        target = BugBountyTarget(domain="example.com", priority_vulns=["rce"])
 
         workflow = manager.create_vulnerability_hunting_workflow(target)
         rce_test = workflow["vulnerability_tests"][0]
