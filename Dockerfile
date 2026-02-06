@@ -35,7 +35,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     upx-ucl xxd bsdmainutils \
     # ----- FORENSICS -----
     foremost steghide exiftool \
-    scalpel outguess bulk-extractor \
+    scalpel bulk-extractor \
     # ----- NETWORK -----
     smbclient tcpdump tshark aircrack-ng \
     # ----- SECURITY / SSL -----
@@ -150,3 +150,4 @@ CMD ["python3", "hexstrike_server.py", "--port", "8888"]
 # hashpump      - C tool, requires building from source (github.com/bwall/HashPump)
 # gdb-gef       - GDB plugin, requires separate setup (github.com/hugsy/gef)
 # gdb-peda      - GDB plugin, requires separate setup (github.com/longld/peda)
+# outguess      - Not available in Kali repos
