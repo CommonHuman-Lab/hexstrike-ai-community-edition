@@ -298,7 +298,7 @@ tool_executors = {
     "paramspider": create_tool_executor(ParamSpiderTool),
     "x8": create_tool_executor(X8Tool),
     "dirb": create_tool_executor(DirbTool),
-    "dotdotpwn": create_tool_executor(DotDotPwnTool),
+    "dotdotpwn": create_tool_executor(DotdotpwnTool),
     "wfuzz": create_tool_executor(WfuzzTool),
     "xsser": create_tool_executor(XsserTool),
     "wafw00f": create_tool_executor(Wafw00fTool),
