@@ -6,6 +6,7 @@ HexStrike AI Community Edition - Advanced Penetration Testing Framework Server
 """
 
 import argparse
+import hmac
 
 # Fix Windows console encoding for emoji/unicode support
 import io
@@ -14,7 +15,7 @@ import os
 import sys
 import threading
 
-from flask import Flask
+from flask import Flask, abort, request
 
 # ============================================================================
 # LOGGING CONFIGURATION (MUST BE FIRST)
@@ -48,7 +49,34 @@ app.config["JSON_SORT_KEYS"] = False
 
 # API Configuration
 API_PORT = int(os.environ.get("HEXSTRIKE_PORT", 8888))
-API_HOST = os.environ.get("HEXSTRIKE_HOST", "127.0.0.1")
+API_HOST = os.environ.get(
+    "HEXSTRIKE_HOST", "127.0.0.1"
+)  # Fix: default to localhost (Issue #122 by @bcoles, PR #137 by @jrespeto)
+API_TOKEN = os.environ.get("HEXSTRIKE_API_TOKEN", None)  # Optional Bearer token auth (PR #137 by @jrespeto)
+
+
+# Bearer token authentication middleware (PR #137 by @jrespeto)
+@app.before_request
+def optional_bearer_auth():
+    """Optional Bearer token authentication for API requests.
+
+    If HEXSTRIKE_API_TOKEN env var is set, all requests must include
+    a matching 'Authorization: Bearer <token>' header.
+    If not set, all requests are allowed (default for local usage).
+    """
+    if not API_TOKEN:
+        return
+
+    auth_header = request.headers.get("Authorization", "")
+    prefix = "Bearer "
+
+    if not auth_header.startswith(prefix):
+        abort(401, description="Missing or invalid Authorization header. Expected: Bearer <token>")
+
+    token = auth_header.removeprefix(prefix)
+    if not hmac.compare_digest(token, API_TOKEN):
+        abort(401, description="Unauthorized: invalid API token")
+
 
 from agents.ai_payload_generator import ai_payload_generator
 from agents.browser_agent import BrowserAgent
@@ -432,4 +460,4 @@ if __name__ == "__main__":
         if line.strip():
             logger.info(line)
 
-    app.run(host="0.0.0.0", port=API_PORT, debug=DEBUG_MODE)
+    app.run(host=API_HOST, port=API_PORT, debug=DEBUG_MODE)  # Uses API_HOST (Issue #122, PR #137)
