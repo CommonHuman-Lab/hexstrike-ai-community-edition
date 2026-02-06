@@ -42,7 +42,9 @@ RUN pip3 install --no-cache-dir --break-system-packages volatility3
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt --break-system-packages
+# Remove system-managed pyperclip (no pip RECORD) so pip can install its own version
+RUN rm -rf /usr/lib/python3/dist-packages/pyperclip* && \
+    pip3 install --no-cache-dir -r requirements.txt --break-system-packages
 
 COPY . .
 
