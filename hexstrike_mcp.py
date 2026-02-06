@@ -5,6 +5,7 @@ HexStrike AI MCP Client - Enhanced AI Agent Communication Interface
 """
 
 import argparse
+import base64
 import logging
 import sys
 import time
@@ -129,17 +130,41 @@ MAX_RETRIES = 3  # Maximum number of retries for connection attempts
 class HexStrikeClient:
     """Enhanced client for communicating with the HexStrike AI API Server"""
 
-    def __init__(self, server_url: str, timeout: int = DEFAULT_REQUEST_TIMEOUT):
+    # Auth support added per PR #137 by @jrespeto
+    def __init__(
+        self,
+        server_url: str,
+        timeout: int = DEFAULT_REQUEST_TIMEOUT,
+        auth_basic: str = "",
+        auth_token: str = "",
+        verify_ssl: bool = True,
+    ):
         """
         Initialize the HexStrike AI Client
 
         Args:
             server_url: URL of the HexStrike AI API Server
             timeout: Request timeout in seconds
+            auth_basic: Basic authentication credentials in "username:password" format
+            auth_token: Bearer token for authentication
+            verify_ssl: Whether to verify SSL certificates
         """
         self.server_url = server_url.rstrip("/")
         self.timeout = timeout
         self.session = requests.Session()
+
+        if not verify_ssl:
+            self.session.verify = False
+            # Suppress InsecureRequestWarning for self-signed certs
+            import urllib3
+
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+        if auth_token:
+            self.session.headers.update({"Authorization": f"Bearer {auth_token}"})
+        elif auth_basic:
+            encoded_credentials = base64.b64encode(auth_basic.encode()).decode()
+            self.session.headers.update({"Authorization": f"Basic {encoded_credentials}"})
 
         # If running under an MCP host (stdio not attached to a TTY), skip HTTP health checks to avoid bootstrap delays.
         if sys.stdin.isatty() or sys.stdout.isatty():
@@ -6322,6 +6347,24 @@ def parse_args():
         help=f"Request timeout in seconds (default: {DEFAULT_REQUEST_TIMEOUT})",
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
+    # Auth flags per PR #137 by @jrespeto
+    parser.add_argument(
+        "--auth-basic",
+        type=str,
+        default="",
+        help="Username:password for Basic authentication with HexStrike AI server (e.g. behind a reverse proxy)",
+    )
+    parser.add_argument(
+        "--auth-token",
+        type=str,
+        default="",
+        help="Bearer token for authentication with HexStrike AI server (matches HEXSTRIKE_API_TOKEN on server)",
+    )
+    parser.add_argument(
+        "--disable-ssl-verify",
+        action="store_true",
+        help="Disable SSL certificate verification (for self-signed certs behind reverse proxies)",
+    )
     return parser.parse_args()
 
 
@@ -6339,8 +6382,19 @@ def main():
     logger.info(f"🔗 Connecting to: {args.server}")
 
     try:
+        # Resolve auth settings
+        auth_basic = args.auth_basic
+        auth_token = args.auth_token
+        verify_ssl = not args.disable_ssl_verify
+
+        if auth_basic and auth_token:
+            logger.warning("⚠️  Both --auth-basic and --auth-token provided. Token auth takes precedence.")
+            auth_basic = ""
+
         # Initialize the HexStrike AI client
-        hexstrike_client = HexStrikeClient(args.server, args.timeout)
+        hexstrike_client = HexStrikeClient(
+            args.server, args.timeout, auth_basic=auth_basic, auth_token=auth_token, verify_ssl=verify_ssl
+        )
 
         # Check server health and log the result (only in interactive mode)
         if sys.stdin.isatty() or sys.stdout.isatty():

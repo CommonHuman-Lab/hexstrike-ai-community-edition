@@ -43,12 +43,13 @@ HexStrike AI features a multi-agent architecture with autonomous AI agents, inte
 ## Installation
 
 ### Quick Setup & Run Hexstrike Server
-Many tools, such as nmap, require elevated privileges for certain features. To avoid granting permissions to each tool individually, perform the setup steps below as the `root` user.
+
+> **Note:** Many tools (nmap, masscan, etc.) require elevated privileges for certain scan types. You can either run the setup as `root`, or grant individual tool capabilities (e.g. `setcap cap_net_raw+ep /usr/bin/nmap`). Running as root is simpler but less secure.
 
 ```bash
 # 1. Clone the repository
 git clone https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition.git
-cd hexstrike-ai
+cd hexstrike-ai-community-edition
 
 # 2. Create virtual environment
 python3 -m venv hexstrike-env
@@ -58,8 +59,12 @@ source hexstrike-env/bin/activate  # Linux/Mac
 # 3. Install Python dependencies
 pip3 install -r requirements.txt
 
-# 4. Start the MCP server
+# 4. Start the API server
 python3 hexstrike_server.py
+
+# 5. In a separate terminal, start the MCP client
+# (use the venv python to ensure dependencies are available)
+hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888
 ```
 
 ### Docker Setup
@@ -81,6 +86,39 @@ curl -X POST http://localhost:8888/api/intelligence/analyze-target \
   -H "Content-Type: application/json" \
   -d '{"target": "example.com", "analysis_type": "comprehensive"}'
 ```
+
+### Security Configuration
+
+<details>
+<summary>API Token Authentication & Network Binding</summary>
+
+By default, the server binds to `127.0.0.1` (localhost only). To configure security:
+
+```bash
+# Set an API token (server will require Bearer auth on all requests)
+export HEXSTRIKE_API_TOKEN=your-secret-token
+
+# Optionally bind to all interfaces (NOT recommended without a token)
+export HEXSTRIKE_HOST=0.0.0.0
+
+# Start the server
+python3 hexstrike_server.py
+```
+
+When connecting the MCP client to a remote or authenticated server:
+
+```bash
+# With Bearer token auth
+hexstrike_mcp.py --server https://remote-server:8080 --auth-token your-secret-token
+
+# With Basic auth (behind a reverse proxy like nginx)
+hexstrike_mcp.py --server https://remote-server:8080 --auth-basic user:password
+
+# With self-signed SSL certificates
+hexstrike_mcp.py --server https://remote-server:8080 --auth-token secret --disable-ssl-verify
+```
+
+</details>
 
 ### AI Clients:
 
