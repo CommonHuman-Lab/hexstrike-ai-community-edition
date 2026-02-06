@@ -36,15 +36,18 @@ RUN go install github.com/projectdiscovery/katana/cmd/katana@latest && \
 RUN cargo install rustscan && \
     rm -rf /root/.cargo/registry /root/.cargo/git
 
+# Set up a Python virtual environment to isolate pip packages from system packages.
+# This avoids all conflicts between apt-managed and pip-managed Python packages.
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+
 # Install pip-based tools not available in Kali repos
-RUN pip3 install --no-cache-dir --break-system-packages volatility3
+RUN pip install --no-cache-dir volatility3
 
 WORKDIR /app
 
 COPY requirements.txt .
-# Remove system-managed pyperclip (no pip RECORD) so pip can install its own version
-RUN rm -rf /usr/lib/python3/dist-packages/pyperclip* && \
-    pip3 install --no-cache-dir -r requirements.txt --break-system-packages
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
