@@ -10,7 +10,7 @@ ENV PYTHONUNBUFFERED=1
 # ============================================================================
 RUN apt-get update && apt-get install -y --no-install-recommends \
     # Build dependencies & language runtimes
-    build-essential python3-dev libssl-dev pkg-config \
+    build-essential python3-dev libssl-dev liblzma-dev pkg-config \
     python3 python3-pip python3-venv \
     git curl wget sudo gnupg2 ca-certificates \
     cargo rustc \
