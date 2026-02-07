@@ -92,8 +92,7 @@ RUN pip install --no-cache-dir \
     uro \
     ROPgadget \
     ropper \
-    sslyze \
-    spiderfoot
+    sslyze
 
 # ============================================================================
 # GIT CLONE: Tools only available from source repos
@@ -183,6 +182,7 @@ CMD ["python3", "hexstrike_server.py", "--port", "8888"]
 # aquatone      - Project archived/unmaintained
 # libc-database - Requires git clone + manual database downloads
 # volatility v2 - Legacy; v3 is installed instead
+# spiderfoot    - Not on PyPI; requires git clone + full web server setup
 # outguess      - Not available in Kali repos
 # gdb-gef       - GDB plugin, requires interactive gdb config
 # gdb-peda      - GDB plugin, requires interactive gdb config
