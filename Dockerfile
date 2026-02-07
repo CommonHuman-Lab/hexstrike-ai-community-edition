@@ -129,10 +129,6 @@ RUN git clone --depth 1 https://github.com/cddmp/enum4linux-ng /opt/enum4linux-n
     ln -sf /opt/enum4linux-ng/enum4linux-ng.py /usr/local/bin/enum4linux-ng && \
     chmod +x /opt/enum4linux-ng/enum4linux-ng.py
 
-# HashPump - hash length extension attacks
-RUN git clone --depth 1 https://github.com/bwall/HashPump /opt/hashpump && \
-    cd /opt/hashpump && make && make install && \
-    cd / && rm -rf /opt/hashpump
 
 # ============================================================================
 # App dependencies
@@ -182,6 +178,7 @@ CMD ["python3", "hexstrike_server.py", "--port", "8888"]
 # aquatone      - Project archived/unmaintained
 # libc-database - Requires git clone + manual database downloads
 # volatility v2 - Legacy; v3 is installed instead
+# hashpump      - GitHub repo unavailable/removed
 # spiderfoot    - Not on PyPI; requires git clone + full web server setup
 # outguess      - Not available in Kali repos
 # gdb-gef       - GDB plugin, requires interactive gdb config
