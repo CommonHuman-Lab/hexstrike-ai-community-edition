@@ -33,7 +33,7 @@ HexStrike AI is a two-process system: a Flask API server wrapping security tools
 ### How It Works
 
 1. **AI Agent Connection** — Claude, GPT, or any MCP-compatible agent connects via FastMCP stdio protocol
-2. **Tool Profile Selection** — `--profile` flag loads only the tools you need (minimal 25, web 80, full 196) to keep context lean
+2. **Tool Profile Selection** — `--profile` flag loads only the tools you need (minimal 28, web 93, full 196) to keep context lean
 3. **On-Demand TTP Knowledge** — Agent reads playbooks and deep technique guides via MCP resources (`hexstrike://ttp/{name}`) — zero context cost until needed
 4. **Adaptive Scanning** — Iterative smart scan loop (Think → Decide → Act → Observe) with AI-driven tool selection
 5. **Scan Memory** — Past engagements are remembered. Recommendations improve over time based on what worked before
@@ -75,13 +75,13 @@ Control which tools are loaded with `--profile`. This reduces LLM context window
 
 | Profile | Tools | Best For |
 |---------|-------|----------|
-| `minimal` | ~25 | AI-driven smart scanning |
-| `web` | ~80 | Web app pentesting |
-| `network` | ~55 | Network assessments |
-| `bugbounty` | ~99 | Bug bounty hunting |
-| `ctf` | ~61 | CTF competitions |
-| `cloud` | ~49 | Cloud security audits |
-| `redteam` | ~110 | Red team operations |
+| `minimal` | ~28 | AI-driven smart scanning |
+| `web` | ~93 | Web app pentesting |
+| `network` | ~75 | Network assessments |
+| `bugbounty` | ~104 | Bug bounty hunting |
+| `ctf` | ~116 | CTF competitions |
+| `cloud` | ~71 | Cloud security audits |
+| `redteam` | ~146 | Red team operations |
 | `full` | 196 | Everything loaded |
 
 ```bash

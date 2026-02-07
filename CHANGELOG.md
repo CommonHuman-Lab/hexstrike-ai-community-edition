@@ -32,13 +32,13 @@ Conditional tool registration to reduce LLM context window usage — only load w
 
 | Profile | Tools | Use Case |
 |---------|-------|----------|
-| minimal | ~25 | AI-driven smart scanning |
-| web | ~80 | Web app pentesting |
-| network | ~55 | Network assessments |
-| bugbounty | ~99 | Bug bounty hunting |
-| ctf | ~61 | CTF competitions |
-| cloud | ~49 | Cloud security audits |
-| redteam | ~110 | Red team operations |
+| minimal | ~28 | AI-driven smart scanning |
+| web | ~93 | Web app pentesting |
+| network | ~75 | Network assessments |
+| bugbounty | ~104 | Bug bounty hunting |
+| ctf | ~116 | CTF competitions |
+| cloud | ~71 | Cloud security audits |
+| redteam | ~146 | Red team operations |
 | full | 196 | Everything loaded |
 
 ---
