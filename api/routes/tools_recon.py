@@ -259,3 +259,77 @@ def recon_ng():
     except Exception as e:
         logger.error(f"💥 Error in recon-ng endpoint: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+# ============================================================================
+# API-BASED OSINT TOOLS (Shodan, Censys, HIBP)
+# ============================================================================
+
+
+@tools_recon_bp.route("/shodan", methods=["POST"])
+def shodan():
+    """Execute Shodan API query for internet device intelligence"""
+    try:
+        from tools.recon.shodan_search import ShodanTool
+
+        params = request.json or {}
+        target = params.get("target", "")
+
+        if not target:
+            logger.warning("🎯 Shodan called without target parameter")
+            return jsonify({"error": "Target parameter is required"}), 400
+
+        tool = ShodanTool()
+        logger.info(f"🔍 Starting Shodan query: {target}")
+        result = tool.execute(target, params)
+        logger.info(f"📊 Shodan completed for {target}")
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"💥 Error in shodan endpoint: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+@tools_recon_bp.route("/censys", methods=["POST"])
+def censys():
+    """Execute Censys API query for host and certificate intelligence"""
+    try:
+        from tools.recon.censys_search import CensysTool
+
+        params = request.json or {}
+        target = params.get("target", "")
+
+        if not target:
+            logger.warning("🎯 Censys called without target parameter")
+            return jsonify({"error": "Target parameter is required"}), 400
+
+        tool = CensysTool()
+        logger.info(f"🔍 Starting Censys query: {target}")
+        result = tool.execute(target, params)
+        logger.info(f"📊 Censys completed for {target}")
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"💥 Error in censys endpoint: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+@tools_recon_bp.route("/hibp", methods=["POST"])
+def hibp():
+    """Execute Have I Been Pwned API query for breach intelligence"""
+    try:
+        from tools.recon.hibp_search import HIBPTool
+
+        params = request.json or {}
+        target = params.get("target", "")
+
+        if not target:
+            logger.warning("🎯 HIBP called without target parameter")
+            return jsonify({"error": "Target (email/domain) parameter is required"}), 400
+
+        tool = HIBPTool()
+        logger.info(f"🔍 Starting HIBP breach check: {target}")
+        result = tool.execute(target, params)
+        logger.info(f"📊 HIBP completed for {target}")
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"💥 Error in hibp endpoint: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
