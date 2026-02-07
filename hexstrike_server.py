@@ -94,10 +94,15 @@ from core.enhanced_process import EnhancedProcessManager
 from core.error_handler import IntelligentErrorHandler
 from core.execution import execute_command, execute_command_with_recovery
 from core.file_manager import FileOperationsManager
+from core.finding_correlator import FindingCorrelator
 from core.http_testing_framework import HTTPTestingFramework
 from core.logging_formatter import ColoredFormatter
 from core.process_manager import ProcessManager
 from core.python_env_manager import PythonEnvironmentManager
+from core.result_analyzer import ResultAnalyzer
+from core.scan_memory import ScanMemory
+from core.scan_session import ScanSessionManager
+from core.session_store import SessionStore
 from core.telemetry import TelemetryCollector
 from core.tool_factory import create_tool_executor
 from core.visual import ModernVisualEngine
@@ -113,6 +118,14 @@ from tools.web import *
 
 # Global decision engine instance
 decision_engine = IntelligentDecisionEngine()
+
+# Scan intelligence subsystem (session state, result parsing, correlation)
+# Persistence layer: sessions survive restarts, completed scans become episodic memory
+session_store = SessionStore()
+scan_memory = ScanMemory(data_dir=session_store.data_dir)
+session_manager = ScanSessionManager(session_store=session_store, scan_memory=scan_memory)
+result_analyzer = ResultAnalyzer()
+finding_correlator = FindingCorrelator()
 
 # Global error handler and degradation manager instances
 error_handler = IntelligentErrorHandler()
@@ -204,6 +217,7 @@ import api.routes.intelligence as intelligence_routes
 import api.routes.process_workflows as process_workflows_routes
 import api.routes.processes as processes_routes
 import api.routes.python_env as python_env_routes
+import api.routes.scan_intelligence as scan_intel_routes
 import api.routes.tools_api as tools_api_routes
 import api.routes.tools_binary as tools_binary_routes
 import api.routes.tools_cloud as tools_cloud_routes
@@ -414,11 +428,25 @@ tool_executors = {
     "cloudmapper": create_tool_executor(CloudmapperTool),
     # API (1)
     "postman": create_tool_executor(PostmanTool),
+    # OSINT API-based (3)
+    "shodan": create_tool_executor(ShodanTool),
+    "censys": create_tool_executor(CensysTool),
+    "hibp": create_tool_executor(HIBPTool),
 }
 
 # Initialize and register intelligence blueprint
 intelligence_routes.init_app(decision_engine, tool_executors)
 app.register_blueprint(intelligence_bp)
+
+# Initialize and register scan intelligence blueprint (sessions, analysis, correlation)
+scan_intel_routes.init_app(decision_engine, tool_executors, session_manager, result_analyzer, finding_correlator)
+app.register_blueprint(scan_intel_routes.scan_intelligence_bp)
+
+# Initialize and register scan memory blueprint (persistence, episodic/semantic memory)
+from api.routes import scan_memory as scan_memory_routes
+
+scan_memory_routes.init_app(session_manager, scan_memory)
+app.register_blueprint(scan_memory_routes.scan_memory_bp)
 
 # ============================================================================
 # SERVER STARTUP

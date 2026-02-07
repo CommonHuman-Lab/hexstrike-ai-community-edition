@@ -10,9 +10,9 @@
 [![Security](https://img.shields.io/badge/Security-Penetration%20Testing-red.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![Version](https://img.shields.io/badge/Version-1.0.1-orange.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/releases)
-[![Tools](https://img.shields.io/badge/Security%20Tools-170%2B-brightgreen.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
+[![Tools](https://img.shields.io/badge/Security%20Tools-195-brightgreen.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 
-**Advanced AI-powered penetration testing MCP framework with 170+ security tools and 12+ autonomous AI agents**
+**Advanced AI-powered penetration testing MCP framework with 195 security tools and 12+ autonomous AI agents**
 
 [📡 Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki)
 
@@ -203,7 +203,7 @@ Configure VS Code settings in `.vscode/settings.json`:
 
 ### Security Tools Arsenal
 
-**150+ Professional Security Tools:**
+**195 Professional Security Tools:**
 
 <details>
 <summary><b>🔍 Network Reconnaissance & Scanning (25+ Tools)</b></summary>
@@ -436,6 +436,8 @@ Configure VS Code settings in `.vscode/settings.json`:
 <details>
 <summary><b>Advanced Features</b></summary>
 
+- **Scan Intelligence Engine** - Iterative adaptive scanning with AI-driven tool selection, finding correlation, and session persistence
+- **OSINT API Integration** - Shodan, Censys, and Have I Been Pwned for internet-wide intelligence and breach data
 - **Smart Caching System** - Intelligent result caching with LRU eviction
 - **Real-time Process Management** - Live command control and monitoring
 - **Vulnerability Intelligence** - CVE monitoring and exploit analysis
