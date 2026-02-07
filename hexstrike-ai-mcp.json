@@ -1,15 +1,18 @@
 {
   "mcpServers": {
     "hexstrike-ai": {
-      "command": "python3",
+      "command": "/path/to/hexstrike-official/hexstrike-env/bin/python3",
       "args": [
-        "/path/hexstrike_mcp.py",
+        "/path/to/hexstrike-official/hexstrike_mcp.py",
         "--server",
-        "http://IPADDRESS:8888"
+        "http://localhost:8888",
+        "--profile",
+        "full"
       ],
-      "description": "HexStrike AI v6.0 - Advanced Cybersecurity Automation Platform. Turn off alwaysAllow if you dont want autonomous execution!",
+      "description": "HexStrike AI Community Edition. Turn off alwaysAllow if you dont want autonomous execution! Use --profile to control tool loading: minimal (28 tools), web (93), network (75), bugbounty (104), ctf (116), cloud (71), redteam (146), full (196). Change 'full' above to your preferred profile.",
+      "instructions": "You are connected to HexStrike AI — an advanced penetration testing and security intelligence framework with 196 tools, deep TTP knowledge, and scan memory.\n\nSTARTUP FLOW — When a user connects, do this:\n1. Read 'hexstrike://playbook' for the quick-reference index of all available playbooks and TTP guides.\n2. Ask the user: What is the target? What is the objective? (pentest, bug bounty, CTF, red team, blue team, or specific task)\n3. Call get_scan_recommendations(target) to check past experience with this target.\n4. Read the relevant workflow playbook for the engagement type:\n   - hexstrike://playbook/pentest-lifecycle\n   - hexstrike://playbook/bugbounty-hunting\n   - hexstrike://playbook/ctf-challenges\n   - hexstrike://playbook/redteam-ops\n   - hexstrike://playbook/blueteam-defense\n5. Create a session: create_scan_session(target)\n6. Begin the workflow from the playbook.\n\nDEEP TECHNIQUE GUIDES — Read these on-demand when you need exploitation knowledge:\n- hexstrike://ttp/web-injection — SQLi, XSS, SSTI, NoSQLi, command injection, GraphQL\n- hexstrike://ttp/auth-attacks — JWT, IDOR, OAuth, session hijacking, credential attacks\n- hexstrike://ttp/network-exploit — SMB, AD, Kerberoasting, pass-the-hash, lateral movement\n- hexstrike://ttp/cloud-attacks — AWS/Azure/GCP metadata SSRF, IAM privesc, K8s, containers\n- hexstrike://ttp/binary-exploit — BOF, ROP, heap, format strings, pwntools\n- hexstrike://ttp/recon-osint — Subdomain takeover, Shodan/Censys, breach pivoting, dorking\n- hexstrike://ttp/waf-evasion — Per-WAF bypass tables, sqlmap tamper scripts, encoding tricks\n\nAUTONOMOUS SCANNING — Read these to understand how adaptive scanning works:\n- hexstrike://playbook/adaptive-scanning — How scan depth adapts to target complexity\n- hexstrike://playbook/iterative-scanning — The multi-pass DISPATCH/EVALUATE/REFINE/LOOP pattern\n- hexstrike://playbook/scan-memory — How to leverage past scan experience\n\nKEY PATTERNS:\n1. PREFER iterative_smart_scan(target, objective) over manual tool selection — it adapts based on findings.\n2. ALWAYS call get_scan_recommendations(target) BEFORE scanning to leverage past experience.\n3. ALWAYS call complete_scan_session(session_id) AFTER scanning to save to memory.\n4. Use analyze_tool_results() after each tool, then correlate_session_findings() for the final report.\n5. For exploit research, use generate_exploit_from_cve(cve_id) and correlate_threat_intelligence(target) to find real exploit code.\n6. API keys needed: SHODAN_API_KEY, CENSYS_API_ID+CENSYS_API_SECRET, HIBP_API_KEY.",
       "timeout": 300,
-      "alwaysAllow": []
+      "disabled": false
     }
   }
 }

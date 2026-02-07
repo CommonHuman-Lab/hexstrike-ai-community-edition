@@ -1,0 +1,312 @@
+"""
+Scan Intelligence API Routes
+Handles scan sessions, result analysis, finding correlation, and iterative scanning.
+
+Design notes (senior-engineering/architecture):
+  - New blueprint, no modifications to existing routes
+  - Dependencies injected via init_app() — same pattern as intelligence.py
+  - Guard clauses for all input validation
+"""
+
+import logging
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
+
+from flask import Blueprint, jsonify, request
+
+logger = logging.getLogger(__name__)
+
+scan_intelligence_bp = Blueprint("scan_intelligence", __name__, url_prefix="/api/scan-intelligence")
+
+# Dependencies injected via init_app
+decision_engine = None
+tool_executors = None
+session_manager = None
+result_analyzer = None
+finding_correlator = None
+
+
+def init_app(dec_engine, executors, sess_mgr, res_analyzer, find_correlator):
+    """Initialize blueprint with dependencies."""
+    global decision_engine, tool_executors, session_manager
+    global result_analyzer, finding_correlator
+    decision_engine = dec_engine
+    tool_executors = executors
+    session_manager = sess_mgr
+    result_analyzer = res_analyzer
+    finding_correlator = find_correlator
+
+
+# ════════════════════════════════════════════════════════════════════
+# SESSION MANAGEMENT
+# ════════════════════════════════════════════════════════════════════
+
+
+@scan_intelligence_bp.route("/sessions", methods=["POST"])
+def create_session():
+    """Create a new scan session for a target."""
+    try:
+        data = request.get_json()
+        if not data or "target" not in data:
+            return jsonify({"error": "Target is required"}), 400
+
+        target = data["target"]
+
+        # Analyze target to populate profile
+        profile = decision_engine.analyze_target(target)
+        session = session_manager.create(target, profile.to_dict())
+
+        logger.info(f"📋 Session created: {session.session_id} for {target}")
+        return jsonify(
+            {
+                "success": True,
+                "session": session.get_summary(),
+                "target_profile": profile.to_dict(),
+            }
+        )
+    except Exception as e:
+        logger.error(f"💥 Error creating session: {e}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+@scan_intelligence_bp.route("/sessions", methods=["GET"])
+def list_sessions():
+    """List all active scan sessions."""
+    try:
+        sessions = session_manager.list_sessions()
+        return jsonify({"success": True, "sessions": sessions, "count": len(sessions)})
+    except Exception as e:
+        logger.error(f"💥 Error listing sessions: {e}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+@scan_intelligence_bp.route("/sessions/<session_id>", methods=["GET"])
+def get_session(session_id):
+    """Get full session state including all findings."""
+    try:
+        session = session_manager.get(session_id)
+        if not session:
+            return jsonify({"error": "Session not found or expired"}), 404
+
+        return jsonify({"success": True, "session": session.to_dict()})
+    except Exception as e:
+        logger.error(f"💥 Error getting session: {e}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+@scan_intelligence_bp.route("/sessions/<session_id>", methods=["DELETE"])
+def delete_session(session_id):
+    """Delete a scan session."""
+    try:
+        deleted = session_manager.delete(session_id)
+        if not deleted:
+            return jsonify({"error": "Session not found"}), 404
+        return jsonify({"success": True, "message": f"Session {session_id} deleted"})
+    except Exception as e:
+        logger.error(f"💥 Error deleting session: {e}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+# ════════════════════════════════════════════════════════════════════
+# RESULT ANALYSIS & CORRELATION
+# ════════════════════════════════════════════════════════════════════
+
+
+@scan_intelligence_bp.route("/analyze-results", methods=["POST"])
+def analyze_results():
+    """Parse raw tool output into structured findings."""
+    try:
+        data = request.get_json()
+        if not data or "tool" not in data or "target" not in data:
+            return jsonify({"error": "tool and target are required"}), 400
+
+        tool_name = data["tool"]
+        target = data["target"]
+        tool_result = data.get("result", {})
+        session_id = data.get("session_id")
+
+        findings = result_analyzer.analyze(tool_name, target, tool_result)
+
+        # Persist to session if provided
+        if session_id:
+            session = session_manager.get(session_id)
+            if session:
+                for f in findings:
+                    session.add_finding(f)
+                session.add_tool_result(tool_name, tool_result)
+
+        findings_dicts = [f.to_dict() for f in findings]
+        return jsonify(
+            {
+                "success": True,
+                "findings": findings_dicts,
+                "finding_count": len(findings_dicts),
+            }
+        )
+    except Exception as e:
+        logger.error(f"💥 Error analyzing results: {e}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+@scan_intelligence_bp.route("/correlate", methods=["POST"])
+def correlate_findings():
+    """Correlate and deduplicate findings from a session."""
+    try:
+        data = request.get_json()
+        session_id = data.get("session_id") if data else None
+
+        if not session_id:
+            return jsonify({"error": "session_id is required"}), 400
+
+        session = session_manager.get(session_id)
+        if not session:
+            return jsonify({"error": "Session not found or expired"}), 404
+
+        correlated = finding_correlator.correlate(session.findings)
+        summary = finding_correlator.summarize(correlated)
+
+        return jsonify(
+            {
+                "success": True,
+                "correlated_findings": correlated,
+                "summary": summary,
+            }
+        )
+    except Exception as e:
+        logger.error(f"💥 Error correlating findings: {e}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+
+# ════════════════════════════════════════════════════════════════════
+# ITERATIVE SCAN (Agent Loop: Think → Decide → Act → Observe)
+# ════════════════════════════════════════════════════════════════════
+
+
+@scan_intelligence_bp.route("/iterative-scan", methods=["POST"])
+def iterative_scan():
+    """
+    Execute one iteration of an intelligent scan loop.
+
+    Each call:
+    1. THINK: Analyze target and current session state
+    2. DECIDE: Select tools (initial or follow-up based on prior findings)
+    3. ACT: Execute selected tools in parallel
+    4. OBSERVE: Parse results, correlate findings, update session
+
+    Call repeatedly for multi-iteration scanning.
+    """
+    try:
+        data = request.get_json()
+        if not data or "target" not in data:
+            return jsonify({"error": "target is required"}), 400
+
+        target = data["target"]
+        session_id = data.get("session_id")
+        objective = data.get("objective", "comprehensive")
+        max_tools = data.get("max_tools", 5)
+
+        # ── THINK: Get or create session ────────────────────────────
+        if session_id:
+            session = session_manager.get(session_id)
+            if not session:
+                return jsonify({"error": "Session not found or expired"}), 404
+        else:
+            profile = decision_engine.analyze_target(target)
+            session = session_manager.create(target, profile.to_dict())
+            session_id = session.session_id
+
+        profile = decision_engine.analyze_target(target)
+        already_run = [t["tool"] for t in session.tools_executed]
+
+        # ── DECIDE: Select tools ────────────────────────────────────
+        if session.iteration == 0:
+            # First iteration: use standard AI tool selection
+            selected_tools = decision_engine.select_optimal_tools(profile, objective)[:max_tools]
+        else:
+            # Follow-up iteration: adapt based on findings
+            finding_dicts = [f.to_dict() for f in session.findings]
+            selected_tools = decision_engine.adapt_tools_from_findings(
+                profile, finding_dicts, already_run, max_followups=max_tools
+            )
+
+        if not selected_tools:
+            # No more tools to run — scan is converged
+            correlated = finding_correlator.correlate(session.findings)
+            summary = finding_correlator.summarize(correlated)
+            return jsonify(
+                {
+                    "success": True,
+                    "status": "converged",
+                    "message": "No additional tools recommended. Scan complete.",
+                    "session": session.get_summary(),
+                    "correlated_findings": correlated,
+                    "summary": summary,
+                }
+            )
+
+        # ── ACT: Execute tools in parallel ──────────────────────────
+        iteration_results = []
+
+        def _execute_tool(tool_name):
+            try:
+                executor_key = tool_name.replace("-", "_")
+                if executor_key not in tool_executors:
+                    return {"tool": tool_name, "success": False, "error": "No executor"}
+                optimized_params = decision_engine.optimize_parameters(tool_name, profile)
+                result = tool_executors[executor_key](target, optimized_params)
+                return {"tool": tool_name, **result}
+            except Exception as ex:
+                return {"tool": tool_name, "success": False, "error": str(ex)}
+
+        worker_count = min(len(selected_tools), 5)
+        with ThreadPoolExecutor(max_workers=worker_count) as executor:
+            futures = {executor.submit(_execute_tool, t): t for t in selected_tools}
+            for future in futures:
+                iteration_results.append(future.result())
+
+        # ── OBSERVE: Parse results and update session ───────────────
+        new_findings = []
+        for tr in iteration_results:
+            tool_name = tr.get("tool", "unknown")
+            session.add_tool_result(tool_name, tr)
+            parsed = result_analyzer.analyze(tool_name, target, tr)
+            for f in parsed:
+                session.add_finding(f)
+                new_findings.append(f)
+
+        correlated = finding_correlator.correlate(session.findings)
+        summary = finding_correlator.summarize(correlated)
+
+        # Suggest next iteration's tools for the LLM
+        next_tools = decision_engine.adapt_tools_from_findings(
+            profile,
+            [f.to_dict() for f in new_findings],
+            [t["tool"] for t in session.tools_executed],
+            max_followups=max_tools,
+        )
+
+        logger.info(
+            f"🔄 Iteration {session.iteration} complete for {target}: "
+            f"{len(selected_tools)} tools run, {len(new_findings)} new findings"
+        )
+
+        return jsonify(
+            {
+                "success": True,
+                "status": "iteration_complete",
+                "session_id": session_id,
+                "iteration": session.iteration,
+                "tools_executed_this_iteration": selected_tools,
+                "new_findings_count": len(new_findings),
+                "session_summary": session.get_summary(),
+                "correlated_findings": correlated,
+                "summary": summary,
+                "recommended_next_tools": next_tools,
+                "has_more_iterations": len(next_tools) > 0,
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
+
+    except Exception as e:
+        logger.error(f"💥 Error in iterative scan: {e}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500

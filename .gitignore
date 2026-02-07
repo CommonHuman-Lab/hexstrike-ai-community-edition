@@ -1,0 +1,48 @@
+# Enhanced .gitignore (PR #82 by @alfonsoalongi)
+
+# Virtual environments
+bin/
+hexstrike-env/
+venv/
+.venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# AI assistant config (local only)
+CLAUDE.md
+.claude/
+
+# Logs
+*.log
+hexstrike.log
+
+# Testing
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+
+# Generated docs
+TOOL_INTEGRATION_LOG.md
+MODULAR_ARCHITECTURE_BREAKDOWN.md
+ARCHITECTURE_COMPARISON.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# HexStrike runtime
+/tmp/hexstrike_files/
+.hexstrike_data/

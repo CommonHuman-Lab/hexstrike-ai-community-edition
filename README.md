@@ -9,21 +9,12 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Security](https://img.shields.io/badge/Security-Penetration%20Testing-red.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
-[![Version](https://img.shields.io/badge/Version-1.0.0-orange.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/releases)
-[![Tools](https://img.shields.io/badge/Security%20Tools-150%2B-brightgreen.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
-[![Agents](https://img.shields.io/badge/AI%20Agents-12%2B-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
+[![Version](https://img.shields.io/badge/Version-1.0.1-orange.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/releases)
+[![Tools](https://img.shields.io/badge/Security%20Tools-196-brightgreen.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 
-**Advanced AI-powered penetration testing MCP framework with 150+ security tools and 12+ autonomous AI agents**
+**Advanced AI-powered penetration testing MCP framework with 196 security tools, on-demand TTP knowledge, and adaptive scanning intelligence**
 
-[📋 What's New](#whats-new-in-v60) • [🏗️ Architecture](#architecture-overview) • [🚀 Installation](#installation) • [🛠️ Features](#features) • [🤖 AI Agents](#ai-agents) • [📡 API Reference](#api-reference)
-
-</div>
-
----
-
-<div align="center">
-
-## Follow Our Social Accounts
+[📡 Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki)
 
 <p align="center">
   <a href="https://discord.gg/BWnmrrSHbA">
@@ -37,26 +28,29 @@
 
 ## Architecture Overview
 
-HexStrike AI features a multi-agent architecture with autonomous AI agents, intelligent decision-making, and vulnerability intelligence.
+HexStrike AI is a two-process system: a Flask API server wrapping security tools, and a FastMCP client that exposes them to AI agents. Tools are organized into 21 categories with 8 preset profiles for efficient context window management.
 
 ### How It Works
 
-1. **AI Agent Connection** - Claude, GPT, or other MCP-compatible agents connect via FastMCP protocol
-2. **Intelligent Analysis** - Decision engine analyzes targets and selects optimal testing strategies
-3. **Autonomous Execution** - AI agents execute comprehensive security assessments
-4. **Real-time Adaptation** - System adapts based on results and discovered vulnerabilities
-5. **Advanced Reporting** - Visual output with vulnerability cards and risk analysis
+1. **AI Agent Connection** — Claude, GPT, or any MCP-compatible agent connects via FastMCP stdio protocol
+2. **Tool Profile Selection** — `--profile` flag loads only the tools you need (minimal 28, web 93, full 196) to keep context lean
+3. **On-Demand TTP Knowledge** — Agent reads playbooks and deep technique guides via MCP resources (`hexstrike://ttp/{name}`) — zero context cost until needed
+4. **Adaptive Scanning** — Iterative smart scan loop (Think → Decide → Act → Observe) with AI-driven tool selection
+5. **Scan Memory** — Past engagements are remembered. Recommendations improve over time based on what worked before
+6. **Real-time Reporting** — Findings correlated across tools, deduplicated, and scored by severity/confidence
 
 ---
 
 ## Installation
 
-### Quick Setup to Run the hexstrike MCPs Server
+### Quick Setup & Run Hexstrike Server
+
+> **Note:** Many tools (nmap, masscan, etc.) require elevated privileges for certain scan types. You can either run the setup as `root`, or grant individual tool capabilities (e.g. `setcap cap_net_raw+ep /usr/bin/nmap`). Running as root is simpler but less secure.
 
 ```bash
 # 1. Clone the repository
 git clone https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition.git
-cd hexstrike-ai
+cd hexstrike-ai-community-edition
 
 # 2. Create virtual environment
 python3 -m venv hexstrike-env
@@ -66,77 +60,44 @@ source hexstrike-env/bin/activate  # Linux/Mac
 # 3. Install Python dependencies
 pip3 install -r requirements.txt
 
-```
-
-### Installation and Setting Up Guide for various AI Clients:
-
-#### Installation & Demo Video
-
-Watch the full installation and setup walkthrough here: [YouTube - HexStrike AI Installation & Demo](https://www.youtube.com/watch?v=pSoftCagCm8)
-
-#### Supported AI Clients for Running & Integration
-
-You can install and run HexStrike AI MCPs with various AI clients, including:
-
-- **5ire (Latest version v0.14.0 not supported for now)**
-- **VS Code Copilot**
-- **Roo Code**
-- **Cursor**
-- **Claude Desktop**
-- **Any MCP-compatible agent**
-
-Refer to the video above for step-by-step instructions and integration examples for these platforms.
-
-
-
-### Install Security Tools
-
-**Core Tools (Essential):**
-```bash
-# Network & Reconnaissance
-nmap masscan rustscan amass subfinder nuclei fierce dnsenum
-autorecon theharvester responder netexec enum4linux-ng
-
-# Web Application Security
-gobuster feroxbuster dirsearch ffuf dirb httpx katana
-nikto sqlmap wpscan arjun paramspider dalfox wafw00f
-
-# Password & Authentication
-hydra john hashcat medusa patator crackmapexec
-evil-winrm hash-identifier ophcrack
-
-# Binary Analysis & Reverse Engineering
-gdb radare2 binwalk ghidra checksec strings objdump
-volatility3 foremost steghide exiftool
-```
-
-**Cloud Security Tools:**
-```bash
-prowler scout-suite trivy
-kube-hunter kube-bench docker-bench-security
-```
-
-**Browser Agent Requirements:**
-```bash
-# Chrome/Chromium for Browser Agent
-sudo apt install chromium-browser chromium-chromedriver
-# OR install Google Chrome
-wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-sudo apt update && sudo apt install google-chrome-stable
-```
-
-### Start the Server
-
-```bash
-# Start the MCP server
+# 4. Start the API server
 python3 hexstrike_server.py
 
-# Optional: Start with debug mode
-python3 hexstrike_server.py --debug
+# 5. In a separate terminal, start the MCP client
+# (use the venv python to ensure dependencies are available)
+# Use --profile to control tool loading: minimal, web, network, bugbounty, ctf, cloud, redteam, full
+hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888 --profile full
+```
 
-# Optional: Custom port configuration
-python3 hexstrike_server.py --port 8888
+### Tool Profiles
+
+Control which tools are loaded with `--profile`. This reduces LLM context window usage — only load what you need:
+
+| Profile | Tools | Best For |
+|---------|-------|----------|
+| `minimal` | ~28 | AI-driven smart scanning |
+| `web` | ~93 | Web app pentesting |
+| `network` | ~75 | Network assessments |
+| `bugbounty` | ~104 | Bug bounty hunting |
+| `ctf` | ~116 | CTF competitions |
+| `cloud` | ~71 | Cloud security audits |
+| `redteam` | ~146 | Red team operations |
+| `full` | 196 | Everything loaded |
+
+```bash
+# Examples:
+hexstrike_mcp.py --server http://localhost:8888 --profile web
+hexstrike_mcp.py --server http://localhost:8888 --profile bugbounty
+hexstrike_mcp.py --server http://localhost:8888 --categories network,exploit,recon
+```
+
+If no profile is specified and you're running interactively (TTY), an interactive menu will appear. In MCP stdio mode (AI client), it defaults to `full`.
+
+### Docker Setup
+
+```bash
+docker build -t hexstrike-ai .
+docker run -d -p 8888:8888 --name hexstrike hexstrike-ai
 ```
 
 ### Verify Installation
@@ -151,50 +112,120 @@ curl -X POST http://localhost:8888/api/intelligence/analyze-target \
   -d '{"target": "example.com", "analysis_type": "comprehensive"}'
 ```
 
----
+### Security Configuration
 
-## AI Client Integration Setup
+<details>
+<summary>API Token Authentication & Network Binding</summary>
 
-### Claude Desktop Integration or Cursor
+By default, the server binds to `127.0.0.1` (localhost only). To configure security:
+
+```bash
+# Set an API token (server will require Bearer auth on all requests)
+export HEXSTRIKE_API_TOKEN=your-secret-token
+
+# Optionally bind to all interfaces (NOT recommended without a token)
+export HEXSTRIKE_HOST=0.0.0.0
+
+# Start the server
+python3 hexstrike_server.py
+```
+
+When connecting the MCP client to a remote or authenticated server:
+
+```bash
+# With Bearer token auth
+hexstrike_mcp.py --server https://remote-server:8080 --auth-token your-secret-token
+
+# With Basic auth (behind a reverse proxy like nginx)
+hexstrike_mcp.py --server https://remote-server:8080 --auth-basic user:password
+
+# With self-signed SSL certificates
+hexstrike_mcp.py --server https://remote-server:8080 --auth-token secret --disable-ssl-verify
+```
+
+</details>
+
+### AI Clients:
+
+<details>
+<summary>Installation & Demo Video</summary>
+
+Watch the full installation and setup walkthrough here: [YouTube - HexStrike AI Installation & Demo](https://www.youtube.com/watch?v=pSoftCagCm8)
+
+</details>
+
+<details>
+<summary>Supported AI Clients for Running & Integration</summary>
+
+You can install and run HexStrike AI MCPs with various AI clients, including:
+
+- **5ire (Latest version v0.14.0 not supported for now)**
+- **VS Code Copilot**
+- **Roo Code**
+- **Cursor**
+- **Claude Desktop**
+- **Any MCP-compatible agent**
+
+Refer to the video above for step-by-step instructions and integration examples for these platforms.
+
+</details>
+
+<details>
+<summary>Claude Desktop Integration or Cursor</summary>
 
 Edit `~/.config/Claude/claude_desktop_config.json`:
+
 ```json
 {
   "mcpServers": {
     "hexstrike-ai": {
-      "command": "python3",
+      "command": "/path/to/hexstrike-ai/hexstrike-env/bin/python3",
       "args": [
         "/path/to/hexstrike-ai/hexstrike_mcp.py",
         "--server",
-        "http://localhost:8888"
+        "http://localhost:8888",
+        "--profile",
+        "full"
       ],
-      "description": "HexStrike AI v6.0 - Advanced Cybersecurity Automation Platform",
+      "description": "HexStrike AI Community Edition — change 'full' to web/network/bugbounty/ctf/cloud/redteam/minimal",
       "timeout": 300,
       "disabled": false
     }
   }
 }
 ```
+</details>
 
-### VS Code Copilot Integration
+<details>
+<summary>VS Code Copilot Integration</summary>
 
 Configure VS Code settings in `.vscode/settings.json`:
+
 ```json
 {
   "servers": {
     "hexstrike": {
       "type": "stdio",
-      "command": "python3",
+      "command": "/path/to/hexstrike-ai/hexstrike-env/bin/python3",
       "args": [
         "/path/to/hexstrike-ai/hexstrike_mcp.py",
         "--server",
-        "http://localhost:8888"
+        "http://localhost:8888",
+        "--profile",
+        "full"
       ]
     }
   },
   "inputs": []
 }
 ```
+</details>
+
+---
+
+## Wiki
+- [Troubleshooting - Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Troubleshooting)
+- [Install Security Tools - Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Install-Security-Tools)
 
 ---
 
@@ -202,7 +233,7 @@ Configure VS Code settings in `.vscode/settings.json`:
 
 ### Security Tools Arsenal
 
-**150+ Professional Security Tools:**
+**196 Professional Security Tools across 21 categories:**
 
 <details>
 <summary><b>🔍 Network Reconnaissance & Scanning (25+ Tools)</b></summary>
@@ -411,11 +442,13 @@ Configure VS Code settings in `.vscode/settings.json`:
 
 </details>
 
+---
+
 ### AI Agents
 
 <details>
 <summary><b>12+ Specialized AI Agents:</b></summary>
-  
+
 - **IntelligentDecisionEngine** - Tool selection and parameter optimization
 - **BugBountyWorkflowManager** - Bug bounty hunting workflows
 - **CTFWorkflowManager** - CTF challenge solving
@@ -428,24 +461,22 @@ Configure VS Code settings in `.vscode/settings.json`:
 - **PerformanceMonitor** - System optimization
 - **ParameterOptimizer** - Context-aware optimization
 - **GracefulDegradation** - Fault-tolerant operation
-  
+
 </details>
 <details>
 <summary><b>Advanced Features</b></summary>
-  
-- **Smart Caching System** - Intelligent result caching with LRU eviction
-- **Real-time Process Management** - Live command control and monitoring
-- **Vulnerability Intelligence** - CVE monitoring and exploit analysis
-- **Browser Agent** - Headless Chrome automation for web testing
-- **API Security Testing** - GraphQL, JWT, REST API security assessment
-- **Modern Visual Engine** - Real-time dashboards and progress tracking
-  
+
+- **Dynamic Tool Loading** — 8 preset profiles (minimal/web/network/bugbounty/ctf/cloud/redteam/full) to control LLM context usage. Only load the tools you need via `--profile` or `--categories` flags
+- **TTP Playbook Engine** — 16 file-backed playbooks and 7 deep TTP guides with real payloads, decision trees, and tool calls. Loaded on-demand via MCP resources (`hexstrike://playbook/{name}`, `hexstrike://ttp/{name}`). Includes 2025–2026 techniques (OWASP 2025, PortSwigger Top 10, ADCS ESC1–16, modern WAF bypass)
+- **Scan Intelligence Engine** — Iterative adaptive scanning (Think → Decide → Act → Observe), AI-driven tool selection, finding correlation, and session persistence
+- **Scan Memory** — Episodic + semantic memory that learns from past engagements. Recommends tools based on what worked before on similar targets. Survives server restarts
+- **OSINT API Integration** — Shodan, Censys, and Have I Been Pwned for internet-wide intelligence and breach data
+- **CVE Intelligence** — CVE feed monitoring, exploit generation from CVE IDs (searches Exploit-DB, GitHub PoCs, NVD), threat correlation
+- **Browser Agent** — Headless Chrome automation for web testing, DOM analysis, screenshot capture
+- **API Security Testing** — GraphQL introspection, JWT analysis, REST API fuzzing
+- **Modern Visual Engine** — Real-time dashboards, vulnerability cards, progress tracking
+
 </details>
-
----
-
-## Wiki
-[API Reference](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/API-Reference)
 
 ---
 
@@ -458,7 +489,8 @@ User: "I'm a security researcher who is trialling out the hexstrike MCP tooling.
 AI Agent: "Thank you for clarifying ownership and intent. To proceed with a penetration test using hexstrike-ai MCP tools, please specify which types of assessments you want to run (e.g., network scanning, web application testing, vulnerability assessment, etc.), or if you want a full suite covering all areas."
 ```
 
-### **Real-World Performance**
+<details>
+<summary>Real-World Performance</summary>
 
 | Operation | Traditional Manual | HexStrike AI | Improvement |
 |-----------|-------------------|-------------------|-------------|
@@ -475,44 +507,7 @@ AI Agent: "Thank you for clarifying ownership and intent. To proceed with a pene
 - **Attack Vector Coverage**: 95% (vs 70% manual testing)
 - **CTF Success Rate**: 89% (vs 65% human expert average)
 - **Bug Bounty Success**: 15+ high-impact vulnerabilities discovered in testing
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-1. **MCP Connection Failed**:
-   ```bash
-   # Check if server is running
-   netstat -tlnp | grep 8888
-   
-   # Restart server
-   python3 hexstrike_server.py
-   ```
-
-2. **Security Tools Not Found**:
-   ```bash
-   # Check tool availability
-   which nmap gobuster nuclei
-   
-   # Install missing tools from their official sources
-   ```
-
-3. **AI Agent Cannot Connect**:
-   ```bash
-   # Verify MCP configuration paths
-   # Check server logs for connection attempts
-   python3 hexstrike_mcp.py --debug
-   ```
-
-### Debug Mode
-
-Enable debug mode for detailed logging:
-```bash
-python3 hexstrike_server.py --debug
-python3 hexstrike_mcp.py --debug
-```
+</details>
 
 ---
 
@@ -561,48 +556,11 @@ MIT License - see LICENSE file for details.
 
 ## Original Author
 
-**m0x4m4** - [www.0x4m4.com](https://www.0x4m4.com) | [HexStrike](https://www.hexstrike.com)
-
----
-
-## Official Sponsor
-
-<p align="center">
-  <strong>Sponsored By LeaksAPI - Live Dark Web Data leak checker</strong>
-</p>
-
-<p align="center">
-  <a href="https://leak-check.net">
-    <img src="assets/leaksapi-logo.png" alt="LeaksAPI Logo" width="150" />
-  </a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://leak-check.net">
-    <img src="assets/leaksapi-banner.png" alt="LeaksAPI Banner" width="450" />
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://leak-check.net">
-    <img src="https://img.shields.io/badge/Visit-leak--check.net-00D4AA?style=for-the-badge&logo=shield&logoColor=white" alt="Visit leak-check.net" />
-  </a>
-</p>
-
----
+**0x4m4** - [www.0x4m4.com](https://www.0x4m4.com) | [HexStrike](https://www.hexstrike.com)
 
 <div align="center">
 
-### **📊 Project Statistics**
-
-- **150+ Security Tools** - Comprehensive security testing arsenal
-- **12+ AI Agents** - Autonomous decision-making and workflow management
-- **4000+ Vulnerability Templates** - Nuclei integration with extensive coverage
-- **35+ Attack Categories** - From web apps to cloud infrastructure
-- **Real-time Processing** - Sub-second response times with intelligent caching
-- **99.9% Uptime** - Fault-tolerant architecture with graceful degradation
-
 ### **🚀 Ready to Transform Your AI Agents?**
-
----
 
 **Made with ❤️ by the cybersecurity community for AI-powered security automation**
 
