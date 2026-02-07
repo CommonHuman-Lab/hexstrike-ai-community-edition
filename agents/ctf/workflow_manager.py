@@ -1545,5 +1545,5 @@ class CTFToolManager:
 
 
 # ============================================================================
-# ADVANCED CTF AUTOMATION AND CHALLENGE SOLVING (v8.0 ENHANCEMENT)
+# ADVANCED CTF AUTOMATION AND CHALLENGE SOLVING
 # ============================================================================

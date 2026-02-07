@@ -10,9 +10,9 @@
 [![Security](https://img.shields.io/badge/Security-Penetration%20Testing-red.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![Version](https://img.shields.io/badge/Version-1.0.1-orange.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/releases)
-[![Tools](https://img.shields.io/badge/Security%20Tools-195-brightgreen.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
+[![Tools](https://img.shields.io/badge/Security%20Tools-196-brightgreen.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 
-**Advanced AI-powered penetration testing MCP framework with 195 security tools and 12+ autonomous AI agents**
+**Advanced AI-powered penetration testing MCP framework with 196 security tools, on-demand TTP knowledge, and adaptive scanning intelligence**
 
 [📡 Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki)
 
@@ -28,15 +28,16 @@
 
 ## Architecture Overview
 
-HexStrike AI features a multi-agent architecture with autonomous AI agents, intelligent decision-making, and vulnerability intelligence.
+HexStrike AI is a two-process system: a Flask API server wrapping security tools, and a FastMCP client that exposes them to AI agents. Tools are organized into 21 categories with 8 preset profiles for efficient context window management.
 
 ### How It Works
 
-1. **AI Agent Connection** - Claude, GPT, or other MCP-compatible agents connect via FastMCP protocol
-2. **Intelligent Analysis** - Decision engine analyzes targets and selects optimal testing strategies
-3. **Autonomous Execution** - AI agents execute comprehensive security assessments
-4. **Real-time Adaptation** - System adapts based on results and discovered vulnerabilities
-5. **Advanced Reporting** - Visual output with vulnerability cards and risk analysis
+1. **AI Agent Connection** — Claude, GPT, or any MCP-compatible agent connects via FastMCP stdio protocol
+2. **Tool Profile Selection** — `--profile` flag loads only the tools you need (minimal 28, web 93, full 196) to keep context lean
+3. **On-Demand TTP Knowledge** — Agent reads playbooks and deep technique guides via MCP resources (`hexstrike://ttp/{name}`) — zero context cost until needed
+4. **Adaptive Scanning** — Iterative smart scan loop (Think → Decide → Act → Observe) with AI-driven tool selection
+5. **Scan Memory** — Past engagements are remembered. Recommendations improve over time based on what worked before
+6. **Real-time Reporting** — Findings correlated across tools, deduplicated, and scored by severity/confidence
 
 ---
 
@@ -64,8 +65,33 @@ python3 hexstrike_server.py
 
 # 5. In a separate terminal, start the MCP client
 # (use the venv python to ensure dependencies are available)
-hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888
+# Use --profile to control tool loading: minimal, web, network, bugbounty, ctf, cloud, redteam, full
+hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888 --profile full
 ```
+
+### Tool Profiles
+
+Control which tools are loaded with `--profile`. This reduces LLM context window usage — only load what you need:
+
+| Profile | Tools | Best For |
+|---------|-------|----------|
+| `minimal` | ~28 | AI-driven smart scanning |
+| `web` | ~93 | Web app pentesting |
+| `network` | ~75 | Network assessments |
+| `bugbounty` | ~104 | Bug bounty hunting |
+| `ctf` | ~116 | CTF competitions |
+| `cloud` | ~71 | Cloud security audits |
+| `redteam` | ~146 | Red team operations |
+| `full` | 196 | Everything loaded |
+
+```bash
+# Examples:
+hexstrike_mcp.py --server http://localhost:8888 --profile web
+hexstrike_mcp.py --server http://localhost:8888 --profile bugbounty
+hexstrike_mcp.py --server http://localhost:8888 --categories network,exploit,recon
+```
+
+If no profile is specified and you're running interactively (TTY), an interactive menu will appear. In MCP stdio mode (AI client), it defaults to `full`.
 
 ### Docker Setup
 
@@ -157,9 +183,11 @@ Edit `~/.config/Claude/claude_desktop_config.json`:
       "args": [
         "/path/to/hexstrike-ai/hexstrike_mcp.py",
         "--server",
-        "http://localhost:8888"
+        "http://localhost:8888",
+        "--profile",
+        "full"
       ],
-      "description": "HexStrike AI Community Edition",
+      "description": "HexStrike AI Community Edition — change 'full' to web/network/bugbounty/ctf/cloud/redteam/minimal",
       "timeout": 300,
       "disabled": false
     }
@@ -182,7 +210,9 @@ Configure VS Code settings in `.vscode/settings.json`:
       "args": [
         "/path/to/hexstrike-ai/hexstrike_mcp.py",
         "--server",
-        "http://localhost:8888"
+        "http://localhost:8888",
+        "--profile",
+        "full"
       ]
     }
   },
@@ -203,7 +233,7 @@ Configure VS Code settings in `.vscode/settings.json`:
 
 ### Security Tools Arsenal
 
-**195 Professional Security Tools:**
+**196 Professional Security Tools across 21 categories:**
 
 <details>
 <summary><b>🔍 Network Reconnaissance & Scanning (25+ Tools)</b></summary>
@@ -436,14 +466,15 @@ Configure VS Code settings in `.vscode/settings.json`:
 <details>
 <summary><b>Advanced Features</b></summary>
 
-- **Scan Intelligence Engine** - Iterative adaptive scanning with AI-driven tool selection, finding correlation, and session persistence
-- **OSINT API Integration** - Shodan, Censys, and Have I Been Pwned for internet-wide intelligence and breach data
-- **Smart Caching System** - Intelligent result caching with LRU eviction
-- **Real-time Process Management** - Live command control and monitoring
-- **Vulnerability Intelligence** - CVE monitoring and exploit analysis
-- **Browser Agent** - Headless Chrome automation for web testing
-- **API Security Testing** - GraphQL, JWT, REST API security assessment
-- **Modern Visual Engine** - Real-time dashboards and progress tracking
+- **Dynamic Tool Loading** — 8 preset profiles (minimal/web/network/bugbounty/ctf/cloud/redteam/full) to control LLM context usage. Only load the tools you need via `--profile` or `--categories` flags
+- **TTP Playbook Engine** — 16 file-backed playbooks and 7 deep TTP guides with real payloads, decision trees, and tool calls. Loaded on-demand via MCP resources (`hexstrike://playbook/{name}`, `hexstrike://ttp/{name}`). Includes 2025–2026 techniques (OWASP 2025, PortSwigger Top 10, ADCS ESC1–16, modern WAF bypass)
+- **Scan Intelligence Engine** — Iterative adaptive scanning (Think → Decide → Act → Observe), AI-driven tool selection, finding correlation, and session persistence
+- **Scan Memory** — Episodic + semantic memory that learns from past engagements. Recommends tools based on what worked before on similar targets. Survives server restarts
+- **OSINT API Integration** — Shodan, Censys, and Have I Been Pwned for internet-wide intelligence and breach data
+- **CVE Intelligence** — CVE feed monitoring, exploit generation from CVE IDs (searches Exploit-DB, GitHub PoCs, NVD), threat correlation
+- **Browser Agent** — Headless Chrome automation for web testing, DOM analysis, screenshot capture
+- **API Security Testing** — GraphQL introspection, JWT analysis, REST API fuzzing
+- **Modern Visual Engine** — Real-time dashboards, vulnerability cards, progress tracking
 
 </details>
 
