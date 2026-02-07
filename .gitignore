@@ -20,6 +20,10 @@ build/
 *.swp
 *.swo
 
+# AI assistant config (local only)
+CLAUDE.md
+.claude/
+
 # Logs
 *.log
 hexstrike.log

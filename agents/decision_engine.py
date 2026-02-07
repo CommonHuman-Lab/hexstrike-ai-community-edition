@@ -318,9 +318,15 @@ class IntelligentDecisionEngine:
         }
 
     def _initialize_attack_patterns(self) -> Dict[str, List[Dict[str, Any]]]:
-        """Initialize common attack patterns for different scenarios"""
+        """Initialize common attack patterns for different scenarios.
+
+        Each pattern group includes a ``ttp_references`` list of MCP resource
+        URIs that the LLM should read before executing the pattern.
+        """
         return {
             "web_reconnaissance": [
+                # TTP references for the LLM to read on demand:
+                # hexstrike://ttp/recon-osint, hexstrike://playbook/pentest-lifecycle
                 {"tool": "nmap", "priority": 1, "params": {"scan_type": "-sV -sC", "ports": "80,443,8080,8443"}},
                 {"tool": "httpx", "priority": 2, "params": {"probe": True, "tech_detect": True}},
                 {"tool": "katana", "priority": 3, "params": {"depth": 3, "js_crawl": True}},
@@ -331,6 +337,7 @@ class IntelligentDecisionEngine:
                 {"tool": "gobuster", "priority": 8, "params": {"mode": "dir", "extensions": "php,html,js,txt"}},
             ],
             "api_testing": [
+                # TTP refs: hexstrike://ttp/web-injection, hexstrike://ttp/auth-attacks
                 {"tool": "httpx", "priority": 1, "params": {"probe": True, "tech_detect": True}},
                 {"tool": "arjun", "priority": 2, "params": {"method": "GET,POST", "stable": True}},
                 {
@@ -343,6 +350,7 @@ class IntelligentDecisionEngine:
                 {"tool": "ffuf", "priority": 6, "params": {"mode": "parameter", "method": "POST"}},
             ],
             "network_discovery": [
+                # TTP refs: hexstrike://ttp/network-exploit, hexstrike://ttp/recon-osint
                 {"tool": "arp-scan", "priority": 1, "params": {"local_network": True}},
                 {"tool": "rustscan", "priority": 2, "params": {"ulimit": 5000, "scripts": True}},
                 {
@@ -357,6 +365,7 @@ class IntelligentDecisionEngine:
                 {"tool": "rpcclient", "priority": 8, "params": {"commands": "enumdomusers;enumdomgroups;querydominfo"}},
             ],
             "vulnerability_assessment": [
+                # TTP refs: hexstrike://ttp/web-injection, hexstrike://ttp/waf-evasion
                 {"tool": "nuclei", "priority": 1, "params": {"severity": "critical,high,medium", "update": True}},
                 {"tool": "jaeles", "priority": 2, "params": {"threads": 20, "timeout": 20}},
                 {"tool": "dalfox", "priority": 3, "params": {"mining_dom": True, "mining_dict": True}},
@@ -364,6 +373,7 @@ class IntelligentDecisionEngine:
                 {"tool": "sqlmap", "priority": 5, "params": {"crawl": 2, "batch": True}},
             ],
             "comprehensive_network_pentest": [
+                # TTP refs: hexstrike://ttp/network-exploit, hexstrike://playbook/redteam-ops
                 {
                     "tool": "autorecon",
                     "priority": 1,
@@ -379,6 +389,7 @@ class IntelligentDecisionEngine:
                 {"tool": "responder", "priority": 5, "params": {"wpad": True, "duration": 180}},
             ],
             "binary_exploitation": [
+                # TTP refs: hexstrike://ttp/binary-exploit
                 {"tool": "checksec", "priority": 1, "params": {}},
                 {"tool": "ghidra", "priority": 2, "params": {"analysis_timeout": 300, "output_format": "xml"}},
                 {"tool": "ropper", "priority": 3, "params": {"gadget_type": "rop", "quality": 2}},
@@ -387,6 +398,7 @@ class IntelligentDecisionEngine:
                 {"tool": "gdb-peda", "priority": 6, "params": {"commands": "checksec\ninfo functions\nquit"}},
             ],
             "ctf_pwn_challenge": [
+                # TTP refs: hexstrike://ttp/binary-exploit, hexstrike://playbook/ctf-challenges
                 {"tool": "pwninit", "priority": 1, "params": {"template_type": "python"}},
                 {"tool": "checksec", "priority": 2, "params": {}},
                 {"tool": "ghidra", "priority": 3, "params": {"analysis_timeout": 180}},
@@ -395,17 +407,20 @@ class IntelligentDecisionEngine:
                 {"tool": "one-gadget", "priority": 6, "params": {"level": 2}},
             ],
             "aws_security_assessment": [
+                # TTP refs: hexstrike://ttp/cloud-attacks
                 {"tool": "prowler", "priority": 1, "params": {"provider": "aws", "output_format": "json"}},
                 {"tool": "scout-suite", "priority": 2, "params": {"provider": "aws"}},
                 {"tool": "cloudmapper", "priority": 3, "params": {"action": "collect"}},
                 {"tool": "pacu", "priority": 4, "params": {"modules": "iam__enum_users_roles_policies_groups"}},
             ],
             "kubernetes_security_assessment": [
+                # TTP refs: hexstrike://ttp/cloud-attacks
                 {"tool": "kube-bench", "priority": 1, "params": {"output_format": "json"}},
                 {"tool": "kube-hunter", "priority": 2, "params": {"report": "json"}},
                 {"tool": "falco", "priority": 3, "params": {"duration": 120, "output_format": "json"}},
             ],
             "container_security_assessment": [
+                # TTP refs: hexstrike://ttp/cloud-attacks
                 {"tool": "trivy", "priority": 1, "params": {"scan_type": "image", "severity": "HIGH,CRITICAL"}},
                 {"tool": "clair", "priority": 2, "params": {"output_format": "json"}},
                 {"tool": "docker-bench", "priority": 3, "params": {}},
@@ -422,6 +437,7 @@ class IntelligentDecisionEngine:
                 {"tool": "terrascan", "priority": 4, "params": {"scan_type": "all"}},
             ],
             "bug_bounty_reconnaissance": [
+                # TTP refs: hexstrike://ttp/recon-osint, hexstrike://playbook/bugbounty-hunting
                 {"tool": "amass", "priority": 1, "params": {"mode": "enum", "passive": False}},
                 {"tool": "subfinder", "priority": 2, "params": {"silent": True, "all_sources": True}},
                 {"tool": "httpx", "priority": 3, "params": {"probe": True, "tech_detect": True, "status_code": True}},
@@ -432,6 +448,7 @@ class IntelligentDecisionEngine:
                 {"tool": "arjun", "priority": 8, "params": {"method": "GET,POST", "stable": True}},
             ],
             "bug_bounty_vulnerability_hunting": [
+                # TTP refs: hexstrike://ttp/web-injection, hexstrike://ttp/waf-evasion
                 {"tool": "nuclei", "priority": 1, "params": {"severity": "critical,high", "tags": "rce,sqli,xss,ssrf"}},
                 {"tool": "dalfox", "priority": 2, "params": {"mining_dom": True, "mining_dict": True}},
                 {"tool": "sqlmap", "priority": 3, "params": {"batch": True, "level": 2, "risk": 2}},
@@ -443,6 +460,7 @@ class IntelligentDecisionEngine:
                 },
             ],
             "bug_bounty_high_impact": [
+                # TTP refs: hexstrike://ttp/web-injection, hexstrike://ttp/auth-attacks
                 {"tool": "nuclei", "priority": 1, "params": {"severity": "critical", "tags": "rce,sqli,ssrf,lfi,xxe"}},
                 {
                     "tool": "sqlmap",

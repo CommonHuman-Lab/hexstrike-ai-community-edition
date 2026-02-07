@@ -10,10 +10,13 @@ import logging
 import sys
 import time
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Set
 
 import requests
 from mcp.server.fastmcp import FastMCP
+
+from playbooks import get_index as get_playbook_index
+from playbooks import load_playbook, load_ttp
 
 
 class HexStrikeColors:
@@ -282,12 +285,16 @@ class HexStrikeClient:
         return self.safe_get("health")
 
 
-def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
+def setup_mcp_server(
+    hexstrike_client: HexStrikeClient,
+    selected_tools: Optional[Set[str]] = None,
+) -> FastMCP:
     """
-    Set up the MCP server with all enhanced tool functions
+    Set up the MCP server with tool functions filtered by the active profile.
 
     Args:
         hexstrike_client: Initialized HexStrikeClient
+        selected_tools: Set of tool function names to register. If None, all tools are registered.
 
     Returns:
         Configured FastMCP instance
@@ -300,6 +307,24 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
             "for full workflow guidance. Prefer iterative_smart_scan over manual tool selection."
         ),
     )
+
+    # ---- Conditional tool registration ----
+    # When a profile is active, only selected tool functions are exposed to the
+    # LLM, keeping the context window lean. Resources and prompts always load.
+    def register_tool(*decorator_args, **decorator_kwargs):
+        """Decorator that conditionally registers a function as an MCP tool.
+
+        If *selected_tools* is None (full mode), every tool is registered.
+        Otherwise only tools whose function name appears in the set are registered.
+        Skipped tools still exist as plain Python functions (no side-effects).
+        """
+
+        def wrapper(fn):
+            if selected_tools is None or fn.__name__ in selected_tools:
+                return mcp.tool(*decorator_args, **decorator_kwargs)(fn)
+            return fn
+
+        return wrapper
 
     # Expose resources and prompts as tool calls for clients that don't support
     # the MCP resources/prompts protocol natively (e.g. Cursor, VS Code Copilot).
@@ -322,170 +347,39 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
 
     @mcp.resource("hexstrike://playbook")
     def hexstrike_playbook() -> str:
-        """Complete HexStrike workflow playbook — read this to understand how to use the system effectively."""
-        return """# HexStrike AI — Agent Playbook
+        """HexStrike overview + index of all available playbooks and TTP guides."""
+        overview = (
+            "# HexStrike AI — Agent Playbook\n\n"
+            "HexStrike is a penetration testing framework with 196 security tools.\n"
+            "Use `iterative_smart_scan(target, objective)` for AI-driven assessments.\n"
+            "Call `get_scan_recommendations(target)` first to leverage past experience.\n\n"
+            "## Quick Decision Guide\n\n"
+            "| Request | Tool |\n"
+            "|---------|------|\n"
+            '| "Full pentest" | `iterative_smart_scan(target, objective="comprehensive")` |\n'
+            '| "Quick check" | `iterative_smart_scan(target, objective="quick")` |\n'
+            '| "Scan ports" | `nmap_scan(target)` |\n'
+            '| "Find subdomains" | `subfinder_scan(target)` |\n'
+            '| "Check breaches" | `hibp_breach_check(email)` |\n'
+            '| "Plan attack path" | `create_attack_chain_ai(target)` |\n\n'
+            "## Deep Guides (read on demand)\n\n"
+        )
+        return overview + get_playbook_index()
 
-## How This System Works
+    @mcp.resource("hexstrike://playbook/{name}")
+    def hexstrike_playbook_by_name(name: str) -> str:
+        """Load a specific HexStrike workflow playbook by name."""
+        return load_playbook(name)
 
-HexStrike is a penetration testing framework with 100+ security tools exposed via MCP.
-You can call tools individually, but the BEST approach is to use the intelligence engine.
-
-## Recommended Workflow: Iterative Smart Scan
-
-This is HexStrike's most powerful feature — an adaptive scan loop that:
-1. Analyzes the target and creates a profile
-2. Selects the best tools using AI (based on target type, technology stack, objective)
-3. Executes tools in parallel
-4. Parses results into structured findings with severity classification
-5. Recommends follow-up tools based on what was discovered
-6. Repeats until no more tools are recommended (converged)
-
-### How to Use It:
-
-```
-Step 1: result = iterative_smart_scan(target="example.com", objective="comprehensive")
-        → Returns session_id, initial findings, recommended next tools
-
-Step 2: result = iterative_smart_scan(target="example.com", session_id="<id from step 1>")
-        → Runs follow-up tools, returns updated findings
-
-Step 3: Repeat Step 2 until result.has_more_iterations == false
-
-Step 4: summary = correlate_session_findings(session_id="<id>")
-        → Get deduplicated, severity-ranked final report
-```
-
-### Objectives:
-- "comprehensive" — Full assessment, all relevant tools (default)
-- "quick" — Top 3 most effective tools only
-- "stealth" — Passive tools only (amass, subfinder, httpx)
-
-## When to Use Direct Tools Instead
-
-Use individual tools when the user asks for something specific:
-- "Scan ports on 10.0.0.1" → nmap_scan
-- "Find subdomains of example.com" → subfinder_scan or amass_scan
-- "Check if admin@example.com was breached" → hibp_breach_check
-- "What's exposed on this IP?" → shodan_host_lookup
-
-## Tool Categories
-
-### Reconnaissance & OSINT
-- nmap_scan, masscan_scan, rustscan_scan — Port scanning
-- subfinder_scan, amass_scan — Subdomain enumeration
-- theharvester_scan — Email/subdomain harvesting
-- sherlock_investigate — Username OSINT across 400+ platforms
-- shodan_host_lookup, shodan_search_query — Internet device intelligence (needs SHODAN_API_KEY)
-- censys_host_lookup, censys_search_hosts — Host/cert intelligence (needs CENSYS_API_ID + CENSYS_API_SECRET)
-- hibp_breach_check, hibp_domain_search — Breach intelligence (needs HIBP_API_KEY)
-
-### Web Application Testing
-- nuclei_scan — Template-based vulnerability scanning
-- gobuster_scan, feroxbuster_scan, ffuf_fuzz — Directory/file discovery
-- sqlmap_scan — SQL injection testing
-- nikto_scan — Web server misconfiguration scanning
-- wpscan_scan — WordPress security assessment
-- dalfox_xss_scan — XSS detection
-- katana_crawl — JavaScript-aware web crawling
-
-### Exploitation & Password
-- hydra_attack, medusa_attack — Brute force attacks
-- metasploit_scan — Exploit framework
-- john_crack, hashcat_crack — Password cracking
-
-### Cloud Security
-- prowler_scan, scout_suite_scan — AWS/multi-cloud assessment
-- trivy_scan — Container vulnerability scanning
-- kube_hunter_scan, kube_bench_scan — Kubernetes security
-
-### Binary Analysis
-- ghidra_analyze — Reverse engineering
-- checksec_check — Binary security properties
-- gdb_debug — Debugging with exploit development plugins
-
-### Intelligence Engine (AI-Powered)
-- analyze_target_intelligence — AI target profiling
-- intelligent_smart_scan — One-shot AI-driven scan
-- iterative_smart_scan — Multi-iteration adaptive scan (RECOMMENDED)
-- create_attack_chain_ai — AI attack path planning
-- select_optimal_tools_ai — AI tool selection
-
-### Scan Intelligence
-- create_scan_session — Create persistent session
-- get_scan_session — Retrieve session state
-- analyze_tool_results — Parse raw output into structured findings
-- correlate_session_findings — Deduplicate and cross-reference findings
-
-### Scan Memory & Persistence
-- complete_scan_session — Archive session + save episodic memory trace
-- checkpoint_scan_session — Checkpoint session to disk (survives restarts)
-- get_scan_recommendations — Memory-based tool recommendations for a target
-- list_past_scans — List completed archived scan sessions
-- get_past_scan — Retrieve full details of a past scan
-- search_scan_memory — Search episodic memory by target/tool/type
-- get_learned_patterns — Get semantic patterns from past scans
-- consolidate_scan_memory — Extract patterns from episodic memory
-- add_scan_learning — Record manual observation/learning
-
-## Session Management
-
-Sessions persist findings across multiple tool calls (2-hour TTL).
-Sessions are automatically checkpointed to disk and survive server restarts.
-Call complete_scan_session when done to archive and save to episodic memory.
-Call get_scan_recommendations BEFORE starting a new scan to leverage past experience.
-
-- create_scan_session(target) → session_id
-- get_scan_session(session_id) → full state with all findings
-- list_scan_sessions() → all active sessions
-- correlate_session_findings(session_id) → deduplicated summary
-
-## API Key Requirements
-
-Some tools require API keys set as environment variables:
-- SHODAN_API_KEY — for shodan_host_lookup, shodan_search_query, shodan_exploit_search
-- CENSYS_API_ID + CENSYS_API_SECRET — for censys_host_lookup, censys_search_hosts, censys_certificate_search
-- HIBP_API_KEY — for hibp_breach_check, hibp_paste_check, hibp_domain_search
-
-If a key is missing, the tool will return a clear error message telling the user which env var to set.
-
-## Decision Guide
-
-| User Request | Best Approach |
-|-------------|---------------|
-| "Scan this target" | iterative_smart_scan |
-| "Full pentest of example.com" | iterative_smart_scan with objective="comprehensive" |
-| "Quick check on this IP" | iterative_smart_scan with objective="quick" |
-| "Scan ports on 10.0.0.1" | nmap_scan (direct) |
-| "Find subdomains" | subfinder_scan or amass_scan (direct) |
-| "Check this email for breaches" | hibp_breach_check (direct) |
-| "What's exposed on this IP?" | shodan_host_lookup (direct) |
-| "Plan an attack path" | create_attack_chain_ai |
-| "What tools should I use?" | select_optimal_tools_ai or analyze_target_intelligence |
-"""
+    @mcp.resource("hexstrike://ttp/{name}")
+    def hexstrike_ttp_by_name(name: str) -> str:
+        """Load a specific HexStrike TTP deep-guide by name."""
+        return load_ttp(name)
 
     @mcp.resource("hexstrike://tools/categories")
     def hexstrike_tool_categories() -> str:
         """Quick reference of all HexStrike tool categories and their MCP function names."""
-        return """# HexStrike Tool Categories
-
-## Network (16): nmap_scan, httpx_probe, masscan_scan, dnsenum_scan, fierce_scan, dnsx_scan, rustscan_scan, autorecon_scan, nbtscan_scan, arp_scan, responder_scan, netexec_scan, enum4linux_scan, smbmap_scan, rpcclient_scan, enum4linux_ng_scan
-
-## Web (22): nuclei_scan, gobuster_scan, sqlmap_scan, nikto_scan, feroxbuster_scan, ffuf_fuzz, katana_crawl, wpscan_scan, arjun_scan, dalfox_xss_scan, whatweb_scan, dirsearch_scan, paramspider_scan, x8_scan, dirb_scan, dotdotpwn_scan, wfuzz_scan, xsser_scan, wafw00f_scan, commix_scan, nosqlmap_scan, tplmap_scan
-
-## Recon (18): amass_scan, subfinder_scan, waybackurls_scan, gau_scan, hakrawler_scan, theharvester_scan, sherlock_investigate, spiderfoot_scan, trufflehog_scan, aquatone_scan, subjack_scan, recon_ng_scan, shodan_host_lookup, shodan_search_query, shodan_exploit_search, censys_host_lookup, censys_search_hosts, censys_certificate_search
-
-## Breach Intel (4): hibp_breach_check, hibp_paste_check, hibp_breach_detail, hibp_domain_search
-
-## Exploit (11): metasploit_scan, hydra_attack, john_crack, hashcat_crack, medusa_attack, msfvenom_generate, patator_attack, evil_winrm_connect, hash_identifier_scan, hashid_scan, hashpump_scan
-
-## Forensics (10): volatility_analyze, volatility3_analyze, steghide_scan, exiftool_scan, foremost_scan, zsteg_scan, stegsolve_scan, scalpel_scan, bulk_extractor_scan, outguess_scan
-
-## Binary (19): ghidra_analyze, checksec_check, binwalk_scan, gdb_debug, gdb_peda_debug, gdb_gef_debug, radare2_analyze, ropgadget_scan, ropper_scan, one_gadget_scan, strings_scan, objdump_scan, xxd_scan, pwntools_exploit, angr_analyze, libc_database_scan, pwninit_setup, upx_scan, hexdump_scan
-
-## Cloud (12): prowler_scan, scout_suite_scan, trivy_scan, kube_hunter_scan, kube_bench_scan, docker_bench_scan, falco_scan, checkov_scan, terrascan_scan, clair_scan, pacu_scan, cloudmapper_scan
-
-## Intelligence (10): analyze_target_intelligence, select_optimal_tools_ai, optimize_tool_parameters_ai, create_attack_chain_ai, intelligent_smart_scan, detect_technologies_ai, ai_reconnaissance_workflow, ai_vulnerability_assessment, iterative_smart_scan, create_scan_session, get_scan_session, list_scan_sessions, analyze_tool_results, correlate_session_findings
-"""
+        return load_playbook("tool-categories")
 
     # ============================================================================
     # MCP PROMPTS — Scenario workflow starters the LLM can invoke
@@ -496,60 +390,79 @@ If a key is missing, the tool will return a clear error message telling the user
         """Start a comprehensive penetration test against a target using HexStrike's adaptive scanning."""
         return f"""Perform a comprehensive penetration test against {target} using HexStrike.
 
-Follow this workflow:
-1. Call iterative_smart_scan(target="{target}", objective="comprehensive") to start
-2. Review the findings and session_id from the response
-3. Call iterative_smart_scan(target="{target}", session_id="<session_id>") for follow-up iterations
-4. Repeat until has_more_iterations is false
-5. Call correlate_session_findings(session_id="<session_id>") for the final deduplicated report
-6. Present findings organized by severity (critical → high → medium → low → info)
-7. For each critical/high finding, explain the risk and suggest remediation
+PREPARATION:
+1. Read hexstrike://playbook/pentest-lifecycle for the full methodology
+2. Call get_scan_recommendations(target="{target}") to check past experience
+3. Call create_scan_session(target="{target}") to track findings
 
-Start now with the first iteration."""
+EXECUTION:
+4. Call iterative_smart_scan(target="{target}", objective="comprehensive") to start
+5. Call iterative_smart_scan(target="{target}", session_id="<session_id>") for follow-ups
+6. Repeat until has_more_iterations is false
+7. When exploitation opportunities found, read the relevant TTP guide:
+   - hexstrike://ttp/web-injection for SQLi, XSS, SSTI, command injection
+   - hexstrike://ttp/auth-attacks for JWT, IDOR, session attacks
+   - hexstrike://ttp/network-exploit for SMB, AD, lateral movement
+   - hexstrike://ttp/waf-evasion if a WAF is detected
+8. Use generate_exploit_from_cve and correlate_threat_intelligence for real exploit code on discovered CVEs
+
+REPORTING:
+9. correlate_session_findings(session_id) for deduplicated summary
+10. complete_scan_session(session_id) to save to memory
+
+Start now with preparation step 2."""
 
     @mcp.prompt()
     def web_app_assessment(target: str) -> str:
         """Start a web application security assessment."""
         return f"""Perform a web application security assessment of {target} using HexStrike.
 
-Follow this workflow:
-1. Call analyze_target_intelligence(target="{target}") to profile the target
-2. Based on the profile, run these in sequence:
-   a. nmap_scan(target="{target}", scan_type="-sV", ports="80,443,8080,8443") for service discovery
-   b. nuclei_scan(target="{target}") for known vulnerability templates
-   c. gobuster_scan or ffuf_fuzz for directory discovery
-   d. If WordPress detected: wpscan_scan
-   e. If forms found: sqlmap_scan for injection testing
-3. Use analyze_tool_results for each tool output to get structured findings
-4. Call correlate_session_findings for the final report
+PREPARATION:
+1. Read hexstrike://playbook/pentest-lifecycle (Phase 3: Enumeration)
+2. Call get_scan_recommendations(target="{target}") for past experience
+3. Call create_scan_session(target="{target}")
 
-Present a clear assessment with:
-- Executive summary
-- Critical and high findings with proof
-- Remediation recommendations
+EXECUTION:
+4. detect_technologies_ai(target="{target}") to fingerprint the stack
+5. wafw00f_scan(target="https://{target}") to check for WAF
+   → If WAF found, read hexstrike://ttp/waf-evasion for bypass techniques
+6. Run iterative_smart_scan(target="{target}", objective="comprehensive")
+7. For manual deep testing, read hexstrike://ttp/web-injection for:
+   - SQLi payloads and sqlmap tamper scripts matched to the detected WAF
+   - XSS payload progression (basic → WAF bypass → DOM-based)
+   - SSTI detection and exploitation per template engine
+8. Read hexstrike://ttp/auth-attacks for JWT/IDOR/session testing
+9. Use generate_exploit_from_cve for exploit code on any CVEs discovered
 
-Start with target analysis."""
+REPORTING:
+10. correlate_session_findings + complete_scan_session
+11. Present: executive summary, critical/high findings with proof, remediation
+
+Start with preparation step 2."""
 
     @mcp.prompt()
     def credential_intelligence(email_or_domain: str) -> str:
         """Check breach exposure for an email address or domain."""
         return f"""Investigate breach exposure for {email_or_domain} using HexStrike.
 
-Follow this workflow:
-1. If this looks like an email:
-   a. Call hibp_breach_check(email="{email_or_domain}") to check breach databases
-   b. Call hibp_paste_check(email="{email_or_domain}") to check paste sites
-2. If this looks like a domain:
-   a. Call hibp_domain_search(domain="{email_or_domain}") to find all breaches affecting the domain
-   b. Call shodan_host_lookup(target="{email_or_domain}") for infrastructure exposure
-   c. Call censys_host_lookup(target="{email_or_domain}") for certificate intelligence
-3. Summarize:
-   - Total breaches found
-   - Types of data exposed (passwords, emails, personal info)
-   - Timeline of breaches
-   - Risk assessment and recommendations
+Read hexstrike://ttp/recon-osint (Section 4: Breach Intelligence) for full technique guide.
 
-Note: Requires HIBP_API_KEY environment variable. If missing, inform the user.
+WORKFLOW:
+1. If this looks like an email:
+   a. hibp_breach_check(email="{email_or_domain}")
+   b. hibp_paste_check(email="{email_or_domain}")
+2. If this looks like a domain:
+   a. hibp_domain_search(domain="{email_or_domain}")
+   b. shodan_host_lookup(target="{email_or_domain}") for infrastructure exposure
+   c. censys_host_lookup(target="{email_or_domain}") for certificate intelligence
+   d. trufflehog_scan(target="https://github.com/<org>") if org has public repos
+3. Pivot from findings (see hexstrike://ttp/recon-osint for pivoting techniques):
+   - Breached passwords → credential stuffing vector
+   - Employee emails → password spraying with common patterns
+   - Email format → derive username list for further attacks
+4. Summarize: total breaches, data types exposed, timeline, risk assessment
+
+Note: Requires HIBP_API_KEY. If missing, inform the user.
 
 Start the investigation now."""
 
@@ -558,22 +471,25 @@ Start the investigation now."""
         """Discover and map a network target's attack surface."""
         return f"""Discover the attack surface of {target} using HexStrike.
 
-Follow this workflow:
-1. Call shodan_host_lookup(target="{target}") for passive intelligence (if SHODAN_API_KEY is set)
-2. Call nmap_scan(target="{target}", scan_type="-sV -sC", additional_args="--top-ports 1000") for active scanning
-3. Based on open ports found:
-   - Web ports (80,443,8080): Run nikto_scan and nuclei_scan
-   - SMB (445): Run enum4linux_scan
-   - SSH (22): Note for potential brute force
-   - Database ports (3306,5432,1433): Note for injection testing
-4. Call censys_host_lookup(target="{target}") for certificate and service data
-5. Use analyze_tool_results on each result, then correlate_session_findings
+Read hexstrike://ttp/recon-osint for the full recon methodology.
+Read hexstrike://ttp/network-exploit for service exploitation techniques.
 
-Present a network map with:
-- All open ports and services
-- Identified technologies and versions
-- Known vulnerabilities (CVEs)
-- Recommended next steps
+WORKFLOW:
+1. get_scan_recommendations(target="{target}") for past experience
+2. create_scan_session(target="{target}")
+3. Passive recon:
+   - shodan_host_lookup(target="{target}") — ports, banners, OS (needs SHODAN_API_KEY)
+   - censys_host_lookup(target="{target}") — certs, services (needs CENSYS keys)
+4. Active scanning:
+   - nmap_scan(target="{target}", scan_type="-sV -sC", additional_args="--top-ports 1000")
+5. Service-specific enumeration (read hexstrike://ttp/network-exploit):
+   - SMB (445): enum4linux_ng_advanced, smbmap_scan
+   - Kerberos (88): AD attacks — Kerberoasting, AS-REP roasting
+   - WinRM (5985): evil_winrm_connect if creds available
+   - SSH (22): hydra_brute_force if weak creds suspected
+   - Web (80/443): nuclei_scan, nikto_scan
+6. generate_exploit_from_cve for exploit code on discovered service versions
+7. correlate_session_findings + complete_scan_session
 
 Start with passive reconnaissance."""
 
@@ -582,30 +498,35 @@ Start with passive reconnaissance."""
         """Audit cloud infrastructure exposure for a target."""
         return f"""Audit cloud infrastructure exposure for {target} using HexStrike.
 
-Follow this workflow:
-1. Call shodan_search_query(query="hostname:{target}") to find all exposed cloud assets
-2. Call censys_search_hosts(query="services.tls.certificates.leaf.names: {target}") for cert transparency
-3. Call subfinder_scan(target="{target}") to enumerate subdomains (may reveal cloud endpoints)
-4. For any AWS/Azure/GCP assets found:
-   - Check for S3 bucket misconfigurations
-   - Check for exposed admin panels
-   - Check for default credentials on cloud services
-5. If AWS credentials are available: prowler_scan for CIS benchmark compliance
-6. Call correlate_session_findings for final report
+Read hexstrike://ttp/cloud-attacks for the full cloud exploitation guide.
 
-Present:
-- All discovered cloud assets and their exposure level
-- Misconfigured services
-- Certificate issues
-- Remediation priorities
+WORKFLOW:
+1. get_scan_recommendations(target="{target}")
+2. create_scan_session(target="{target}")
+3. External discovery:
+   - shodan_search_query(query="hostname:{target}") — exposed cloud assets
+   - censys_search_hosts(query="services.tls.certificates.leaf.names: {target}")
+   - subfinder_scan(target="{target}") — may reveal cloud endpoints
+4. Cloud-specific assessment:
+   - AWS: prowler_scan for CIS benchmarks, check for SSRF to 169.254.169.254
+   - Azure: scout_suite_scan(provider="azure")
+   - GCP: scout_suite_scan(provider="gcp")
+5. Container/K8s:
+   - trivy_scan for image vulnerabilities
+   - kube_hunter_scan + kube_bench_cis for cluster security
+6. IaC scanning:
+   - checkov_iac_scan, terrascan_iac_scan for misconfigurations
+7. Secret detection:
+   - trufflehog_scan for leaked cloud credentials in git repos
+8. correlate_session_findings + complete_scan_session
 
-Start with passive cloud asset discovery."""
+Start with external discovery."""
 
     # ============================================================================
     # CORE NETWORK SCANNING TOOLS
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def nmap_scan(target: str, scan_type: str = "-sV", ports: str = "", additional_args: str = "") -> Dict[str, Any]:
         """
         Execute an enhanced Nmap scan against a target with real-time logging.
@@ -647,7 +568,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def gobuster_scan(
         url: str, mode: str = "dir", wordlist: str = "/usr/share/wordlists/dirb/common.txt", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -692,7 +613,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def nuclei_scan(
         target: str, severity: str = "", tags: str = "", template: str = "", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -751,7 +672,7 @@ Start with passive cloud asset discovery."""
     # CLOUD SECURITY TOOLS
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def prowler_scan(
         provider: str = "aws",
         profile: str = "default",
@@ -793,7 +714,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Prowler assessment failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def trivy_scan(
         scan_type: str = "image",
         target: str = "",
@@ -836,7 +757,7 @@ Start with passive cloud asset discovery."""
     # ENHANCED CLOUD AND CONTAINER SECURITY TOOLS
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def scout_suite_assessment(
         provider: str = "aws",
         profile: str = "default",
@@ -875,7 +796,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Scout Suite assessment failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def cloudmapper_analysis(
         action: str = "collect", account: str = "", config: str = "config.json", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -900,7 +821,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ CloudMapper {action} failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def pacu_exploitation(
         session_name: str = "hexstrike_session",
         modules: str = "",
@@ -936,7 +857,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Pacu exploitation failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def kube_hunter_scan(
         target: str = "",
         remote: str = "",
@@ -978,7 +899,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ kube-hunter scan failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def kube_bench_cis(
         targets: str = "",
         version: str = "",
@@ -1014,7 +935,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ kube-bench benchmark failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def docker_bench_security_scan(
         checks: str = "",
         exclude: str = "",
@@ -1042,7 +963,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Docker Bench Security failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def clair_vulnerability_scan(
         image: str, config: str = "/etc/clair/config.yaml", output_format: str = "json", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -1067,7 +988,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Clair scan failed for {image}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def falco_runtime_monitoring(
         config_file: str = "/etc/falco/falco.yaml",
         rules_file: str = "",
@@ -1103,7 +1024,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Falco monitoring failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def checkov_iac_scan(
         directory: str = ".",
         framework: str = "",
@@ -1142,7 +1063,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Checkov scan failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def terrascan_iac_scan(
         scan_type: str = "all",
         iac_dir: str = ".",
@@ -1185,7 +1106,7 @@ Start with passive cloud asset discovery."""
     # FILE OPERATIONS & PAYLOAD GENERATION
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def create_file(filename: str, content: str, binary: bool = False) -> Dict[str, Any]:
         """
         Create a file with specified content on the HexStrike server.
@@ -1207,7 +1128,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Failed to create file: {filename}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def modify_file(filename: str, content: str, append: bool = False) -> Dict[str, Any]:
         """
         Modify an existing file on the HexStrike server.
@@ -1229,7 +1150,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Failed to modify file: {filename}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def delete_file(filename: str) -> Dict[str, Any]:
         """
         Delete a file or directory on the HexStrike server.
@@ -1249,7 +1170,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Failed to delete file: {filename}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def list_files(directory: str = ".") -> Dict[str, Any]:
         """
         List files in a directory on the HexStrike server.
@@ -1269,7 +1190,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Failed to list files in {directory}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def generate_payload(
         payload_type: str = "buffer", size: int = 1024, pattern: str = "A", filename: str = ""
     ) -> Dict[str, Any]:
@@ -1301,7 +1222,7 @@ Start with passive cloud asset discovery."""
     # PYTHON ENVIRONMENT MANAGEMENT
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def install_python_package(package: str, env_name: str = "default") -> Dict[str, Any]:
         """
         Install a Python package in a virtual environment on the HexStrike server.
@@ -1322,7 +1243,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Failed to install package {package}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def execute_python_script(script: str, env_name: str = "default", filename: str = "") -> Dict[str, Any]:
         """
         Execute a Python script in a virtual environment on the HexStrike server.
@@ -1351,7 +1272,7 @@ Start with passive cloud asset discovery."""
     # ADDITIONAL SECURITY TOOLS FROM ORIGINAL IMPLEMENTATION
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def dirb_scan(
         url: str, wordlist: str = "/usr/share/wordlists/dirb/common.txt", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -1375,7 +1296,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Dirb scan failed for {url}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def nikto_scan(target: str, additional_args: str = "") -> Dict[str, Any]:
         """
         Execute Nikto web vulnerability scanner with enhanced logging.
@@ -1396,7 +1317,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Nikto scan failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def sqlmap_scan(url: str, data: str = "", additional_args: str = "") -> Dict[str, Any]:
         """
         Execute SQLMap for SQL injection testing with enhanced logging.
@@ -1418,7 +1339,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ SQLMap scan failed for {url}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def metasploit_run(module: str, options: Dict[str, Any] = None) -> Dict[str, Any]:
         """
         Execute a Metasploit module with enhanced logging.
@@ -1442,7 +1363,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Metasploit module failed: {module}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def hydra_attack(
         target: str,
         service: str,
@@ -1484,7 +1405,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Hydra attack failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def john_crack(
         hash_file: str,
         wordlist: str = "/usr/share/wordlists/rockyou.txt",
@@ -1512,7 +1433,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ John the Ripper failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def wpscan_analyze(url: str, additional_args: str = "") -> Dict[str, Any]:
         """
         Execute WPScan for WordPress vulnerability scanning with enhanced logging.
@@ -1533,7 +1454,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ WPScan failed for {url}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def enum4linux_scan(target: str, additional_args: str = "-a") -> Dict[str, Any]:
         """
         Execute Enum4linux for SMB enumeration with enhanced logging.
@@ -1554,7 +1475,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Enum4linux failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def ffuf_scan(
         url: str,
         wordlist: str = "/usr/share/wordlists/dirb/common.txt",
@@ -1590,7 +1511,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ FFuf fuzzing failed for {url}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def netexec_scan(
         target: str,
         protocol: str = "smb",
@@ -1632,7 +1553,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ NetExec scan failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def amass_scan(domain: str, mode: str = "enum", additional_args: str = "") -> Dict[str, Any]:
         """
         Execute Amass for subdomain enumeration with enhanced logging.
@@ -1654,7 +1575,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Amass failed for {domain}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def hashcat_crack(
         hash_file: str,
         hash_type: str,
@@ -1693,7 +1614,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Hashcat attack failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def subfinder_scan(
         domain: str, silent: bool = True, all_sources: bool = False, additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -1718,7 +1639,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Subfinder failed for {domain}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def smbmap_scan(
         target: str, username: str = "", password: str = "", domain: str = "", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -1754,7 +1675,7 @@ Start with passive cloud asset discovery."""
     # ENHANCED NETWORK PENETRATION TESTING TOOLS
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def rustscan_fast_scan(
         target: str,
         ports: str = "",
@@ -1796,7 +1717,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Rustscan failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def masscan_high_speed(
         target: str,
         ports: str = "1-65535",
@@ -1841,7 +1762,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Masscan failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def nmap_advanced_scan(
         target: str,
         scan_type: str = "-sS",
@@ -1892,7 +1813,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Advanced Nmap failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def autorecon_comprehensive(
         target: str,
         output_dir: str = "/tmp/autorecon",
@@ -1934,7 +1855,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ AutoRecon failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def enum4linux_ng_advanced(
         target: str,
         username: str = "",
@@ -1982,7 +1903,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Enum4linux-ng failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def rpcclient_enumeration(
         target: str,
         username: str = "",
@@ -2021,7 +1942,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ rpcclient failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def nbtscan_netbios(
         target: str, verbose: bool = False, timeout: int = 2, additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -2046,7 +1967,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ nbtscan failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def arp_scan_discovery(
         target: str = "",
         interface: str = "",
@@ -2085,7 +2006,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ arp-scan failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def responder_credential_harvest(
         interface: str = "eth0",
         analyze: bool = False,
@@ -2127,7 +2048,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Responder failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def volatility_analyze(
         memory_file: str, plugin: str, profile: str = "", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -2152,7 +2073,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Volatility analysis failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def msfvenom_generate(
         payload: str,
         format_type: str = "",
@@ -2195,7 +2116,7 @@ Start with passive cloud asset discovery."""
     # BINARY ANALYSIS & REVERSE ENGINEERING TOOLS
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def gdb_analyze(
         binary: str, commands: str = "", script_file: str = "", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -2220,7 +2141,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ GDB analysis failed for {binary}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def radare2_analyze(binary: str, commands: str = "", additional_args: str = "") -> Dict[str, Any]:
         """
         Execute Radare2 for binary analysis and reverse engineering with enhanced logging.
@@ -2242,7 +2163,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Radare2 analysis failed for {binary}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def binwalk_analyze(file_path: str, extract: bool = False, additional_args: str = "") -> Dict[str, Any]:
         """
         Execute Binwalk for firmware and file analysis with enhanced logging.
@@ -2264,7 +2185,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Binwalk analysis failed for {file_path}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def ropgadget_search(binary: str, gadget_type: str = "", additional_args: str = "") -> Dict[str, Any]:
         """
         Search for ROP gadgets in a binary using ROPgadget with enhanced logging.
@@ -2286,7 +2207,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ ROPgadget search failed for {binary}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def checksec_analyze(binary: str) -> Dict[str, Any]:
         """
         Check security features of a binary with enhanced logging.
@@ -2306,7 +2227,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Checksec analysis failed for {binary}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def xxd_hexdump(file_path: str, offset: str = "0", length: str = "", additional_args: str = "") -> Dict[str, Any]:
         """
         Create a hex dump of a file using xxd with enhanced logging.
@@ -2329,7 +2250,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ XXD hex dump failed for {file_path}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def strings_extract(file_path: str, min_len: int = 4, additional_args: str = "") -> Dict[str, Any]:
         """
         Extract strings from a binary file with enhanced logging.
@@ -2351,7 +2272,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Strings extraction failed for {file_path}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def objdump_analyze(binary: str, disassemble: bool = True, additional_args: str = "") -> Dict[str, Any]:
         """
         Analyze a binary using objdump with enhanced logging.
@@ -2377,7 +2298,7 @@ Start with passive cloud asset discovery."""
     # ENHANCED BINARY ANALYSIS AND EXPLOITATION FRAMEWORK
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def ghidra_analysis(
         binary: str,
         project_name: str = "hexstrike_analysis",
@@ -2416,7 +2337,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Ghidra analysis failed for {binary}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def pwntools_exploit(
         script_content: str = "",
         target_binary: str = "",
@@ -2455,7 +2376,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Pwntools exploit failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def one_gadget_search(libc_path: str, level: int = 1, additional_args: str = "") -> Dict[str, Any]:
         """
         Execute one_gadget to find one-shot RCE gadgets in libc.
@@ -2477,7 +2398,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ one_gadget analysis failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def libc_database_lookup(
         action: str = "find", symbols: str = "", libc_id: str = "", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -2502,7 +2423,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ libc-database {action} failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def gdb_peda_debug(
         binary: str = "", commands: str = "", attach_pid: int = 0, core_file: str = "", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -2534,7 +2455,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ GDB-PEDA analysis failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def angr_symbolic_execution(
         binary: str,
         script_content: str = "",
@@ -2573,7 +2494,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ angr analysis failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def ropper_gadget_search(
         binary: str,
         gadget_type: str = "rop",
@@ -2612,7 +2533,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ ropper analysis failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def pwninit_setup(
         binary: str, libc: str = "", ld: str = "", template_type: str = "python", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -2644,7 +2565,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ pwninit setup failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def feroxbuster_scan(
         url: str, wordlist: str = "/usr/share/wordlists/dirb/common.txt", threads: int = 10, additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -2669,7 +2590,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Feroxbuster scan failed for {url}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def dotdotpwn_scan(target: str, module: str = "http", additional_args: str = "") -> Dict[str, Any]:
         """
         Execute DotDotPwn for directory traversal testing with enhanced logging.
@@ -2691,7 +2612,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ DotDotPwn scan failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def xsser_scan(url: str, params: str = "", additional_args: str = "") -> Dict[str, Any]:
         """
         Execute XSSer for XSS vulnerability testing with enhanced logging.
@@ -2713,7 +2634,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ XSSer scan failed for {url}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def wfuzz_scan(
         url: str, wordlist: str = "/usr/share/wordlists/dirb/common.txt", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -2741,7 +2662,7 @@ Start with passive cloud asset discovery."""
     # ENHANCED WEB APPLICATION SECURITY TOOLS
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def dirsearch_scan(
         url: str,
         extensions: str = "php,html,js,txt,xml,json",
@@ -2780,7 +2701,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Dirsearch scan failed for {url}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def katana_crawl(
         url: str,
         depth: int = 3,
@@ -2819,7 +2740,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Katana crawl failed for {url}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def gau_discovery(
         domain: str,
         providers: str = "wayback,commoncrawl,otx,urlscan",
@@ -2855,7 +2776,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Gau URL discovery failed for {domain}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def waybackurls_discovery(
         domain: str, get_versions: bool = False, no_subs: bool = False, additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -2880,7 +2801,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Waybackurls discovery failed for {domain}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def arjun_parameter_discovery(
         url: str,
         method: str = "GET",
@@ -2922,7 +2843,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Arjun parameter discovery failed for {url}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def paramspider_mining(
         domain: str,
         level: int = 2,
@@ -2958,7 +2879,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ ParamSpider mining failed for {domain}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def x8_parameter_discovery(
         url: str,
         wordlist: str = "/usr/share/wordlists/x8/params.txt",
@@ -2997,7 +2918,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ x8 parameter discovery failed for {url}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def jaeles_vulnerability_scan(
         url: str,
         signatures: str = "",
@@ -3036,7 +2957,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Jaeles vulnerability scan failed for {url}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def dalfox_xss_scan(
         url: str,
         pipe_mode: bool = False,
@@ -3078,7 +2999,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Dalfox XSS scan failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def httpx_probe(
         target: str,
         probe: bool = True,
@@ -3126,7 +3047,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ httpx probe failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def anew_data_processing(input_data: str, output_file: str = "", additional_args: str = "") -> Dict[str, Any]:
         """
         Execute anew for appending new lines to files (useful for data processing).
@@ -3148,7 +3069,7 @@ Start with passive cloud asset discovery."""
             logger.error("❌ anew data processing failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def qsreplace_parameter_replacement(
         urls: str, replacement: str = "FUZZ", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -3172,7 +3093,7 @@ Start with passive cloud asset discovery."""
             logger.error("❌ qsreplace parameter replacement failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def uro_url_filtering(
         urls: str, whitelist: str = "", blacklist: str = "", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -3201,7 +3122,7 @@ Start with passive cloud asset discovery."""
     # AI-POWERED PAYLOAD GENERATION
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def ai_generate_payload(
         attack_type: str, complexity: str = "basic", technology: str = "", url: str = ""
     ) -> Dict[str, Any]:
@@ -3239,7 +3160,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def ai_test_payload(payload: str, target_url: str, method: str = "GET") -> Dict[str, Any]:
         """
         Test generated payload against target with AI analysis.
@@ -3270,7 +3191,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def ai_generate_attack_suite(target_url: str, attack_types: str = "xss,sqli,lfi") -> Dict[str, Any]:
         """
         Generate comprehensive attack suite with multiple payload types.
@@ -3324,7 +3245,7 @@ Start with passive cloud asset discovery."""
     # ADVANCED API TESTING TOOLS
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def api_fuzzer(
         base_url: str,
         endpoints: str = "",
@@ -3365,7 +3286,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def graphql_scanner(
         endpoint: str, introspection: bool = True, query_depth: int = 10, test_mutations: bool = True
     ) -> Dict[str, Any]:
@@ -3409,7 +3330,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def jwt_analyzer(jwt_token: str, target_url: str = "") -> Dict[str, Any]:
         """
         Advanced JWT token analysis and vulnerability testing.
@@ -3445,7 +3366,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def api_schema_analyzer(schema_url: str, schema_type: str = "openapi") -> Dict[str, Any]:
         """
         Analyze API schemas and identify potential security issues.
@@ -3487,7 +3408,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def postman_collection_run(
         collection: str,
         environment: str = "",
@@ -3535,7 +3456,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Newman/Postman collection run failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def comprehensive_api_audit(
         base_url: str, schema_url: str = "", jwt_token: str = "", graphql_endpoint: str = ""
     ) -> Dict[str, Any]:
@@ -3633,7 +3554,7 @@ Start with passive cloud asset discovery."""
     # ADVANCED CTF TOOLS
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def volatility3_analyze(
         memory_file: str, plugin: str, output_file: str = "", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -3663,7 +3584,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Volatility3 analysis failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def foremost_carving(
         input_file: str, output_dir: str = "/tmp/foremost_output", file_types: str = "", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -3693,7 +3614,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Foremost carving failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def steghide_analysis(
         action: str,
         cover_file: str,
@@ -3732,7 +3653,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Steghide {action} failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def exiftool_extract(
         file_path: str, output_format: str = "", tags: str = "", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -3762,7 +3683,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ ExifTool analysis failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def hashpump_attack(
         signature: str, data: str, key_length: str, append_data: str, additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -3799,7 +3720,7 @@ Start with passive cloud asset discovery."""
     # BUG BOUNTY RECONNAISSANCE TOOLS
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def hakrawler_crawl(
         url: str,
         depth: int = 2,
@@ -3848,7 +3769,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Hakrawler crawling failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def paramspider_discovery(
         domain: str, exclude: str = "", output_file: str = "", level: int = 2, additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -3884,7 +3805,7 @@ Start with passive cloud asset discovery."""
     # ADVANCED WEB SECURITY TOOLS CONTINUED
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def burpsuite_scan(
         project_file: str = "",
         config_file: str = "",
@@ -3929,7 +3850,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Burp Suite scan failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def zap_scan(
         target: str = "",
         scan_type: str = "baseline",
@@ -3977,7 +3898,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ ZAP scan failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def arjun_scan(
         url: str,
         method: str = "GET",
@@ -4019,7 +3940,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Arjun failed for {url}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def wafw00f_scan(target: str, additional_args: str = "") -> Dict[str, Any]:
         """
         Execute wafw00f to identify and fingerprint WAF products with enhanced logging.
@@ -4040,7 +3961,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Wafw00f failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def fierce_scan(domain: str, dns_server: str = "", additional_args: str = "") -> Dict[str, Any]:
         """
         Execute fierce for DNS reconnaissance with enhanced logging.
@@ -4062,7 +3983,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Fierce failed for {domain}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def dnsenum_scan(
         domain: str, dns_server: str = "", wordlist: str = "", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -4087,7 +4008,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ DNSenum failed for {domain}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def autorecon_scan(
         target: str = "",
         target_file: str = "",
@@ -4229,7 +4150,7 @@ Start with passive cloud asset discovery."""
     # SYSTEM MONITORING & TELEMETRY
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def server_health() -> Dict[str, Any]:
         """
         Check the health status of the HexStrike AI server.
@@ -4245,7 +4166,7 @@ Start with passive cloud asset discovery."""
             logger.warning(f"⚠️  Server health check returned: {result.get('status', 'unknown')}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def get_cache_stats() -> Dict[str, Any]:
         """
         Get cache statistics from the HexStrike AI server.
@@ -4259,7 +4180,7 @@ Start with passive cloud asset discovery."""
             logger.info(f"📊 Cache hit rate: {result.get('hit_rate', 'unknown')}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def clear_cache() -> Dict[str, Any]:
         """
         Clear the cache on the HexStrike AI server.
@@ -4275,7 +4196,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Failed to clear cache")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def get_telemetry() -> Dict[str, Any]:
         """
         Get system telemetry from the HexStrike AI server.
@@ -4293,7 +4214,7 @@ Start with passive cloud asset discovery."""
     # PROCESS MANAGEMENT TOOLS
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def list_active_processes() -> Dict[str, Any]:
         """
         List all active processes on the HexStrike AI server.
@@ -4309,7 +4230,7 @@ Start with passive cloud asset discovery."""
             logger.error("❌ Failed to list processes")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def get_process_status(pid: int) -> Dict[str, Any]:
         """
         Get the status of a specific process.
@@ -4328,7 +4249,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Process {pid} not found or error occurred")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def terminate_process(pid: int) -> Dict[str, Any]:
         """
         Terminate a specific running process.
@@ -4347,7 +4268,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Failed to terminate process {pid}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def pause_process(pid: int) -> Dict[str, Any]:
         """
         Pause a specific running process.
@@ -4366,7 +4287,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Failed to pause process {pid}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def resume_process(pid: int) -> Dict[str, Any]:
         """
         Resume a paused process.
@@ -4385,7 +4306,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Failed to resume process {pid}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def get_process_dashboard() -> Dict[str, Any]:
         """
         Get enhanced process dashboard with visual status indicators.
@@ -4408,7 +4329,7 @@ Start with passive cloud asset discovery."""
             logger.error("❌ Failed to get process dashboard")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def execute_command(command: str, use_cache: bool = True) -> Dict[str, Any]:
         """
         Execute an arbitrary command on the HexStrike AI server with enhanced logging.
@@ -4447,7 +4368,7 @@ Start with passive cloud asset discovery."""
     # ADVANCED VULNERABILITY INTELLIGENCE MCP TOOLS
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def monitor_cve_feeds(
         hours: int = 24, severity_filter: str = "HIGH,CRITICAL", keywords: str = ""
     ) -> Dict[str, Any]:
@@ -4476,7 +4397,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def generate_exploit_from_cve(
         cve_id: str,
         target_os: str = "",
@@ -4521,7 +4442,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def discover_attack_chains(
         target_software: str, attack_depth: int = 3, include_zero_days: bool = False
     ) -> Dict[str, Any]:
@@ -4559,7 +4480,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def research_zero_day_opportunities(
         target_software: str, analysis_depth: str = "standard", source_code_url: str = ""
     ) -> Dict[str, Any]:
@@ -4598,7 +4519,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def correlate_threat_intelligence(indicators: str, timeframe: str = "30d", sources: str = "all") -> Dict[str, Any]:
         """
         Correlate threat intelligence across multiple sources with advanced analysis.
@@ -4640,7 +4561,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def advanced_payload_generation(
         attack_type: str, target_context: str = "", evasion_level: str = "standard", custom_constraints: str = ""
     ) -> Dict[str, Any]:
@@ -4699,7 +4620,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def vulnerability_intelligence_dashboard() -> Dict[str, Any]:
         """
         Get a comprehensive vulnerability intelligence dashboard with latest threats and trends.
@@ -4757,7 +4678,7 @@ Start with passive cloud asset discovery."""
         logger.info("✅ Vulnerability intelligence dashboard generated")
         return {"success": True, "dashboard": dashboard}
 
-    @mcp.tool()
+    @register_tool()
     def threat_hunting_assistant(
         target_environment: str, threat_indicators: str = "", hunt_focus: str = "general"
     ) -> Dict[str, Any]:
@@ -4869,7 +4790,7 @@ Start with passive cloud asset discovery."""
     # ENHANCED VISUAL OUTPUT TOOLS
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def get_live_dashboard() -> Dict[str, Any]:
         """
         Get a beautiful live dashboard showing all active processes with enhanced visual formatting.
@@ -4885,7 +4806,7 @@ Start with passive cloud asset discovery."""
             logger.error("❌ Failed to retrieve live dashboard")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def create_vulnerability_report(
         vulnerabilities: str, target: str = "", scan_type: str = "comprehensive"
     ) -> Dict[str, Any]:
@@ -4941,7 +4862,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Failed to create vulnerability report: {str(e)}")
             return {"success": False, "error": str(e)}
 
-    @mcp.tool()
+    @register_tool()
     def format_tool_output_visual(tool_name: str, output: str, success: bool = True) -> Dict[str, Any]:
         """
         Format tool output with beautiful visual styling, syntax highlighting, and structure.
@@ -4966,7 +4887,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def create_scan_summary(
         target: str, tools_used: str, vulnerabilities_found: int = 0, execution_time: float = 0.0, findings: str = ""
     ) -> Dict[str, Any]:
@@ -5003,7 +4924,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def display_system_metrics() -> Dict[str, Any]:
         """
         Display current system metrics and performance indicators with visual formatting.
@@ -5052,7 +4973,7 @@ Start with passive cloud asset discovery."""
     # INTELLIGENT DECISION ENGINE TOOLS
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def analyze_target_intelligence(target: str) -> Dict[str, Any]:
         """
         Analyze target using AI-powered intelligence to create comprehensive profile.
@@ -5078,7 +4999,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def select_optimal_tools_ai(target: str, objective: str = "comprehensive") -> Dict[str, Any]:
         """
         Use AI to select optimal security tools based on target analysis and testing objective.
@@ -5105,7 +5026,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def optimize_tool_parameters_ai(target: str, tool: str, context: str = "{}") -> Dict[str, Any]:
         """
         Use AI to optimize tool parameters based on target profile and context.
@@ -5138,7 +5059,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def create_attack_chain_ai(target: str, objective: str = "comprehensive") -> Dict[str, Any]:
         """
         Create an intelligent attack chain using AI-driven tool sequencing and optimization.
@@ -5169,7 +5090,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def intelligent_smart_scan(target: str, objective: str = "comprehensive", max_tools: int = 5) -> Dict[str, Any]:
         """
         Execute an intelligent scan using AI-driven tool selection and parameter optimization.
@@ -5228,7 +5149,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def detect_technologies_ai(target: str) -> Dict[str, Any]:
         """
         Use AI to detect technologies and provide technology-specific testing recommendations.
@@ -5260,7 +5181,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def ai_reconnaissance_workflow(target: str, depth: str = "standard") -> Dict[str, Any]:
         """
         Execute AI-driven reconnaissance workflow with intelligent tool chaining.
@@ -5311,7 +5232,7 @@ Start with passive cloud asset discovery."""
             "timestamp": datetime.now().isoformat(),
         }
 
-    @mcp.tool()
+    @register_tool()
     def ai_vulnerability_assessment(target: str, focus_areas: str = "all") -> Dict[str, Any]:
         """
         Perform AI-driven vulnerability assessment with intelligent prioritization.
@@ -5369,7 +5290,7 @@ Start with passive cloud asset discovery."""
     # BUG BOUNTY HUNTING SPECIALIZED WORKFLOWS
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def bugbounty_reconnaissance_workflow(
         domain: str, scope: str = "", out_of_scope: str = "", program_type: str = "web"
     ) -> Dict[str, Any]:
@@ -5405,7 +5326,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def bugbounty_vulnerability_hunting(
         domain: str, priority_vulns: str = "rce,sqli,xss,idor,ssrf", bounty_range: str = "unknown"
     ) -> Dict[str, Any]:
@@ -5439,7 +5360,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def bugbounty_business_logic_testing(domain: str, program_type: str = "web") -> Dict[str, Any]:
         """
         Create business logic testing workflow for advanced bug bounty hunting.
@@ -5465,7 +5386,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def bugbounty_osint_gathering(domain: str) -> Dict[str, Any]:
         """
         Create OSINT (Open Source Intelligence) gathering workflow for bug bounty reconnaissance.
@@ -5490,7 +5411,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def bugbounty_file_upload_testing(target_url: str) -> Dict[str, Any]:
         """
         Create file upload vulnerability testing workflow with bypass techniques.
@@ -5515,7 +5436,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def bugbounty_comprehensive_assessment(
         domain: str,
         scope: str = "",
@@ -5558,7 +5479,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def bugbounty_authentication_bypass_testing(target_url: str, auth_type: str = "form") -> Dict[str, Any]:
         """
         Create authentication bypass testing workflow for bug bounty hunting.
@@ -5619,7 +5540,7 @@ Start with passive cloud asset discovery."""
     # ENHANCED HTTP TESTING FRAMEWORK & BROWSER AGENT (BURP SUITE ALTERNATIVE)
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def http_framework_test(
         url: str, method: str = "GET", data: dict = {}, headers: dict = {}, cookies: dict = {}, action: str = "request"
     ) -> Dict[str, Any]:
@@ -5665,7 +5586,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def browser_agent_inspect(
         url: str,
         headless: bool = True,
@@ -5725,26 +5646,26 @@ Start with passive cloud asset discovery."""
         return result
 
     # ---------------- Additional HTTP Framework Tools (sync with server) ----------------
-    @mcp.tool()
+    @register_tool()
     def http_set_rules(rules: list) -> Dict[str, Any]:
         """Set match/replace rules used to rewrite parts of URL/query/headers/body before sending.
         Rule format: {'where':'url|query|headers|body','pattern':'regex','replacement':'string'}"""
         payload = {"action": "set_rules", "rules": rules}
         return hexstrike_client.safe_post("api/tools/http-framework", payload)
 
-    @mcp.tool()
+    @register_tool()
     def http_set_scope(host: str, include_subdomains: bool = True) -> Dict[str, Any]:
         """Define in-scope host (and optionally subdomains) so out-of-scope requests are skipped."""
         payload = {"action": "set_scope", "host": host, "include_subdomains": include_subdomains}
         return hexstrike_client.safe_post("api/tools/http-framework", payload)
 
-    @mcp.tool()
+    @register_tool()
     def http_repeater(request_spec: dict) -> Dict[str, Any]:
         """Send a crafted request (Burp Repeater equivalent). request_spec keys: url, method, headers, cookies, data."""
         payload = {"action": "repeater", "request": request_spec}
         return hexstrike_client.safe_post("api/tools/http-framework", payload)
 
-    @mcp.tool()
+    @register_tool()
     def http_intruder(
         url: str,
         method: str = "GET",
@@ -5768,7 +5689,7 @@ Start with passive cloud asset discovery."""
         }
         return hexstrike_client.safe_post("api/tools/http-framework", payload)
 
-    @mcp.tool()
+    @register_tool()
     def burpsuite_alternative_scan(
         target: str, scan_type: str = "comprehensive", headless: bool = True, max_depth: int = 3, max_pages: int = 50
     ) -> Dict[str, Any]:
@@ -5835,7 +5756,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def error_handling_statistics() -> Dict[str, Any]:
         """
         Get intelligent error handling system statistics and recent error patterns.
@@ -5866,7 +5787,7 @@ Start with passive cloud asset discovery."""
 
         return result
 
-    @mcp.tool()
+    @register_tool()
     def test_error_recovery(tool_name: str, error_type: str = "timeout", target: str = "example.com") -> Dict[str, Any]:
         """
         Test the intelligent error recovery system with simulated failures.
@@ -5908,7 +5829,7 @@ Start with passive cloud asset discovery."""
     # OSINT & RECONNAISSANCE TOOLS (NEW)
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def theharvester_scan(
         target: str, source: str = "all", limit: int = 500, dns_brute: bool = False, additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -5940,7 +5861,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ TheHarvester failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def sherlock_investigate(
         username: str, timeout: int = 60, print_found: bool = True, csv_output: bool = False, additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -5972,7 +5893,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Sherlock failed for {username}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def spiderfoot_scan(
         target: str, modules: str = "", output_format: str = "json", max_threads: int = 10, additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -6004,7 +5925,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ SpiderFoot failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def trufflehog_scan(
         target: str,
         scan_type: str = "git",
@@ -6040,7 +5961,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ TruffleHog failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def aquatone_scan(
         targets: str,
         out_dir: str = "/tmp/aquatone",
@@ -6076,7 +5997,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Aquatone failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def subjack_scan(
         target: str = "",
         input_file: str = "",
@@ -6115,7 +6036,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Subjack failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def recon_ng_scan(
         target: str = "", workspace: str = "default", module: str = "", script: str = "", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -6151,7 +6072,7 @@ Start with passive cloud asset discovery."""
     # API-BASED OSINT INTELLIGENCE TOOLS (Require API Keys)
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def shodan_host_lookup(target: str, action: str = "host", minify: bool = True) -> Dict[str, Any]:
         """
         Query Shodan for internet-connected device intelligence. Requires SHODAN_API_KEY env var.
@@ -6174,7 +6095,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Shodan {action} failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def shodan_search_query(query: str, page: int = 1, facets: str = "") -> Dict[str, Any]:
         """
         Search Shodan's database of internet-connected devices. Requires SHODAN_API_KEY env var.
@@ -6196,7 +6117,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Shodan search failed for: {query}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def shodan_exploit_search(query: str, page: int = 1) -> Dict[str, Any]:
         """
         Search Shodan's exploit database for known vulnerabilities. Requires SHODAN_API_KEY env var.
@@ -6217,7 +6138,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Shodan exploit search failed for: {query}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def censys_host_lookup(target: str, action: str = "host") -> Dict[str, Any]:
         """
         Query Censys for host and certificate intelligence. Requires CENSYS_API_ID and CENSYS_API_SECRET env vars.
@@ -6239,7 +6160,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Censys {action} failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def censys_search_hosts(query: str, per_page: int = 25, virtual_hosts: str = "INCLUDE") -> Dict[str, Any]:
         """
         Search Censys host database for exposed services and infrastructure. Requires CENSYS_API_ID and CENSYS_API_SECRET.
@@ -6261,7 +6182,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Censys host search failed for: {query}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def censys_certificate_search(query: str, per_page: int = 25) -> Dict[str, Any]:
         """
         Search Censys certificate transparency logs. Requires CENSYS_API_ID and CENSYS_API_SECRET env vars.
@@ -6282,7 +6203,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Censys certificate search failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def hibp_breach_check(email: str, truncate: bool = False, include_unverified: bool = True) -> Dict[str, Any]:
         """
         Check if an email has been compromised in known data breaches. Requires HIBP_API_KEY env var.
@@ -6313,7 +6234,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ HIBP breach check failed for {email}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def hibp_paste_check(email: str) -> Dict[str, Any]:
         """
         Check if an email appears in paste sites (Pastebin, etc.). Requires HIBP_API_KEY env var.
@@ -6333,7 +6254,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ HIBP paste check failed for {email}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def hibp_breach_detail(breach_name: str) -> Dict[str, Any]:
         """
         Get detailed information about a specific data breach. Requires HIBP_API_KEY env var.
@@ -6353,7 +6274,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ HIBP breach detail lookup failed for {breach_name}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def hibp_domain_search(domain: str) -> Dict[str, Any]:
         """
         Search for all breaches that affected a specific domain. Requires HIBP_API_KEY env var.
@@ -6377,7 +6298,7 @@ Start with passive cloud asset discovery."""
     # SCAN INTELLIGENCE — Sessions, Iterative Scanning, Analysis, Correlation
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def create_scan_session(target: str) -> Dict[str, Any]:
         """
         Create a persistent scan session for a target. Sessions accumulate findings
@@ -6399,7 +6320,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Failed to create scan session for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def get_scan_session(session_id: str) -> Dict[str, Any]:
         """
         Retrieve full state of a scan session including all accumulated findings.
@@ -6422,7 +6343,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Failed to retrieve session {session_id}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def list_scan_sessions() -> Dict[str, Any]:
         """
         List all active scan sessions.
@@ -6436,7 +6357,7 @@ Start with passive cloud asset discovery."""
             logger.info(f"✅ Found {result.get('count', 0)} active session(s)")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def iterative_smart_scan(
         target: str,
         session_id: str = "",
@@ -6489,7 +6410,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Iterative scan failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def analyze_tool_results(tool: str, target: str, result: Dict[str, Any], session_id: str = "") -> Dict[str, Any]:
         """
         Parse raw tool output into structured security findings with severity classification.
@@ -6517,7 +6438,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Result analysis failed for {tool}")
         return resp
 
-    @mcp.tool()
+    @register_tool()
     def correlate_session_findings(session_id: str) -> Dict[str, Any]:
         """
         Deduplicate and cross-reference all findings in a scan session.
@@ -6548,7 +6469,7 @@ Start with passive cloud asset discovery."""
     # SCAN MEMORY — Persistence, Episodic/Semantic Memory, Recommendations
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def complete_scan_session(session_id: str) -> Dict[str, Any]:
         """
         Mark a scan session as complete. Archives session to disk and saves
@@ -6573,7 +6494,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Failed to complete session {session_id}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def checkpoint_scan_session(session_id: str) -> Dict[str, Any]:
         """
         Checkpoint a scan session to disk without completing it. Ensures the
@@ -6596,7 +6517,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Failed to checkpoint session {session_id}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def get_scan_recommendations(target: str, target_type: str = "") -> Dict[str, Any]:
         """
         Get memory-based recommendations for scanning a target. Uses episodic
@@ -6623,7 +6544,7 @@ Start with passive cloud asset discovery."""
             logger.info(f"🧠 Found {similar} similar past scans, " f"{len(recs)} recommended tool(s)")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def list_past_scans(limit: int = 20) -> Dict[str, Any]:
         """
         List completed (archived) past scan sessions from memory.
@@ -6642,7 +6563,7 @@ Start with passive cloud asset discovery."""
             logger.info(f"📚 Found {result.get('count', 0)} past scan(s)")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def get_past_scan(session_id: str) -> Dict[str, Any]:
         """
         Retrieve full details of a past completed scan session.
@@ -6661,7 +6582,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Past scan {session_id} not found")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def search_scan_memory(query: str, limit: int = 10) -> Dict[str, Any]:
         """
         Search episodic scan memory by target, tool name, or target type.
@@ -6682,7 +6603,7 @@ Start with passive cloud asset discovery."""
             logger.info(f"🔍 Found {result.get('count', 0)} matching scan(s)")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def get_learned_patterns() -> Dict[str, Any]:
         """
         Get all semantic patterns learned from past scans.
@@ -6699,7 +6620,7 @@ Start with passive cloud asset discovery."""
             logger.info(f"🧠 Found {result.get('count', 0)} learned pattern(s)")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def consolidate_scan_memory() -> Dict[str, Any]:
         """
         Consolidate episodic scan memory into semantic patterns.
@@ -6724,7 +6645,7 @@ Start with passive cloud asset discovery."""
             )
         return result
 
-    @mcp.tool()
+    @register_tool()
     def add_scan_learning(
         observation: str,
         category: str = "general",
@@ -6762,7 +6683,7 @@ Start with passive cloud asset discovery."""
     # PASSWORD & EXPLOITATION TOOLS (NEW)
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def medusa_attack(
         target: str,
         user: str = "",
@@ -6810,7 +6731,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Medusa failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def patator_attack(
         target: str,
         module: str = "ssh_login",
@@ -6852,7 +6773,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Patator failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def evil_winrm_connect(
         target: str,
         user: str = "",
@@ -6897,7 +6818,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Evil-WinRM failed for {target}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def hash_identifier(hash_value: str, additional_args: str = "") -> Dict[str, Any]:
         """
         Execute hash-identifier for hash type detection.
@@ -6918,7 +6839,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Hash identification failed")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def hashid_identify(
         hash_value: str, extended: bool = False, mode: bool = True, john_format: bool = True, additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -6954,7 +6875,7 @@ Start with passive cloud asset discovery."""
     # WEB INJECTION TOOLS (NEW)
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def commix_scan(
         url: str,
         data: str = "",
@@ -6996,7 +6917,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Commix failed for {url}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def nosqlmap_scan(
         url: str, database: str = "mongodb", post_data: str = "", cookie: str = "", additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -7028,7 +6949,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ NoSQLMap failed for {url}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def tplmap_scan(
         url: str,
         data: str = "",
@@ -7070,7 +6991,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Tplmap failed for {url}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def sslyze_scan(
         target: str, certinfo: bool = True, heartbleed: bool = True, robot: bool = True, additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -7106,7 +7027,7 @@ Start with passive cloud asset discovery."""
     # FORENSICS TOOLS (NEW)
     # ============================================================================
 
-    @mcp.tool()
+    @register_tool()
     def zsteg_analyze(
         file_path: str, all_methods: bool = True, bits: str = "", limit: int = 256, additional_args: str = ""
     ) -> Dict[str, Any]:
@@ -7138,7 +7059,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Zsteg failed for {file_path}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def outguess_extract(
         file_path: str,
         extract: bool = True,
@@ -7174,7 +7095,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Outguess failed for {file_path}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def scalpel_carve(
         input_file: str,
         output_dir: str = "/tmp/scalpel_output",
@@ -7210,7 +7131,7 @@ Start with passive cloud asset discovery."""
             logger.error(f"❌ Scalpel failed for {input_file}")
         return result
 
-    @mcp.tool()
+    @register_tool()
     def bulk_extractor_scan(
         input_file: str,
         output_dir: str = "/tmp/bulk_output",
@@ -7283,6 +7204,20 @@ def parse_args():
         action="store_true",
         help="Disable SSL certificate verification (for self-signed certs behind reverse proxies)",
     )
+    parser.add_argument(
+        "--profile",
+        type=str,
+        default="",
+        help="Tool profile to load (minimal, web, network, bugbounty, ctf, cloud, redteam, full). "
+        "Reduces LLM context window usage by only registering relevant tools.",
+    )
+    parser.add_argument(
+        "--categories",
+        type=str,
+        default="",
+        help="Comma-separated tool categories to load (e.g. network,web,exploit). "
+        "See tool_profiles.py for available categories.",
+    )
     return parser.parse_args()
 
 
@@ -7334,8 +7269,18 @@ def main():
                             f"❌ Missing tools: {', '.join(missing_tools[:5])}{'...' if len(missing_tools) > 5 else ''}"
                         )
 
+        # Resolve tool profile — determines which tools are exposed to the LLM
+        from core.tool_selector import resolve_tools
+
+        selected_tools = resolve_tools(
+            profile=args.profile or None,
+            categories=args.categories or None,
+        )
+        tool_count = len(selected_tools) if selected_tools != set() else "all"
+        logger.info(f"🔧 Tool profile resolved: {tool_count} tools selected")
+
         # Set up and run the MCP server
-        mcp = setup_mcp_server(hexstrike_client)
+        mcp = setup_mcp_server(hexstrike_client, selected_tools=selected_tools or None)
         logger.info("🚀 Starting HexStrike AI MCP server")
         logger.info("🤖 Ready to serve AI agents with enhanced cybersecurity capabilities")
 
