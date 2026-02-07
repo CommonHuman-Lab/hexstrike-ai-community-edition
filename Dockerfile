@@ -153,6 +153,8 @@ RUN ln -sf /usr/bin/chromium /usr/local/bin/google-chrome 2>/dev/null || true
 
 EXPOSE 8888
 
+ENV HEXSTRIKE_HOST=0.0.0.0
+
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
     CMD curl -f http://localhost:8888/health || exit 1
 
