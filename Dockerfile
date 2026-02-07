@@ -61,7 +61,6 @@ RUN go install github.com/projectdiscovery/katana/cmd/katana@latest && \
     go install github.com/haccer/subjack@latest && \
     go install github.com/projectdiscovery/dnsx/cmd/dnsx@latest && \
     go install github.com/jaeles-project/jaeles@latest && \
-    go install github.com/trufflesecurity/trufflehog@latest && \
     rm -rf /root/go/pkg /root/.cache/go-build
 
 # ============================================================================
@@ -94,9 +93,46 @@ RUN pip install --no-cache-dir \
     ROPgadget \
     ropper \
     sslyze \
-    enum4linux-ng
+    enum4linux-ng \
+    spiderfoot
 
+# ============================================================================
+# GIT CLONE: Tools only available from source repos
+# ============================================================================
+# TruffleHog v3 - secret scanning (binary download, Go module path is broken)
+RUN curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+
+# JWT Tool - JWT security analysis
+RUN git clone --depth 1 https://github.com/ticarpi/jwt_tool /opt/jwt_tool && \
+    pip install --no-cache-dir -r /opt/jwt_tool/requirements.txt 2>/dev/null || true && \
+    printf '#!/bin/bash\nexec python3 /opt/jwt_tool/jwt_tool.py "$@"\n' > /usr/local/bin/jwt_tool && \
+    chmod +x /usr/local/bin/jwt_tool
+
+# GraphW00F - GraphQL fingerprinting
+RUN git clone --depth 1 https://github.com/dolevf/graphw00f /opt/graphw00f && \
+    printf '#!/bin/bash\nexec python3 /opt/graphw00f/main.py "$@"\n' > /usr/local/bin/graphw00f && \
+    chmod +x /usr/local/bin/graphw00f
+
+# Tplmap - server-side template injection
+RUN git clone --depth 1 https://github.com/epinna/tplmap /opt/tplmap && \
+    pip install --no-cache-dir -r /opt/tplmap/requirements.txt 2>/dev/null || true && \
+    printf '#!/bin/bash\nexec python3 /opt/tplmap/tplmap.py "$@"\n' > /usr/local/bin/tplmap && \
+    chmod +x /usr/local/bin/tplmap
+
+# NoSQLMap - NoSQL injection
+RUN git clone --depth 1 https://github.com/codingo/NoSQLMap /opt/nosqlmap && \
+    pip install --no-cache-dir -r /opt/nosqlmap/requirements.txt 2>/dev/null || true && \
+    printf '#!/bin/bash\nexec python3 /opt/nosqlmap/nosqlmap.py "$@"\n' > /usr/local/bin/nosqlmap && \
+    chmod +x /usr/local/bin/nosqlmap
+
+# HashPump - hash length extension attacks
+RUN git clone --depth 1 https://github.com/bwall/HashPump /opt/hashpump && \
+    cd /opt/hashpump && make && make install && \
+    cd / && rm -rf /opt/hashpump
+
+# ============================================================================
 # App dependencies
+# ============================================================================
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
@@ -123,31 +159,25 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
 CMD ["python3", "hexstrike_server.py", "--port", "8888"]
 
 # ============================================================================
-# TOOLS NOT INSTALLED (intentionally excluded)
+# TOOLS NOT INSTALLED (intentionally excluded - cannot run in Docker)
 # ============================================================================
 # burpsuite     - Commercial software, requires license
 # stegsolve     - Java GUI application, not suitable for headless Docker
 # zap-cli       - OWASP ZAP is a large Java app, complex headless setup
 # falco         - Requires kernel/eBPF access, not possible in container
 # docker-bench  - Requires Docker socket access from inside container
-# cloudmapper   - Requires AWS credentials + complex setup
-# pacu          - Requires AWS credentials + complex setup
+# cloudmapper   - Requires AWS credentials + complex multi-step setup
+# pacu          - Requires AWS credentials + complex multi-step setup
 # prowler       - Requires cloud provider credentials + complex setup
 # scout-suite   - Requires cloud provider credentials + complex setup
 # kube-bench    - Requires Kubernetes cluster access
 # kube-hunter   - Requires Kubernetes cluster access
-# checkov       - Massive dependency tree, potential version conflicts
+# checkov       - Massive dependency tree, causes version conflicts
 # terrascan     - Niche IaC tool, complex setup
 # clair         - Requires separate database + server setup
-# nosqlmap      - Not available via pip, requires git clone
-# tplmap        - Not available via pip or Kali repos, requires git clone
-# jwt_tool      - Not available via pip, requires git clone
-# graphw00f     - Not available via pip, requires git clone
-# spiderfoot    - Heavy web app with many dependencies
 # aquatone      - Project archived/unmaintained
-# libc-database - Requires git clone + manual database setup
+# libc-database - Requires git clone + manual database downloads
 # volatility v2 - Legacy; v3 is installed instead
-# hashpump      - C tool, requires building from source (github.com/bwall/HashPump)
-# gdb-gef       - GDB plugin, requires separate setup (github.com/hugsy/gef)
-# gdb-peda      - GDB plugin, requires separate setup (github.com/longld/peda)
 # outguess      - Not available in Kali repos
+# gdb-gef       - GDB plugin, requires interactive gdb config
+# gdb-peda      - GDB plugin, requires interactive gdb config
