@@ -93,7 +93,6 @@ RUN pip install --no-cache-dir \
     ROPgadget \
     ropper \
     sslyze \
-    enum4linux-ng \
     spiderfoot
 
 # ============================================================================
@@ -124,6 +123,12 @@ RUN git clone --depth 1 https://github.com/codingo/NoSQLMap /opt/nosqlmap && \
     pip install --no-cache-dir -r /opt/nosqlmap/requirements.txt 2>/dev/null || true && \
     printf '#!/bin/bash\nexec python3 /opt/nosqlmap/nosqlmap.py "$@"\n' > /usr/local/bin/nosqlmap && \
     chmod +x /usr/local/bin/nosqlmap
+
+# Enum4linux-ng - modern SMB enumeration
+RUN git clone --depth 1 https://github.com/cddmp/enum4linux-ng /opt/enum4linux-ng && \
+    pip install --no-cache-dir -r /opt/enum4linux-ng/requirements.txt 2>/dev/null || true && \
+    ln -sf /opt/enum4linux-ng/enum4linux-ng.py /usr/local/bin/enum4linux-ng && \
+    chmod +x /opt/enum4linux-ng/enum4linux-ng.py
 
 # HashPump - hash length extension attacks
 RUN git clone --depth 1 https://github.com/bwall/HashPump /opt/hashpump && \
