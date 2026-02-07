@@ -10,6 +10,7 @@ from .ctf import ctf_bp
 from .error_handling import error_handling_bp
 from .files import files_bp
 from .intelligence import intelligence_bp
+from .knowledge_graph import knowledge_graph_bp
 from .process_workflows import process_workflows_bp
 from .processes import processes_bp
 from .python_env import python_env_bp
@@ -26,6 +27,7 @@ from .tools_recon import tools_recon_bp
 from .tools_web import tools_web_bp
 from .tools_web_advanced import tools_web_advanced_bp
 from .tools_web_frameworks import tools_web_frameworks_bp
+from .verification import verification_bp
 from .visual import visual_bp
 from .vuln_intel import vuln_intel_bp
 
@@ -55,4 +57,6 @@ __all__ = [
     "tools_recon_bp",
     "scan_intelligence_bp",
     "scan_memory_bp",
+    "verification_bp",
+    "knowledge_graph_bp",
 ]

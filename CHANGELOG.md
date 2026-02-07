@@ -1,5 +1,21 @@
 # HexStrike AI Community Edition - Changelog
 
+## Intelligence Upgrade
+
+Closes the loop between scanning and reporting with verification, learning, and attack surface mapping.
+
+- **Finding Verification** — Multi-strategy confirmation (rescan, cross-tool, HTTP probe, CVE lookup) to eliminate false positives before reporting
+- **Knowledge Graph** — Entity-relationship graph (Host, Service, Vulnerability, Credential) with BFS attack path discovery across findings
+- **Effectiveness Tracker** — Learned tool scores from scan memory patterns. Decision engine now improves tool selection based on past results
+- **Parallel Tool Execution** — Batch up to 10 tools simultaneously via `parallel_execute_tools()`
+- **Security Middleware** — Flask-layer rate limiting (30/10 req/min), input validation, private IP blocking (strict mode), auto tool annotations (`readOnlyHint`/`destructiveHint`)
+- **HTTP Transport** — `--transport http --mcp-port 3000` for non-stdio deployments
+- 7 new MCP tools, 2 new Flask blueprints, 3 new API endpoint groups
+- Pentest lifecycle playbook updated with verification and knowledge graph phases
+- All MCP prompts and system instructions updated to guide LLMs through the full cycle
+
+---
+
 ## TTP Playbook Engine
 
 On-demand knowledge system for LLM agents — file-backed MCP resources with zero context cost until read.

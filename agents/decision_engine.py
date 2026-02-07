@@ -185,11 +185,12 @@ class AttackChain:
 class IntelligentDecisionEngine:
     """AI-powered tool selection and parameter optimization engine"""
 
-    def __init__(self):
+    def __init__(self, effectiveness_tracker=None):
         self.tool_effectiveness = self._initialize_tool_effectiveness()
         self.technology_signatures = self._initialize_technology_signatures()
         self.attack_patterns = self._initialize_attack_patterns()
         self._use_advanced_optimizer = True  # Enable advanced optimization by default
+        self._effectiveness_tracker = effectiveness_tracker
 
     def _initialize_tool_effectiveness(self) -> Dict[str, Dict[str, float]]:
         """Initialize tool effectiveness ratings for different target types"""
@@ -651,7 +652,14 @@ class IntelligentDecisionEngine:
     def select_optimal_tools(self, profile: TargetProfile, objective: str = "comprehensive") -> List[str]:
         """Select optimal tools based on target profile and objective"""
         target_type = profile.target_type.value
-        effectiveness_map = self.tool_effectiveness.get(target_type, {})
+
+        # Use learned effectiveness if tracker is available, otherwise hardcoded map
+        if self._effectiveness_tracker:
+            effectiveness_map = {}
+            for tool in self.tool_effectiveness.get(target_type, {}).keys():
+                effectiveness_map[tool] = self._effectiveness_tracker.get_effectiveness(tool, target_type)
+        else:
+            effectiveness_map = self.tool_effectiveness.get(target_type, {})
 
         # Get base tools for target type
         base_tools = list(effectiveness_map.keys())

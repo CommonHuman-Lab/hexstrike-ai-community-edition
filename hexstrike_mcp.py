@@ -303,25 +303,48 @@ def setup_mcp_server(
         "hexstrike-ai-mcp",
         instructions=(
             "You are connected to HexStrike AI — an advanced penetration testing and security "
-            "intelligence framework with 100+ tools. Read the resource 'hexstrike://playbook' "
-            "for full workflow guidance. Prefer iterative_smart_scan over manual tool selection."
+            "intelligence framework with 196+ tools. Read the resource 'hexstrike://playbook' "
+            "for full workflow guidance. Prefer iterative_smart_scan over manual tool selection. "
+            "After scanning, use batch_verify_findings to confirm results, "
+            "ingest_to_knowledge_graph + find_attack_paths for attack surface mapping, "
+            "and get_tool_effectiveness to leverage learned tool scores."
         ),
     )
 
-    # ---- Conditional tool registration ----
+    # ---- Conditional tool registration with auto-annotations ----
     # When a profile is active, only selected tool functions are exposed to the
     # LLM, keeping the context window lean. Resources and prompts always load.
-    def register_tool(*decorator_args, **decorator_kwargs):
+    # Tool annotations (readOnlyHint, destructiveHint) are auto-applied from
+    # the risk classifier so LLMs know which tools are safe to auto-run.
+    try:
+        from core.security.risk_classifier import TOOL_RISK_MAP
+    except ImportError:
+        TOOL_RISK_MAP = {}
+
+    def register_tool(*decorator_args, annotations=None, **decorator_kwargs):
         """Decorator that conditionally registers a function as an MCP tool.
 
         If *selected_tools* is None (full mode), every tool is registered.
         Otherwise only tools whose function name appears in the set are registered.
         Skipped tools still exist as plain Python functions (no side-effects).
+
+        Auto-applies readOnlyHint / destructiveHint annotations from the risk
+        classifier unless explicit annotations are provided.
         """
 
         def wrapper(fn):
             if selected_tools is None or fn.__name__ in selected_tools:
-                return mcp.tool(*decorator_args, **decorator_kwargs)(fn)
+                final_annotations = annotations
+                if final_annotations is None and TOOL_RISK_MAP:
+                    risk = TOOL_RISK_MAP.get(fn.__name__, "active_scan")
+                    final_annotations = {
+                        "readOnlyHint": risk == "read_only",
+                        "destructiveHint": risk == "destructive",
+                    }
+                kwargs = dict(decorator_kwargs)
+                if final_annotations:
+                    kwargs["annotations"] = final_annotations
+                return mcp.tool(*decorator_args, **kwargs)(fn)
             return fn
 
         return wrapper
@@ -350,7 +373,7 @@ def setup_mcp_server(
         """HexStrike overview + index of all available playbooks and TTP guides."""
         overview = (
             "# HexStrike AI — Agent Playbook\n\n"
-            "HexStrike is a penetration testing framework with 196 security tools.\n"
+            "HexStrike is a penetration testing framework with 196+ security tools.\n"
             "Use `iterative_smart_scan(target, objective)` for AI-driven assessments.\n"
             "Call `get_scan_recommendations(target)` first to leverage past experience.\n\n"
             "## Quick Decision Guide\n\n"
@@ -361,7 +384,11 @@ def setup_mcp_server(
             '| "Scan ports" | `nmap_scan(target)` |\n'
             '| "Find subdomains" | `subfinder_scan(target)` |\n'
             '| "Check breaches" | `hibp_breach_check(email)` |\n'
-            '| "Plan attack path" | `create_attack_chain_ai(target)` |\n\n'
+            '| "Plan attack path" | `create_attack_chain_ai(target)` |\n'
+            '| "Verify findings" | `batch_verify_findings(session_id, min_severity="medium")` |\n'
+            '| "Map attack paths" | `ingest_to_knowledge_graph(session_id)` then `find_attack_paths(entity_id, target_type)` |\n'
+            '| "Run tools in parallel" | `parallel_execute_tools(tools="nmap_scan,nuclei_scan", target=target)` |\n'
+            '| "Check tool effectiveness" | `get_tool_effectiveness(target_type)` |\n\n'
             "## Deep Guides (read on demand)\n\n"
         )
         return overview + get_playbook_index()
@@ -393,22 +420,28 @@ def setup_mcp_server(
 PREPARATION:
 1. Read hexstrike://playbook/pentest-lifecycle for the full methodology
 2. Call get_scan_recommendations(target="{target}") to check past experience
-3. Call create_scan_session(target="{target}") to track findings
+3. Call get_tool_effectiveness(target_type="web_application") to see which tools work best
+4. Call create_scan_session(target="{target}") to track findings
 
 EXECUTION:
-4. Call iterative_smart_scan(target="{target}", objective="comprehensive") to start
-5. Call iterative_smart_scan(target="{target}", session_id="<session_id>") for follow-ups
-6. Repeat until has_more_iterations is false
-7. When exploitation opportunities found, read the relevant TTP guide:
+5. Call iterative_smart_scan(target="{target}", objective="comprehensive") to start
+6. Call iterative_smart_scan(target="{target}", session_id="<session_id>") for follow-ups
+7. Repeat until has_more_iterations is false
+8. When exploitation opportunities found, read the relevant TTP guide:
    - hexstrike://ttp/web-injection for SQLi, XSS, SSTI, command injection
    - hexstrike://ttp/auth-attacks for JWT, IDOR, session attacks
    - hexstrike://ttp/network-exploit for SMB, AD, lateral movement
    - hexstrike://ttp/waf-evasion if a WAF is detected
-8. Use generate_exploit_from_cve and correlate_threat_intelligence for real exploit code on discovered CVEs
+9. Use generate_exploit_from_cve and correlate_threat_intelligence for real exploit code on discovered CVEs
+
+VERIFICATION:
+10. batch_verify_findings(session_id, min_severity="medium") to confirm findings are real
+11. ingest_to_knowledge_graph(session_id) to map discovered entities and relationships
+12. find_attack_paths(source_entity_id, target_type="credential") to discover attack chains
 
 REPORTING:
-9. correlate_session_findings(session_id) for deduplicated summary
-10. complete_scan_session(session_id) to save to memory
+13. correlate_session_findings(session_id) for deduplicated summary
+14. complete_scan_session(session_id) to save to memory
 
 Start now with preparation step 2."""
 
@@ -434,9 +467,13 @@ EXECUTION:
 8. Read hexstrike://ttp/auth-attacks for JWT/IDOR/session testing
 9. Use generate_exploit_from_cve for exploit code on any CVEs discovered
 
+VERIFICATION:
+10. batch_verify_findings(session_id, min_severity="medium") to confirm real vulnerabilities
+11. ingest_to_knowledge_graph(session_id) to map the application's attack surface
+
 REPORTING:
-10. correlate_session_findings + complete_scan_session
-11. Present: executive summary, critical/high findings with proof, remediation
+12. correlate_session_findings + complete_scan_session
+13. Present: executive summary, critical/high findings with proof, remediation
 
 Start with preparation step 2."""
 
@@ -531,6 +568,11 @@ Start with external discovery."""
         """
         Execute an enhanced Nmap scan against a target with real-time logging.
 
+        Use when: First tool for any network assessment. Discovers open ports,
+        running services, and OS fingerprints. Use -sC for NSE vulnerability scripts.
+
+        Example: nmap_scan(target="10.10.10.1", scan_type="-sV -sC", ports="1-1000")
+
         Args:
             target: The IP address or hostname to scan
             scan_type: Scan type (e.g., -sV for version detection, -sC for scripts)
@@ -538,7 +580,8 @@ Start with external discovery."""
             additional_args: Additional Nmap arguments
 
         Returns:
-            Scan results with enhanced telemetry
+            stdout — raw scan output with open ports, services, and script results.
+            success — whether the scan completed without error.
         """
         data = {"target": target, "scan_type": scan_type, "ports": ports, "additional_args": additional_args}
         logger.info(f"{HexStrikeColors.FIRE_RED}🔍 Initiating Nmap scan: {target}{HexStrikeColors.RESET}")
@@ -620,6 +663,12 @@ Start with external discovery."""
         """
         Execute Nuclei vulnerability scanner with enhanced logging and real-time progress.
 
+        Use when: After port/service discovery (nmap). Nuclei checks for known CVEs,
+        misconfigurations, and exposures using 8000+ community templates. Best scanner
+        for web application vulnerability detection.
+
+        Example: nuclei_scan(target="https://example.com", severity="critical,high")
+
         Args:
             target: The target URL or IP
             severity: Filter by severity (critical,high,medium,low,info)
@@ -628,7 +677,8 @@ Start with external discovery."""
             additional_args: Additional Nuclei arguments
 
         Returns:
-            Scan results with discovered vulnerabilities and telemetry
+            stdout — discovered vulnerabilities in [id] [protocol] [severity] format.
+            success — whether the scan completed without error.
         """
         data = {
             "target": target,
@@ -6304,11 +6354,17 @@ Start with external discovery."""
         Create a persistent scan session for a target. Sessions accumulate findings
         across multiple tool executions so follow-up tools are selected intelligently.
 
+        Use when: Starting a new pentest engagement. Always create a session before
+        running tools manually so findings are tracked and correlated.
+
+        Example: create_scan_session(target="10.10.10.1")
+
         Args:
             target: Target to scan (IP, domain, or URL)
 
         Returns:
-            Session ID, target profile, and initial session state
+            session.session_id — use this in subsequent tool calls.
+            target_profile — detected target type, technologies, attack surface score.
         """
         data = {"target": target}
         logger.info(f"📋 Creating scan session for {target}")
@@ -6371,7 +6427,11 @@ Start with external discovery."""
         Subsequent calls (with session_id): Analyzes prior findings, selects follow-up tools,
         executes them, correlates all findings.
 
-        Call repeatedly until 'has_more_iterations' is False for a complete adaptive scan.
+        Use when: This is the PRIMARY tool for pentesting. Prefer this over running tools
+        manually. Call repeatedly until has_more_iterations is False for a complete adaptive scan.
+
+        Example: iterative_smart_scan(target="example.com", objective="comprehensive")
+        Then: iterative_smart_scan(target="example.com", session_id="<returned_id>")
 
         Args:
             target: Target to scan (IP, domain, or URL)
@@ -6380,7 +6440,11 @@ Start with external discovery."""
             max_tools: Maximum tools to run per iteration
 
         Returns:
-            Iteration results with new findings, correlated summary, and recommended next tools
+            session_id — reuse for follow-up iterations.
+            new_findings_count — findings discovered this iteration.
+            correlated_findings — deduplicated findings with confidence scores.
+            recommended_next_tools — tools to run in the next iteration.
+            has_more_iterations — False when the scan has converged.
         """
         data = {
             "target": target,
@@ -6524,14 +6588,19 @@ Start with external discovery."""
         recall (similar past scans) and semantic patterns (tool effectiveness
         by target type) to suggest optimal tools and approaches.
 
-        Call this BEFORE starting a new scan to leverage past experience.
+        Use when: BEFORE starting a new scan to leverage past experience. This
+        is the intelligence layer — it tells you what worked before on similar targets.
+
+        Example: get_scan_recommendations(target="10.10.10.1", target_type="network_host")
 
         Args:
             target: Target to get recommendations for (IP, domain, or URL)
-            target_type: Optional target type (web_application, network_host, etc.)
+            target_type: Optional target type (web_application, network_host, api_endpoint, etc.)
 
         Returns:
-            Similar past scans, recommended tools, patterns to apply, tools to avoid
+            similar_past_scans — count of related engagements.
+            recommended_tools — tools ranked by effectiveness on this target type.
+            patterns — learned tool chains and severity profiles.
         """
         data = {"target": target}
         if target_type:
@@ -6677,6 +6746,242 @@ Start with external discovery."""
         result = hexstrike_client.safe_post("api/scan-memory/learnings", data)
         if result.get("success"):
             logger.info("📝 Learning saved to memory")
+        return result
+
+    # ============================================================================
+    # FINDING VERIFICATION — Confirm findings are real, not false positives
+    # ============================================================================
+
+    @register_tool()
+    def verify_finding(
+        session_id: str,
+        finding_index: int,
+        methods: str = "rescan,http_probe",
+    ) -> Dict[str, Any]:
+        """
+        Verify a single security finding using multi-strategy confirmation.
+
+        Use when: You have findings from a scan and want to confirm they are real
+        before reporting. Reduces false positives via rescan, cross-tool, HTTP probe,
+        or CVE lookup verification.
+
+        Example: verify_finding(session_id="abc123", finding_index=0, methods="rescan,cross_tool")
+
+        Args:
+            session_id: Scan session containing the finding
+            finding_index: Index of the finding in the session's findings list
+            methods: Comma-separated verification methods (rescan, cross_tool, http_probe, cve_lookup)
+
+        Returns:
+            verified — whether the finding was confirmed.
+            confidence — 0.0–1.0 confidence score.
+            method — which verification strategy succeeded.
+            evidence — human-readable explanation.
+        """
+        data = {
+            "session_id": session_id,
+            "finding_index": finding_index,
+            "methods": [m.strip() for m in methods.split(",")],
+        }
+        logger.info(f"🔍 Verifying finding {finding_index} in session {session_id}")
+        result = hexstrike_client.safe_post("api/verification/verify-finding", data)
+        if result.get("success"):
+            verification = result.get("verification", {})
+            status = "VERIFIED" if verification.get("verified") else "UNVERIFIED"
+            conf = verification.get("confidence", 0)
+            logger.info(f"🔍 Finding {finding_index}: {status} (confidence: {conf:.1%})")
+        return result
+
+    @register_tool()
+    def batch_verify_findings(
+        session_id: str,
+        min_severity: str = "medium",
+        methods: str = "rescan,http_probe",
+    ) -> Dict[str, Any]:
+        """
+        Batch-verify all findings above a severity threshold in a scan session.
+
+        Use when: After completing a scan, verify all medium+ findings at once.
+
+        Example: batch_verify_findings(session_id="abc123", min_severity="high")
+
+        Args:
+            session_id: Scan session to verify
+            min_severity: Minimum severity to verify (critical, high, medium, low, info)
+            methods: Comma-separated verification methods
+
+        Returns:
+            summary.verified — count of confirmed findings.
+            summary.unverified — count of unconfirmed findings.
+            results — per-finding verification details.
+        """
+        data = {
+            "session_id": session_id,
+            "min_severity": min_severity,
+            "methods": [m.strip() for m in methods.split(",")],
+        }
+        logger.info(f"🔍 Batch verifying findings in session {session_id} (min: {min_severity})")
+        result = hexstrike_client.safe_post("api/verification/batch-verify", data)
+        if result.get("success"):
+            summary = result.get("summary", {})
+            logger.info(f"🔍 Verified: {summary.get('verified', 0)}/{summary.get('total_checked', 0)} confirmed")
+        return result
+
+    # ============================================================================
+    # KNOWLEDGE GRAPH — Attack path discovery and entity relationships
+    # ============================================================================
+
+    @register_tool()
+    def ingest_to_knowledge_graph(session_id: str) -> Dict[str, Any]:
+        """
+        Ingest a scan session's findings into the knowledge graph as entities
+        and relationships (hosts, services, vulnerabilities, credentials).
+
+        Use when: After completing a scan session, build the knowledge graph to
+        enable attack path discovery across all engagements.
+
+        Example: ingest_to_knowledge_graph(session_id="abc123")
+
+        Args:
+            session_id: Session ID to ingest (active or completed)
+
+        Returns:
+            entities_created — new nodes added to the graph.
+            relationships_created — new edges added.
+        """
+        data = {"session_id": session_id}
+        logger.info(f"🕸️ Ingesting session {session_id} into knowledge graph")
+        result = hexstrike_client.safe_post("api/knowledge-graph/ingest", data)
+        if result.get("success"):
+            logger.info(
+                f"🕸️ Ingested: {result.get('entities_created', 0)} entities, "
+                f"{result.get('relationships_created', 0)} relationships"
+            )
+        return result
+
+    @register_tool()
+    def find_attack_paths(
+        source_entity_id: str, target_type: str = "vulnerability", max_depth: int = 5
+    ) -> Dict[str, Any]:
+        """
+        Discover attack paths from a source entity to entities of a target type
+        using BFS traversal of the knowledge graph.
+
+        Use when: You want to find how an attacker could chain vulnerabilities
+        to move from an initial foothold to a high-value target.
+
+        Example: find_attack_paths(source_entity_id="abc123", target_type="credential")
+
+        Args:
+            source_entity_id: Starting entity ID (e.g., a host)
+            target_type: Entity type to reach (host, service, vulnerability, credential)
+            max_depth: Maximum path length (default 5)
+
+        Returns:
+            paths — list of entity chains from source to target type.
+            count — number of paths found.
+        """
+        logger.info(f"🕸️ Finding attack paths from {source_entity_id} to {target_type}")
+        result = hexstrike_client.safe_get(
+            f"api/knowledge-graph/paths?from_id={source_entity_id}&to_type={target_type}&max_depth={max_depth}"
+        )
+        if result.get("success"):
+            logger.info(f"🕸️ Found {result.get('count', 0)} attack path(s)")
+        return result
+
+    @register_tool()
+    def query_knowledge_graph(entity_type: str = "", name_filter: str = "") -> Dict[str, Any]:
+        """
+        Search the knowledge graph for entities by type and name.
+
+        Use when: You want to see all hosts, services, vulnerabilities, or
+        credentials discovered across all scan sessions.
+
+        Example: query_knowledge_graph(entity_type="vulnerability", name_filter="CVE-2024")
+
+        Args:
+            entity_type: Filter by type (host, service, vulnerability, credential)
+            name_filter: Substring filter on entity name
+
+        Returns:
+            entities — matching entities with properties.
+            count — number of matches.
+        """
+        params = []
+        if entity_type:
+            params.append(f"type={entity_type}")
+        if name_filter:
+            params.append(f"name={name_filter}")
+        query_str = "&".join(params)
+        logger.info(f"🕸️ Querying knowledge graph: {query_str or 'all'}")
+        result = hexstrike_client.safe_get(f"api/knowledge-graph/entities?{query_str}")
+        if result.get("success"):
+            logger.info(f"🕸️ Found {result.get('count', 0)} entities")
+        return result
+
+    # ============================================================================
+    # EFFECTIVENESS TRACKING — Learned tool scores
+    # ============================================================================
+
+    @register_tool()
+    def get_tool_effectiveness(target_type: str = "web_application") -> Dict[str, Any]:
+        """
+        Show learned vs default tool effectiveness scores for a target type.
+
+        Use when: You want to understand which tools perform best against
+        specific target types based on historical scan data.
+
+        Example: get_tool_effectiveness(target_type="network_host")
+
+        Args:
+            target_type: Target type (web_application, network_host, api_endpoint, cloud_service)
+
+        Returns:
+            List of tools with default, learned, and blended effectiveness scores.
+        """
+        logger.info(f"📊 Getting tool effectiveness for {target_type}")
+        try:
+            comparison = hexstrike_client.safe_get("api/scan-memory/patterns")
+            if not comparison.get("success"):
+                return {"success": False, "error": "Could not retrieve effectiveness data"}
+
+            return {"success": True, "target_type": target_type, "patterns": comparison.get("patterns", [])}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    # ============================================================================
+    # PARALLEL TOOL EXECUTION — Batch-execute independent tools
+    # ============================================================================
+
+    @register_tool()
+    def parallel_execute_tools(tools: str, target: str, session_id: str = "") -> Dict[str, Any]:
+        """
+        Execute multiple tools in parallel against a target in a single call.
+
+        Use when: You know exactly which tools to run and want maximum speed.
+        Unlike iterative_smart_scan, this does NOT auto-select tools — you choose them.
+
+        Example: parallel_execute_tools(tools="nmap_scan,nuclei_scan,gobuster_scan", target="example.com")
+
+        Args:
+            tools: Comma-separated tool names to execute
+            target: Target to scan (IP, domain, or URL)
+            session_id: Optional session ID to attach results to
+
+        Returns:
+            results — per-tool execution results.
+            successful — count of tools that succeeded.
+            failed — count of tools that failed.
+        """
+        tool_list = [t.strip() for t in tools.split(",") if t.strip()]
+        data = {"tools": tool_list, "target": target}
+        if session_id:
+            data["session_id"] = session_id
+
+        logger.info(f"⚡ Parallel execution: {len(tool_list)} tools against {target}")
+        result = hexstrike_client.safe_post("api/scan-intelligence/parallel-execute", data)
+        if result.get("success"):
+            logger.info(f"⚡ Complete: {result.get('successful', 0)} succeeded, " f"{result.get('failed', 0)} failed")
         return result
 
     # ============================================================================
@@ -7218,6 +7523,25 @@ def parse_args():
         help="Comma-separated tool categories to load (e.g. network,web,exploit). "
         "See tool_profiles.py for available categories.",
     )
+    parser.add_argument(
+        "--transport",
+        type=str,
+        choices=["stdio", "http"],
+        default="stdio",
+        help="MCP transport protocol. 'stdio' (default) for local clients, "
+        "'http' for remote Streamable HTTP access.",
+    )
+    parser.add_argument(
+        "--mcp-port",
+        type=int,
+        default=3000,
+        help="Port for HTTP transport (default: 3000). Only used with --transport http.",
+    )
+    parser.add_argument(
+        "--strict-mode",
+        action="store_true",
+        help="Enable strict security mode: block private IPs, enforce rate limits.",
+    )
     return parser.parse_args()
 
 
@@ -7284,9 +7608,13 @@ def main():
         logger.info("🚀 Starting HexStrike AI MCP server")
         logger.info("🤖 Ready to serve AI agents with enhanced cybersecurity capabilities")
 
-        # Minimal stdio fallback for MCP clients that require stdio transport
+        # Run with selected transport
         try:
-            mcp.run()
+            if args.transport == "http":
+                logger.info(f"🌐 Starting Streamable HTTP transport on port {args.mcp_port}")
+                mcp.run(transport="http", host="0.0.0.0", port=args.mcp_port)
+            else:
+                mcp.run()
         except AttributeError:
             # Older/newer FastMCP variants expose an async stdio runner
             import asyncio

@@ -167,6 +167,17 @@ TOOL_REGISTRY: Dict[str, str] = {
     "get_learned_patterns": "memory",
     "consolidate_scan_memory": "memory",
     "add_scan_learning": "memory",
+    # --- Finding Verification (2) ---
+    "verify_finding": "intelligence",
+    "batch_verify_findings": "intelligence",
+    # --- Knowledge Graph (3) ---
+    "ingest_to_knowledge_graph": "intelligence",
+    "find_attack_paths": "intelligence",
+    "query_knowledge_graph": "intelligence",
+    # --- Effectiveness Tracking (1) ---
+    "get_tool_effectiveness": "intelligence",
+    # --- Parallel Execution (1) ---
+    "parallel_execute_tools": "intelligence",
     # --- AI Payload Generation (3) ---
     "ai_generate_payload": "ai_payload",
     "ai_test_payload": "ai_payload",

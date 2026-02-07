@@ -32,12 +32,14 @@ HexStrike AI is a two-process system: a Flask API server wrapping security tools
 
 ### How It Works
 
-1. **AI Agent Connection** — Claude, GPT, or any MCP-compatible agent connects via FastMCP stdio protocol
+1. **AI Agent Connection** — Claude, GPT, or any MCP-compatible agent connects via FastMCP stdio or HTTP transport
 2. **Tool Profile Selection** — `--profile` flag loads only the tools you need (minimal 28, web 93, full 196) to keep context lean
 3. **On-Demand TTP Knowledge** — Agent reads playbooks and deep technique guides via MCP resources (`hexstrike://ttp/{name}`) — zero context cost until needed
-4. **Adaptive Scanning** — Iterative smart scan loop (Think → Decide → Act → Observe) with AI-driven tool selection
-5. **Scan Memory** — Past engagements are remembered. Recommendations improve over time based on what worked before
-6. **Real-time Reporting** — Findings correlated across tools, deduplicated, and scored by severity/confidence
+4. **Adaptive Scanning** — Iterative smart scan loop (Think → Decide → Act → Observe) with learned tool effectiveness scores
+5. **Finding Verification** — Multi-strategy confirmation (rescan, cross-tool, HTTP probe, CVE lookup) eliminates false positives
+6. **Attack Surface Mapping** — Knowledge graph builds entity-relationship model from findings, discovers multi-step attack paths via BFS
+7. **Scan Memory** — Past engagements are remembered. Tool effectiveness improves over time based on what worked before
+8. **Real-time Reporting** — Findings correlated across tools, deduplicated, and scored by severity/confidence
 
 ---
 
@@ -470,6 +472,11 @@ Configure VS Code settings in `.vscode/settings.json`:
 - **TTP Playbook Engine** — 16 file-backed playbooks and 7 deep TTP guides with real payloads, decision trees, and tool calls. Loaded on-demand via MCP resources (`hexstrike://playbook/{name}`, `hexstrike://ttp/{name}`). Includes 2025–2026 techniques (OWASP 2025, PortSwigger Top 10, ADCS ESC1–16, modern WAF bypass)
 - **Scan Intelligence Engine** — Iterative adaptive scanning (Think → Decide → Act → Observe), AI-driven tool selection, finding correlation, and session persistence
 - **Scan Memory** — Episodic + semantic memory that learns from past engagements. Recommends tools based on what worked before on similar targets. Survives server restarts
+- **Finding Verification** — Multi-strategy confirmation (rescan, cross-tool, HTTP probe, CVE lookup) to eliminate false positives before reporting
+- **Knowledge Graph** — Entity-relationship mapping with BFS attack path discovery. Chains findings into multi-step attack paths (Host → Service → Vulnerability → Credential)
+- **Learned Effectiveness** — Decision engine improves over time by reading scan memory patterns. Tools that consistently find results get prioritized
+- **Parallel Execution** — Batch up to 10 tools simultaneously instead of running them sequentially
+- **Security Middleware** — Flask-layer rate limiting, input validation, private IP blocking (strict mode), auto tool risk annotations
 - **OSINT API Integration** — Shodan, Censys, and Have I Been Pwned for internet-wide intelligence and breach data
 - **CVE Intelligence** — CVE feed monitoring, exploit generation from CVE IDs (searches Exploit-DB, GitHub PoCs, NVD), threat correlation
 - **Browser Agent** — Headless Chrome automation for web testing, DOM analysis, screenshot capture
