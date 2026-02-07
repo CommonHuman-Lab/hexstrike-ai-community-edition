@@ -217,6 +217,9 @@ class IntelligentDecisionEngine:
                 "anew": 0.7,  # Utility tool
                 "qsreplace": 0.75,  # Utility tool
                 "uro": 0.7,  # Utility tool
+                "shodan": 0.88,  # Great for exposed service intelligence
+                "censys": 0.85,  # Good for certificate and host data
+                "hibp": 0.75,  # Useful for credential breach checks
             },
             TargetType.NETWORK_HOST.value: {
                 "nmap": 0.95,
@@ -234,6 +237,8 @@ class IntelligentDecisionEngine:
                 "hydra": 0.8,
                 "netexec": 0.85,
                 "amass": 0.7,
+                "shodan": 0.93,  # Excellent for exposed service/banner intelligence
+                "censys": 0.90,  # Excellent for host exposure analysis
             },
             TargetType.API_ENDPOINT.value: {
                 "nuclei": 0.9,
@@ -245,6 +250,8 @@ class IntelligentDecisionEngine:
                 "katana": 0.85,  # Good for API endpoint discovery
                 "jaeles": 0.88,
                 "postman": 0.8,
+                "shodan": 0.82,  # Good for API server fingerprinting
+                "censys": 0.80,  # Good for certificate discovery
             },
             TargetType.CLOUD_SERVICE.value: {
                 "prowler": 0.95,  # Excellent for AWS security assessment
@@ -259,6 +266,8 @@ class IntelligentDecisionEngine:
                 "falco": 0.87,  # Great for runtime monitoring
                 "checkov": 0.9,  # Excellent for IaC scanning
                 "terrascan": 0.88,  # Great for IaC security
+                "shodan": 0.85,  # Good for discovering exposed cloud assets
+                "censys": 0.83,  # Good for cloud certificate visibility
             },
             TargetType.BINARY_FILE.value: {
                 "ghidra": 0.95,  # Excellent for comprehensive analysis
@@ -1229,3 +1238,144 @@ class IntelligentDecisionEngine:
         chain.risk_level = profile.risk_level
 
         return chain
+
+    # ========================================================================
+    # ITERATIVE SCAN INTELLIGENCE (Agent Loop: Think → Decide → Act → Observe)
+    # ========================================================================
+
+    # Follow-up tool rules: finding pattern → recommended next tools
+    # Every tool name here has a matching key in tool_executors (hexstrike_server.py).
+    # The adapt_tools_from_findings() method matches patterns against finding titles
+    # (case-insensitive substring match) and scores candidates by severity weight.
+    _FOLLOWUP_RULES: Dict[str, List[str]] = {
+        # ── Port-based rules ─────────────────────────────────────────
+        "open port 80": ["nikto", "gobuster", "nuclei", "whatweb"],
+        "open port 443": ["nikto", "gobuster", "nuclei", "testssl", "sslyze"],
+        "open port 8080": ["nikto", "nuclei", "gobuster"],
+        "open port 8443": ["nikto", "nuclei", "testssl"],
+        "open port 22": ["hydra"],
+        "open port 21": ["hydra"],
+        "open port 23": ["hydra"],  # Telnet
+        "open port 25": ["theharvester"],  # SMTP → harvest emails
+        "open port 53": ["dnsenum", "fierce", "dnsx"],  # DNS
+        "open port 445": ["enum4linux_ng", "smbmap", "netexec"],
+        "open port 139": ["enum4linux_ng", "smbmap"],  # NetBIOS/SMB
+        "open port 3306": ["sqlmap", "hydra"],  # MySQL
+        "open port 5432": ["sqlmap", "hydra"],  # PostgreSQL
+        "open port 1433": ["sqlmap", "hydra"],  # MSSQL
+        "open port 1521": ["sqlmap"],  # Oracle DB
+        "open port 27017": ["nosqlmap"],  # MongoDB
+        "open port 6379": ["hydra"],  # Redis
+        "open port 3389": ["hydra", "netexec"],  # RDP
+        "open port 5900": ["hydra"],  # VNC
+        "open port 161": ["nmap"],  # SNMP → nmap NSE scripts
+        # ── Web technology rules ─────────────────────────────────────
+        "wordpress": ["wpscan", "nuclei"],
+        "joomla": ["nuclei"],
+        "drupal": ["nuclei"],
+        "apache": ["nikto", "nuclei"],
+        "nginx": ["nikto", "nuclei"],
+        "tomcat": ["nuclei", "nikto"],
+        "jboss": ["nuclei", "nikto"],
+        "iis": ["nuclei", "nikto"],
+        "php": ["nikto", "sqlmap", "nuclei"],
+        "graphql": ["arjun", "nuclei"],
+        "api": ["arjun", "ffuf", "x8"],
+        "rest api": ["arjun", "ffuf"],
+        # ── Service / protocol rules ─────────────────────────────────
+        "smb": ["enum4linux_ng", "smbmap", "netexec"],
+        "samba": ["enum4linux_ng", "smbmap"],
+        "ftp": ["hydra"],
+        "ssh": ["hydra"],
+        "rdp": ["hydra", "netexec"],
+        "telnet": ["hydra"],
+        "ssl": ["testssl", "sslyze", "sslscan"],
+        "tls": ["testssl", "sslyze"],
+        "certificate": ["testssl", "sslyze", "censys"],
+        # ── Vulnerability pattern rules ──────────────────────────────
+        "sql injection": ["sqlmap"],
+        "xss": ["dalfox"],
+        "cross-site scripting": ["dalfox"],
+        "command injection": ["commix"],
+        "template injection": ["tplmap"],
+        "ssti": ["tplmap"],
+        "nosql injection": ["nosqlmap"],
+        "file inclusion": ["dotdotpwn", "ffuf"],
+        "lfi": ["dotdotpwn", "ffuf"],
+        "path traversal": ["dotdotpwn"],
+        "directory listing": ["gobuster", "feroxbuster"],
+        "directory traversal": ["dotdotpwn"],
+        "open redirect": ["nuclei"],
+        "cve": ["nuclei", "metasploit"],
+        "vulnerability": ["nuclei"],
+        # ── Reconnaissance chain rules ───────────────────────────────
+        "subdomain": ["httpx", "nuclei"],
+        "login": ["hydra", "medusa"],
+        "authentication": ["hydra", "medusa"],
+        "credentials": ["hydra", "medusa"],
+        "waf": ["wafw00f", "dalfox"],
+        "firewall": ["wafw00f"],
+        # ── Secrets & credential exposure ────────────────────────────
+        "secret": ["trufflehog"],
+        ".git": ["trufflehog"],
+        "exposed credentials": ["trufflehog"],
+        "git repository": ["trufflehog"],
+        # ── Cloud & container rules ──────────────────────────────────
+        "docker": ["trivy", "docker_bench"],
+        "container": ["trivy"],
+        "kubernetes": ["kube_hunter", "kube_bench"],
+        "k8s": ["kube_hunter", "kube_bench"],
+        "aws": ["prowler", "scout_suite"],
+        "s3 bucket": ["prowler"],
+        "azure": ["scout_suite"],
+        # ── Informational (no follow-up) ─────────────────────────────
+        "breach": [],
+        "exposed port": [],
+    }
+
+    def adapt_tools_from_findings(
+        self,
+        profile: "TargetProfile",
+        findings: List[Dict[str, Any]],
+        already_run: List[str],
+        max_followups: int = 5,
+    ) -> List[str]:
+        """
+        Decide which follow-up tools to run based on findings from previous iteration.
+
+        This is the *Decide* step of the agent loop. It inspects what was
+        discovered and selects additional tools that weren't already executed.
+
+        Args:
+            profile: Current target profile
+            findings: List of finding dicts from ResultAnalyzer / FindingCorrelator
+            already_run: Tool names already executed (to avoid re-running)
+            max_followups: Cap on how many new tools to suggest
+
+        Returns:
+            Ordered list of follow-up tool names (highest priority first)
+        """
+        if not findings:
+            return []
+
+        already_set = {t.lower().replace("-", "_") for t in already_run}
+        candidates: Dict[str, float] = {}  # tool → priority score
+
+        for finding in findings:
+            title_lower = finding.get("title", "").lower()
+            severity = finding.get("severity", "info")
+
+            # Severity multiplier for prioritisation
+            sev_weight = {"critical": 3.0, "high": 2.0, "medium": 1.0, "low": 0.5, "info": 0.2}
+            weight = sev_weight.get(severity, 0.2)
+
+            for pattern, tools in self._FOLLOWUP_RULES.items():
+                if pattern in title_lower:
+                    for tool in tools:
+                        tool_key = tool.lower().replace("-", "_")
+                        if tool_key not in already_set:
+                            candidates[tool] = candidates.get(tool, 0) + weight
+
+        # Sort by accumulated score descending
+        sorted_candidates = sorted(candidates.items(), key=lambda kv: -kv[1])
+        return [tool for tool, _ in sorted_candidates[:max_followups]]

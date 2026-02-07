@@ -292,7 +292,314 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
     Returns:
         Configured FastMCP instance
     """
-    mcp = FastMCP("hexstrike-ai-mcp")
+    mcp = FastMCP(
+        "hexstrike-ai-mcp",
+        instructions=(
+            "You are connected to HexStrike AI — an advanced penetration testing and security "
+            "intelligence framework with 100+ tools. Read the resource 'hexstrike://playbook' "
+            "for full workflow guidance. Prefer iterative_smart_scan over manual tool selection."
+        ),
+    )
+
+    # Expose resources and prompts as tool calls for clients that don't support
+    # the MCP resources/prompts protocol natively (e.g. Cursor, VS Code Copilot).
+    try:
+        from fastmcp.server.middleware.tool_injection import (
+            PromptToolMiddleware,
+            ResourceToolMiddleware,
+        )
+        from mcp.server.fastmcp.server import Context  # noqa: F401 – presence check
+
+        mcp.add_middleware(ResourceToolMiddleware())
+        mcp.add_middleware(PromptToolMiddleware())
+    except (ImportError, AttributeError):
+        # Older FastMCP versions may not ship middleware — graceful skip
+        pass
+
+    # ============================================================================
+    # MCP RESOURCES — On-demand context the LLM can read for deep guidance
+    # ============================================================================
+
+    @mcp.resource("hexstrike://playbook")
+    def hexstrike_playbook() -> str:
+        """Complete HexStrike workflow playbook — read this to understand how to use the system effectively."""
+        return """# HexStrike AI — Agent Playbook
+
+## How This System Works
+
+HexStrike is a penetration testing framework with 100+ security tools exposed via MCP.
+You can call tools individually, but the BEST approach is to use the intelligence engine.
+
+## Recommended Workflow: Iterative Smart Scan
+
+This is HexStrike's most powerful feature — an adaptive scan loop that:
+1. Analyzes the target and creates a profile
+2. Selects the best tools using AI (based on target type, technology stack, objective)
+3. Executes tools in parallel
+4. Parses results into structured findings with severity classification
+5. Recommends follow-up tools based on what was discovered
+6. Repeats until no more tools are recommended (converged)
+
+### How to Use It:
+
+```
+Step 1: result = iterative_smart_scan(target="example.com", objective="comprehensive")
+        → Returns session_id, initial findings, recommended next tools
+
+Step 2: result = iterative_smart_scan(target="example.com", session_id="<id from step 1>")
+        → Runs follow-up tools, returns updated findings
+
+Step 3: Repeat Step 2 until result.has_more_iterations == false
+
+Step 4: summary = correlate_session_findings(session_id="<id>")
+        → Get deduplicated, severity-ranked final report
+```
+
+### Objectives:
+- "comprehensive" — Full assessment, all relevant tools (default)
+- "quick" — Top 3 most effective tools only
+- "stealth" — Passive tools only (amass, subfinder, httpx)
+
+## When to Use Direct Tools Instead
+
+Use individual tools when the user asks for something specific:
+- "Scan ports on 10.0.0.1" → nmap_scan
+- "Find subdomains of example.com" → subfinder_scan or amass_scan
+- "Check if admin@example.com was breached" → hibp_breach_check
+- "What's exposed on this IP?" → shodan_host_lookup
+
+## Tool Categories
+
+### Reconnaissance & OSINT
+- nmap_scan, masscan_scan, rustscan_scan — Port scanning
+- subfinder_scan, amass_scan — Subdomain enumeration
+- theharvester_scan — Email/subdomain harvesting
+- sherlock_investigate — Username OSINT across 400+ platforms
+- shodan_host_lookup, shodan_search_query — Internet device intelligence (needs SHODAN_API_KEY)
+- censys_host_lookup, censys_search_hosts — Host/cert intelligence (needs CENSYS_API_ID + CENSYS_API_SECRET)
+- hibp_breach_check, hibp_domain_search — Breach intelligence (needs HIBP_API_KEY)
+
+### Web Application Testing
+- nuclei_scan — Template-based vulnerability scanning
+- gobuster_scan, feroxbuster_scan, ffuf_fuzz — Directory/file discovery
+- sqlmap_scan — SQL injection testing
+- nikto_scan — Web server misconfiguration scanning
+- wpscan_scan — WordPress security assessment
+- dalfox_xss_scan — XSS detection
+- katana_crawl — JavaScript-aware web crawling
+
+### Exploitation & Password
+- hydra_attack, medusa_attack — Brute force attacks
+- metasploit_scan — Exploit framework
+- john_crack, hashcat_crack — Password cracking
+
+### Cloud Security
+- prowler_scan, scout_suite_scan — AWS/multi-cloud assessment
+- trivy_scan — Container vulnerability scanning
+- kube_hunter_scan, kube_bench_scan — Kubernetes security
+
+### Binary Analysis
+- ghidra_analyze — Reverse engineering
+- checksec_check — Binary security properties
+- gdb_debug — Debugging with exploit development plugins
+
+### Intelligence Engine (AI-Powered)
+- analyze_target_intelligence — AI target profiling
+- intelligent_smart_scan — One-shot AI-driven scan
+- iterative_smart_scan — Multi-iteration adaptive scan (RECOMMENDED)
+- create_attack_chain_ai — AI attack path planning
+- select_optimal_tools_ai — AI tool selection
+
+### Scan Intelligence
+- create_scan_session — Create persistent session
+- get_scan_session — Retrieve session state
+- analyze_tool_results — Parse raw output into structured findings
+- correlate_session_findings — Deduplicate and cross-reference findings
+
+### Scan Memory & Persistence
+- complete_scan_session — Archive session + save episodic memory trace
+- checkpoint_scan_session — Checkpoint session to disk (survives restarts)
+- get_scan_recommendations — Memory-based tool recommendations for a target
+- list_past_scans — List completed archived scan sessions
+- get_past_scan — Retrieve full details of a past scan
+- search_scan_memory — Search episodic memory by target/tool/type
+- get_learned_patterns — Get semantic patterns from past scans
+- consolidate_scan_memory — Extract patterns from episodic memory
+- add_scan_learning — Record manual observation/learning
+
+## Session Management
+
+Sessions persist findings across multiple tool calls (2-hour TTL).
+Sessions are automatically checkpointed to disk and survive server restarts.
+Call complete_scan_session when done to archive and save to episodic memory.
+Call get_scan_recommendations BEFORE starting a new scan to leverage past experience.
+
+- create_scan_session(target) → session_id
+- get_scan_session(session_id) → full state with all findings
+- list_scan_sessions() → all active sessions
+- correlate_session_findings(session_id) → deduplicated summary
+
+## API Key Requirements
+
+Some tools require API keys set as environment variables:
+- SHODAN_API_KEY — for shodan_host_lookup, shodan_search_query, shodan_exploit_search
+- CENSYS_API_ID + CENSYS_API_SECRET — for censys_host_lookup, censys_search_hosts, censys_certificate_search
+- HIBP_API_KEY — for hibp_breach_check, hibp_paste_check, hibp_domain_search
+
+If a key is missing, the tool will return a clear error message telling the user which env var to set.
+
+## Decision Guide
+
+| User Request | Best Approach |
+|-------------|---------------|
+| "Scan this target" | iterative_smart_scan |
+| "Full pentest of example.com" | iterative_smart_scan with objective="comprehensive" |
+| "Quick check on this IP" | iterative_smart_scan with objective="quick" |
+| "Scan ports on 10.0.0.1" | nmap_scan (direct) |
+| "Find subdomains" | subfinder_scan or amass_scan (direct) |
+| "Check this email for breaches" | hibp_breach_check (direct) |
+| "What's exposed on this IP?" | shodan_host_lookup (direct) |
+| "Plan an attack path" | create_attack_chain_ai |
+| "What tools should I use?" | select_optimal_tools_ai or analyze_target_intelligence |
+"""
+
+    @mcp.resource("hexstrike://tools/categories")
+    def hexstrike_tool_categories() -> str:
+        """Quick reference of all HexStrike tool categories and their MCP function names."""
+        return """# HexStrike Tool Categories
+
+## Network (16): nmap_scan, httpx_probe, masscan_scan, dnsenum_scan, fierce_scan, dnsx_scan, rustscan_scan, autorecon_scan, nbtscan_scan, arp_scan, responder_scan, netexec_scan, enum4linux_scan, smbmap_scan, rpcclient_scan, enum4linux_ng_scan
+
+## Web (22): nuclei_scan, gobuster_scan, sqlmap_scan, nikto_scan, feroxbuster_scan, ffuf_fuzz, katana_crawl, wpscan_scan, arjun_scan, dalfox_xss_scan, whatweb_scan, dirsearch_scan, paramspider_scan, x8_scan, dirb_scan, dotdotpwn_scan, wfuzz_scan, xsser_scan, wafw00f_scan, commix_scan, nosqlmap_scan, tplmap_scan
+
+## Recon (18): amass_scan, subfinder_scan, waybackurls_scan, gau_scan, hakrawler_scan, theharvester_scan, sherlock_investigate, spiderfoot_scan, trufflehog_scan, aquatone_scan, subjack_scan, recon_ng_scan, shodan_host_lookup, shodan_search_query, shodan_exploit_search, censys_host_lookup, censys_search_hosts, censys_certificate_search
+
+## Breach Intel (4): hibp_breach_check, hibp_paste_check, hibp_breach_detail, hibp_domain_search
+
+## Exploit (11): metasploit_scan, hydra_attack, john_crack, hashcat_crack, medusa_attack, msfvenom_generate, patator_attack, evil_winrm_connect, hash_identifier_scan, hashid_scan, hashpump_scan
+
+## Forensics (10): volatility_analyze, volatility3_analyze, steghide_scan, exiftool_scan, foremost_scan, zsteg_scan, stegsolve_scan, scalpel_scan, bulk_extractor_scan, outguess_scan
+
+## Binary (19): ghidra_analyze, checksec_check, binwalk_scan, gdb_debug, gdb_peda_debug, gdb_gef_debug, radare2_analyze, ropgadget_scan, ropper_scan, one_gadget_scan, strings_scan, objdump_scan, xxd_scan, pwntools_exploit, angr_analyze, libc_database_scan, pwninit_setup, upx_scan, hexdump_scan
+
+## Cloud (12): prowler_scan, scout_suite_scan, trivy_scan, kube_hunter_scan, kube_bench_scan, docker_bench_scan, falco_scan, checkov_scan, terrascan_scan, clair_scan, pacu_scan, cloudmapper_scan
+
+## Intelligence (10): analyze_target_intelligence, select_optimal_tools_ai, optimize_tool_parameters_ai, create_attack_chain_ai, intelligent_smart_scan, detect_technologies_ai, ai_reconnaissance_workflow, ai_vulnerability_assessment, iterative_smart_scan, create_scan_session, get_scan_session, list_scan_sessions, analyze_tool_results, correlate_session_findings
+"""
+
+    # ============================================================================
+    # MCP PROMPTS — Scenario workflow starters the LLM can invoke
+    # ============================================================================
+
+    @mcp.prompt()
+    def full_pentest(target: str) -> str:
+        """Start a comprehensive penetration test against a target using HexStrike's adaptive scanning."""
+        return f"""Perform a comprehensive penetration test against {target} using HexStrike.
+
+Follow this workflow:
+1. Call iterative_smart_scan(target="{target}", objective="comprehensive") to start
+2. Review the findings and session_id from the response
+3. Call iterative_smart_scan(target="{target}", session_id="<session_id>") for follow-up iterations
+4. Repeat until has_more_iterations is false
+5. Call correlate_session_findings(session_id="<session_id>") for the final deduplicated report
+6. Present findings organized by severity (critical → high → medium → low → info)
+7. For each critical/high finding, explain the risk and suggest remediation
+
+Start now with the first iteration."""
+
+    @mcp.prompt()
+    def web_app_assessment(target: str) -> str:
+        """Start a web application security assessment."""
+        return f"""Perform a web application security assessment of {target} using HexStrike.
+
+Follow this workflow:
+1. Call analyze_target_intelligence(target="{target}") to profile the target
+2. Based on the profile, run these in sequence:
+   a. nmap_scan(target="{target}", scan_type="-sV", ports="80,443,8080,8443") for service discovery
+   b. nuclei_scan(target="{target}") for known vulnerability templates
+   c. gobuster_scan or ffuf_fuzz for directory discovery
+   d. If WordPress detected: wpscan_scan
+   e. If forms found: sqlmap_scan for injection testing
+3. Use analyze_tool_results for each tool output to get structured findings
+4. Call correlate_session_findings for the final report
+
+Present a clear assessment with:
+- Executive summary
+- Critical and high findings with proof
+- Remediation recommendations
+
+Start with target analysis."""
+
+    @mcp.prompt()
+    def credential_intelligence(email_or_domain: str) -> str:
+        """Check breach exposure for an email address or domain."""
+        return f"""Investigate breach exposure for {email_or_domain} using HexStrike.
+
+Follow this workflow:
+1. If this looks like an email:
+   a. Call hibp_breach_check(email="{email_or_domain}") to check breach databases
+   b. Call hibp_paste_check(email="{email_or_domain}") to check paste sites
+2. If this looks like a domain:
+   a. Call hibp_domain_search(domain="{email_or_domain}") to find all breaches affecting the domain
+   b. Call shodan_host_lookup(target="{email_or_domain}") for infrastructure exposure
+   c. Call censys_host_lookup(target="{email_or_domain}") for certificate intelligence
+3. Summarize:
+   - Total breaches found
+   - Types of data exposed (passwords, emails, personal info)
+   - Timeline of breaches
+   - Risk assessment and recommendations
+
+Note: Requires HIBP_API_KEY environment variable. If missing, inform the user.
+
+Start the investigation now."""
+
+    @mcp.prompt()
+    def network_discovery(target: str) -> str:
+        """Discover and map a network target's attack surface."""
+        return f"""Discover the attack surface of {target} using HexStrike.
+
+Follow this workflow:
+1. Call shodan_host_lookup(target="{target}") for passive intelligence (if SHODAN_API_KEY is set)
+2. Call nmap_scan(target="{target}", scan_type="-sV -sC", additional_args="--top-ports 1000") for active scanning
+3. Based on open ports found:
+   - Web ports (80,443,8080): Run nikto_scan and nuclei_scan
+   - SMB (445): Run enum4linux_scan
+   - SSH (22): Note for potential brute force
+   - Database ports (3306,5432,1433): Note for injection testing
+4. Call censys_host_lookup(target="{target}") for certificate and service data
+5. Use analyze_tool_results on each result, then correlate_session_findings
+
+Present a network map with:
+- All open ports and services
+- Identified technologies and versions
+- Known vulnerabilities (CVEs)
+- Recommended next steps
+
+Start with passive reconnaissance."""
+
+    @mcp.prompt()
+    def cloud_exposure_audit(target: str) -> str:
+        """Audit cloud infrastructure exposure for a target."""
+        return f"""Audit cloud infrastructure exposure for {target} using HexStrike.
+
+Follow this workflow:
+1. Call shodan_search_query(query="hostname:{target}") to find all exposed cloud assets
+2. Call censys_search_hosts(query="services.tls.certificates.leaf.names: {target}") for cert transparency
+3. Call subfinder_scan(target="{target}") to enumerate subdomains (may reveal cloud endpoints)
+4. For any AWS/Azure/GCP assets found:
+   - Check for S3 bucket misconfigurations
+   - Check for exposed admin panels
+   - Check for default credentials on cloud services
+5. If AWS credentials are available: prowler_scan for CIS benchmark compliance
+6. Call correlate_session_findings for final report
+
+Present:
+- All discovered cloud assets and their exposure level
+- Misconfigured services
+- Certificate issues
+- Remediation priorities
+
+Start with passive cloud asset discovery."""
 
     # ============================================================================
     # CORE NETWORK SCANNING TOOLS
@@ -5838,6 +6145,617 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient) -> FastMCP:
             logger.info(f"✅ Recon-ng completed")
         else:
             logger.error(f"❌ Recon-ng failed")
+        return result
+
+    # ============================================================================
+    # API-BASED OSINT INTELLIGENCE TOOLS (Require API Keys)
+    # ============================================================================
+
+    @mcp.tool()
+    def shodan_host_lookup(target: str, action: str = "host", minify: bool = True) -> Dict[str, Any]:
+        """
+        Query Shodan for internet-connected device intelligence. Requires SHODAN_API_KEY env var.
+
+        Args:
+            target: IP address, domain, or search query
+            action: API action - "host" (IP info), "search" (query devices), "resolve" (DNS),
+                    "reverse" (reverse DNS), "exploits" (search exploits), "info" (API credits)
+            minify: Return minimal host info for host lookups (default True)
+
+        Returns:
+            Device intelligence including open ports, services, vulnerabilities, and banners
+        """
+        data = {"target": target, "action": action, "minify": minify}
+        logger.info(f"🔍 Starting Shodan {action}: {target}")
+        result = hexstrike_client.safe_post("api/tools/shodan", data)
+        if result.get("success"):
+            logger.info(f"✅ Shodan {action} completed for {target}")
+        else:
+            logger.error(f"❌ Shodan {action} failed for {target}")
+        return result
+
+    @mcp.tool()
+    def shodan_search_query(query: str, page: int = 1, facets: str = "") -> Dict[str, Any]:
+        """
+        Search Shodan's database of internet-connected devices. Requires SHODAN_API_KEY env var.
+
+        Args:
+            query: Shodan search query (e.g. "apache country:US", "port:22 os:Linux")
+            page: Page number for results pagination
+            facets: Comma-separated facets (e.g. "country,org,port")
+
+        Returns:
+            Matching hosts with open ports, services, banners, and geolocation
+        """
+        data = {"target": query, "action": "search", "page": page, "facets": facets}
+        logger.info(f"🔍 Starting Shodan search: {query}")
+        result = hexstrike_client.safe_post("api/tools/shodan", data)
+        if result.get("success"):
+            logger.info(f"✅ Shodan search completed for: {query}")
+        else:
+            logger.error(f"❌ Shodan search failed for: {query}")
+        return result
+
+    @mcp.tool()
+    def shodan_exploit_search(query: str, page: int = 1) -> Dict[str, Any]:
+        """
+        Search Shodan's exploit database for known vulnerabilities. Requires SHODAN_API_KEY env var.
+
+        Args:
+            query: Exploit search query (e.g. "apache 2.4", "CVE-2021-44228")
+            page: Page number for results
+
+        Returns:
+            Matching exploits with CVE details and references
+        """
+        data = {"target": query, "action": "exploits", "page": page}
+        logger.info(f"🔍 Starting Shodan exploit search: {query}")
+        result = hexstrike_client.safe_post("api/tools/shodan", data)
+        if result.get("success"):
+            logger.info(f"✅ Shodan exploit search completed for: {query}")
+        else:
+            logger.error(f"❌ Shodan exploit search failed for: {query}")
+        return result
+
+    @mcp.tool()
+    def censys_host_lookup(target: str, action: str = "host") -> Dict[str, Any]:
+        """
+        Query Censys for host and certificate intelligence. Requires CENSYS_API_ID and CENSYS_API_SECRET env vars.
+
+        Args:
+            target: IP address, domain, or search query
+            action: API action - "host" (IP details), "search_hosts" (search hosts),
+                    "search_certs" (search certificates), "aggregate" (aggregate data)
+
+        Returns:
+            Host details including services, ports, certificates, and geolocation
+        """
+        data = {"target": target, "action": action}
+        logger.info(f"🔍 Starting Censys {action}: {target}")
+        result = hexstrike_client.safe_post("api/tools/censys", data)
+        if result.get("success"):
+            logger.info(f"✅ Censys {action} completed for {target}")
+        else:
+            logger.error(f"❌ Censys {action} failed for {target}")
+        return result
+
+    @mcp.tool()
+    def censys_search_hosts(query: str, per_page: int = 25, virtual_hosts: str = "INCLUDE") -> Dict[str, Any]:
+        """
+        Search Censys host database for exposed services and infrastructure. Requires CENSYS_API_ID and CENSYS_API_SECRET.
+
+        Args:
+            query: Censys search query (e.g. "services.port=443 and location.country=US")
+            per_page: Results per page (max 100)
+            virtual_hosts: Virtual host handling - "INCLUDE", "EXCLUDE", or "ONLY"
+
+        Returns:
+            Matching hosts with services, ports, and infrastructure details
+        """
+        data = {"target": query, "action": "search_hosts", "per_page": per_page, "virtual_hosts": virtual_hosts}
+        logger.info(f"🔍 Starting Censys host search: {query}")
+        result = hexstrike_client.safe_post("api/tools/censys", data)
+        if result.get("success"):
+            logger.info(f"✅ Censys host search completed for: {query}")
+        else:
+            logger.error(f"❌ Censys host search failed for: {query}")
+        return result
+
+    @mcp.tool()
+    def censys_certificate_search(query: str, per_page: int = 25) -> Dict[str, Any]:
+        """
+        Search Censys certificate transparency logs. Requires CENSYS_API_ID and CENSYS_API_SECRET env vars.
+
+        Args:
+            query: Certificate search query (e.g. "parsed.subject.common_name: example.com")
+            per_page: Results per page (max 100)
+
+        Returns:
+            Matching certificates with subject, issuer, validity, and SANs
+        """
+        data = {"target": query, "action": "search_certs", "per_page": per_page}
+        logger.info(f"🔍 Starting Censys certificate search: {query}")
+        result = hexstrike_client.safe_post("api/tools/censys", data)
+        if result.get("success"):
+            logger.info(f"✅ Censys certificate search completed")
+        else:
+            logger.error(f"❌ Censys certificate search failed")
+        return result
+
+    @mcp.tool()
+    def hibp_breach_check(email: str, truncate: bool = False, include_unverified: bool = True) -> Dict[str, Any]:
+        """
+        Check if an email has been compromised in known data breaches. Requires HIBP_API_KEY env var.
+
+        Args:
+            email: Email address to check for breaches
+            truncate: Return only breach names without full details
+            include_unverified: Include unverified breaches in results
+
+        Returns:
+            List of breaches, exposed data types, and total records compromised
+        """
+        data = {
+            "target": email,
+            "action": "breaches",
+            "truncate": truncate,
+            "include_unverified": include_unverified,
+        }
+        logger.info(f"🔍 Starting HIBP breach check: {email}")
+        result = hexstrike_client.safe_post("api/tools/hibp", data)
+        if result.get("success"):
+            output = result.get("output", {})
+            if output.get("found"):
+                logger.info(f"⚠️  HIBP: {email} found in {output.get('breach_count', 0)} breach(es)")
+            else:
+                logger.info(f"✅ HIBP: {email} not found in any breaches")
+        else:
+            logger.error(f"❌ HIBP breach check failed for {email}")
+        return result
+
+    @mcp.tool()
+    def hibp_paste_check(email: str) -> Dict[str, Any]:
+        """
+        Check if an email appears in paste sites (Pastebin, etc.). Requires HIBP_API_KEY env var.
+
+        Args:
+            email: Email address to check for paste appearances
+
+        Returns:
+            List of pastes containing the email with source and date
+        """
+        data = {"target": email, "action": "pastes"}
+        logger.info(f"🔍 Starting HIBP paste check: {email}")
+        result = hexstrike_client.safe_post("api/tools/hibp", data)
+        if result.get("success"):
+            logger.info(f"✅ HIBP paste check completed for {email}")
+        else:
+            logger.error(f"❌ HIBP paste check failed for {email}")
+        return result
+
+    @mcp.tool()
+    def hibp_breach_detail(breach_name: str) -> Dict[str, Any]:
+        """
+        Get detailed information about a specific data breach. Requires HIBP_API_KEY env var.
+
+        Args:
+            breach_name: Name of the breach (e.g. "LinkedIn", "Adobe")
+
+        Returns:
+            Breach details including date, description, data types, and record count
+        """
+        data = {"target": breach_name, "action": "breach_detail"}
+        logger.info(f"🔍 Fetching HIBP breach details: {breach_name}")
+        result = hexstrike_client.safe_post("api/tools/hibp", data)
+        if result.get("success"):
+            logger.info(f"✅ HIBP breach details retrieved for {breach_name}")
+        else:
+            logger.error(f"❌ HIBP breach detail lookup failed for {breach_name}")
+        return result
+
+    @mcp.tool()
+    def hibp_domain_search(domain: str) -> Dict[str, Any]:
+        """
+        Search for all breaches that affected a specific domain. Requires HIBP_API_KEY env var.
+
+        Args:
+            domain: Domain to search for in breach database (e.g. "example.com")
+
+        Returns:
+            All breaches associated with the domain
+        """
+        data = {"target": domain, "action": "domain_search"}
+        logger.info(f"🔍 Starting HIBP domain search: {domain}")
+        result = hexstrike_client.safe_post("api/tools/hibp", data)
+        if result.get("success"):
+            logger.info(f"✅ HIBP domain search completed for {domain}")
+        else:
+            logger.error(f"❌ HIBP domain search failed for {domain}")
+        return result
+
+    # ============================================================================
+    # SCAN INTELLIGENCE — Sessions, Iterative Scanning, Analysis, Correlation
+    # ============================================================================
+
+    @mcp.tool()
+    def create_scan_session(target: str) -> Dict[str, Any]:
+        """
+        Create a persistent scan session for a target. Sessions accumulate findings
+        across multiple tool executions so follow-up tools are selected intelligently.
+
+        Args:
+            target: Target to scan (IP, domain, or URL)
+
+        Returns:
+            Session ID, target profile, and initial session state
+        """
+        data = {"target": target}
+        logger.info(f"📋 Creating scan session for {target}")
+        result = hexstrike_client.safe_post("api/scan-intelligence/sessions", data)
+        if result.get("success"):
+            sid = result.get("session", {}).get("session_id", "")
+            logger.info(f"✅ Scan session created: {sid}")
+        else:
+            logger.error(f"❌ Failed to create scan session for {target}")
+        return result
+
+    @mcp.tool()
+    def get_scan_session(session_id: str) -> Dict[str, Any]:
+        """
+        Retrieve full state of a scan session including all accumulated findings.
+
+        Args:
+            session_id: Session ID returned by create_scan_session
+
+        Returns:
+            Complete session state with target profile, findings, tools executed
+        """
+        logger.info(f"📋 Retrieving scan session {session_id}")
+        result = hexstrike_client.safe_get(f"api/scan-intelligence/sessions/{session_id}")
+        if result.get("success"):
+            summary = result.get("session", {})
+            logger.info(
+                f"✅ Session {session_id}: {summary.get('total_findings', 0)} findings, "
+                f"{summary.get('tools_run', 0)} tools run"
+            )
+        else:
+            logger.error(f"❌ Failed to retrieve session {session_id}")
+        return result
+
+    @mcp.tool()
+    def list_scan_sessions() -> Dict[str, Any]:
+        """
+        List all active scan sessions.
+
+        Returns:
+            List of session summaries with targets, finding counts, and status
+        """
+        logger.info("📋 Listing scan sessions")
+        result = hexstrike_client.safe_get("api/scan-intelligence/sessions")
+        if result.get("success"):
+            logger.info(f"✅ Found {result.get('count', 0)} active session(s)")
+        return result
+
+    @mcp.tool()
+    def iterative_smart_scan(
+        target: str,
+        session_id: str = "",
+        objective: str = "comprehensive",
+        max_tools: int = 5,
+    ) -> Dict[str, Any]:
+        """
+        Execute one iteration of an AI-driven scan loop (Think → Decide → Act → Observe).
+
+        First call: Creates session, analyzes target, selects initial tools, executes them.
+        Subsequent calls (with session_id): Analyzes prior findings, selects follow-up tools,
+        executes them, correlates all findings.
+
+        Call repeatedly until 'has_more_iterations' is False for a complete adaptive scan.
+
+        Args:
+            target: Target to scan (IP, domain, or URL)
+            session_id: Existing session ID for follow-up iterations (empty for first iteration)
+            objective: Scanning objective — "comprehensive", "quick", or "stealth"
+            max_tools: Maximum tools to run per iteration
+
+        Returns:
+            Iteration results with new findings, correlated summary, and recommended next tools
+        """
+        data = {
+            "target": target,
+            "objective": objective,
+            "max_tools": max_tools,
+        }
+        if session_id:
+            data["session_id"] = session_id
+
+        iteration_label = "follow-up" if session_id else "initial"
+        logger.info(f"🔄 Starting {iteration_label} iterative scan for {target}")
+        result = hexstrike_client.safe_post("api/scan-intelligence/iterative-scan", data)
+
+        if result.get("success"):
+            status = result.get("status", "")
+            if status == "converged":
+                logger.info(f"✅ Scan converged for {target} — no more tools to run")
+            else:
+                iteration = result.get("iteration", 0)
+                new_count = result.get("new_findings_count", 0)
+                next_tools = result.get("recommended_next_tools", [])
+                logger.info(
+                    f"✅ Iteration {iteration}: {new_count} new findings. "
+                    f"Next tools: {', '.join(next_tools) if next_tools else 'none (converged)'}"
+                )
+        else:
+            logger.error(f"❌ Iterative scan failed for {target}")
+        return result
+
+    @mcp.tool()
+    def analyze_tool_results(tool: str, target: str, result: Dict[str, Any], session_id: str = "") -> Dict[str, Any]:
+        """
+        Parse raw tool output into structured security findings with severity classification.
+
+        Optionally attaches findings to an existing scan session for correlation.
+
+        Args:
+            tool: Tool name that produced the output (e.g. "nmap", "nuclei", "shodan")
+            target: Target that was scanned
+            result: Raw tool result dict (with stdout/output keys)
+            session_id: Optional session ID to persist findings to
+
+        Returns:
+            List of structured findings with severity, confidence, and detail
+        """
+        data = {"tool": tool, "target": target, "result": result}
+        if session_id:
+            data["session_id"] = session_id
+        logger.info(f"🔬 Analyzing {tool} results for {target}")
+        resp = hexstrike_client.safe_post("api/scan-intelligence/analyze-results", data)
+        if resp.get("success"):
+            count = resp.get("finding_count", 0)
+            logger.info(f"✅ Parsed {count} finding(s) from {tool}")
+        else:
+            logger.error(f"❌ Result analysis failed for {tool}")
+        return resp
+
+    @mcp.tool()
+    def correlate_session_findings(session_id: str) -> Dict[str, Any]:
+        """
+        Deduplicate and cross-reference all findings in a scan session.
+
+        Merges equivalent findings from different tools (e.g. Shodan + Nmap both
+        reporting the same open port), boosts confidence for corroborated findings,
+        and produces an LLM-friendly severity summary.
+
+        Args:
+            session_id: Session ID to correlate findings for
+
+        Returns:
+            Correlated findings list, severity breakdown, and narrative summary
+        """
+        data = {"session_id": session_id}
+        logger.info(f"🔗 Correlating findings for session {session_id}")
+        resp = hexstrike_client.safe_post("api/scan-intelligence/correlate", data)
+        if resp.get("success"):
+            summary = resp.get("summary", {})
+            total = summary.get("total_unique_findings", 0)
+            confirmed = summary.get("multi_tool_confirmed", 0)
+            logger.info(f"✅ Correlated: {total} unique findings, {confirmed} multi-tool confirmed")
+        else:
+            logger.error(f"❌ Finding correlation failed for session {session_id}")
+        return resp
+
+    # ============================================================================
+    # SCAN MEMORY — Persistence, Episodic/Semantic Memory, Recommendations
+    # ============================================================================
+
+    @mcp.tool()
+    def complete_scan_session(session_id: str) -> Dict[str, Any]:
+        """
+        Mark a scan session as complete. Archives session to disk and saves
+        an episodic memory trace for future pattern learning.
+
+        Call this when a scan is finished (all iterations done or converged).
+        The session data is permanently archived and becomes part of the
+        memory system for improving future scans.
+
+        Args:
+            session_id: Session ID to complete
+
+        Returns:
+            Archived session summary with findings and tools executed
+        """
+        data = {"session_id": session_id}
+        logger.info(f"✅ Completing scan session {session_id}")
+        result = hexstrike_client.safe_post("api/scan-memory/complete-session", data)
+        if result.get("success"):
+            logger.info(f"📦 Session {session_id} archived to disk + episodic memory")
+        else:
+            logger.error(f"❌ Failed to complete session {session_id}")
+        return result
+
+    @mcp.tool()
+    def checkpoint_scan_session(session_id: str) -> Dict[str, Any]:
+        """
+        Checkpoint a scan session to disk without completing it. Ensures the
+        session survives server restarts.
+
+        Call this periodically during long scans for durability.
+
+        Args:
+            session_id: Session ID to checkpoint
+
+        Returns:
+            Confirmation of checkpoint
+        """
+        data = {"session_id": session_id}
+        logger.info(f"💾 Checkpointing session {session_id}")
+        result = hexstrike_client.safe_post("api/scan-memory/persist-session", data)
+        if result.get("success"):
+            logger.info(f"💾 Session {session_id} checkpointed to disk")
+        else:
+            logger.error(f"❌ Failed to checkpoint session {session_id}")
+        return result
+
+    @mcp.tool()
+    def get_scan_recommendations(target: str, target_type: str = "") -> Dict[str, Any]:
+        """
+        Get memory-based recommendations for scanning a target. Uses episodic
+        recall (similar past scans) and semantic patterns (tool effectiveness
+        by target type) to suggest optimal tools and approaches.
+
+        Call this BEFORE starting a new scan to leverage past experience.
+
+        Args:
+            target: Target to get recommendations for (IP, domain, or URL)
+            target_type: Optional target type (web_application, network_host, etc.)
+
+        Returns:
+            Similar past scans, recommended tools, patterns to apply, tools to avoid
+        """
+        data = {"target": target}
+        if target_type:
+            data["target_profile"] = {"target_type": target_type}
+        logger.info(f"🧠 Getting scan recommendations for {target}")
+        result = hexstrike_client.safe_post("api/scan-memory/recommendations", data)
+        if result.get("success"):
+            similar = result.get("similar_past_scans", 0)
+            recs = result.get("recommended_tools", [])
+            logger.info(f"🧠 Found {similar} similar past scans, " f"{len(recs)} recommended tool(s)")
+        return result
+
+    @mcp.tool()
+    def list_past_scans(limit: int = 20) -> Dict[str, Any]:
+        """
+        List completed (archived) past scan sessions from memory.
+
+        Use this to review scan history and find past engagements.
+
+        Args:
+            limit: Maximum number of past scans to return
+
+        Returns:
+            List of completed scan summaries with targets, findings, and tools
+        """
+        logger.info("📚 Listing past scan sessions")
+        result = hexstrike_client.safe_get(f"api/scan-memory/completed-sessions?limit={limit}")
+        if result.get("success"):
+            logger.info(f"📚 Found {result.get('count', 0)} past scan(s)")
+        return result
+
+    @mcp.tool()
+    def get_past_scan(session_id: str) -> Dict[str, Any]:
+        """
+        Retrieve full details of a past completed scan session.
+
+        Args:
+            session_id: Session ID of the completed scan
+
+        Returns:
+            Full session data including target profile, all findings, and tools executed
+        """
+        logger.info(f"📚 Retrieving past scan {session_id}")
+        result = hexstrike_client.safe_get(f"api/scan-memory/completed-sessions/{session_id}")
+        if result.get("success"):
+            logger.info(f"📚 Retrieved past scan {session_id}")
+        else:
+            logger.error(f"❌ Past scan {session_id} not found")
+        return result
+
+    @mcp.tool()
+    def search_scan_memory(query: str, limit: int = 10) -> Dict[str, Any]:
+        """
+        Search episodic scan memory by target, tool name, or target type.
+
+        Use this to find past scans relevant to a current engagement.
+
+        Args:
+            query: Search term (target IP/domain, tool name, or target type)
+            limit: Maximum results to return
+
+        Returns:
+            Matching episodic scan traces
+        """
+        data = {"query": query, "limit": limit}
+        logger.info(f"🔍 Searching scan memory for '{query}'")
+        result = hexstrike_client.safe_post("api/scan-memory/episodes/search", data)
+        if result.get("success"):
+            logger.info(f"🔍 Found {result.get('count', 0)} matching scan(s)")
+        return result
+
+    @mcp.tool()
+    def get_learned_patterns() -> Dict[str, Any]:
+        """
+        Get all semantic patterns learned from past scans.
+
+        Returns tool effectiveness ratings, common tool chains, and severity
+        profiles extracted from episodic memory via consolidation.
+
+        Returns:
+            Learned patterns organized by category (tool_effectiveness, tool_chain, severity_profile)
+        """
+        logger.info("🧠 Retrieving learned patterns")
+        result = hexstrike_client.safe_get("api/scan-memory/patterns")
+        if result.get("success"):
+            logger.info(f"🧠 Found {result.get('count', 0)} learned pattern(s)")
+        return result
+
+    @mcp.tool()
+    def consolidate_scan_memory() -> Dict[str, Any]:
+        """
+        Consolidate episodic scan memory into semantic patterns.
+
+        Analyzes all past scan traces to extract:
+        - Tool effectiveness by target type
+        - Common tool execution chains
+        - Typical severity distributions per target type
+
+        Call this periodically (e.g., after several completed scans) to
+        update the knowledge base and improve future scan recommendations.
+
+        Returns:
+            Number of patterns extracted and episodes analyzed
+        """
+        logger.info("🧠 Consolidating scan memory into patterns")
+        result = hexstrike_client.safe_post("api/scan-memory/consolidate", {})
+        if result.get("success"):
+            logger.info(
+                f"🧠 Consolidated: {result.get('patterns_extracted', 0)} patterns "
+                f"from {result.get('episodes_analyzed', 0)} episodes"
+            )
+        return result
+
+    @mcp.tool()
+    def add_scan_learning(
+        observation: str,
+        category: str = "general",
+        target_type: str = "",
+        tool: str = "",
+    ) -> Dict[str, Any]:
+        """
+        Record a manual learning observation from a scan engagement.
+
+        Use this to capture insights that automatic consolidation might miss,
+        e.g., "WAF blocks nuclei on this target — use dalfox instead".
+
+        Args:
+            observation: The learning/insight to record
+            category: Category (general, tool_issue, target_behavior, workaround)
+            target_type: Related target type if applicable
+            tool: Related tool name if applicable
+
+        Returns:
+            Confirmation of learning saved
+        """
+        data = {
+            "observation": observation,
+            "category": category,
+            "target_type": target_type,
+            "tool": tool,
+        }
+        logger.info(f"📝 Recording learning: {observation[:60]}...")
+        result = hexstrike_client.safe_post("api/scan-memory/learnings", data)
+        if result.get("success"):
+            logger.info("📝 Learning saved to memory")
         return result
 
     # ============================================================================

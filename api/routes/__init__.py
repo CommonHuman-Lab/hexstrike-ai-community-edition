@@ -13,6 +13,8 @@ from .intelligence import intelligence_bp
 from .process_workflows import process_workflows_bp
 from .processes import processes_bp
 from .python_env import python_env_bp
+from .scan_intelligence import scan_intelligence_bp
+from .scan_memory import scan_memory_bp
 from .tools_api import tools_api_bp
 from .tools_binary import tools_binary_bp
 from .tools_cloud import tools_cloud_bp
@@ -51,4 +53,6 @@ __all__ = [
     "tools_forensics_bp",
     "tools_web_frameworks_bp",
     "tools_recon_bp",
+    "scan_intelligence_bp",
+    "scan_memory_bp",
 ]
