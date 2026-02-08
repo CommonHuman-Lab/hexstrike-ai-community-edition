@@ -42,7 +42,7 @@ HexStrike AI connects AI agents (Claude, GPT, etc.) to a pentesting framework wi
 
 5. **Build Attack Map** — HexStrike connects related findings into attack chains. Instead of separate "Open Port 80" and "SQL Injection" reports, it shows the chain: Port 80 → WordPress → SQLi → Credentials → Full Compromise.
 
-6. **Learn & Improve** — The system remembers: "On WordPress sites, SQLMap finds SQL injection 90% of the time." Next WordPress scan runs faster because it prioritizes tools that worked before.
+6. **Learn & Improve** — The system remembers which tools are most effective on each target type. Next WordPress scan runs faster because it prioritizes tools that worked before.
 
 7. **Deliver Results** — Findings are deduplicated (if 3 tools found the same CVE, it's reported once), scored by severity, and presented as a report.
 
