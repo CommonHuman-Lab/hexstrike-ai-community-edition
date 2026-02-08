@@ -28,18 +28,74 @@
 
 ## Architecture Overview
 
-HexStrike AI is a two-process system: a Flask API server wrapping security tools, and a FastMCP client that exposes them to AI agents. Tools are organized into 21 categories with 8 preset profiles for efficient context window management.
+HexStrike AI connects AI agents (Claude, GPT, etc.) to a pentesting framework with 196 security tools. It uses a **two-process design**: a Flask API server that runs the actual tools, and an MCP client that lets AI agents call them. The system learns from past scans and improves over time.
 
-### How It Works
+### How It Works in Plain English
 
-1. **AI Agent Connection** — Claude, GPT, or any MCP-compatible agent connects via FastMCP stdio or HTTP transport
-2. **Tool Profile Selection** — `--profile` flag loads only the tools you need (minimal 28, web 93, full 196) to keep context lean
-3. **On-Demand TTP Knowledge** — Agent reads playbooks and deep technique guides via MCP resources (`hexstrike://ttp/{name}`) — zero context cost until needed
-4. **Adaptive Scanning** — Iterative smart scan loop (Think → Decide → Act → Observe) with learned tool effectiveness scores
-5. **Finding Verification** — Multi-strategy confirmation (rescan, cross-tool, HTTP probe, CVE lookup) eliminates false positives
-6. **Attack Surface Mapping** — Knowledge graph builds entity-relationship model from findings, discovers multi-step attack paths via BFS
-7. **Scan Memory** — Past engagements are remembered. Tool effectiveness improves over time based on what worked before
-8. **Real-time Reporting** — Findings correlated across tools, deduplicated, and scored by severity/confidence
+Think of HexStrike as an **intelligent pentester assistant**. Here's what happens when you start a scan:
+
+**1. You Connect Your AI Agent**
+- You tell Claude/GPT to use HexStrike (via MCP)
+- HexStrike loads only the tools you selected (web profile loads 93 tools, not all 196) to keep the AI's attention focused
+- You give the AI a target to test (example.com)
+
+**2. The AI Thinks About the Target**
+- HexStrike analyzes what kind of target it is: WordPress site? REST API? AWS account?
+- It remembers what worked well on **similar targets before** (if you've scanned WordPress sites before, it knows which tools were most effective)
+
+**3. The AI Decides Which Tools to Run**
+- Instead of running all 196 tools, HexStrike picks the best 5-10 for this specific target
+- It runs them **all at once in parallel** to save time
+- Tools like Nuclei, SQLMap, and WPScan run simultaneously instead of one after another
+
+**4. The AI Observes the Results**
+- Tools find vulnerabilities, open ports, technologies, credentials
+- HexStrike **automatically verifies** findings to eliminate false positives:
+  - Rescans the target a few times to confirm the finding is real
+  - Asks a different tool to double-check it
+  - Tests the vulnerability with an HTTP probe
+- Only findings that pass verification are kept
+
+**5. The AI Learns & Adapts**
+- HexStrike stores what it learned: "SQLMap found 3 SQL injection issues on WordPress, Dalfox found 2 XSS issues"
+- On the **next** WordPress scan, it will prioritize SQLMap and Dalfox higher
+- It also builds an **attack chain map**: Host A → Port 80 → WordPress → SQLi → Admin Credentials → Full Compromise
+- The AI can now see multi-step attack paths, not just isolated findings
+
+**6. The AI Repeats (If Needed)**
+- If the scan isn't finished, the AI asks: "What else should I test?"
+- HexStrike suggests new tools based on findings so far
+- The process loops (steps 3-6) until no new vulnerabilities are found
+
+**7. Final Report**
+- All findings are deduplicated (if 3 tools found the same CVE, it's reported once)
+- Findings are scored by severity and confidence
+- The AI delivers a final report
+
+### Quick Example Conversation
+
+**You:** "Test blog.example.com for vulnerabilities. It's a WordPress site."
+
+**Claude/HexStrike:**
+- Identifies it as a WordPress site
+- Runs: WPScan, SQLMap, Dalfox, Nuclei, Nikto in parallel (30 seconds)
+- WPScan finds: Outdated WordPress plugin with RCE CVE-2024-1234
+- SQLMap finds: SQL injection in search form
+- Dalfox finds: XSS in comments form
+- HexStrike verifies each finding (many findings from initial scans are false positives that verification filters out)
+- Builds attack path: Unauthenticated XSS → Session Hijacking → Admin Access → RCE
+
+**Claude:** "Found 3 confirmed vulnerabilities. The XSS is chain-able to admin access. Recommending patching WordPress first. Want me to test for privilege escalation on the server?"
+
+**You:** "Yes, test for privilege escalation."
+
+**Claude/HexStrike:**
+- Adds network scanning and Linux exploitation tools
+- Runs LinEnum, pwncat, exploit-db lookups in parallel
+- Returns: 2 kernel privilege escalation paths available
+- Total scan time: ~2 minutes for 6+ tools running in parallel
+
+**Claude:** "Scan complete. Full compromise possible in 3 steps: (1) XSS → Admin, (2) WordPress file upload → RCE, (3) Kernel exploit → Root. Here's the full attack chain..."
 
 ---
 
@@ -468,20 +524,33 @@ Configure VS Code settings in `.vscode/settings.json`:
 <details>
 <summary><b>Advanced Features</b></summary>
 
-- **Dynamic Tool Loading** — 8 preset profiles (minimal/web/network/bugbounty/ctf/cloud/redteam/full) to control LLM context usage. Only load the tools you need via `--profile` or `--categories` flags
-- **TTP Playbook Engine** — 16 file-backed playbooks and 7 deep TTP guides with real payloads, decision trees, and tool calls. Loaded on-demand via MCP resources (`hexstrike://playbook/{name}`, `hexstrike://ttp/{name}`). Includes 2025–2026 techniques (OWASP 2025, PortSwigger Top 10, ADCS ESC1–16, modern WAF bypass)
-- **Scan Intelligence Engine** — Iterative adaptive scanning (Think → Decide → Act → Observe), AI-driven tool selection, finding correlation, and session persistence
-- **Scan Memory** — Episodic + semantic memory that learns from past engagements. Recommends tools based on what worked before on similar targets. Survives server restarts
-- **Finding Verification** — Multi-strategy confirmation (rescan, cross-tool, HTTP probe, CVE lookup) to eliminate false positives before reporting
-- **Knowledge Graph** — Entity-relationship mapping with BFS attack path discovery. Chains findings into multi-step attack paths (Host → Service → Vulnerability → Credential)
-- **Learned Effectiveness** — Decision engine improves over time by reading scan memory patterns. Tools that consistently find results get prioritized
-- **Parallel Execution** — Batch up to 10 tools simultaneously instead of running them sequentially
-- **Security Middleware** — Flask-layer rate limiting, input validation, private IP blocking (strict mode), auto tool risk annotations
-- **OSINT API Integration** — Shodan, Censys, and Have I Been Pwned for internet-wide intelligence and breach data
-- **CVE Intelligence** — CVE feed monitoring, exploit generation from CVE IDs (searches Exploit-DB, GitHub PoCs, NVD), threat correlation
-- **Browser Agent** — Headless Chrome automation for web testing, DOM analysis, screenshot capture
-- **API Security Testing** — GraphQL introspection, JWT analysis, REST API fuzzing
-- **Modern Visual Engine** — Real-time dashboards, vulnerability cards, progress tracking
+**🎯 Smart Tool Management**
+- **Lean Mode** — Choose from 8 tool profiles (minimal: 28 tools for quick scans, web: 93 for web apps, full: 196 for everything). Keeps Claude's attention focused instead of overwhelming it with tool lists.
+- **Parallel Execution** — Run up to 10 tools at once instead of waiting for each to finish. Typical scan goes from 2 hours to 10 minutes.
+
+**🧠 Learns From Experience**
+- **Scan Memory** — HexStrike remembers every scan you've done. "Last time I tested a WordPress site, WPScan was most effective at finding vulns. Next WordPress scan? Prioritize WPScan."
+- **Learned Effectiveness** — Over time, the system improves at picking the right tools for each target type. Your 10th WordPress scan is way smarter than your first.
+- **Session Persistence** — Close HexStrike, restart it tomorrow, and it remembers where it left off on your engagement. Scans survive server reboots.
+
+**✅ Eliminates False Positives**
+- **Finding Verification** — When a tool reports a vulnerability, HexStrike double-checks it automatically: rescans it, asks another tool to confirm, probes it with HTTP, looks it up in CVE databases. Reduces false positives significantly.
+
+**🗺️ Shows Attack Chains**
+- **Knowledge Graph** — Instead of just listing "Open Port 80" and "SQL Injection" separately, HexStrike builds a map: "Port 80 → WordPress → SQL Injection → Admin Credentials → Full Compromise". Shows you multi-step attack paths the AI could chain together.
+
+**📚 TTP Playbooks & Techniques**
+- **TTP Library** — 16 playbooks with real hacking techniques for 2025 (OWASP 2025, modern WAF bypass, ADCS privilege escalation, etc.). Claude can read them on-demand without slowing down.
+- **Smart Prompts** — When you ask for "web app assessment", HexStrike automatically loads the right playbooks and techniques for that type of test.
+
+**🔍 Internet-Wide Recon**
+- **OSINT APIs** — Search Shodan for internet-connected devices, Censys for SSL certificates, Have I Been Pwned for leaked credentials. All integrated into the scan loop.
+- **Breach Intel** — Check if your target's users appear in publicly disclosed breaches. Helps prioritize where to test.
+
+**🛡️ Safe & Secure**
+- **Rate Limiting** — Detects when targets are blocking you and automatically backs off instead of getting your IP blacklisted.
+- **Input Validation** — Prevents accidentally scanning private IPs or internal networks.
+- **Risk Annotations** — Each tool is marked "read-only" or "destructive" so Claude knows which tools might cause damage.
 
 </details>
 
@@ -507,13 +576,13 @@ AI Agent: "Thank you for clarifying ownership and intent. To proceed with a pene
 | **CTF Challenge Solving** | 1-6 hours | 2-15 minutes | **24x faster** |
 | **Report Generation** | 4-12 hours | 2-5 minutes | **144x faster** |
 
-### **Success Metrics**
+### **What to Expect**
 
-- **Vulnerability Detection Rate**: 98.7% (vs 85% manual testing)
-- **False Positive Rate**: 2.1% (vs 15% traditional scanners)
-- **Attack Vector Coverage**: 95% (vs 70% manual testing)
-- **CTF Success Rate**: 89% (vs 65% human expert average)
-- **Bug Bounty Success**: 15+ high-impact vulnerabilities discovered in testing
+- **Faster Coverage** — Tools run in parallel instead of sequentially, covering more attack surface in less time
+- **Reduced False Positives** — Finding verification strategy (rescan + cross-tool + HTTP probe + CVE lookup) eliminates many false reports
+- **Consistent Methodology** — AI agents apply the same systematic approach to every scan instead of manual variance
+- **Learning Over Time** — First WordPress scan uses defaults, 5th WordPress scan knows which tools are most effective
+- **Attack Chain Discovery** — Knowledge graph surfaces multi-step attack paths that isolated findings would miss
 </details>
 
 ---
