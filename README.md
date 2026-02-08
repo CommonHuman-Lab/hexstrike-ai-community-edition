@@ -30,72 +30,21 @@
 
 HexStrike AI connects AI agents (Claude, GPT, etc.) to a pentesting framework with 196 security tools. It uses a **two-process design**: a Flask API server that runs the actual tools, and an MCP client that lets AI agents call them. The system learns from past scans and improves over time.
 
-### How It Works in Plain English
+### How It Works
 
-Think of HexStrike as an **intelligent pentester assistant**. Here's what happens when you start a scan:
+1. **Connect AI Agent** — You tell Claude/GPT to use HexStrike. HexStrike loads the tools you selected (web profile: 93 tools, network profile: 75 tools, full: 196) based on what you need.
 
-**1. You Connect Your AI Agent**
-- You tell Claude/GPT to use HexStrike (via MCP)
-- HexStrike loads only the tools you selected (web profile loads 93 tools, not all 196) to keep the AI's attention focused
-- You give the AI a target to test (example.com)
+2. **Analyze Target** — HexStrike determines target type: WordPress site? REST API? Cloud account? It looks up what tools worked best on similar targets before.
 
-**2. The AI Thinks About the Target**
-- HexStrike analyzes what kind of target it is: WordPress site? REST API? AWS account?
-- It remembers what worked well on **similar targets before** (if you've scanned WordPress sites before, it knows which tools were most effective)
+3. **Select & Run Tools** — Instead of running all tools sequentially, HexStrike picks the most relevant 5-10 tools and runs them in parallel. The AI guides the scan based on findings.
 
-**3. The AI Decides Which Tools to Run**
-- Instead of running all 196 tools, HexStrike picks the best 5-10 for this specific target
-- It runs them **all at once in parallel** to save time
-- Tools like Nuclei, SQLMap, and WPScan run simultaneously instead of one after another
+4. **Verify Findings** — Raw tool output often contains false positives. HexStrike verifies each finding automatically: rescans it, checks with a different tool, probes it, looks it up in vulnerability databases.
 
-**4. The AI Observes the Results**
-- Tools find vulnerabilities, open ports, technologies, credentials
-- HexStrike **automatically verifies** findings to eliminate false positives:
-  - Rescans the target a few times to confirm the finding is real
-  - Asks a different tool to double-check it
-  - Tests the vulnerability with an HTTP probe
-- Only findings that pass verification are kept
+5. **Build Attack Map** — HexStrike connects related findings into attack chains. Instead of separate "Open Port 80" and "SQL Injection" reports, it shows the chain: Port 80 → WordPress → SQLi → Credentials → Full Compromise.
 
-**5. The AI Learns & Adapts**
-- HexStrike stores what it learned: "SQLMap found 3 SQL injection issues on WordPress, Dalfox found 2 XSS issues"
-- On the **next** WordPress scan, it will prioritize SQLMap and Dalfox higher
-- It also builds an **attack chain map**: Host A → Port 80 → WordPress → SQLi → Admin Credentials → Full Compromise
-- The AI can now see multi-step attack paths, not just isolated findings
+6. **Learn & Improve** — The system remembers: "On WordPress sites, SQLMap finds SQL injection 90% of the time." Next WordPress scan runs faster because it prioritizes tools that worked before.
 
-**6. The AI Repeats (If Needed)**
-- If the scan isn't finished, the AI asks: "What else should I test?"
-- HexStrike suggests new tools based on findings so far
-- The process loops (steps 3-6) until no new vulnerabilities are found
-
-**7. Final Report**
-- All findings are deduplicated (if 3 tools found the same CVE, it's reported once)
-- Findings are scored by severity and confidence
-- The AI delivers a final report
-
-### Quick Example Conversation
-
-**You:** "Test blog.example.com for vulnerabilities. It's a WordPress site."
-
-**Claude/HexStrike:**
-- Identifies it as a WordPress site
-- Runs: WPScan, SQLMap, Dalfox, Nuclei, Nikto in parallel (30 seconds)
-- WPScan finds: Outdated WordPress plugin with RCE CVE-2024-1234
-- SQLMap finds: SQL injection in search form
-- Dalfox finds: XSS in comments form
-- HexStrike verifies each finding (many findings from initial scans are false positives that verification filters out)
-- Builds attack path: Unauthenticated XSS → Session Hijacking → Admin Access → RCE
-
-**Claude:** "Found 3 confirmed vulnerabilities. The XSS is chain-able to admin access. Recommending patching WordPress first. Want me to test for privilege escalation on the server?"
-
-**You:** "Yes, test for privilege escalation."
-
-**Claude/HexStrike:**
-- Adds network scanning and Linux exploitation tools
-- Runs LinEnum, pwncat, exploit-db lookups in parallel
-- Returns: 2 kernel privilege escalation paths available
-- Total scan time: ~2 minutes for 6+ tools running in parallel
-
-**Claude:** "Scan complete. Full compromise possible in 3 steps: (1) XSS → Admin, (2) WordPress file upload → RCE, (3) Kernel exploit → Root. Here's the full attack chain..."
+7. **Deliver Results** — Findings are deduplicated (if 3 tools found the same CVE, it's reported once), scored by severity, and presented as a report.
 
 ---
 
