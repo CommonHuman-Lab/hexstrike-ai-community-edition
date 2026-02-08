@@ -50,12 +50,15 @@
 `checkov_iac_scan`, `terrascan_iac_scan`, `clair_vulnerability_scan`,
 `pacu_exploitation`, `cloudmapper_analysis`
 
-## AI Intelligence Engine (9)
+## AI Intelligence Engine (16)
 `analyze_target_intelligence`, `select_optimal_tools_ai`,
 `optimize_tool_parameters_ai`, `create_attack_chain_ai`,
 `intelligent_smart_scan`, `detect_technologies_ai`,
 `ai_reconnaissance_workflow`, `ai_vulnerability_assessment`,
-`iterative_smart_scan`
+`iterative_smart_scan`, `verify_finding`, `batch_verify_findings`,
+`ingest_to_knowledge_graph`, `find_attack_paths`,
+`query_knowledge_graph`, `get_tool_effectiveness`,
+`parallel_execute_tools`
 
 ## Session & Scan Management (5)
 `create_scan_session`, `get_scan_session`, `list_scan_sessions`,

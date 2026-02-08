@@ -15,7 +15,7 @@ import os
 import sys
 import threading
 
-from flask import Flask, abort, request
+from flask import Flask, abort, jsonify, request
 
 # ============================================================================
 # LOGGING CONFIGURATION (MUST BE FIRST)
@@ -116,9 +116,6 @@ from tools.recon import *
 from tools.security import *
 from tools.web import *
 
-# Global decision engine instance
-decision_engine = IntelligentDecisionEngine()
-
 # Scan intelligence subsystem (session state, result parsing, correlation)
 # Persistence layer: sessions survive restarts, completed scans become episodic memory
 session_store = SessionStore()
@@ -126,6 +123,25 @@ scan_memory = ScanMemory(data_dir=session_store.data_dir)
 session_manager = ScanSessionManager(session_store=session_store, scan_memory=scan_memory)
 result_analyzer = ResultAnalyzer()
 finding_correlator = FindingCorrelator()
+
+# Effectiveness tracker — replaces hardcoded tool scores with learned data from scan memory
+from core.effectiveness_tracker import EffectivenessTracker
+
+# Must create decision engine first to get default scores, then wrap with tracker
+decision_engine = IntelligentDecisionEngine()
+effectiveness_tracker = EffectivenessTracker(scan_memory, decision_engine.tool_effectiveness)
+decision_engine._effectiveness_tracker = effectiveness_tracker
+
+# Security subsystem — input validation, rate limiting, risk classification
+from core.security import InputValidator, RateLimiter
+
+input_validator = InputValidator()
+rate_limiter = RateLimiter()
+
+# Knowledge graph — entity-relationship graph for attack path discovery
+from core.knowledge_graph import KnowledgeGraph
+
+knowledge_graph = KnowledgeGraph(data_dir=session_store.data_dir)
 
 # Global error handler and degradation manager instances
 error_handler = IntelligentErrorHandler()
@@ -141,7 +157,7 @@ from core.optimizer import (
 
 # Global instances
 tech_detector = TechnologyDetector()
-rate_limiter = RateLimitDetector()
+rate_limit_detector = RateLimitDetector()
 failure_recovery = FailureRecoverySystem()
 performance_monitor = PerformanceMonitor()
 parameter_optimizer = ParameterOptimizer()
@@ -447,6 +463,61 @@ from api.routes import scan_memory as scan_memory_routes
 
 scan_memory_routes.init_app(session_manager, scan_memory)
 app.register_blueprint(scan_memory_routes.scan_memory_bp)
+
+# Initialize and register finding verification blueprint
+from api.routes import verification as verification_routes
+from core.security.risk_classifier import RiskClassifier
+from core.verification import FindingVerifier
+
+risk_classifier = RiskClassifier()
+finding_verifier = FindingVerifier(tool_executors, result_analyzer, decision_engine, risk_classifier)
+verification_routes.init_app(finding_verifier, session_manager)
+app.register_blueprint(verification_routes.verification_bp)
+
+# Initialize and register knowledge graph blueprint
+from api.routes import knowledge_graph as knowledge_graph_routes
+
+knowledge_graph_routes.init_app(knowledge_graph, session_manager)
+app.register_blueprint(knowledge_graph_routes.knowledge_graph_bp)
+
+# Flask security middleware — rate limiting on all /api/ routes
+from core.security.rate_limiter import SCAN_INTEL_MAX_CALLS
+
+STRICT_MODE = os.environ.get("HEXSTRIKE_STRICT_MODE", "0") == "1"
+
+
+@app.before_request
+def security_middleware():
+    """Rate limiting and optional strict-mode validation."""
+    if not request.path.startswith("/api/"):
+        return None
+
+    # Rate limiting by remote IP + endpoint
+    client_ip = request.remote_addr or "unknown"
+    limit_key = f"{client_ip}:{request.endpoint}"
+
+    # Tighter limits for expensive scan endpoints
+    if "scan-intelligence" in request.path or "verification" in request.path:
+        max_calls = SCAN_INTEL_MAX_CALLS
+    else:
+        max_calls = 30
+
+    if not rate_limiter.check_limit(limit_key, max_calls=max_calls):
+        return jsonify({"error": "Rate limit exceeded. Please wait before retrying."}), 429
+
+    # Strict mode: validate targets and block private IPs
+    if STRICT_MODE and request.method == "POST":
+        data = request.get_json(silent=True)
+        if data and "target" in data:
+            target = data["target"]
+            is_valid, error_msg = input_validator.validate_target(target)
+            if not is_valid:
+                return jsonify({"error": f"Invalid target: {error_msg}"}), 400
+            if input_validator.is_private_ip(target.split("://")[-1].split("/")[0].split(":")[0]):
+                return jsonify({"error": "Private IP targets are blocked in strict mode"}), 403
+
+    return None
+
 
 # ============================================================================
 # SERVER STARTUP

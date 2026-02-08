@@ -4,6 +4,8 @@ Shared infrastructure components for the HexStrike framework
 """
 
 from core.cache import HexStrikeCache
+from core.effectiveness_tracker import EffectivenessTracker
+from core.knowledge_graph import KnowledgeGraph
 from core.scan_memory import ScanMemory
 from core.session_store import SessionStore
 from core.telemetry import TelemetryCollector
@@ -17,6 +19,8 @@ __all__ = [
     "TelemetryCollector",
     "SessionStore",
     "ScanMemory",
+    "EffectivenessTracker",
+    "KnowledgeGraph",
     "resolve_profile",
     "resolve_categories",
     "resolve_tools",
