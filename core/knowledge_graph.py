@@ -57,6 +57,7 @@ class Entity:
     name: str
     properties: Dict[str, Any] = field(default_factory=dict)
     source_session: str = ""
+    engagement_id: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -95,8 +96,11 @@ class KnowledgeGraph:
     # ── Entity Operations ──────────────────────────────────────────────
 
     def add_entity(self, entity: Entity) -> str:
-        """Add an entity, returning its ID. Deduplicates by type + name."""
-        dedup_key = f"{entity.entity_type}:{entity.name}"
+        """Add an entity, returning its ID. Deduplicates by type + name (+ engagement when set)."""
+        if entity.engagement_id:
+            dedup_key = f"{entity.engagement_id}:{entity.entity_type}:{entity.name}"
+        else:
+            dedup_key = f"{entity.entity_type}:{entity.name}"
         if dedup_key in self._entity_name_index:
             existing_id = self._entity_name_index[dedup_key]
             # Merge properties
@@ -127,7 +131,9 @@ class KnowledgeGraph:
 
     # ── Finding Ingestion ──────────────────────────────────────────────
 
-    def ingest_findings(self, session_id: str, target: str, findings: List[Dict]) -> Dict[str, int]:
+    def ingest_findings(
+        self, session_id: str, target: str, findings: List[Dict], engagement_id: str = ""
+    ) -> Dict[str, Any]:
         """Ingest parsed Finding dicts into the graph.
 
         Maps findings to entities:
@@ -135,14 +141,25 @@ class KnowledgeGraph:
           - CVE findings → Vulnerability entity + HAS_VULN on service/host
           - Breach findings → Credential entity + OBTAINED_FROM
           - Generic findings → Vulnerability entity with finding details
+
+        When engagement_id is provided, entities are scoped to that engagement
+        so different clients' findings don't cross-contaminate.
+
+        Returns capacity info so callers know if data was dropped.
         """
         entities_created = 0
         relationships_created = 0
 
         # Create or get Host entity for the target
-        host_id = self._ensure_host(target, session_id)
+        host_id = self._ensure_host(target, session_id, engagement_id)
         if not host_id:
-            return {"entities_created": 0, "relationships_created": 0}
+            at_capacity = len(self._entities) >= MAX_ENTITIES
+            return {
+                "entities_created": 0,
+                "relationships_created": 0,
+                "at_capacity": at_capacity,
+                "warning": "Entity capacity reached — host could not be created" if at_capacity else "",
+            }
 
         for finding in findings:
             title = finding.get("title", "")
@@ -165,6 +182,7 @@ class KnowledgeGraph:
                     name=service_name,
                     properties={"port": int(port), "protocol": proto, "tool": tool},
                     source_session=session_id,
+                    engagement_id=engagement_id,
                 )
                 svc_id = self.add_entity(svc_entity)
                 if svc_id:
@@ -183,7 +201,7 @@ class KnowledgeGraph:
                     cve_match = _CVE_RE.search(title) or _CVE_RE.search(detail)
                     if cve_match:
                         e_count, r_count = self._add_vulnerability(
-                            cve_match.group(1), severity, tool, svc_id, session_id
+                            cve_match.group(1), severity, tool, svc_id, session_id, engagement_id
                         )
                         entities_created += e_count
                         relationships_created += r_count
@@ -192,7 +210,9 @@ class KnowledgeGraph:
             # CVE findings (without port context)
             cve_match = _CVE_RE.search(title) or _CVE_RE.search(detail)
             if cve_match:
-                e_count, r_count = self._add_vulnerability(cve_match.group(1), severity, tool, host_id, session_id)
+                e_count, r_count = self._add_vulnerability(
+                    cve_match.group(1), severity, tool, host_id, session_id, engagement_id
+                )
                 entities_created += e_count
                 relationships_created += r_count
                 continue
@@ -205,6 +225,7 @@ class KnowledgeGraph:
                     name=f"breach:{target}:{tool}",
                     properties={"severity": severity, "detail": detail[:200], "tool": tool},
                     source_session=session_id,
+                    engagement_id=engagement_id,
                 )
                 cred_id = self.add_entity(cred_entity)
                 if cred_id:
@@ -228,6 +249,7 @@ class KnowledgeGraph:
                     name=title[:120],
                     properties={"severity": severity, "detail": detail[:200], "tool": tool},
                     source_session=session_id,
+                    engagement_id=engagement_id,
                 )
                 vuln_id = self.add_entity(vuln_entity)
                 if vuln_id:
@@ -243,15 +265,40 @@ class KnowledgeGraph:
                         relationships_created += 1
 
         self._persist()
+
+        entity_at_cap = len(self._entities) >= MAX_ENTITIES
+        rel_at_cap = len(self._relationships) >= MAX_RELATIONSHIPS
+        at_capacity = entity_at_cap or rel_at_cap
+
         logger.info(
             f"Ingested session {session_id}: " f"{entities_created} entities, {relationships_created} relationships"
         )
-        return {"entities_created": entities_created, "relationships_created": relationships_created}
+        if at_capacity:
+            logger.warning(
+                f"Knowledge graph near capacity: {len(self._entities)}/{MAX_ENTITIES} entities, "
+                f"{len(self._relationships)}/{MAX_RELATIONSHIPS} relationships"
+            )
+
+        result = {"entities_created": entities_created, "relationships_created": relationships_created}
+        if at_capacity:
+            result["at_capacity"] = True
+            result["warning"] = (
+                f"Graph approaching limits ({len(self._entities)}/{MAX_ENTITIES} entities, "
+                f"{len(self._relationships)}/{MAX_RELATIONSHIPS} relationships). "
+                "Some findings may have been dropped. Consider using engagement_id to scope data."
+            )
+        return result
 
     # ── Query Operations ───────────────────────────────────────────────
 
-    def find_attack_paths(self, from_entity_id: str, to_type: str, max_depth: int = MAX_PATH_DEPTH) -> List[List[Dict]]:
-        """BFS to find paths from an entity to entities of the target type."""
+    def find_attack_paths(
+        self, from_entity_id: str, to_type: str, max_depth: int = MAX_PATH_DEPTH, engagement_id: str = ""
+    ) -> List[List[Dict]]:
+        """BFS to find paths from an entity to entities of the target type.
+
+        When engagement_id is provided, only traverses entities belonging
+        to that engagement (prevents cross-engagement path discovery).
+        """
         if from_entity_id not in self._entities:
             return []
 
@@ -275,6 +322,11 @@ class KnowledgeGraph:
                 rel = self._relationships[rel_id]
                 neighbor_id = rel.target_id if rel.source_id == current_id else rel.source_id
                 if neighbor_id not in visited:
+                    # Skip entities from other engagements when filtering
+                    if engagement_id and neighbor_id in self._entities:
+                        neighbor_eng = self._entities[neighbor_id].engagement_id
+                        if neighbor_eng and neighbor_eng != engagement_id:
+                            continue
                     visited.add(neighbor_id)
                     queue.append((neighbor_id, path + [neighbor_id]))
 
@@ -301,10 +353,17 @@ class KnowledgeGraph:
                 )
         return neighbors
 
-    def query(self, entity_type: Optional[str] = None, filters: Optional[Dict] = None) -> List[Dict]:
-        """Query entities by type and property filters."""
+    def query(
+        self, entity_type: Optional[str] = None, filters: Optional[Dict] = None, engagement_id: str = ""
+    ) -> List[Dict]:
+        """Query entities by type and property filters.
+
+        When engagement_id is provided, only returns entities from that engagement.
+        """
         results = []
         for entity in self._entities.values():
+            if engagement_id and entity.engagement_id and entity.engagement_id != engagement_id:
+                continue
             if entity_type and entity.entity_type != entity_type:
                 continue
             if filters:
@@ -314,26 +373,37 @@ class KnowledgeGraph:
             results.append(entity.to_dict())
         return results
 
-    def get_summary(self) -> Dict[str, Any]:
-        """Get entity and relationship counts by type."""
+    def get_summary(self, engagement_id: str = "") -> Dict[str, Any]:
+        """Get entity and relationship counts by type.
+
+        When engagement_id is provided, only counts entities/relationships from that engagement.
+        """
         entity_counts: Dict[str, int] = defaultdict(int)
-        for e in self._entities.values():
+        included_entity_ids: Set[str] = set()
+        for eid, e in self._entities.items():
+            if engagement_id and e.engagement_id and e.engagement_id != engagement_id:
+                continue
             entity_counts[e.entity_type] += 1
+            included_entity_ids.add(eid)
 
         rel_counts: Dict[str, int] = defaultdict(int)
+        total_rels = 0
         for r in self._relationships.values():
+            if engagement_id and (r.source_id not in included_entity_ids or r.target_id not in included_entity_ids):
+                continue
             rel_counts[r.rel_type] += 1
+            total_rels += 1
 
         return {
-            "total_entities": len(self._entities),
-            "total_relationships": len(self._relationships),
+            "total_entities": len(included_entity_ids),
+            "total_relationships": total_rels,
             "entities_by_type": dict(entity_counts),
             "relationships_by_type": dict(rel_counts),
         }
 
     # ── Private Helpers ────────────────────────────────────────────────
 
-    def _ensure_host(self, target: str, session_id: str) -> str:
+    def _ensure_host(self, target: str, session_id: str, engagement_id: str = "") -> str:
         """Create or get a Host entity for the target."""
         host = Entity(
             id=uuid.uuid4().hex[:12],
@@ -341,10 +411,13 @@ class KnowledgeGraph:
             name=target,
             properties={"first_seen": time.time()},
             source_session=session_id,
+            engagement_id=engagement_id,
         )
         return self.add_entity(host)
 
-    def _add_vulnerability(self, cve_id: str, severity: str, tool: str, parent_id: str, session_id: str):
+    def _add_vulnerability(
+        self, cve_id: str, severity: str, tool: str, parent_id: str, session_id: str, engagement_id: str = ""
+    ):
         """Add a vulnerability entity and link it to a parent (host or service)."""
         entities_created = 0
         relationships_created = 0
@@ -355,6 +428,7 @@ class KnowledgeGraph:
             name=cve_id.upper(),
             properties={"severity": severity, "tool": tool},
             source_session=session_id,
+            engagement_id=engagement_id,
         )
         vuln_id = self.add_entity(vuln_entity)
         if vuln_id:
@@ -400,7 +474,10 @@ class KnowledgeGraph:
             for eid, edata in data.get("entities", {}).items():
                 entity = Entity(**edata)
                 self._entities[eid] = entity
-                dedup_key = f"{entity.entity_type}:{entity.name}"
+                if entity.engagement_id:
+                    dedup_key = f"{entity.engagement_id}:{entity.entity_type}:{entity.name}"
+                else:
+                    dedup_key = f"{entity.entity_type}:{entity.name}"
                 self._entity_name_index[dedup_key] = eid
 
             for rid, rdata in data.get("relationships", {}).items():

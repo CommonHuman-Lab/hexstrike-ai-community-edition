@@ -42,6 +42,7 @@ def ingest_session():
             return jsonify({"error": "session_id is required"}), 400
 
         session_id = data["session_id"]
+        engagement_id = data.get("engagement_id", "")
         session = session_manager.get(session_id)
 
         # Try completed sessions if not found in active
@@ -50,12 +51,12 @@ def ingest_session():
             if completed:
                 findings = completed.get("findings", [])
                 target = completed.get("target", "")
-                result = graph.ingest_findings(session_id, target, findings)
+                result = graph.ingest_findings(session_id, target, findings, engagement_id=engagement_id)
                 return jsonify({"success": True, **result})
             return jsonify({"error": f"Session '{session_id}' not found"}), 404
 
         findings = [f.to_dict() for f in session.findings]
-        result = graph.ingest_findings(session_id, session.target, findings)
+        result = graph.ingest_findings(session_id, session.target, findings, engagement_id=engagement_id)
 
         logger.info(f"Ingested session {session_id} into knowledge graph")
         return jsonify({"success": True, **result})
@@ -74,8 +75,9 @@ def list_entities():
     try:
         entity_type = request.args.get("type")
         name_filter = request.args.get("name")
+        engagement_id = request.args.get("engagement_id", "")
 
-        entities = graph.query(entity_type=entity_type)
+        entities = graph.query(entity_type=entity_type, engagement_id=engagement_id)
 
         if name_filter:
             name_lower = name_filter.lower()
@@ -102,7 +104,8 @@ def find_paths():
             return jsonify({"error": "from_id and to_type are required"}), 400
 
         max_depth = request.args.get("max_depth", 5, type=int)
-        paths = graph.find_attack_paths(from_id, to_type, max_depth=max_depth)
+        engagement_id = request.args.get("engagement_id", "")
+        paths = graph.find_attack_paths(from_id, to_type, max_depth=max_depth, engagement_id=engagement_id)
 
         return jsonify({"success": True, "paths": paths, "count": len(paths)})
 
@@ -132,7 +135,8 @@ def get_related(entity_id):
 def get_summary():
     """Get knowledge graph summary statistics."""
     try:
-        summary = graph.get_summary()
+        engagement_id = request.args.get("engagement_id", "")
+        summary = graph.get_summary(engagement_id=engagement_id)
         return jsonify({"success": True, **summary})
 
     except Exception as e:

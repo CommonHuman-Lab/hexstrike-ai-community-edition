@@ -66,6 +66,7 @@ class TargetProfile:
     services: Dict[int, str] = field(default_factory=dict)
     technologies: List[TechnologyStack] = field(default_factory=list)
     cms_type: Optional[str] = None
+    target_subtype: str = ""
     subdomains: List[str] = field(default_factory=list)
     attack_surface_score: float = 0.0
     risk_level: str = "unknown"
@@ -82,12 +83,46 @@ class TargetProfile:
             "services": self.services,
             "technologies": [tech.value if isinstance(tech, Enum) else tech for tech in self.technologies],
             "cms_type": self.cms_type,
+            "target_subtype": self.target_subtype,
             "subdomains": self.subdomains,
             "attack_surface_score": self.attack_surface_score,
             "risk_level": self.risk_level,
             "confidence_score": self.confidence_score,
             "metadata": self.metadata,
         }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "TargetProfile":
+        """Reconstruct a TargetProfile from a serialized dict."""
+        target_type_val = data.get("target_type", "unknown")
+        try:
+            target_type = TargetType(target_type_val)
+        except ValueError:
+            target_type = TargetType.UNKNOWN
+
+        tech_values = data.get("technologies", [])
+        technologies = []
+        for tv in tech_values:
+            try:
+                technologies.append(TechnologyStack(tv))
+            except ValueError:
+                technologies.append(TechnologyStack.UNKNOWN)
+
+        return cls(
+            target=data.get("target", ""),
+            target_type=target_type,
+            ip_addresses=data.get("ip_addresses", []),
+            open_ports=data.get("open_ports", []),
+            services=data.get("services", {}),
+            technologies=technologies,
+            cms_type=data.get("cms_type"),
+            target_subtype=data.get("target_subtype", ""),
+            subdomains=data.get("subdomains", []),
+            attack_surface_score=data.get("attack_surface_score", 0.0),
+            risk_level=data.get("risk_level", "unknown"),
+            confidence_score=data.get("confidence_score", 0.0),
+            metadata=data.get("metadata", {}),
+        )
 
 
 @dataclass
@@ -493,6 +528,9 @@ class IntelligentDecisionEngine:
             profile.technologies = self._detect_technologies(target)
             profile.cms_type = self._detect_cms(target)
 
+        # Refine target classification for granular effectiveness learning
+        profile.target_subtype = self._determine_subtype(profile)
+
         # Calculate attack surface score
         profile.attack_surface_score = self._calculate_attack_surface(profile)
 
@@ -590,6 +628,39 @@ class IntelligentDecisionEngine:
 
         return None
 
+    def _determine_subtype(self, profile: TargetProfile) -> str:
+        """Refine target type into a subtype for granular effectiveness learning.
+
+        Subtypes prevent WordPress-specific tool scores from bleeding into
+        REST API assessments when both are classified as 'web_application'.
+        """
+        # CMS-specific subtypes
+        if profile.cms_type:
+            return profile.cms_type.lower()
+
+        target_lower = profile.target.lower()
+
+        # API subtypes
+        if profile.target_type == TargetType.API_ENDPOINT or "/api/" in target_lower:
+            if "graphql" in target_lower:
+                return "graphql_api"
+            return "rest_api"
+
+        # Technology-based subtypes for web apps
+        if profile.target_type == TargetType.WEB_APPLICATION:
+            tech_map = {
+                TechnologyStack.PHP: "php_app",
+                TechnologyStack.NODEJS: "nodejs_app",
+                TechnologyStack.JAVA: "java_app",
+                TechnologyStack.DOTNET: "dotnet_app",
+                TechnologyStack.PYTHON: "python_app",
+            }
+            for tech in profile.technologies:
+                if tech in tech_map:
+                    return tech_map[tech]
+
+        return ""
+
     def _calculate_attack_surface(self, profile: TargetProfile) -> float:
         """Calculate attack surface score based on profile"""
         score = 0.0
@@ -656,8 +727,11 @@ class IntelligentDecisionEngine:
         # Use learned effectiveness if tracker is available, otherwise hardcoded map
         if self._effectiveness_tracker:
             effectiveness_map = {}
+            subtype = getattr(profile, "target_subtype", "")
             for tool in self.tool_effectiveness.get(target_type, {}).keys():
-                effectiveness_map[tool] = self._effectiveness_tracker.get_effectiveness(tool, target_type)
+                effectiveness_map[tool] = self._effectiveness_tracker.get_effectiveness(
+                    tool, target_type, target_subtype=subtype
+                )
         else:
             effectiveness_map = self.tool_effectiveness.get(target_type, {})
 

@@ -6832,24 +6832,29 @@ Start with external discovery."""
     # ============================================================================
 
     @register_tool()
-    def ingest_to_knowledge_graph(session_id: str) -> Dict[str, Any]:
+    def ingest_to_knowledge_graph(session_id: str, engagement_id: str = "") -> Dict[str, Any]:
         """
         Ingest a scan session's findings into the knowledge graph as entities
         and relationships (hosts, services, vulnerabilities, credentials).
 
         Use when: After completing a scan session, build the knowledge graph to
-        enable attack path discovery across all engagements.
+        enable attack path discovery. Use engagement_id to isolate findings
+        per client/engagement so separate assessments don't cross-contaminate.
 
-        Example: ingest_to_knowledge_graph(session_id="abc123")
+        Example: ingest_to_knowledge_graph(session_id="abc123", engagement_id="client-acme-2026")
 
         Args:
             session_id: Session ID to ingest (active or completed)
+            engagement_id: Optional engagement scope — entities with different
+                engagement IDs are isolated from each other in queries and BFS
 
         Returns:
             entities_created — new nodes added to the graph.
             relationships_created — new edges added.
         """
         data = {"session_id": session_id}
+        if engagement_id:
+            data["engagement_id"] = engagement_id
         logger.info(f"🕸️ Ingesting session {session_id} into knowledge graph")
         result = hexstrike_client.safe_post("api/knowledge-graph/ingest", data)
         if result.get("success"):
@@ -6861,7 +6866,7 @@ Start with external discovery."""
 
     @register_tool()
     def find_attack_paths(
-        source_entity_id: str, target_type: str = "vulnerability", max_depth: int = 5
+        source_entity_id: str, target_type: str = "vulnerability", max_depth: int = 5, engagement_id: str = ""
     ) -> Dict[str, Any]:
         """
         Discover attack paths from a source entity to entities of a target type
@@ -6870,38 +6875,41 @@ Start with external discovery."""
         Use when: You want to find how an attacker could chain vulnerabilities
         to move from an initial foothold to a high-value target.
 
-        Example: find_attack_paths(source_entity_id="abc123", target_type="credential")
+        Example: find_attack_paths(source_entity_id="abc123", target_type="credential", engagement_id="client-acme")
 
         Args:
             source_entity_id: Starting entity ID (e.g., a host)
             target_type: Entity type to reach (host, service, vulnerability, credential)
             max_depth: Maximum path length (default 5)
+            engagement_id: Optional — only traverse entities from this engagement
 
         Returns:
             paths — list of entity chains from source to target type.
             count — number of paths found.
         """
         logger.info(f"🕸️ Finding attack paths from {source_entity_id} to {target_type}")
-        result = hexstrike_client.safe_get(
-            f"api/knowledge-graph/paths?from_id={source_entity_id}&to_type={target_type}&max_depth={max_depth}"
-        )
+        url = f"api/knowledge-graph/paths?from_id={source_entity_id}&to_type={target_type}&max_depth={max_depth}"
+        if engagement_id:
+            url += f"&engagement_id={engagement_id}"
+        result = hexstrike_client.safe_get(url)
         if result.get("success"):
             logger.info(f"🕸️ Found {result.get('count', 0)} attack path(s)")
         return result
 
     @register_tool()
-    def query_knowledge_graph(entity_type: str = "", name_filter: str = "") -> Dict[str, Any]:
+    def query_knowledge_graph(entity_type: str = "", name_filter: str = "", engagement_id: str = "") -> Dict[str, Any]:
         """
         Search the knowledge graph for entities by type and name.
 
         Use when: You want to see all hosts, services, vulnerabilities, or
-        credentials discovered across all scan sessions.
+        credentials discovered across scan sessions.
 
-        Example: query_knowledge_graph(entity_type="vulnerability", name_filter="CVE-2024")
+        Example: query_knowledge_graph(entity_type="vulnerability", name_filter="CVE-2024", engagement_id="client-acme")
 
         Args:
             entity_type: Filter by type (host, service, vulnerability, credential)
             name_filter: Substring filter on entity name
+            engagement_id: Optional — only return entities from this engagement
 
         Returns:
             entities — matching entities with properties.
@@ -6912,6 +6920,8 @@ Start with external discovery."""
             params.append(f"type={entity_type}")
         if name_filter:
             params.append(f"name={name_filter}")
+        if engagement_id:
+            params.append(f"engagement_id={engagement_id}")
         query_str = "&".join(params)
         logger.info(f"🕸️ Querying knowledge graph: {query_str or 'all'}")
         result = hexstrike_client.safe_get(f"api/knowledge-graph/entities?{query_str}")

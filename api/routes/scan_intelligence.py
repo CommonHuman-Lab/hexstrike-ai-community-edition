@@ -213,12 +213,16 @@ def iterative_scan():
             session = session_manager.get(session_id)
             if not session:
                 return jsonify({"error": "Session not found or expired"}), 404
+            # Reuse the session's stored profile — avoids redundant DNS/heuristic
+            # work and keeps subtype detection deterministic across iterations
+            from agents.decision_engine import TargetProfile
+
+            profile = TargetProfile.from_dict(session.target_profile)
         else:
             profile = decision_engine.analyze_target(target)
             session = session_manager.create(target, profile.to_dict())
             session_id = session.session_id
 
-        profile = decision_engine.analyze_target(target)
         already_run = [t["tool"] for t in session.tools_executed]
 
         # ── DECIDE: Select tools ────────────────────────────────────
@@ -302,21 +306,78 @@ def iterative_scan():
 # SHARED TOOL EXECUTION
 # ════════════════════════════════════════════════════════════════════
 
+# Retry strategies: tool_name → list of (error_pattern, param_overrides) pairs.
+# When a tool fails and the error matches a pattern, retry once with merged params.
+RETRY_STRATEGIES = {
+    "sqlmap": [
+        ("waf", {"additional_args": "--tamper=space2comment,between --random-agent"}),
+        ("timeout", {"additional_args": "--timeout=60 --retries=3"}),
+    ],
+    "nmap": [
+        ("timeout", {"additional_args": "-T2 --host-timeout 300s"}),
+        ("host unreachable", {"additional_args": "-Pn -T2"}),
+        ("filtered", {"additional_args": "-Pn -sS"}),
+    ],
+    "nuclei": [
+        ("rate limit", {"additional_args": "-rate-limit 20 -concurrency 5"}),
+        ("timeout", {"additional_args": "-timeout 15 -retries 3"}),
+    ],
+    "gobuster": [
+        ("timeout", {"additional_args": "-t 5 --timeout 30s"}),
+        ("connection refused", {"additional_args": "-t 2 --timeout 45s --delay 1s"}),
+    ],
+    "hydra": [
+        ("timeout", {"additional_args": "-t 2 -w 60"}),
+        ("connection refused", {"additional_args": "-t 1 -w 90"}),
+    ],
+    "ffuf": [
+        ("rate limit", {"additional_args": "-rate 10 -t 5"}),
+        ("timeout", {"additional_args": "-timeout 30 -t 5"}),
+    ],
+    "feroxbuster": [
+        ("timeout", {"additional_args": "--timeout 30 --threads 5"}),
+        ("rate limit", {"additional_args": "--rate-limit 10 --threads 3"}),
+    ],
+}
+
 
 def _execute_single_tool(tool_name, executors, engine, profile, target):
     """Execute a single tool with optimized parameters.
 
     Shared by iterative_scan and parallel_execute endpoints.
+    On failure, checks RETRY_STRATEGIES for error-specific parameter
+    adjustments and retries once with merged params.
     """
+    executor_key = tool_name.replace("-", "_")
+    if executor_key not in executors:
+        return {"tool": tool_name, "success": False, "error": "No executor"}
+
     try:
-        executor_key = tool_name.replace("-", "_")
-        if executor_key not in executors:
-            return {"tool": tool_name, "success": False, "error": "No executor"}
         optimized_params = engine.optimize_parameters(tool_name, profile)
         result = executors[executor_key](target, optimized_params)
-        return {"tool": tool_name, **result}
+        # Check if the tool itself reported failure
+        if result.get("success", True):
+            return {"tool": tool_name, **result}
+        error_str = str(result.get("error", "")).lower()
     except Exception as ex:
-        return {"tool": tool_name, "success": False, "error": str(ex)}
+        result = {"success": False, "error": str(ex)}
+        error_str = str(ex).lower()
+
+    # Attempt retry with adjusted parameters if a strategy matches
+    strategies = RETRY_STRATEGIES.get(tool_name, [])
+    for pattern, overrides in strategies:
+        if pattern in error_str:
+            try:
+                retry_params = {**optimized_params, **overrides}
+                retry_result = executors[executor_key](target, retry_params)
+                retry_result["retried"] = True
+                retry_result["retry_reason"] = f"Matched '{pattern}' — adjusted params"
+                return {"tool": tool_name, **retry_result}
+            except Exception as retry_ex:
+                logger.debug(f"Retry failed for {tool_name} (pattern '{pattern}'): {retry_ex}")
+                break  # Only one retry attempt
+
+    return {"tool": tool_name, **result}
 
 
 def _run_tools_parallel(tools, profile, target, max_workers=5):

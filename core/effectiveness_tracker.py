@@ -41,8 +41,12 @@ class EffectivenessTracker:
         self._observation_counts: Dict[str, Dict[str, int]] = {}
         self.refresh()
 
-    def get_effectiveness(self, tool: str, target_type: str) -> float:
+    def get_effectiveness(self, tool: str, target_type: str, target_subtype: str = "") -> float:
         """Get blended effectiveness score for a tool against a target type.
+
+        When target_subtype is provided, tries compound key first (e.g.
+        "web_application:wordpress") for subtype-specific scores, then
+        falls back to the base target_type key.
 
         Priority:
           1. Learned score (if enough observations) blended with default
@@ -50,39 +54,55 @@ class EffectivenessTracker:
           3. DEFAULT_EFFECTIVENESS fallback
         """
         default = self._default_scores.get(target_type, {}).get(tool, DEFAULT_EFFECTIVENESS)
-        learned = self._learned_cache.get(target_type, {}).get(tool)
+
+        # Try subtype-specific learned score first, then base target_type
+        learned = None
+        observations = 0
+        if target_subtype:
+            compound_key = f"{target_type}:{target_subtype}"
+            learned = self._learned_cache.get(compound_key, {}).get(tool)
+            observations = self._observation_counts.get(compound_key, {}).get(tool, 0)
+
+        if learned is None:
+            learned = self._learned_cache.get(target_type, {}).get(tool)
+            observations = self._observation_counts.get(target_type, {}).get(tool, 0)
 
         if learned is None:
             return default
 
-        observations = self._observation_counts.get(target_type, {}).get(tool, 0)
         if observations < MIN_OBSERVATIONS_FOR_OVERRIDE:
             return default
 
         # Blend: weighted average of learned and default
         return (LEARNED_WEIGHT * learned) + ((1 - LEARNED_WEIGHT) * default)
 
-    def get_best_tools(self, target_type: str, top_n: int = 10) -> List[Tuple[str, float]]:
+    def get_best_tools(self, target_type: str, top_n: int = 10, target_subtype: str = "") -> List[Tuple[str, float]]:
         """Get the top N tools for a target type, ranked by blended effectiveness."""
         # Merge all known tools from both sources
         all_tools = set(self._default_scores.get(target_type, {}).keys())
         all_tools |= set(self._learned_cache.get(target_type, {}).keys())
+        if target_subtype:
+            all_tools |= set(self._learned_cache.get(f"{target_type}:{target_subtype}", {}).keys())
 
-        scored = [(tool, self.get_effectiveness(tool, target_type)) for tool in all_tools]
+        scored = [
+            (tool, self.get_effectiveness(tool, target_type, target_subtype=target_subtype)) for tool in all_tools
+        ]
         scored.sort(key=lambda x: -x[1])
         return scored[:top_n]
 
-    def get_comparison(self, target_type: str) -> List[Dict[str, Any]]:
+    def get_comparison(self, target_type: str, target_subtype: str = "") -> List[Dict[str, Any]]:
         """Get a comparison of learned vs default scores for a target type."""
         all_tools = set(self._default_scores.get(target_type, {}).keys())
         all_tools |= set(self._learned_cache.get(target_type, {}).keys())
+        if target_subtype:
+            all_tools |= set(self._learned_cache.get(f"{target_type}:{target_subtype}", {}).keys())
 
         comparison = []
         for tool in sorted(all_tools):
             default_score = self._default_scores.get(target_type, {}).get(tool)
             learned_score = self._learned_cache.get(target_type, {}).get(tool)
             observations = self._observation_counts.get(target_type, {}).get(tool, 0)
-            blended = self.get_effectiveness(tool, target_type)
+            blended = self.get_effectiveness(tool, target_type, target_subtype=target_subtype)
 
             comparison.append(
                 {
@@ -96,7 +116,7 @@ class EffectivenessTracker:
             )
         return comparison
 
-    def record_outcome(self, tool: str, target_type: str, findings: List[Dict]) -> None:
+    def record_outcome(self, tool: str, target_type: str, findings: List[Dict], target_subtype: str = "") -> None:
         """Record a tool execution outcome for future learning.
 
         Appends to ScanMemory's learning store. Actual pattern extraction
@@ -112,6 +132,7 @@ class EffectivenessTracker:
             "type": "tool_outcome",
             "tool": tool,
             "target_type": target_type,
+            "target_subtype": target_subtype,
             "finding_count": finding_count,
             "severity_counts": severity_counts,
             "has_critical": severity_counts.get("critical", 0) > 0,
@@ -125,31 +146,63 @@ class EffectivenessTracker:
             logger.warning(f"Failed to record tool outcome: {e}")
 
     def refresh(self) -> None:
-        """Reload learned patterns from ScanMemory's patterns.json."""
+        """Reload learned patterns from ScanMemory's patterns.json.
+
+        Scan memory produces tool_effectiveness patterns in this format:
+          - conditions: "target_type=web_application" (or with subtype)
+          - tool_details: [{"tool": "nuclei", "effectiveness": 0.95}, ...]
+          - source_episodes: int (observation count)
+
+        Uses copy-on-write: builds new caches in locals, then swaps references
+        atomically so concurrent readers never see partially populated data.
+        """
         try:
             patterns = self._scan_memory.get_patterns()
         except Exception:
             patterns = []
 
-        self._learned_cache = {}
-        self._observation_counts = {}
+        # Build in locals — no mutation of live caches during parsing
+        new_learned: Dict[str, Dict[str, float]] = {}
+        new_counts: Dict[str, Dict[str, int]] = {}
 
         for pattern in patterns:
             if pattern.get("category") != "tool_effectiveness":
                 continue
 
-            data = pattern.get("pattern", {})
-            target_type = data.get("target_type", "")
-            tool = data.get("tool", "")
-            score = data.get("finding_rate", DEFAULT_EFFECTIVENESS)
-            count = data.get("observation_count", 0)
+            # Parse target_type and optional target_subtype from conditions
+            # e.g. "target_type=web_application" or "target_type=web_application,target_subtype=wordpress"
+            conditions = pattern.get("conditions", "")
+            target_type = ""
+            target_subtype = ""
+            for part in conditions.split(","):
+                part = part.strip()
+                if part.startswith("target_type="):
+                    target_type = part.split("=", 1)[1]
+                elif part.startswith("target_subtype="):
+                    target_subtype = part.split("=", 1)[1]
 
-            if not target_type or not tool:
+            if not target_type:
                 continue
 
-            self._learned_cache.setdefault(target_type, {})[tool] = score
-            self._observation_counts.setdefault(target_type, {})[tool] = count
+            # Use compound key when subtype is present for granular scoring
+            cache_key = f"{target_type}:{target_subtype}" if target_subtype else target_type
 
-        learned_count = sum(len(v) for v in self._learned_cache.values())
+            tool_details = pattern.get("tool_details", [])
+            observation_count = pattern.get("source_episodes", 0)
+
+            for entry in tool_details:
+                tool = entry.get("tool", "")
+                score = entry.get("effectiveness", DEFAULT_EFFECTIVENESS)
+                if not tool:
+                    continue
+
+                new_learned.setdefault(cache_key, {})[tool] = score
+                new_counts.setdefault(cache_key, {})[tool] = observation_count
+
+        # Atomic swap — readers see either the old or new state, never partial
+        self._learned_cache = new_learned
+        self._observation_counts = new_counts
+
+        learned_count = sum(len(v) for v in new_learned.values())
         if learned_count:
             logger.info(f"Loaded {learned_count} learned effectiveness scores from scan memory")

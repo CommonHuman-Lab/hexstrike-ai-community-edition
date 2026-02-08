@@ -272,13 +272,24 @@ class ScanMemory:
         return "incomplete"
 
     def _extract_tool_effectiveness(self, episodes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Extract which tools produce findings for which target types."""
+        """Extract which tools produce findings for which target types.
+
+        Generates both base target_type patterns and subtype-specific patterns
+        when episodes have target_subtype set (e.g. "wordpress", "rest_api").
+        This prevents WordPress-specific scores from polluting API assessments.
+        """
         # Group by target type
         type_tool_findings: Dict[str, Dict[str, int]] = {}
         type_tool_runs: Dict[str, Dict[str, int]] = {}
 
+        # Also group by compound key (target_type:target_subtype)
+        subtype_tool_findings: Dict[str, Dict[str, int]] = {}
+        subtype_tool_runs: Dict[str, Dict[str, int]] = {}
+
         for ep in episodes:
-            ttype = ep.get("target_profile", {}).get("target_type", "unknown")
+            profile = ep.get("target_profile", {})
+            ttype = profile.get("target_type", "unknown")
+            tsubtype = profile.get("target_subtype", "")
             tools = ep.get("tools_executed", [])
             finding_tools = [f.get("tool", "") for f in ep.get("findings_summary", [])]
 
@@ -291,40 +302,85 @@ class ScanMemory:
             for tool in finding_tools:
                 type_tool_findings[ttype][tool] += 1
 
-        patterns = []
-        for ttype, tool_findings in type_tool_findings.items():
-            tool_runs = type_tool_runs.get(ttype, {})
-            effective = []
-            for tool, finding_count in tool_findings.items():
-                run_count = tool_runs.get(tool, 1)
-                if finding_count >= MIN_PATTERN_OCCURRENCES:
-                    effectiveness = min(finding_count / max(run_count, 1), 1.0)
-                    effective.append({"tool": tool, "effectiveness": round(effectiveness, 2)})
+            # Collect subtype-specific data when available
+            if tsubtype:
+                compound = f"{ttype}:{tsubtype}"
+                if compound not in subtype_tool_findings:
+                    subtype_tool_findings[compound] = Counter()
+                    subtype_tool_runs[compound] = Counter()
+                for tool in tools:
+                    subtype_tool_runs[compound][tool] += 1
+                for tool in finding_tools:
+                    subtype_tool_findings[compound][tool] += 1
 
-            if effective:
-                effective.sort(key=lambda x: -x["effectiveness"])
-                type_episode_count = sum(
-                    1 for ep in episodes if ep.get("target_profile", {}).get("target_type", "unknown") == ttype
-                )
-                confidence = min(
-                    PATTERN_CONFIDENCE_BASE + PATTERN_CONFIDENCE_BOOST * type_episode_count,
-                    0.95,
-                )
-                patterns.append(
-                    {
-                        "id": f"sem-eff-{ttype}",
-                        "category": "tool_effectiveness",
-                        "pattern": f"For {ttype} targets, these tools produce findings most often",
-                        "conditions": f"target_type={ttype}",
-                        "recommended_tools": [t["tool"] for t in effective[:10]],
-                        "tool_details": effective[:10],
-                        "confidence": round(confidence, 2),
-                        "source_episodes": len(episodes),
-                        "last_updated": time.time(),
-                    }
-                )
+        patterns = []
+
+        # Generate base target_type patterns
+        for ttype, tool_findings in type_tool_findings.items():
+            pattern = self._build_effectiveness_pattern(
+                ttype, "", tool_findings, type_tool_runs.get(ttype, {}), episodes
+            )
+            if pattern:
+                patterns.append(pattern)
+
+        # Generate subtype-specific patterns
+        for compound, tool_findings in subtype_tool_findings.items():
+            ttype, tsubtype = compound.split(":", 1)
+            pattern = self._build_effectiveness_pattern(
+                ttype, tsubtype, tool_findings, subtype_tool_runs.get(compound, {}), episodes
+            )
+            if pattern:
+                patterns.append(pattern)
 
         return patterns
+
+    def _build_effectiveness_pattern(
+        self, ttype: str, tsubtype: str, tool_findings, tool_runs, episodes: List[Dict[str, Any]]
+    ) -> dict:
+        """Build a single effectiveness pattern from aggregated tool data."""
+        effective = []
+        for tool, finding_count in tool_findings.items():
+            run_count = tool_runs.get(tool, 1)
+            if finding_count >= MIN_PATTERN_OCCURRENCES:
+                effectiveness = min(finding_count / max(run_count, 1), 1.0)
+                effective.append({"tool": tool, "effectiveness": round(effectiveness, 2)})
+
+        if not effective:
+            return {}
+
+        effective.sort(key=lambda x: -x["effectiveness"])
+
+        # Count matching episodes
+        def ep_matches(ep):
+            profile = ep.get("target_profile", {})
+            if profile.get("target_type", "unknown") != ttype:
+                return False
+            if tsubtype and profile.get("target_subtype", "") != tsubtype:
+                return False
+            return True
+
+        type_episode_count = sum(1 for ep in episodes if ep_matches(ep))
+        confidence = min(
+            PATTERN_CONFIDENCE_BASE + PATTERN_CONFIDENCE_BOOST * type_episode_count,
+            0.95,
+        )
+
+        label = f"{ttype}:{tsubtype}" if tsubtype else ttype
+        conditions = f"target_type={ttype}"
+        if tsubtype:
+            conditions += f",target_subtype={tsubtype}"
+
+        return {
+            "id": f"sem-eff-{label}",
+            "category": "tool_effectiveness",
+            "pattern": f"For {label} targets, these tools produce findings most often",
+            "conditions": conditions,
+            "recommended_tools": [t["tool"] for t in effective[:10]],
+            "tool_details": effective[:10],
+            "confidence": round(confidence, 2),
+            "source_episodes": len(episodes),
+            "last_updated": time.time(),
+        }
 
     def _extract_tool_chains(self, episodes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Extract common tool execution sequences."""
