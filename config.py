@@ -5,7 +5,7 @@ from typing import Any, Optional
 _config = {
     "APP_NAME": "HexStrike AI Community Edition",
     "VERSION": "1.0.2",
-    "COMMAND_TIMEOUT": 300,
+    "COMMAND_TIMEOUT": 300
 }
 
 def get(key: str, default: Optional[Any] = None) -> Any:
