@@ -5489,8 +5489,7 @@ def main():
         logger.debug("🔍 Debug logging enabled")
 
     # MCP compatibility: No banner output to avoid JSON parsing issues
-    version = config.get("version", "unknown")
-    logger.info(f"🚀 Starting HexStrike AI MCP Client " + version)
+    logger.info(f"🚀 Starting HexStrike AI MCP Client")
     logger.info(f"🔗 Connecting to: {args.server}")
 
     try:
