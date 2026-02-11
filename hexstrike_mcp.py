@@ -5476,8 +5476,7 @@ def parse_args():
     parser.add_argument("--timeout", type=int, default=DEFAULT_REQUEST_TIMEOUT,
                       help=f"Request timeout in seconds (default: {DEFAULT_REQUEST_TIMEOUT})")
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
-    parser.add_argument("--compact", action="store_true",
-                        help="Compact mode: register only classify_task and run_tool for small LLM clients")
+    parser.add_argument("--compact", action="store_true", help="Compact mode: register only classify_task and run_tool for small LLM clients")
     return parser.parse_args()
 
 def main():
@@ -5506,7 +5505,7 @@ def main():
         else:
             logger.info(f"🎯 Successfully connected to HexStrike AI API server at {args.server}")
             logger.info(f"🏥 Server health status: {health['status']}")
-            logger.info(f"📊 Version: {health.get('VERSION', 'unknown')}")
+            logger.info(f"📊 Version: {config.get('VERSION', 'unknown')}")
             if not health.get("all_essential_tools_available", False):
                 logger.warning("⚠️  Not all essential tools are available on the HexStrike server")
                 missing_tools = [tool for tool, available in health.get("tools_status", {}).items() if not available]
