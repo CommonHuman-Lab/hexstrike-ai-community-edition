@@ -62,8 +62,7 @@ python3 hexstrike_server.py
 
 # 5. In a separate terminal, start the MCP client
 # (use the venv python to ensure dependencies are available)
-# Use --profile to control tool loading: minimal, web, network, bugbounty, ctf, cloud, redteam, full
-hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888 --profile full
+hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888
 ```
 
 ### Docker Setup
