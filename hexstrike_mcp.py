@@ -5,14 +5,6 @@ HexStrike AI MCP Client - Enhanced AI Agent Communication Interface
 Enhanced with AI-Powered Intelligence & Automation
 🚀 Bug Bounty | CTF | Red Team | Security Research
 
-RECENT ENHANCEMENTS (v6.0):
-✅ Complete color consistency with reddish hacker theme
-✅ Enhanced visual output with consistent styling
-✅ Improved error handling and recovery systems
-✅ FastMCP integration for seamless AI communication
-✅ 100+ security tools with intelligent parameter optimization
-✅ Advanced logging with colored output and emojis
-
 Architecture: MCP Client for AI agent communication with HexStrike server
 Framework: FastMCP integration for tool orchestration
 """
@@ -25,6 +17,7 @@ from typing import Dict, Any, Optional
 import requests
 import time
 from datetime import datetime
+import config as config
 
 from mcp.server.fastmcp import FastMCP
 
@@ -5497,7 +5490,8 @@ def main():
         logger.debug("🔍 Debug logging enabled")
 
     # MCP compatibility: No banner output to avoid JSON parsing issues
-    logger.info(f"🚀 Starting HexStrike AI MCP Client v6.0")
+    version = config.get("version", "unknown")
+    logger.info(f"🚀 Starting HexStrike AI MCP Client " + version)
     logger.info(f"🔗 Connecting to: {args.server}")
 
     try:
@@ -5512,7 +5506,7 @@ def main():
         else:
             logger.info(f"🎯 Successfully connected to HexStrike AI API server at {args.server}")
             logger.info(f"🏥 Server health status: {health['status']}")
-            logger.info(f"📊 Version: {health.get('version', 'unknown')}")
+            logger.info(f"📊 Version: {health.get('VERSION', 'unknown')}")
             if not health.get("all_essential_tools_available", False):
                 logger.warning("⚠️  Not all essential tools are available on the HexStrike server")
                 missing_tools = [tool for tool, available in health.get("tools_status", {}).items() if not available]
