@@ -49,6 +49,7 @@ import urllib.parse
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Set, Tuple
+from tool_registry import classify_intent, get_tools_for_category, format_tools_for_prompt, get_all_categories
 import asyncio
 import aiohttp
 from urllib.parse import urljoin, urlparse, parse_qs
@@ -9596,6 +9597,31 @@ def select_optimal_tools():
 
     except Exception as e:
         logger.error(f"💥 Error selecting tools: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+@app.route("/api/intelligence/classify-task", methods=["POST"])
+def classify_task():
+    """Classify a security task and return recommended tools with compact schemas"""
+    try:
+        data = request.get_json()
+        if not data or 'description' not in data:
+            return jsonify({"error": "Description is required"}), 400
+
+        description = data['description']
+        category, confidence = classify_intent(description)
+        tools = get_tools_for_category(category)
+
+        return jsonify({
+            "success": True,
+            "category": category,
+            "confidence": confidence,
+            "category_description": get_all_categories().get(category, ""),
+            "tools": tools,
+            "tool_summary": format_tools_for_prompt(tools), # could be returned empty, if not using agentic mode.
+            "timestamp": datetime.now().isoformat()
+        })
+    except Exception as e:
+        logger.error(f"💥 Error classifying task: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 @app.route("/api/intelligence/optimize-parameters", methods=["POST"])
