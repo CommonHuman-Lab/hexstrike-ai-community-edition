@@ -11,7 +11,7 @@
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![Version](https://img.shields.io/badge/Version-1.0.0-orange.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/releases)
 
-**Advanced AI-powered penetration testing MCP framework with 196 security tools, on-demand TTP knowledge, and adaptive scanning intelligence**
+**Advanced AI-powered penetration testing MCP framework, on-demand TTP knowledge, and adaptive scanning intelligence**
 
 [📡 Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki)
 
