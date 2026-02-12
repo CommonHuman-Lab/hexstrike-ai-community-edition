@@ -37,7 +37,7 @@ Pull Requests should be small, focused, and address a single concern.
 If you want to submit formatting changes, they must be done in a separate Pull Request.
 
 ---
-<s>
+
 ## Pull Request Size Limits
 
 To keep reviews efficient and maintain high code quality, Pull Requests should remain reasonably small and focused.
