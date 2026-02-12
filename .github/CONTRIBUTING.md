@@ -37,6 +37,38 @@ Pull Requests should be small, focused, and address a single concern.
 If you want to submit formatting changes, they must be done in a separate Pull Request.
 
 ---
+<s>
+## Pull Request Size Limits
+
+To keep reviews efficient and maintain high code quality, Pull Requests should remain reasonably small and focused.
+
+### Recommended Limits
+
+- Prefer PRs under **300 changed lines**
+- Avoid PRs exceeding **500 changed lines**
+- Large changes should be split into smaller, logical PRs
+
+### Exclusions
+
+The following may exceed size limits if submitted separately:
+
+- Formatting-only changes
+- Dependency updates
+- Generated files
+- Large documentation updates
+
+### Best Practices
+
+- Keep PRs scoped to a single feature or fix  
+- Separate refactoring from functional changes  
+- Submit formatting or lint fixes in their own PR  
+- Break large features into smaller incremental changes  
+
+### Maintainer Policy
+
+Maintainers may request that oversized Pull Requests be split into smaller ones before review. Extremely large or unfocused PRs may be closed and asked to be resubmitted in a more reviewable format.
+
+---
 
 ## Code Style & Formatting
 
