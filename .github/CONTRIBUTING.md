@@ -111,10 +111,10 @@ type: short description
 
 Please use descriptive branch names:
 
-feature/short-description
-fix/short-description
-docs/short-description
-refactor/short-description
+- feature/short-description
+- fix/short-description
+- docs/short-description
+- refactor/short-description
 
 ## Code Reviews
 
