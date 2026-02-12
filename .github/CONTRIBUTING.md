@@ -3,8 +3,6 @@
 Thank you for your interest in contributing 🎉
 We appreciate all contributions from the community. To keep the project stable and maintainable, please follow the guidelines below.
 
----
-
 ## Getting Started
 
 1. Fork the repository
@@ -12,8 +10,6 @@ We appreciate all contributions from the community. To keep the project stable a
 3. Make your changes
 4. Test your changes
 5. Open a Pull Request against beta/x.x.x
-
----
 
 ## Pull Request Guidelines
 
@@ -35,8 +31,6 @@ Pull Requests should be small, focused, and address a single concern.
 - Large bulk or automated changes without review
 
 If you want to submit formatting changes, they must be done in a separate Pull Request.
-
----
 
 ## Pull Request Size Limits
 
@@ -68,8 +62,6 @@ The following may exceed size limits if submitted separately:
 
 Maintainers may request that oversized Pull Requests be split into smaller ones before review. Extremely large or unfocused PRs may be closed and asked to be resubmitted in a more reviewable format.
 
----
-
 ## Code Style & Formatting
 
 This project uses consistent formatting and style rules. Please ensure that you:
@@ -79,8 +71,6 @@ This project uses consistent formatting and style rules. Please ensure that you:
 - Avoid unnecessary whitespace or line-ending changes
 
 Pull Requests containing large formatting-only diffs may be rejected.
-
----
 
 ## AI-Assisted Contributions
 
@@ -94,8 +84,6 @@ AI tools may be used as assistance, but contributors remain fully responsible fo
 
 Maintainers may reject Pull Requests containing unreviewed, low-quality, or noisy AI-generated code.
 
----
-
 ## Testing
 
 Before submitting a Pull Request:
@@ -103,8 +91,6 @@ Before submitting a Pull Request:
 - Ensure existing tests pass
 - Add tests when appropriate
 - Verify your changes do not break existing functionality
-
----
 
 ## Commit Messages
 
@@ -121,8 +107,6 @@ type: short description
 - docs: update installation instructions
 - refactor: simplify validation logic
 
----
-
 ## Branch Naming
 
 Please use descriptive branch names:
@@ -131,8 +115,6 @@ feature/short-description
 fix/short-description
 docs/short-description
 refactor/short-description
-
----
 
 ## Code Reviews
 
@@ -143,13 +125,9 @@ All contributions require review before merging. Reviewers may request changes t
 - Reduce unnecessary complexity
 - Remove unrelated changes
 
----
-
 ## Respect the Scope of the Project
 
 If you are unsure whether your change fits the project, please open an issue first to discuss it.
-
----
 
 ## Reporting Issues
 
@@ -159,8 +137,6 @@ When reporting issues, please include:
 - Steps to reproduce
 - Expected vs actual behavior
 - Environment details (if relevant)
-
----
 
 ## Code of Conduct
 
