@@ -3570,7 +3570,7 @@ class AdvancedCache:
             self.miss_count += 1
             return None
 
-    def set(self, key: str, value: Any, ttl: int = None) -> None:
+    def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
         """Set value in cache with optional TTL"""
         with self.cache_lock:
             current_time = time.time()
