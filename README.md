@@ -9,10 +9,8 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Security](https://img.shields.io/badge/Security-Penetration%20Testing-red.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
-[![Version](https://img.shields.io/badge/Version-1.0.0-orange.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/releases)
-[![Tools](https://img.shields.io/badge/Security%20Tools-196-brightgreen.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 
-**Advanced AI-powered penetration testing MCP framework with 196 security tools, on-demand TTP knowledge, and adaptive scanning intelligence**
+**Advanced AI-powered penetration testing MCP framework, on-demand TTP knowledge, and adaptive scanning intelligence**
 
 [📡 Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki)
 
@@ -25,26 +23,18 @@
 </div>
 
 ---
-
 ## Architecture Overview
 
-HexStrike AI connects AI agents (Claude, GPT, etc.) to a pentesting framework with 196 security tools. It uses a **two-process design**: a Flask API server that runs the actual tools, and an MCP client that lets AI agents call them. The system learns from past scans and improves over time.
+HexStrike AI features a multi-agent architecture with autonomous AI agents, intelligent decision-making, and vulnerability intelligence.
 
 ### How It Works
 
-1. **Connect AI Agent** — You tell Claude/GPT to use HexStrike. HexStrike loads the tools you selected (web profile: 93 tools, network profile: 75 tools, full: 196) based on what you need.
+1. **AI Agent Connection** - Claude, GPT, or other MCP-compatible agents connect via FastMCP protocol
+2. **Intelligent Analysis** - Decision engine analyzes targets and selects optimal testing strategies
+3. **Autonomous Execution** - AI agents execute comprehensive security assessments
+4. **Real-time Adaptation** - System adapts based on results and discovered vulnerabilities
+5. **Advanced Reporting** - Visual output with vulnerability cards and risk analysis
 
-2. **Analyze Target** — HexStrike determines target type: WordPress site? REST API? Cloud account? It looks up what tools worked best on similar targets before.
-
-3. **Select & Run Tools** — Instead of running all tools sequentially, HexStrike picks the most relevant 5-10 tools and runs them in parallel. The AI guides the scan based on findings.
-
-4. **Verify Findings** — Raw tool output often contains false positives. HexStrike verifies each finding automatically: rescans it, checks with a different tool, probes it, looks it up in vulnerability databases.
-
-5. **Build Attack Map** — HexStrike connects related findings into attack chains. Instead of separate "Open Port 80" and "SQL Injection" reports, it shows the chain: Port 80 → WordPress → SQLi → Credentials → Full Compromise.
-
-6. **Learn & Improve** — The system remembers which tools are most effective on each target type. Next WordPress scan runs faster because it prioritizes tools that worked before.
-
-7. **Deliver Results** — Findings are deduplicated (if 3 tools found the same CVE, it's reported once), scored by severity, and presented as a report.
 
 ---
 
@@ -72,8 +62,7 @@ python3 hexstrike_server.py
 
 # 5. In a separate terminal, start the MCP client
 # (use the venv python to ensure dependencies are available)
-# Use --profile to control tool loading: minimal, web, network, bugbounty, ctf, cloud, redteam, full
-hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888 --profile full
+hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888
 ```
 
 ### Docker Setup
@@ -197,7 +186,7 @@ Configure VS Code settings in `.vscode/settings.json`:
 
 ### Security Tools Arsenal
 
-**196 Professional Security Tools across 21 categories:**
+**Categories:**
 
 <details>
 <summary><b>🔍 Network Reconnaissance & Scanning (25+ Tools)</b></summary>

@@ -1,0 +1,594 @@
+"""
+Tool Registry with Compact Schemas for HexStrike AI Agent
+
+Categorized tool definitions with minimal schemas.
+Only 5-8 tools are loaded per task category to fit small model context windows.
+Can be increased or decreased as needed, but focus on the most effective tools for each category.
+"""
+
+from typing import Dict, List, Optional
+
+# ---------------------------------------------------------------------------
+# Tool definitions - each entry is intentionally compact so the full category
+# fits well under the context window of smaller models when serialized.
+# ---------------------------------------------------------------------------
+
+TOOLS: Dict[str, dict] = {
+    # ---- Network Recon ----
+    "nmap": {
+        "desc": "Port scan and service detection",
+        "endpoint": "/api/tools/nmap",
+        "method": "POST",
+        "category": "network_recon",
+        "params": {"target": {"required": True}},
+        "optional": {"scan_type": "-sCV", "ports": "", "additional_args": "-T4 -Pn"},
+        "effectiveness": 0.95,
+    },
+    "masscan": {
+        "desc": "Fast mass port scanner",
+        "endpoint": "/api/tools/masscan",
+        "method": "POST",
+        "category": "network_recon",
+        "params": {"target": {"required": True}},
+        "optional": {"ports": "1-65535", "rate": "1000", "additional_args": ""},
+        "effectiveness": 0.92,
+    },
+    "rustscan": {
+        "desc": "Ultra-fast port scanner",
+        "endpoint": "/api/tools/rustscan",
+        "method": "POST",
+        "category": "network_recon",
+        "params": {"target": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.90,
+    },
+    "enum4linux": {
+        "desc": "SMB/RPC enumeration on Windows/Samba",
+        "endpoint": "/api/tools/enum4linux",
+        "method": "POST",
+        "category": "network_recon",
+        "params": {"target": {"required": True}},
+        "optional": {"additional_args": "-a"},
+        "effectiveness": 0.80,
+    },
+    "smbmap": {
+        "desc": "SMB share enumeration",
+        "endpoint": "/api/tools/smbmap",
+        "method": "POST",
+        "category": "network_recon",
+        "params": {"target": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.85,
+    },
+    "arp-scan": {
+        "desc": "ARP-based host discovery on local network",
+        "endpoint": "/api/tools/arp-scan",
+        "method": "POST",
+        "category": "network_recon",
+        "params": {"target": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.85,
+    },
+    "nbtscan": {
+        "desc": "NetBIOS name scanner",
+        "endpoint": "/api/tools/nbtscan",
+        "method": "POST",
+        "category": "network_recon",
+        "params": {"target": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.75,
+    },
+    "netexec": {
+        "desc": "Network service exploitation (SMB/WinRM/LDAP)",
+        "endpoint": "/api/tools/netexec",
+        "method": "POST",
+        "category": "network_recon",
+        "params": {"target": {"required": True}},
+        "optional": {"protocol": "smb", "username": "", "password": "", "module": "", "additional_args": ""},
+        "effectiveness": 0.85,
+    },
+
+    # ---- Web Recon ----
+    "gobuster": {
+        "desc": "Directory and file brute-forcer",
+        "endpoint": "/api/tools/gobuster",
+        "method": "POST",
+        "category": "web_recon",
+        "params": {"url": {"required": True}},
+        "optional": {"mode": "dir", "wordlist": "/usr/share/wordlists/dirb/common.txt", "additional_args": ""},
+        "effectiveness": 0.90,
+    },
+    "ffuf": {
+        "desc": "Fast web fuzzer for dirs, vhosts, params",
+        "endpoint": "/api/tools/ffuf",
+        "method": "POST",
+        "category": "web_recon",
+        "params": {"url": {"required": True}},
+        "optional": {"wordlist": "/usr/share/wordlists/dirb/common.txt", "mode": "directory", "match_codes": "200,204,301,302,307,401,403", "additional_args": ""},
+        "effectiveness": 0.90,
+    },
+    "feroxbuster": {
+        "desc": "Recursive content discovery",
+        "endpoint": "/api/tools/feroxbuster",
+        "method": "POST",
+        "category": "web_recon",
+        "params": {"url": {"required": True}},
+        "optional": {"wordlist": "/usr/share/wordlists/dirb/common.txt", "threads": 10, "additional_args": ""},
+        "effectiveness": 0.85,
+    },
+    "katana": {
+        "desc": "Web crawler for endpoint discovery",
+        "endpoint": "/api/tools/katana",
+        "method": "POST",
+        "category": "web_recon",
+        "params": {"url": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.88,
+    },
+    "httpx": {
+        "desc": "HTTP probing and tech detection",
+        "endpoint": "/api/tools/httpx",
+        "method": "POST",
+        "category": "web_recon",
+        "params": {"target": {"required": True}},
+        "optional": {"probe": True, "tech_detect": False, "status_code": False, "title": False, "additional_args": ""},
+        "effectiveness": 0.85,
+    },
+    "dirsearch": {
+        "desc": "Web path scanner",
+        "endpoint": "/api/tools/dirsearch",
+        "method": "POST",
+        "category": "web_recon",
+        "params": {"url": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.87,
+    },
+    "wafw00f": {
+        "desc": "Web application firewall detection",
+        "endpoint": "/api/tools/wafw00f",
+        "method": "POST",
+        "category": "web_recon",
+        "params": {"url": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.80,
+    },
+    "wpscan": {
+        "desc": "WordPress vulnerability scanner",
+        "endpoint": "/api/tools/wpscan",
+        "method": "POST",
+        "category": "web_recon",
+        "params": {"url": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.95,
+    },
+
+    # ---- Web Vuln ----
+    "nuclei": {
+        "desc": "Template-based vulnerability scanner",
+        "endpoint": "/api/tools/nuclei",
+        "method": "POST",
+        "category": "web_vuln",
+        "params": {"target": {"required": True}},
+        "optional": {"severity": "", "tags": "", "template": "", "additional_args": ""},
+        "effectiveness": 0.95,
+    },
+    "nikto": {
+        "desc": "Web server vulnerability scanner",
+        "endpoint": "/api/tools/nikto",
+        "method": "POST",
+        "category": "web_vuln",
+        "params": {"target": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.85,
+    },
+    "sqlmap": {
+        "desc": "Automatic SQL injection detection and exploitation",
+        "endpoint": "/api/tools/sqlmap",
+        "method": "POST",
+        "category": "web_vuln",
+        "params": {"url": {"required": True}},
+        "optional": {"data": "", "additional_args": ""},
+        "effectiveness": 0.90,
+    },
+    "dalfox": {
+        "desc": "XSS vulnerability scanner",
+        "endpoint": "/api/tools/dalfox",
+        "method": "POST",
+        "category": "web_vuln",
+        "params": {"url": {"required": True}},
+        "optional": {"blind": False, "additional_args": ""},
+        "effectiveness": 0.93,
+    },
+    "xsser": {
+        "desc": "Cross-site scripting scanner",
+        "endpoint": "/api/tools/xsser",
+        "method": "POST",
+        "category": "web_vuln",
+        "params": {"url": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.80,
+    },
+    "dotdotpwn": {
+        "desc": "Directory traversal scanner",
+        "endpoint": "/api/tools/dotdotpwn",
+        "method": "POST",
+        "category": "web_vuln",
+        "params": {"target": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.78,
+    },
+    "jaeles": {
+        "desc": "Web security scanning framework",
+        "endpoint": "/api/tools/jaeles",
+        "method": "POST",
+        "category": "web_vuln",
+        "params": {"url": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.92,
+    },
+
+    # ---- Exploitation ----
+    "metasploit": {
+        "desc": "Exploitation framework - run modules with options",
+        "endpoint": "/api/tools/metasploit",
+        "method": "POST",
+        "category": "exploitation",
+        "params": {"module": {"required": True}},
+        "optional": {"options": {}},
+        "effectiveness": 0.90,
+    },
+    "msfvenom": {
+        "desc": "Metasploit payload generator",
+        "endpoint": "/api/tools/msfvenom",
+        "method": "POST",
+        "category": "exploitation",
+        "params": {"payload": {"required": True}},
+        "optional": {"format": "elf", "lhost": "", "lport": "4444", "additional_args": ""},
+        "effectiveness": 0.85,
+    },
+    "searchsploit": {
+        "desc": "Search Exploit-DB for public exploits",
+        "endpoint": "/api/tools/searchsploit",
+        "method": "POST",
+        "category": "exploitation",
+        "params": {"query": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.88,
+    },
+    "msf-search": {
+        "desc": "Search Metasploit modules by keyword",
+        "endpoint": "/api/tools/msf-search",
+        "method": "POST",
+        "category": "exploitation",
+        "params": {"query": {"required": True}},
+        "optional": {},
+        "effectiveness": 0.85,
+    },
+
+    # ---- Brute Force ----
+    "hydra": {
+        "desc": "Network login brute-forcer",
+        "endpoint": "/api/tools/hydra",
+        "method": "POST",
+        "category": "brute_force",
+        "params": {"target": {"required": True}, "service": {"required": True}},
+        "optional": {"username": "", "username_file": "", "password": "", "password_file": "", "additional_args": ""},
+        "effectiveness": 0.80,
+    },
+    "hashcat": {
+        "desc": "GPU-accelerated password cracker",
+        "endpoint": "/api/tools/hashcat",
+        "method": "POST",
+        "category": "brute_force",
+        "params": {"hash_file": {"required": True}, "hash_type": {"required": True}},
+        "optional": {"attack_mode": "0", "wordlist": "/usr/share/wordlists/rockyou.txt", "mask": "", "additional_args": ""},
+        "effectiveness": 0.85,
+    },
+
+    # ---- OSINT ----
+    "amass": {
+        "desc": "Subdomain enumeration and OSINT",
+        "endpoint": "/api/tools/amass",
+        "method": "POST",
+        "category": "osint",
+        "params": {"domain": {"required": True}},
+        "optional": {"mode": "enum", "additional_args": ""},
+        "effectiveness": 0.85,
+    },
+    "subfinder": {
+        "desc": "Passive subdomain discovery",
+        "endpoint": "/api/tools/subfinder",
+        "method": "POST",
+        "category": "osint",
+        "params": {"domain": {"required": True}},
+        "optional": {"silent": True, "all_sources": False, "additional_args": ""},
+        "effectiveness": 0.82,
+    },
+    "fierce": {
+        "desc": "DNS reconnaissance tool",
+        "endpoint": "/api/tools/fierce",
+        "method": "POST",
+        "category": "osint",
+        "params": {"domain": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.75,
+    },
+    "dnsenum": {
+        "desc": "DNS enumeration and zone transfer",
+        "endpoint": "/api/tools/dnsenum",
+        "method": "POST",
+        "category": "osint",
+        "params": {"domain": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.78,
+    },
+    "gau": {
+        "desc": "Fetch known URLs from AlienVault/Wayback",
+        "endpoint": "/api/tools/gau",
+        "method": "POST",
+        "category": "osint",
+        "params": {"domain": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.82,
+    },
+    "waybackurls": {
+        "desc": "Fetch URLs from Wayback Machine",
+        "endpoint": "/api/tools/waybackurls",
+        "method": "POST",
+        "category": "osint",
+        "params": {"domain": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.80,
+    },
+
+    # ---- Binary Analysis ----
+    "checksec": {
+        "desc": "Check binary security properties (NX, PIE, RELRO)",
+        "endpoint": "/api/tools/checksec",
+        "method": "POST",
+        "category": "binary",
+        "params": {"file": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.85,
+    },
+    "binwalk": {
+        "desc": "Firmware analysis and extraction",
+        "endpoint": "/api/tools/binwalk",
+        "method": "POST",
+        "category": "binary",
+        "params": {"file": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.80,
+    },
+    "strings": {
+        "desc": "Extract printable strings from binary",
+        "endpoint": "/api/tools/strings",
+        "method": "POST",
+        "category": "binary",
+        "params": {"file": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.70,
+    },
+    "ropgadget": {
+        "desc": "Find ROP gadgets in binary",
+        "endpoint": "/api/tools/ropgadget",
+        "method": "POST",
+        "category": "binary",
+        "params": {"file": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.82,
+    },
+    "radare2": {
+        "desc": "Binary analysis and disassembly",
+        "endpoint": "/api/tools/radare2",
+        "method": "POST",
+        "category": "binary",
+        "params": {"file": {"required": True}},
+        "optional": {"commands": "", "additional_args": ""},
+        "effectiveness": 0.88,
+    },
+
+    # ---- Cloud ----
+    "prowler": {
+        "desc": "AWS/Azure/GCP security audit",
+        "endpoint": "/api/tools/prowler",
+        "method": "POST",
+        "category": "cloud",
+        "params": {},
+        "optional": {"provider": "aws", "profile": "default", "region": "", "checks": "", "additional_args": ""},
+        "effectiveness": 0.90,
+    },
+    "trivy": {
+        "desc": "Container and filesystem vulnerability scanner",
+        "endpoint": "/api/tools/trivy",
+        "method": "POST",
+        "category": "cloud",
+        "params": {"target": {"required": True}},
+        "optional": {"scan_type": "image", "severity": "", "additional_args": ""},
+        "effectiveness": 0.88,
+    },
+    "kube-hunter": {
+        "desc": "Kubernetes penetration testing",
+        "endpoint": "/api/tools/kube-hunter",
+        "method": "POST",
+        "category": "cloud",
+        "params": {},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.82,
+    },
+}
+
+# Meta-tool for ending the agent loop
+# can be skipped if not using agentic mode in your LLM connection when ran locally.
+FINAL_ANSWER_TOOL = {
+    "name": "final_answer",
+    "desc": "Return your final answer to the user. Use when the task is complete.",
+    "params": {"answer": {"required": True}},
+}
+
+# ---------------------------------------------------------------------------
+# Category metadata
+# ---------------------------------------------------------------------------
+
+CATEGORIES = {
+    "network_recon": "Network scanning, port discovery, service enumeration",
+    "web_recon": "Web directory brute-forcing, crawling, tech detection",
+    "web_vuln": "Web vulnerability scanning (SQLi, XSS, template-based)",
+    "exploitation": "Exploit execution, payload generation, module search",
+    "brute_force": "Password cracking and login brute-forcing",
+    "osint": "Subdomain enumeration, DNS recon, URL harvesting",
+    "binary": "Binary analysis, reverse engineering, ROP gadgets",
+    "cloud": "Cloud security auditing (AWS, containers, Kubernetes)",
+}
+
+# ---------------------------------------------------------------------------
+# Intent detection keywords -> category
+# This is a simple heuristic mapping of common keywords to categories for 
+# initial intent classification.
+# In future, we could think about doing embedding-based similarity 
+# or a small fine-tuned classifier for better accuracy, but this is a 
+# good start and very cheap to compute.
+# ---------------------------------------------------------------------------
+
+_INTENT_KEYWORDS: Dict[str, List[str]] = {
+    "network_recon": [
+        "scan", "port", "nmap", "host", "network", "service", "smb",
+        "enum4linux", "discovery", "arp", "netbios", "smbmap",
+    ],
+    "web_recon": [
+        "directory", "dir", "brute", "fuzz", "gobuster", "ffuf", "crawl",
+        "spider", "wordpress", "wpscan", "vhost", "content", "ferox",
+    ],
+    "web_vuln": [
+        "vuln", "vulnerability", "nuclei", "nikto", "sql", "sqli", "xss",
+        "injection", "exploit", "dalfox", "traversal",
+    ],
+    "exploitation": [
+        "exploit", "metasploit", "msf", "payload", "msfvenom", "searchsploit",
+        "cve", "shell", "reverse", "module",
+    ],
+    "brute_force": [
+        "brute", "crack", "password", "hydra", "hashcat", "login", "credential",
+        "hash", "wordlist",
+    ],
+    "osint": [
+        "subdomain", "dns", "osint", "amass", "subfinder", "domain", "recon",
+        "wayback", "url", "fierce", "enumerate",
+    ],
+    "binary": [
+        "binary", "reverse", "rop", "gadget", "checksec", "firmware", "elf",
+        "disassemble", "radare", "strings", "binwalk",
+    ],
+    "cloud": [
+        "cloud", "aws", "azure", "gcp", "container", "docker", "kubernetes",
+        "k8s", "trivy", "prowler",
+    ],
+}
+
+
+_CLASSIFY_PROMPT = """Classify this security task into exactly one category.
+Categories: network_recon, web_recon, web_vuln, exploitation, brute_force, osint, binary, cloud
+Task: {input}
+Category:"""
+
+
+def _classify_with_llm(user_input: str, llm_client) -> str:
+    """Use a single cheap LLM call to classify ambiguous input."""
+    prompt = _CLASSIFY_PROMPT.format(input=user_input)
+    try:
+        response = llm_client.chat(
+            [{"role": "user", "content": prompt}],
+            stop=["\n"],
+        )
+        final_resp = response.lower().split("category:")[1].strip() 
+        return final_resp
+    except Exception:
+        return ""
+
+
+def classify_intent(user_input: str, llm_client=None) -> tuple:
+    """Return (category, confidence) using keywords, with optional LLM fallback.
+
+    Confidence values:
+        1.0  - clear keyword winner (margin >= 2 over runner-up)
+        0.75 - keyword winner but narrow margin
+        0.5  - no llm_client available and low/zero keyword signal
+    """
+    text = user_input.lower()
+    scores: Dict[str, int] = {cat: 0 for cat in CATEGORIES}
+    for cat, keywords in _INTENT_KEYWORDS.items():
+        for kw in keywords:
+            if kw in text:
+                scores[cat] += 1
+
+    ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    best, best_score = ranked[0]
+    runner_up_score = ranked[1][1] if len(ranked) > 1 else 0
+
+    if best_score == 0:
+        # No keyword matches at all
+        if llm_client:
+            category = _classify_with_llm(user_input, llm_client)
+            if category in CATEGORIES:
+                return (category, 0.75)
+        return ("network_recon", 0.5)  # safe default
+
+    margin = best_score - runner_up_score
+    if margin >= 2:
+        return (best, 1.0)
+
+    # try LLM if available
+    if llm_client:
+        category = _classify_with_llm(user_input, llm_client)
+        if category in list(CATEGORIES.keys()):
+            return (category, 0.75)
+
+    return ("network_recon", 0.5)
+
+
+
+
+def get_tools_for_category(category: str) -> List[dict]:
+    """Return compact tool schemas for a category, sorted by effectiveness."""
+    tools = [
+        {
+            "name": name,
+            "desc": t["desc"],
+            "endpoint": t["endpoint"],
+            "method": t["method"],
+            "params": {
+                **{k: "REQUIRED" for k in t["params"]},
+                **{k: f"default={v}" for k, v in t["optional"].items()},
+            },
+        }
+        for name, t in TOOLS.items()
+        if t["category"] == category
+    ]
+    # Sort by effectiveness descending
+    tools.sort(
+        key=lambda x: TOOLS[x["name"]]["effectiveness"],
+        reverse=True,
+    )
+    return tools
+
+
+def get_tool(name: str) -> Optional[dict]:
+    """Return full tool definition by name, or None."""
+    return TOOLS.get(name)
+
+
+def get_all_categories() -> Dict[str, str]:
+    """Return category name -> description mapping."""
+    return dict(CATEGORIES)
+
+
+def format_tools_for_prompt(tools: List[dict]) -> str:
+    """Format a tool list into a compact string for LLM system prompts."""
+    lines = []
+    for t in tools:
+        params_str = ", ".join(f"{k}={v}" for k, v in t["params"].items())
+        lines.append(f"- {t['name']}: {t['desc']} | params: {params_str}")
+    # Always include final_answer
+    # can be skipped if not using agentic mode in you LLM connection when ran locally.
+    lines.append(f"- final_answer: {FINAL_ANSWER_TOOL['desc']} | params: answer=REQUIRED")
+    return "\n".join(lines)
