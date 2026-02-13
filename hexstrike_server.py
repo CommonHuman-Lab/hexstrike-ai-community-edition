@@ -654,7 +654,7 @@ class IntelligentDecisionEngine:
 
         return selected_tools
 
-    def optimize_parameters(self, tool: str, profile: TargetProfile, context: Dict[str, Any] = None) -> Dict[str, Any]:
+    def optimize_parameters(self, tool: str, profile: TargetProfile, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Enhanced parameter optimization with advanced intelligence"""
         if context is None:
             context = {}
