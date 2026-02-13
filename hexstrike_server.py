@@ -320,7 +320,7 @@ class IntelligentDecisionEngine:
             }
         }
 
-    def _initialize_technology_signatures(self) -> Dict[str, Dict[str, List[str]]]:
+    def _initialize_technology_signatures(self) -> Dict[str, Dict[str, Any]]:
         """Initialize technology detection signatures"""
         return {
             "headers": {
