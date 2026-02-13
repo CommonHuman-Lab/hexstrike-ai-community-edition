@@ -1,9 +1,13 @@
+# Pull Request Template
+
 ## Description
+
 Please describe what this PR changes and why it is needed.
 
 ---
 
 ## Type of change
+
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Refactor
@@ -13,6 +17,7 @@ Please describe what this PR changes and why it is needed.
 ---
 
 ## Scope rules
+
 ✅ This PR only modifies files relevant to the change  
 ✅ This PR does NOT include unrelated formatting changes  
 ✅ Large formatting changes are submitted in a separate PR  
@@ -20,6 +25,7 @@ Please describe what this PR changes and why it is needed.
 ---
 
 ## AI Usage Disclosure
+
 If AI tools were used while creating this PR:
 
 - [ ] No AI used
@@ -30,14 +36,17 @@ If AI tools were used while creating this PR:
 ---
 
 ## Testing
+
 - [ ] I have tested my changes
 
 ---
 
 ## Additional notes
+
 Add any context or screenshots here.
 
 ---
 
-### Maintainer Notes
+## Maintainer Notes
+
 PRs that introduce large unrelated diffs, formatting noise, or bulk-generated code may be closed and requested to be resubmitted in a smaller and more focused scope.

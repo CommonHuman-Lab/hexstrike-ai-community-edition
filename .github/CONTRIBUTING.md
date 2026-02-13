@@ -13,6 +13,8 @@ We appreciate all contributions from the community. To keep the project stable a
 
 ## Pull Request Guidelines
 
+[Pull Request Template](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Pull-Request-Template)
+
 ### Scope
 
 Pull Requests should be small, focused, and address a single concern.
