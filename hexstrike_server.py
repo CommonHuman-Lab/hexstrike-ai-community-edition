@@ -1242,6 +1242,7 @@ class CTFChallenge:
     files: List[str] = field(default_factory=list)
     url: str = ""
     hints: List[str] = field(default_factory=list)
+    target: Optional[str] = None  # Target for the challenge (e.g., IP, domain, binary)
 
 class CTFWorkflowManager:
     """Specialized workflow manager for CTF competitions"""
