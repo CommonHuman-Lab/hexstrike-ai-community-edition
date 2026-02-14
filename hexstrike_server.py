@@ -15019,7 +15019,7 @@ def ctf_binary_analyzer():
                         results["exploitation_hints"].append("Format string with %n found - potential format string vulnerability")
 
         except Exception as e:
-            results["strings_analysis"]["error"] = str(e)
+            results["strings_analysis"] = {"error": str(e)}
 
         # ROP gadgets search
         if find_gadgets and analysis_depth in ["comprehensive", "deep"]:
