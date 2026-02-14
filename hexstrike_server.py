@@ -5184,6 +5184,8 @@ class EnhancedCommandExecutor:
 
     def _read_stdout(self):
         """Thread function to continuously read and display stdout"""
+        if not self.process or not self.process.stdout:
+            return
         try:
             for line in iter(self.process.stdout.readline, ''):
                 if line:
@@ -5195,6 +5197,8 @@ class EnhancedCommandExecutor:
 
     def _read_stderr(self):
         """Thread function to continuously read and display stderr"""
+        if not self.process or not self.process.stderr:
+            return
         try:
             for line in iter(self.process.stderr.readline, ''):
                 if line:
