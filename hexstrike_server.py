@@ -14500,7 +14500,7 @@ def create_ctf_challenge_workflow():
         return jsonify({
             "success": True,
             "workflow": workflow,
-            "challenge": challenge.to_dict(),
+            "challenge": vars(challenge),
             "timestamp": datetime.now().isoformat()
         })
 
@@ -14540,7 +14540,7 @@ def auto_solve_ctf_challenge():
         return jsonify({
             "success": True,
             "solve_result": result,
-            "challenge": challenge.to_dict(),
+            "challenge": vars(challenge),
             "timestamp": datetime.now().isoformat()
         })
 
