@@ -8716,7 +8716,7 @@ def create_comprehensive_bugbounty_assessment():
 # ============================================================================
 
 @app.route("/api/tools/whois", methods=["POST"])
-def api_tools_whois():
+def whois():
     """
     WHOIS lookup tool endpoint.
     Expects JSON: { "target": "example.com" }
