@@ -14851,6 +14851,7 @@ def ctf_forensics_analyzer():
             steg_tools = ["steghide", "zsteg", "outguess"]
             for tool in steg_tools:
                 try:
+                    steg_result = None
                     if tool == "steghide":
                         steg_result = subprocess.run([tool, 'info', file_path], capture_output=True, text=True, timeout=30)
                     elif tool == "zsteg":
@@ -14858,7 +14859,7 @@ def ctf_forensics_analyzer():
                     elif tool == "outguess":
                         steg_result = subprocess.run([tool, '-r', file_path, '/tmp/outguess_output'], capture_output=True, text=True, timeout=30)
 
-                    if steg_result.returncode == 0 and steg_result.stdout.strip():
+                    if steg_result and steg_result.returncode == 0 and steg_result.stdout.strip():
                         results["steganography_results"].append({
                             "tool": tool,
                             "output": steg_result.stdout
