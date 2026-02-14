@@ -8085,6 +8085,8 @@ def intelligent_smart_scan():
             "combined_output": ""
         }
 
+        combined_output_parts = []
+
         def execute_single_tool(tool_name, target, profile):
             """Execute a single tool and return results"""
             try:
@@ -8177,10 +8179,12 @@ def intelligent_smart_scan():
 
                 # Combine outputs
                 if tool_result.get("stdout"):
-                    scan_results["combined_output"] += f"\n=== {tool_result['tool'].upper()} OUTPUT ===\n"
-                    scan_results["combined_output"] += tool_result["stdout"]
-                    scan_results["combined_output"] += "\n" + "="*50 + "\n"
-
+                    combined_output_parts.append(f"\n=== {tool_result['tool'].upper()} OUTPUT ===\n")
+                    combined_output_parts.append(tool_result["stdout"])
+                    combined_output_parts.append("\n" + "="*50 + "\n")
+        
+        scan_results["combined_output"] = "".join(combined_output_parts)
+        
         # Create execution summary
         successful_tools = [t for t in scan_results["tools_executed"] if t.get("success")]
         failed_tools = [t for t in scan_results["tools_executed"] if not t.get("success")]
