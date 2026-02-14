@@ -2583,7 +2583,7 @@ class CTFTeamCoordinator:
                 })
 
         # Assign challenges using Hungarian algorithm approximation
-        assignments: Dict[str, List[Dict[str, Any]]] = self._assign_challenges_optimally(member_challenge_scores)
+        assignments = self._assign_challenges_optimally(member_challenge_scores)
         strategy["assignments"] = assignments
 
         # Create priority queue
