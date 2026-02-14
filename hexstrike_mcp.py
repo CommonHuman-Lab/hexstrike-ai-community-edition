@@ -5515,7 +5515,15 @@ def main():
         mcp = setup_mcp_server(hexstrike_client, compact=args.compact)
         logger.info("🚀 Starting HexStrike AI MCP server")
         logger.info("🤖 Ready to serve AI agents with enhanced cybersecurity capabilities")
-        mcp.run()
+        # stdio fallback for MCP clients that don't support the run() method
+        try:
+            mcp.run()
+        except AttributeError:
+            import asyncio
+            if hasattr(mcp, "run_stdio"):
+                asyncio.run(mcp.run_stdio_async())
+            else:
+                raise
     except Exception as e:
         logger.error(f"💥 Error starting MCP server: {str(e)}")
         import traceback
