@@ -7825,14 +7825,15 @@ def process_dashboard():
 
 @app.route("/api/visual/vulnerability-card", methods=["POST"])
 def create_vulnerability_card():
-    """Create a beautiful vulnerability card using ModernVisualEngine"""
+    """Create a beautiful vulnerability card using CVEIntelligenceManager"""
     try:
         data = request.get_json()
         if not data:
             return jsonify({"error": "No data provided"}), 400
 
         # Create vulnerability card
-        card = ModernVisualEngine.render_vulnerability_card(data)
+        cve_intelligence = CVEIntelligenceManager()
+        card = cve_intelligence.render_vulnerability_card(data)
 
         return jsonify({
             "success": True,
@@ -7846,15 +7847,15 @@ def create_vulnerability_card():
 
 @app.route("/api/visual/summary-report", methods=["POST"])
 def create_summary_report():
-    """Create a beautiful summary report using ModernVisualEngine"""
+    """Create a beautiful summary report using CVEIntelligenceManager"""
     try:
         data = request.get_json()
         if not data:
             return jsonify({"error": "No data provided"}), 400
 
         # Create summary report
-        visual_engine = ModernVisualEngine()
-        report = visual_engine.create_summary_report(data)
+        cve_intelligence = CVEIntelligenceManager()
+        report = cve_intelligence.create_summary_report(data)
 
         return jsonify({
             "success": True,
@@ -7868,7 +7869,7 @@ def create_summary_report():
 
 @app.route("/api/visual/tool-output", methods=["POST"])
 def format_tool_output():
-    """Format tool output using ModernVisualEngine"""
+    """Format tool output using CVEIntelligenceManager"""
     try:
         data = request.get_json()
         if not data or 'tool' not in data or 'output' not in data:
@@ -7879,7 +7880,8 @@ def format_tool_output():
         success = data.get('success', True)
 
         # Format tool output
-        formatted_output = ModernVisualEngine.format_tool_output(tool, output, success)
+        cve_intelligence = CVEIntelligenceManager()
+        formatted_output = cve_intelligence.format_tool_output(tool, output, success)
 
         return jsonify({
             "success": True,
