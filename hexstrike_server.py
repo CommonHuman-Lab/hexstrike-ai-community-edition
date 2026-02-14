@@ -1073,7 +1073,7 @@ class IntelligentDecisionEngine:
 
         # Enable active hunting if specified
         if context.get("active_hunting", False):
-            params["active"] = True
+            params["active"] = "true"
 
         return params
 
