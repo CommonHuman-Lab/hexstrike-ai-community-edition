@@ -3684,7 +3684,7 @@ class EnhancedProcessManager:
         self.monitor_thread = threading.Thread(target=self._monitor_system, daemon=True)
         self.monitor_thread.start()
 
-    def execute_command_async(self, command: str, context: Dict[str, Any] = None) -> str:
+    def execute_command_async(self, command: str, context: Optional[Dict[str, Any]] = None) -> str:
         """Execute command asynchronously using process pool"""
         task_id = f"cmd_{int(time.time() * 1000)}_{hash(command) % 10000}"
 
@@ -7112,7 +7112,7 @@ def execute_command(command: str, use_cache: bool = True) -> Dict[str, Any]:
 
     return result
 
-def execute_command_with_recovery(tool_name: str, command: str, parameters: Dict[str, Any] = None,
+def execute_command_with_recovery(tool_name: str, command: str, parameters: Optional[Dict[str, Any]] = None,
                                  use_cache: bool = True, max_attempts: int = 3) -> Dict[str, Any]:
     """
     Execute a command with intelligent error handling and recovery
