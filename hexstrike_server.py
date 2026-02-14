@@ -2583,7 +2583,7 @@ class CTFTeamCoordinator:
                 })
 
         # Assign challenges using Hungarian algorithm approximation
-        assignments = self._assign_challenges_optimally(member_challenge_scores)
+        assignments: Dict[str, List[Dict[str, Any]]] = self._assign_challenges_optimally(member_challenge_scores)
         strategy["assignments"] = assignments
 
         # Create priority queue
@@ -2751,7 +2751,7 @@ class TechnologyDetector:
             11211: "memcached"
         }
 
-    def detect_technologies(self, target: str, headers: Dict[str, str] = None, content: str = "", ports: List[int] = None) -> Dict[str, List[str]]:
+    def detect_technologies(self, target: str, headers: Optional[Dict[str, str]] = None, content: str = "", ports: Optional[List[int]] = None) -> Dict[str, List[str]]:
         """Comprehensive technology detection"""
         detected = {
             "web_servers": [],
@@ -2816,7 +2816,7 @@ class RateLimitDetector:
             "stealth": {"delay": 2.0, "threads": 5, "timeout": 30}
         }
 
-    def detect_rate_limiting(self, response_text: str, status_code: int, headers: Dict[str, str] = None) -> Dict[str, Any]:
+    def detect_rate_limiting(self, response_text: str, status_code: int, headers: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
         """Detect rate limiting from response"""
         rate_limit_detected = False
         confidence = 0.0
@@ -3151,7 +3151,7 @@ class ParameterOptimizer:
             }
         }
 
-    def optimize_parameters_advanced(self, tool: str, target_profile: TargetProfile, context: Dict[str, Any] = None) -> Dict[str, Any]:
+    def optimize_parameters_advanced(self, tool: str, target_profile: TargetProfile, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Advanced parameter optimization with full intelligence"""
         if context is None:
             context = {}
