@@ -4338,72 +4338,6 @@ class CVEIntelligenceManager:
 
         return dashboard
 
-    @staticmethod
-    def format_tool_output(tool: str, output: str, success: bool = True) -> str:
-        """Format tool output with syntax highlighting and structure"""
-
-        # Get tool icon
-        tool_icon = '🛠️'  # Default tool icon
-
-        # Status indicator
-        status_icon = "✅" if success else "❌"
-        status_color = ModernVisualEngine.COLORS['MATRIX_GREEN'] if success else ModernVisualEngine.COLORS['HACKER_RED']
-
-        # Format the output with structure
-        formatted_output = f"""
-{ModernVisualEngine.COLORS['BOLD']}╭─ {tool_icon} {tool.upper()} OUTPUT ─────────────────────────────────────────────╮{ModernVisualEngine.COLORS['RESET']}
-{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {status_color}{status_icon} Status: {'SUCCESS' if success else 'FAILED'}{ModernVisualEngine.COLORS['RESET']}
-{ModernVisualEngine.COLORS['BOLD']}├─────────────────────────────────────────────────────────────────────────────┤{ModernVisualEngine.COLORS['RESET']}
-"""
-
-        # Process output lines with syntax highlighting
-        lines = output.split('\n')
-        for line in lines[:20]:  # Limit to first 20 lines for readability
-            if line.strip():
-                # Basic syntax highlighting
-                if any(keyword in line.lower() for keyword in ['error', 'failed', 'denied']):
-                    formatted_output += f"{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['ERROR']}{line[:75]}{ModernVisualEngine.COLORS['RESET']}\n"
-                elif any(keyword in line.lower() for keyword in ['found', 'discovered', 'vulnerable']):
-                    formatted_output += f"{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['MATRIX_GREEN']}{line[:75]}{ModernVisualEngine.COLORS['RESET']}\n"
-                elif any(keyword in line.lower() for keyword in ['warning', 'timeout']):
-                    formatted_output += f"{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['WARNING']}{line[:75]}{ModernVisualEngine.COLORS['RESET']}\n"
-                else:
-                    formatted_output += f"{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['BRIGHT_WHITE']}{line[:75]}{ModernVisualEngine.COLORS['RESET']}\n"
-
-        if len(lines) > 20:
-            formatted_output += f"{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['TERMINAL_GRAY']}... ({len(lines) - 20} more lines truncated){ModernVisualEngine.COLORS['RESET']}\n"
-
-        formatted_output += f"{ModernVisualEngine.COLORS['BOLD']}╰─────────────────────────────────────────────────────────────────────────────╯{ModernVisualEngine.COLORS['RESET']}"
-
-        return formatted_output
-
-    @staticmethod
-    def create_summary_report(results: Dict[str, Any]) -> str:
-        """Generate a beautiful summary report"""
-
-        total_vulns = len(results.get('vulnerabilities', []))
-        critical_vulns = len([v for v in results.get('vulnerabilities', []) if v.get('severity') == 'critical'])
-        high_vulns = len([v for v in results.get('vulnerabilities', []) if v.get('severity') == 'high'])
-        execution_time = results.get('execution_time', 0)
-        tools_used = results.get('tools_used', [])
-
-        report = f"""
-{ModernVisualEngine.COLORS['MATRIX_GREEN']}{ModernVisualEngine.COLORS['BOLD']}╔══════════════════════════════════════════════════════════════════════════════╗
-║                              📊 SCAN SUMMARY REPORT                          ║
-╠══════════════════════════════════════════════════════════════════════════════╣{ModernVisualEngine.COLORS['RESET']}
-{ModernVisualEngine.COLORS['BOLD']}║{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['NEON_BLUE']}🎯 Target:{ModernVisualEngine.COLORS['RESET']} {results.get('target', 'Unknown')[:60]}
-{ModernVisualEngine.COLORS['BOLD']}║{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['CYBER_ORANGE']}⏱️  Duration:{ModernVisualEngine.COLORS['RESET']} {execution_time:.2f} seconds
-{ModernVisualEngine.COLORS['BOLD']}║{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['WARNING']}🛠️  Tools Used:{ModernVisualEngine.COLORS['RESET']} {len(tools_used)} tools
-{ModernVisualEngine.COLORS['BOLD']}╠──────────────────────────────────────────────────────────────────────────────╣{ModernVisualEngine.COLORS['RESET']}
-{ModernVisualEngine.COLORS['BOLD']}║{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['HACKER_RED']}🔥 Critical:{ModernVisualEngine.COLORS['RESET']} {critical_vulns} vulnerabilities
-{ModernVisualEngine.COLORS['BOLD']}║{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['ERROR']}⚠️  High:{ModernVisualEngine.COLORS['RESET']} {high_vulns} vulnerabilities
-{ModernVisualEngine.COLORS['BOLD']}║{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['MATRIX_GREEN']}📈 Total Found:{ModernVisualEngine.COLORS['RESET']} {total_vulns} vulnerabilities
-{ModernVisualEngine.COLORS['BOLD']}╠──────────────────────────────────────────────────────────────────────────────╣{ModernVisualEngine.COLORS['RESET']}
-{ModernVisualEngine.COLORS['BOLD']}║{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['ELECTRIC_PURPLE']}🚀 Tools:{ModernVisualEngine.COLORS['RESET']} {', '.join(tools_used[:5])}{'...' if len(tools_used) > 5 else ''}
-{ModernVisualEngine.COLORS['MATRIX_GREEN']}{ModernVisualEngine.COLORS['BOLD']}╚══════════════════════════════════════════════════════════════════════════════╝{ModernVisualEngine.COLORS['RESET']}
-"""
-        return report
-
     def fetch_latest_cves(self, hours=24, severity_filter="HIGH,CRITICAL"):
         """Fetch latest CVEs from NVD and other real sources"""
         try:
@@ -7848,15 +7782,15 @@ def create_vulnerability_card():
 
 @app.route("/api/visual/summary-report", methods=["POST"])
 def create_summary_report():
-    """Create a beautiful summary report using CVEIntelligenceManager"""
+    """Create a beautiful summary report using ModernVisualEngine"""
     try:
         data = request.get_json()
         if not data:
             return jsonify({"error": "No data provided"}), 400
 
         # Create summary report
-        cve_intelligence = CVEIntelligenceManager()
-        report = cve_intelligence.create_summary_report(data)
+        visual_engine = ModernVisualEngine()
+        report = visual_engine.create_summary_report(data)
 
         return jsonify({
             "success": True,
@@ -7870,7 +7804,7 @@ def create_summary_report():
 
 @app.route("/api/visual/tool-output", methods=["POST"])
 def format_tool_output():
-    """Format tool output using CVEIntelligenceManager"""
+    """Format tool output using ModernVisualEngine"""
     try:
         data = request.get_json()
         if not data or 'tool' not in data or 'output' not in data:
@@ -7881,8 +7815,8 @@ def format_tool_output():
         success = data.get('success', True)
 
         # Format tool output
-        cve_intelligence = CVEIntelligenceManager()
-        formatted_output = cve_intelligence.format_tool_output(tool, output, success)
+        visual_engine = ModernVisualEngine()
+        formatted_output = visual_engine.format_tool_output(tool, output, success)
 
         return jsonify({
             "success": True,
