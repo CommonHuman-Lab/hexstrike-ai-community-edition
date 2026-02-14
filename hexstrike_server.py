@@ -3709,6 +3709,7 @@ class EnhancedProcessManager:
     def _execute_command_internal(self, command: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Internal command execution with enhanced monitoring"""
         start_time = time.time()
+        process = None
 
         try:
             # Resource-aware execution
@@ -3782,7 +3783,7 @@ class EnhancedProcessManager:
         finally:
             # Cleanup process registry
             with self.registry_lock:
-                if hasattr(process, 'pid') and process.pid in self.process_registry:
+                if process is not None and hasattr(process, 'pid') and process.pid in self.process_registry:
                     del self.process_registry[process.pid]
 
     def get_task_result(self, task_id: str) -> Dict[str, Any]:
