@@ -336,6 +336,24 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False) -
     # ============================================================================
 
     @mcp.tool()
+    def whois_lookup(target: str) -> Dict[str, Any]:
+        """
+        Perform a WHOIS lookup for a domain or IP address.
+
+        Args:
+            target: The domain or IP to query
+
+        Returns:
+            WHOIS lookup results
+        """
+        try:
+            response = hexstrike_client.safe_post("api/tools/whois", {"target": target})
+            return response
+        except Exception as e:
+            logger.error(f"WHOIS lookup failed: {e}")
+            return {"error": str(e)}
+    
+    @mcp.tool()
     def nmap_scan(target: str, scan_type: str = "-sV", ports: str = "", additional_args: str = "") -> Dict[str, Any]:
         """
         Execute an enhanced Nmap scan against a target with real-time logging.
@@ -349,7 +367,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False) -
         Returns:
             Scan results with enhanced telemetry
         """
-        data = {
+        data: Dict[str, Any] = {
             "target": target,
             "scan_type": scan_type,
             "ports": ports,
@@ -392,7 +410,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False) -
         Returns:
             Scan results with enhanced telemetry
         """
-        data = {
+        data: Dict[str, Any] = {
             "url": url,
             "mode": mode,
             "wordlist": wordlist,
@@ -437,7 +455,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False) -
         Returns:
             Scan results with discovered vulnerabilities and telemetry
         """
-        data = {
+        data: Dict[str, Any] = {
             "target": target,
             "severity": severity,
             "tags": tags,
@@ -3383,7 +3401,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False) -
         Returns:
             Hash length extension attack results
         """
-        data = {
+        payload = {
             "signature": signature,
             "data": data,
             "key_length": key_length,
@@ -3391,7 +3409,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False) -
             "additional_args": additional_args
         }
         logger.info(f"🔐 Starting HashPump attack")
-        result = hexstrike_client.safe_post("api/tools/hashpump", data)
+        result = hexstrike_client.safe_post("api/tools/hashpump", payload)
         if result.get("success"):
             logger.info(f"✅ HashPump attack completed")
         else:
@@ -3441,42 +3459,6 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False) -
             logger.info(f"✅ Hakrawler crawling completed")
         else:
             logger.error(f"❌ Hakrawler crawling failed")
-        return result
-
-    @mcp.tool()
-    def httpx_probe(targets: str = "", target_file: str = "", ports: str = "", methods: str = "GET", status_code: str = "", content_length: bool = False, output_file: str = "", additional_args: str = "") -> Dict[str, Any]:
-        """
-        Execute HTTPx for HTTP probing with enhanced logging.
-
-        Args:
-            targets: Target URLs or IPs
-            target_file: File containing targets
-            ports: Ports to probe
-            methods: HTTP methods to use
-            status_code: Filter by status code
-            content_length: Show content length
-            output_file: Output file path
-            additional_args: Additional HTTPx arguments
-
-        Returns:
-            HTTP probing results
-        """
-        data = {
-            "targets": targets,
-            "target_file": target_file,
-            "ports": ports,
-            "methods": methods,
-            "status_code": status_code,
-            "content_length": content_length,
-            "output_file": output_file,
-            "additional_args": additional_args
-        }
-        logger.info(f"🌐 Starting HTTPx probing")
-        result = hexstrike_client.safe_post("api/tools/httpx", data)
-        if result.get("success"):
-            logger.info(f"✅ HTTPx probing completed")
-        else:
-            logger.error(f"❌ HTTPx probing failed")
         return result
 
     @mcp.tool()
@@ -3604,7 +3586,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False) -
         Returns:
             Parameter discovery results
         """
-        data = {
+        payload = {
             "url": url,
             "method": method,
             "data": data,
@@ -3614,7 +3596,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False) -
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting Arjun parameter discovery: {url}")
-        result = hexstrike_client.safe_post("api/tools/arjun", data)
+        result = hexstrike_client.safe_post("api/tools/arjun", payload)
         if result.get("success"):
             logger.info(f"✅ Arjun completed for {url}")
         else:
@@ -4958,6 +4940,8 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False) -
             "timestamp": datetime.now().isoformat()
         }
 
+    
+
     # ============================================================================
     # BUG BOUNTY HUNTING SPECIALIZED WORKFLOWS
     # ============================================================================
@@ -5515,7 +5499,15 @@ def main():
         mcp = setup_mcp_server(hexstrike_client, compact=args.compact)
         logger.info("🚀 Starting HexStrike AI MCP server")
         logger.info("🤖 Ready to serve AI agents with enhanced cybersecurity capabilities")
-        mcp.run()
+        # stdio fallback for MCP clients that don't support the run() method
+        try:
+            mcp.run()
+        except AttributeError:
+            import asyncio
+            if hasattr(mcp, "run_stdio"):
+                asyncio.run(mcp.run_stdio_async())
+            else:
+                raise
     except Exception as e:
         logger.error(f"💥 Error starting MCP server: {str(e)}")
         import traceback

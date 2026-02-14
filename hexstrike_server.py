@@ -654,7 +654,7 @@ class IntelligentDecisionEngine:
 
         return selected_tools
 
-    def optimize_parameters(self, tool: str, profile: TargetProfile, context: Dict[str, Any] = None) -> Dict[str, Any]:
+    def optimize_parameters(self, tool: str, profile: TargetProfile, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Enhanced parameter optimization with advanced intelligence"""
         if context is None:
             context = {}
@@ -1242,6 +1242,7 @@ class CTFChallenge:
     files: List[str] = field(default_factory=list)
     url: str = ""
     hints: List[str] = field(default_factory=list)
+    target: Optional[str] = None  # Target for the challenge (e.g., IP, domain, binary)
 
 class CTFWorkflowManager:
     """Specialized workflow manager for CTF competitions"""
@@ -3684,7 +3685,7 @@ class EnhancedProcessManager:
         self.monitor_thread = threading.Thread(target=self._monitor_system, daemon=True)
         self.monitor_thread.start()
 
-    def execute_command_async(self, command: str, context: Dict[str, Any] = None) -> str:
+    def execute_command_async(self, command: str, context: Optional[Dict[str, Any]] = None) -> str:
         """Execute command asynchronously using process pool"""
         task_id = f"cmd_{int(time.time() * 1000)}_{hash(command) % 10000}"
 
@@ -4336,72 +4337,6 @@ class CVEIntelligenceManager:
         dashboard += f"{ModernVisualEngine.COLORS['MATRIX_GREEN']}{ModernVisualEngine.COLORS['BOLD']}╚══════════════════════════════════════════════════════════════════════════════╝{ModernVisualEngine.COLORS['RESET']}"
 
         return dashboard
-
-    @staticmethod
-    def format_tool_output(tool: str, output: str, success: bool = True) -> str:
-        """Format tool output with syntax highlighting and structure"""
-
-        # Get tool icon
-        tool_icon = '🛠️'  # Default tool icon
-
-        # Status indicator
-        status_icon = "✅" if success else "❌"
-        status_color = ModernVisualEngine.COLORS['MATRIX_GREEN'] if success else ModernVisualEngine.COLORS['HACKER_RED']
-
-        # Format the output with structure
-        formatted_output = f"""
-{ModernVisualEngine.COLORS['BOLD']}╭─ {tool_icon} {tool.upper()} OUTPUT ─────────────────────────────────────────────╮{ModernVisualEngine.COLORS['RESET']}
-{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {status_color}{status_icon} Status: {'SUCCESS' if success else 'FAILED'}{ModernVisualEngine.COLORS['RESET']}
-{ModernVisualEngine.COLORS['BOLD']}├─────────────────────────────────────────────────────────────────────────────┤{ModernVisualEngine.COLORS['RESET']}
-"""
-
-        # Process output lines with syntax highlighting
-        lines = output.split('\n')
-        for line in lines[:20]:  # Limit to first 20 lines for readability
-            if line.strip():
-                # Basic syntax highlighting
-                if any(keyword in line.lower() for keyword in ['error', 'failed', 'denied']):
-                    formatted_output += f"{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['ERROR']}{line[:75]}{ModernVisualEngine.COLORS['RESET']}\n"
-                elif any(keyword in line.lower() for keyword in ['found', 'discovered', 'vulnerable']):
-                    formatted_output += f"{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['MATRIX_GREEN']}{line[:75]}{ModernVisualEngine.COLORS['RESET']}\n"
-                elif any(keyword in line.lower() for keyword in ['warning', 'timeout']):
-                    formatted_output += f"{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['WARNING']}{line[:75]}{ModernVisualEngine.COLORS['RESET']}\n"
-                else:
-                    formatted_output += f"{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['BRIGHT_WHITE']}{line[:75]}{ModernVisualEngine.COLORS['RESET']}\n"
-
-        if len(lines) > 20:
-            formatted_output += f"{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['TERMINAL_GRAY']}... ({len(lines) - 20} more lines truncated){ModernVisualEngine.COLORS['RESET']}\n"
-
-        formatted_output += f"{ModernVisualEngine.COLORS['BOLD']}╰─────────────────────────────────────────────────────────────────────────────╯{ModernVisualEngine.COLORS['RESET']}"
-
-        return formatted_output
-
-    @staticmethod
-    def create_summary_report(results: Dict[str, Any]) -> str:
-        """Generate a beautiful summary report"""
-
-        total_vulns = len(results.get('vulnerabilities', []))
-        critical_vulns = len([v for v in results.get('vulnerabilities', []) if v.get('severity') == 'critical'])
-        high_vulns = len([v for v in results.get('vulnerabilities', []) if v.get('severity') == 'high'])
-        execution_time = results.get('execution_time', 0)
-        tools_used = results.get('tools_used', [])
-
-        report = f"""
-{ModernVisualEngine.COLORS['MATRIX_GREEN']}{ModernVisualEngine.COLORS['BOLD']}╔══════════════════════════════════════════════════════════════════════════════╗
-║                              📊 SCAN SUMMARY REPORT                          ║
-╠══════════════════════════════════════════════════════════════════════════════╣{ModernVisualEngine.COLORS['RESET']}
-{ModernVisualEngine.COLORS['BOLD']}║{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['NEON_BLUE']}🎯 Target:{ModernVisualEngine.COLORS['RESET']} {results.get('target', 'Unknown')[:60]}
-{ModernVisualEngine.COLORS['BOLD']}║{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['CYBER_ORANGE']}⏱️  Duration:{ModernVisualEngine.COLORS['RESET']} {execution_time:.2f} seconds
-{ModernVisualEngine.COLORS['BOLD']}║{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['WARNING']}🛠️  Tools Used:{ModernVisualEngine.COLORS['RESET']} {len(tools_used)} tools
-{ModernVisualEngine.COLORS['BOLD']}╠──────────────────────────────────────────────────────────────────────────────╣{ModernVisualEngine.COLORS['RESET']}
-{ModernVisualEngine.COLORS['BOLD']}║{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['HACKER_RED']}🔥 Critical:{ModernVisualEngine.COLORS['RESET']} {critical_vulns} vulnerabilities
-{ModernVisualEngine.COLORS['BOLD']}║{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['ERROR']}⚠️  High:{ModernVisualEngine.COLORS['RESET']} {high_vulns} vulnerabilities
-{ModernVisualEngine.COLORS['BOLD']}║{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['MATRIX_GREEN']}📈 Total Found:{ModernVisualEngine.COLORS['RESET']} {total_vulns} vulnerabilities
-{ModernVisualEngine.COLORS['BOLD']}╠──────────────────────────────────────────────────────────────────────────────╣{ModernVisualEngine.COLORS['RESET']}
-{ModernVisualEngine.COLORS['BOLD']}║{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['ELECTRIC_PURPLE']}🚀 Tools:{ModernVisualEngine.COLORS['RESET']} {', '.join(tools_used[:5])}{'...' if len(tools_used) > 5 else ''}
-{ModernVisualEngine.COLORS['MATRIX_GREEN']}{ModernVisualEngine.COLORS['BOLD']}╚══════════════════════════════════════════════════════════════════════════════╝{ModernVisualEngine.COLORS['RESET']}
-"""
-        return report
 
     def fetch_latest_cves(self, hours=24, severity_filter="HIGH,CRITICAL"):
         """Fetch latest CVEs from NVD and other real sources"""
@@ -7112,7 +7047,7 @@ def execute_command(command: str, use_cache: bool = True) -> Dict[str, Any]:
 
     return result
 
-def execute_command_with_recovery(tool_name: str, command: str, parameters: Dict[str, Any] = None,
+def execute_command_with_recovery(tool_name: str, command: str, parameters: Optional[Dict[str, Any]] = None,
                                  use_cache: bool = True, max_attempts: int = 3) -> Dict[str, Any]:
     """
     Execute a command with intelligent error handling and recovery
@@ -7825,14 +7760,15 @@ def process_dashboard():
 
 @app.route("/api/visual/vulnerability-card", methods=["POST"])
 def create_vulnerability_card():
-    """Create a beautiful vulnerability card using ModernVisualEngine"""
+    """Create a beautiful vulnerability card using CVEIntelligenceManager"""
     try:
         data = request.get_json()
         if not data:
             return jsonify({"error": "No data provided"}), 400
 
         # Create vulnerability card
-        card = ModernVisualEngine.render_vulnerability_card(data)
+        cve_intelligence = CVEIntelligenceManager()
+        card = cve_intelligence.render_vulnerability_card(data)
 
         return jsonify({
             "success": True,
@@ -7879,7 +7815,8 @@ def format_tool_output():
         success = data.get('success', True)
 
         # Format tool output
-        formatted_output = ModernVisualEngine.format_tool_output(tool, output, success)
+        visual_engine = ModernVisualEngine()
+        formatted_output = visual_engine.format_tool_output(tool, output, success)
 
         return jsonify({
             "success": True,
@@ -8083,6 +8020,8 @@ def intelligent_smart_scan():
             "combined_output": ""
         }
 
+        combined_output_parts = []
+
         def execute_single_tool(tool_name, target, profile):
             """Execute a single tool and return results"""
             try:
@@ -8175,10 +8114,12 @@ def intelligent_smart_scan():
 
                 # Combine outputs
                 if tool_result.get("stdout"):
-                    scan_results["combined_output"] += f"\n=== {tool_result['tool'].upper()} OUTPUT ===\n"
-                    scan_results["combined_output"] += tool_result["stdout"]
-                    scan_results["combined_output"] += "\n" + "="*50 + "\n"
-
+                    combined_output_parts.append(f"\n=== {tool_result['tool'].upper()} OUTPUT ===\n")
+                    combined_output_parts.append(tool_result["stdout"])
+                    combined_output_parts.append("\n" + "="*50 + "\n")
+        
+        scan_results["combined_output"] = "".join(combined_output_parts)
+        
         # Create execution summary
         successful_tools = [t for t in scan_results["tools_executed"] if t.get("success")]
         failed_tools = [t for t in scan_results["tools_executed"] if not t.get("success")]
@@ -8708,6 +8649,31 @@ def create_comprehensive_bugbounty_assessment():
 # SECURITY TOOLS API ENDPOINTS
 # ============================================================================
 
+@app.route("/api/tools/whois", methods=["POST"])
+def whois():
+    """
+    WHOIS lookup tool endpoint.
+    Expects JSON: { "target": "example.com" }
+    """
+    data = request.get_json(force=True)
+    target = data.get("target", "")
+    if not target:
+        return jsonify({"error": "Missing 'target' parameter"}), 400
+
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["whois", target],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=30,
+            text=True
+        )
+        output = result.stdout if result.returncode == 0 else result.stderr
+        return jsonify({"success": result.returncode == 0, "output": output})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+    
 @app.route("/api/tools/nmap", methods=["POST"])
 def nmap():
     """Execute nmap scan with enhanced logging, caching, and intelligent error handling"""
@@ -14845,6 +14811,7 @@ def ctf_forensics_analyzer():
             steg_tools = ["steghide", "zsteg", "outguess"]
             for tool in steg_tools:
                 try:
+                    steg_result = None
                     if tool == "steghide":
                         steg_result = subprocess.run([tool, 'info', file_path], capture_output=True, text=True, timeout=30)
                     elif tool == "zsteg":
@@ -14852,7 +14819,7 @@ def ctf_forensics_analyzer():
                     elif tool == "outguess":
                         steg_result = subprocess.run([tool, '-r', file_path, '/tmp/outguess_output'], capture_output=True, text=True, timeout=30)
 
-                    if steg_result.returncode == 0 and steg_result.stdout.strip():
+                    if steg_result and steg_result.returncode == 0 and steg_result.stdout.strip():
                         results["steganography_results"].append({
                             "tool": tool,
                             "output": steg_result.stdout
@@ -15013,7 +14980,7 @@ def ctf_binary_analyzer():
                         results["exploitation_hints"].append("Format string with %n found - potential format string vulnerability")
 
         except Exception as e:
-            results["strings_analysis"]["error"] = str(e)
+            results["strings_analysis"] = {"error": str(e)}
 
         # ROP gadgets search
         if find_gadgets and analysis_depth in ["comprehensive", "deep"]:

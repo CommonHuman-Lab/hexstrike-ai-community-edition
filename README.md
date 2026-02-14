@@ -123,6 +123,7 @@ You can install and run HexStrike AI MCPs with various AI clients, including:
 - **Roo Code**
 - **Cursor**
 - **Claude Desktop**
+- **OpenCode**
 - **Any MCP-compatible agent**
 
 Refer to the video above for step-by-step instructions and integration examples for these platforms.
@@ -176,6 +177,30 @@ Configure VS Code settings in `.vscode/settings.json`:
     }
   },
   "inputs": []
+}
+```
+</details>
+
+<details>
+<summary>OpenCode Integration</summary>
+
+Configure OpenCode settings in `~/.config/opencode/opencode.json`:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "hexstrike-ai": {
+      "type": "local",
+      "timeout": 000,
+      "command": ["/path/to/hexstrike-ai/hexstrike_env/bin/python3",
+        "/path/to/hexstrike-ai/hexstrike_mcp.py",
+        "--server",
+        "http://localhost:8888"
+      ],
+      "enabled": true
+    }
+  }
 }
 ```
 </details>
