@@ -336,6 +336,24 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False) -
     # ============================================================================
 
     @mcp.tool()
+    def whois_lookup(target: str) -> Dict[str, Any]:
+        """
+        Perform a WHOIS lookup for a domain or IP address.
+
+        Args:
+            target: The domain or IP to query
+
+        Returns:
+            WHOIS lookup results
+        """
+        try:
+            response = hexstrike_client.safe_post("api/tools/whois", {"target": target})
+            return response
+        except Exception as e:
+            logger.error(f"WHOIS lookup failed: {e}")
+            return {"error": str(e)}
+    
+    @mcp.tool()
     def nmap_scan(target: str, scan_type: str = "-sV", ports: str = "", additional_args: str = "") -> Dict[str, Any]:
         """
         Execute an enhanced Nmap scan against a target with real-time logging.
@@ -4921,6 +4939,8 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False) -
             },
             "timestamp": datetime.now().isoformat()
         }
+
+    
 
     # ============================================================================
     # BUG BOUNTY HUNTING SPECIALIZED WORKFLOWS

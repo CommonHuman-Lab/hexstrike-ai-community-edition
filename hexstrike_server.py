@@ -8715,6 +8715,31 @@ def create_comprehensive_bugbounty_assessment():
 # SECURITY TOOLS API ENDPOINTS
 # ============================================================================
 
+@app.route("/api/tools/whois", methods=["POST"])
+def api_tools_whois():
+    """
+    WHOIS lookup tool endpoint.
+    Expects JSON: { "target": "example.com" }
+    """
+    data = request.get_json(force=True)
+    target = data.get("target", "")
+    if not target:
+        return jsonify({"error": "Missing 'target' parameter"}), 400
+
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["whois", target],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=30,
+            text=True
+        )
+        output = result.stdout if result.returncode == 0 else result.stderr
+        return jsonify({"success": result.returncode == 0, "output": output})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+    
 @app.route("/api/tools/nmap", methods=["POST"])
 def nmap():
     """Execute nmap scan with enhanced logging, caching, and intelligent error handling"""

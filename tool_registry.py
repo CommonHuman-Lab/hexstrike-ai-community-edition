@@ -286,6 +286,15 @@ TOOLS: Dict[str, dict] = {
     },
 
     # ---- OSINT ----
+    "whois": {
+        "desc": "WHOIS lookup for domains and IPs",
+        "endpoint": "/api/tools/whois",
+        "method": "POST",
+        "category": "osint",
+        "params": {"target": {"required": True}},
+        "optional": {},
+        "effectiveness": 0.80,
+    },
     "amass": {
         "desc": "Subdomain enumeration and OSINT",
         "endpoint": "/api/tools/amass",
@@ -473,7 +482,7 @@ _INTENT_KEYWORDS: Dict[str, List[str]] = {
     ],
     "osint": [
         "subdomain", "dns", "osint", "amass", "subfinder", "domain", "recon",
-        "wayback", "url", "fierce", "enumerate",
+        "wayback", "url", "fierce", "enumerate","whois"
     ],
     "binary": [
         "binary", "reverse", "rop", "gadget", "checksec", "firmware", "elf",
