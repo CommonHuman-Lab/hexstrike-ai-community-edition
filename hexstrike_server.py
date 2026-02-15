@@ -5866,7 +5866,7 @@ def health_check():
     osint_tools = [
         "amass", "subfinder", "fierce", "dnsenum", "theharvester", "sherlock",
         "social-analyzer", "recon-ng", "maltego", "spiderfoot", "shodan-cli",
-        "censys-cli", "have-i-been-pwned"
+        "censys-cli", "have-i-been-pwned", "whois"
     ]
 
     exploitation_tools = [
