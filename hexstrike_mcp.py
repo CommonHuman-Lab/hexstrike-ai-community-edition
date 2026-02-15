@@ -380,6 +380,20 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False) -
             logger.error(f"SQLite query failed: {e}")
             return {"error": str(e)}
         
+    @mcp.tool()
+    def postgresql_query(host: str, user: str, password: str = "", database: str = "", query: str = "") -> Dict[str, Any]:
+        data = {
+            "host": host,
+            "user": user,
+            "password": password,
+            "database": database,
+            "query": query
+        }
+        try:
+            return hexstrike_client.safe_post("api/tools/postgresql", data)    
+        except Exception as e:
+            logger.error(f"PostgreSQL query failed: {e}")
+            return {"error": str(e)}
     # ============================================================================
     # CORE NETWORK SCANNING TOOLS
     # ============================================================================

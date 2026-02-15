@@ -6,8 +6,6 @@
 # python3 -m pip install -r requirements.txt
 # python3 hexstrike_server.py
 
-PyMySQL>=1.0.0,<2.0.0
-
 # ============================================================================
 # CORE FRAMEWORK DEPENDENCIES (ACTUALLY USED)
 # ============================================================================
@@ -39,6 +37,12 @@ mitmproxy>=12.1.2        # HTTP proxy (mitmproxy imports)
 pwntools>=4.10.0,<5.0.0         # Binary exploitation (from pwn import *)
 angr>=9.2.0,<10.0.0             # Binary analysis (import angr)
 bcrypt==4.0.1                   # Pin bcrypt version for passlib compatibility (fixes pwntools dependency issue)
+
+# ============================================================================
+# DATABASE CONNECTORS (CONDITIONALLY USED)
+# ============================================================================
+PyMySQL>=1.0.0,<2.0.0
+psycopg2>=2.9.0,<3.0.0
 
 # ============================================================================
 # EXTERNAL SECURITY TOOLS (150+ Tools - Install separately)
