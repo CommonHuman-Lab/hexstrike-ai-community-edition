@@ -206,7 +206,8 @@ class CTFToolManager:
             "osint_search": ["shodan", "censys", "recon-ng"],
             "misc_encoding": ["base64", "base32", "hex", "rot13"],
             "misc_compression": ["zip", "7zip", "rar", "tar"],
-            "misc_esoteric": ["brainfuck", "whitespace", "piet", "malbolge"]
+            "misc_esoteric": ["brainfuck", "whitespace", "piet", "malbolge"],
+            "db": ["mysql", "postgresql", "sqlite"]
         }
 
     def get_tool_command(self, tool: str, target: str, additional_args: str = "") -> str:

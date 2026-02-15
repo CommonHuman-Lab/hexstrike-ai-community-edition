@@ -87,6 +87,33 @@ TOOLS: Dict[str, dict] = {
         "optional": {"protocol": "smb", "username": "", "password": "", "module": "", "additional_args": ""},
         "effectiveness": 0.85,
     },
+    "mysql": {
+        "desc": "Query a MySQL database",
+        "endpoint": "/api/tools/mysql",
+        "method": "POST",
+        "category": "network_recon",
+        "params": {"host": {"required": True}, "user": {"required": True}, "database": {"required": True}, "query": {"required": True}},
+        "optional": {"password": ""},
+        "effectiveness": 0.80,
+    },
+    "postgresql": {
+        "desc": "Query a PostgreSQL database",
+        "endpoint": "/api/tools/postgresql",
+        "method": "POST",
+        "category": "network_recon",
+        "params": {"host": {"required": True}, "user": {"required": True}, "database": {"required": True}, "query": {"required": True}},
+        "optional": {"password": ""},
+        "effectiveness": 0.80,
+    },
+    "sqlite": {
+        "desc": "Query a SQLite database file",
+        "endpoint": "/api/tools/sqlite",
+        "method": "POST",
+        "category": "network_recon",
+        "params": {"db_path": {"required": True}, "query": {"required": True}},
+        "optional": {},
+        "effectiveness": 0.75,
+    },
 
     # ---- Web Recon ----
     "gobuster": {
