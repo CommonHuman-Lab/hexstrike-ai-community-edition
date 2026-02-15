@@ -18,17 +18,12 @@ import sys
 import traceback
 import threading
 import time
-import hashlib
-import pickle
 import base64
 import queue
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
-from collections import OrderedDict
-import shutil
 import venv
-import zipfile
 from pathlib import Path
 from flask import Flask, request, jsonify
 import psutil
@@ -41,8 +36,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Set, Tuple
 from tool_registry import classify_intent, get_tools_for_category, format_tools_for_prompt, get_all_categories
-import asyncio
-import aiohttp
 from urllib.parse import urljoin, urlparse, parse_qs
 from bs4 import BeautifulSoup
 import selenium
