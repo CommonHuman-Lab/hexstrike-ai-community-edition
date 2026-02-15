@@ -51,6 +51,8 @@ from mitmproxy.tools.dump import DumpMaster
 from mitmproxy.options import Options as MitmOptions
 import config as config
 from visual.modern_visual_engine import ModernVisualEngine
+from flask import request, jsonify
+import pymysql
 
 # ============================================================================
 # LOGGING CONFIGURATION (MUST BE FIRST)
@@ -6075,6 +6077,36 @@ def clear_cache():
 def get_telemetry():
     """Get system telemetry"""
     return jsonify(telemetry.get_stats())
+
+# ============================================================================
+# DATABASE INTERACTION API ENDPOINTS
+# ============================================================================
+
+@app.route("/api/tools/mysql", methods=["POST"])
+def mysql_query():
+    data = request.json
+    host = data.get("host")
+    user = data.get("user")
+    password = data.get("password", "")
+    database = data.get("database")
+    query = data.get("query")
+
+    try:
+        conn = pymysql.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=database,
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        with conn.cursor() as cursor:
+            cursor.execute(query)
+            result = cursor.fetchall()
+        conn.close()
+        return jsonify({"success": True, "result": result})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
 
 # ============================================================================
 # PROCESS MANAGEMENT API ENDPOINTS (v5.0 ENHANCEMENT)
