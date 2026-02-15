@@ -6107,6 +6107,24 @@ def mysql_query():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
+import sqlite3
+@app.route("/api/tools/sqlite", methods=["POST"])
+def sqlite_query():
+    data = request.json
+    db_path = data.get("db_path")
+    query = data.get("query")
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        cur.execute(query)
+        result = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+        cur.close()
+        conn.close()
+        return jsonify({"success": True, "columns": columns, "result": result})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
 
 # ============================================================================
 # PROCESS MANAGEMENT API ENDPOINTS (v5.0 ENHANCEMENT)

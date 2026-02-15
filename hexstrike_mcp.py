@@ -367,7 +367,19 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False) -
         except Exception as e:
             logger.error(f"MySQL query failed: {e}")
             return {"error": str(e)}
-
+        
+    @mcp.tool()
+    def sqlite_query(db_path: str, query: str) -> Dict[str, Any]:
+        data = {
+            "db_path": db_path,
+            "query": query
+        }
+        try:
+            return hexstrike_client.safe_post("api/tools/sqlite", data)
+        except Exception as e:
+            logger.error(f"SQLite query failed: {e}")
+            return {"error": str(e)}
+        
     # ============================================================================
     # CORE NETWORK SCANNING TOOLS
     # ============================================================================
