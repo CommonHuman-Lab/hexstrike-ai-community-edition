@@ -1199,7 +1199,6 @@ decision_engine = IntelligentDecisionEngine()
 from enum import Enum
 from dataclasses import dataclass
 import traceback
-import time
 
 from core.error_handling import (
     ErrorType,
@@ -2926,7 +2925,6 @@ class CVEIntelligenceManager:
             
             try:
                 # Add delay to respect NVD rate limits (6 seconds between requests for unauthenticated)
-                import time
                 
                 logger.info(f"🌐 Querying NVD API: {nvd_url}")
                 response = requests.get(nvd_url, params=params, timeout=30)
@@ -3108,8 +3106,6 @@ class CVEIntelligenceManager:
             # Fetch detailed CVE data from NVD
             nvd_url = f"https://services.nvd.nist.gov/rest/json/cves/2.0"
             params = {'cveId': cve_id}
-            
-            import time
             
             try:
                 response = requests.get(nvd_url, params=params, timeout=30)
@@ -3419,7 +3415,6 @@ class CVEIntelligenceManager:
                 nvd_url = "https://services.nvd.nist.gov/rest/json/cves/2.0"
                 nvd_params = {'cveId': cve_id}
                 
-                import time
                 time.sleep(1)  # Rate limiting
                 
                 nvd_response = requests.get(nvd_url, params=nvd_params, timeout=20)
