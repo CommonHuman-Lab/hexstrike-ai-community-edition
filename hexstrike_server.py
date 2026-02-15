@@ -1196,10 +1196,6 @@ decision_engine = IntelligentDecisionEngine()
 # INTELLIGENT ERROR HANDLING AND RECOVERY SYSTEM (v11.0 ENHANCEMENT)
 # ============================================================================
 
-from enum import Enum
-from dataclasses import dataclass
-import traceback
-
 from core.error_handling import (
     ErrorType,
     RecoveryAction,
