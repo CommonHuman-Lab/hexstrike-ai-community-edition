@@ -51,7 +51,6 @@ from mitmproxy.tools.dump import DumpMaster
 from mitmproxy.options import Options as MitmOptions
 import config as config
 from visual.modern_visual_engine import ModernVisualEngine
-from flask import request, jsonify
 import pymysql
 
 # ============================================================================
