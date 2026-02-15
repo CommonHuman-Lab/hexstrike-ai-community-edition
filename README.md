@@ -214,7 +214,16 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 **Categories:**
 
 <details>
-<summary><b>🔍 Network Reconnaissance & Scanning (25+ Tools)</b></summary>
+<summary><b>🗄️ Database Interaction & Querying</b></summary>
+
+- **MySQL Query** – Direct SQL querying and enumeration for MySQL/MariaDB databases
+- **PostgreSQL Query** – Direct SQL querying and enumeration for PostgreSQL databases
+- **SQLite Query** – Local file-based SQL querying for SQLite databases
+
+</details>
+
+<details>
+<summary><b>🔍 Network Reconnaissance & Scanning</b></summary>
 
 - **Nmap** - Advanced port scanning with custom NSE scripts and service detection
 - **Rustscan** - Ultra-fast port scanner with intelligent rate limiting
@@ -228,6 +237,7 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 - **ARP-Scan** - Network discovery using ARP requests
 - **NBTScan** - NetBIOS name scanning and enumeration
 - **RPCClient** - RPC enumeration and null session testing
+- **Whois** - Domain and IP registration lookup for ownership and OSINT
 - **Enum4linux** - SMB enumeration with user, group, and share discovery
 - **Enum4linux-ng** - Advanced SMB enumeration with enhanced logging
 - **SMBMap** - SMB share enumeration and exploitation
@@ -237,7 +247,7 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 </details>
 
 <details>
-<summary><b>🌐 Web Application Security Testing (40+ Tools)</b></summary>
+<summary><b>🌐 Web Application Security Testing</b></summary>
 
 - **Gobuster** - Directory, file, and DNS enumeration with intelligent wordlists
 - **Dirsearch** - Advanced directory and file discovery with enhanced logging
@@ -276,6 +286,7 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 - **Tplmap** - Server-side template injection exploitation tool
 
 **🌐 Advanced Browser Agent:**
+
 - **Headless Chrome Automation** - Full Chrome browser automation with Selenium
 - **Screenshot Capture** - Automated screenshot generation for visual inspection
 - **DOM Analysis** - Deep DOM tree analysis and JavaScript execution monitoring
@@ -290,7 +301,7 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 </details>
 
 <details>
-<summary><b>🔐 Authentication & Password Security (12+ Tools)</b></summary>
+<summary><b>🔐 Authentication & Password Security</b></summary>
 
 - **Hydra** - Network login cracker supporting 50+ protocols
 - **John the Ripper** - Advanced password hash cracking with custom rules
@@ -308,7 +319,7 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 </details>
 
 <details>
-<summary><b>🔬 Binary Analysis & Reverse Engineering (25+ Tools)</b></summary>
+<summary><b>🔬 Binary Analysis & Reverse Engineering</b></summary>
 
 - **GDB** - GNU Debugger with Python scripting and exploit development support
 - **GDB-PEDA** - Python Exploit Development Assistance for GDB
@@ -338,7 +349,7 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 </details>
 
 <details>
-<summary><b>☁️ Cloud & Container Security (20+ Tools)</b></summary>
+<summary><b>☁️ Cloud & Container Security</b></summary>
 
 - **Prowler** - AWS/Azure/GCP security assessment with compliance checks
 - **Scout Suite** - Multi-cloud security auditing for AWS, Azure, GCP, Alibaba Cloud
@@ -364,7 +375,7 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 </details>
 
 <details>
-<summary><b>🏆 CTF & Forensics Tools (20+ Tools)</b></summary>
+<summary><b>🏆 CTF & Forensics Tools</b></summary>
 
 - **Volatility** - Advanced memory forensics framework with comprehensive plugins
 - **Volatility3** - Next-generation memory forensics with enhanced analysis
@@ -383,6 +394,7 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 - **Sleuth Kit** - Collection of command-line digital forensics tools
 
 **Cryptography & Hash Analysis:**
+
 - **John the Ripper** - Password cracker with custom rules and advanced modes
 - **Hashcat** - GPU-accelerated password recovery with 300+ hash types
 - **Hash-Identifier** - Hash type identification with confidence scoring
@@ -395,7 +407,7 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 </details>
 
 <details>
-<summary><b>🔥 Bug Bounty & OSINT Arsenal (20+ Tools)</b></summary>
+<summary><b>🔥 Bug Bounty & OSINT Arsenal</b></summary>
 
 - **Amass** - Advanced subdomain enumeration and OSINT gathering
 - **Subfinder** - Fast passive subdomain discovery with API integration
