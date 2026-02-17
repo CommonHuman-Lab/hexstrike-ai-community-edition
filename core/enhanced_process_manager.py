@@ -3,10 +3,10 @@ import subprocess
 import os
 import time
 from typing import Dict, Any, Optional
-from process_pool import ProcessPool
-from advanced_cache import AdvancedCache
-from resource_monitor import ResourceMonitor
-from performance_dashboard import PerformanceDashboard
+from core.process_pool import ProcessPool
+from core.advanced_cache import AdvancedCache
+from core.resource_monitor import ResourceMonitor
+from core.performance_dashboard import PerformanceDashboard
 
 import logging
 logger = logging.getLogger(__name__)
