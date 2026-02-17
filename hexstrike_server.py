@@ -48,6 +48,7 @@ from mitmproxy.options import Options as MitmOptions
 import config as config
 from visual.modern_visual_engine import ModernVisualEngine
 import pymysql
+from workflows.ctf.CTFChallenge import CTFChallenge
 
 # ============================================================================
 # LOGGING CONFIGURATION (MUST BE FIRST)
