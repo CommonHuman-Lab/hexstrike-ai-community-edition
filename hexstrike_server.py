@@ -3032,26 +3032,6 @@ class EnhancedCommandExecutor:
                 "timestamp": datetime.now().isoformat()
             }
 
-# ============================================================================
-# DUPLICATE CLASSES REMOVED - Using the first definitions above
-# ============================================================================
-
-# ============================================================================
-# AI-POWERED EXPLOIT GENERATION SYSTEM (v6.0 ENHANCEMENT)
-# ============================================================================
-#
-# This section contains advanced AI-powered exploit generation capabilities
-# for automated vulnerability exploitation and proof-of-concept development.
-#
-# Features:
-# - Automated exploit template generation from CVE data
-# - Multi-architecture support (x86, x64, ARM)
-# - Evasion technique integration
-# - Custom payload generation
-# - Exploit effectiveness scoring
-#
-# ============================================================================
-
 from core.ai_exploit_generator import AIExploitGenerator
 
 class VulnerabilityCorrelator:
