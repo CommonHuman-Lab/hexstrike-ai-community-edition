@@ -5,7 +5,6 @@ HexStrike AI - Advanced Penetration Testing Framework Server
 Enhanced with AI-Powered Intelligence & Automation
 🚀 Bug Bounty | CTF | Red Team | Security Research
 
-Architecture: Two-script system (hexstrike_server.py + hexstrike_mcp.py)
 Framework: FastMCP integration for AI agent communication
 """
 
@@ -157,53 +156,7 @@ from core.python_env_manager import env_manager
 
 from intelligence.cve_intelligence_manager import CVEIntelligenceManager
 
-# Configure enhanced logging with colors
-class ColoredFormatter(logging.Formatter):
-    """Custom formatter with colors and emojis"""
-
-    COLORS = {
-        'DEBUG': ModernVisualEngine.COLORS['DEBUG'],
-        'INFO': ModernVisualEngine.COLORS['SUCCESS'],
-        'WARNING': ModernVisualEngine.COLORS['WARNING'],
-        'ERROR': ModernVisualEngine.COLORS['ERROR'],
-        'CRITICAL': ModernVisualEngine.COLORS['CRITICAL']
-    }
-
-    EMOJIS = {
-        'DEBUG': '🔍',
-        'INFO': '✅',
-        'WARNING': '⚠️',
-        'ERROR': '❌',
-        'CRITICAL': '🔥'
-    }
-
-    def format(self, record):
-        emoji = self.EMOJIS.get(record.levelname, '📝')
-        color = self.COLORS.get(record.levelname, ModernVisualEngine.COLORS['BRIGHT_WHITE'])
-
-        # Add color and emoji to the message
-        record.msg = f"{color}{emoji} {record.msg}{ModernVisualEngine.COLORS['RESET']}"
-        return super().format(record)
-
-# Enhanced logging setup
-def setup_logging():
-    """Setup enhanced logging with colors and formatting"""
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-
-    # Clear existing handlers
-    for handler in logger.handlers[:]:
-        logger.removeHandler(handler)
-
-    # Console handler with colors
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(ColoredFormatter(
-        "[🔥 HexStrike AI] %(asctime)s [%(levelname)s] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
-    ))
-    logger.addHandler(console_handler)
-
-    return logger
+from core.setup_logging import setup_logging
 
 # Configuration (using existing API_PORT from top of file)
 DEBUG_MODE = os.environ.get("DEBUG_MODE", "0").lower() in ("1", "true", "yes", "y")
@@ -216,51 +169,8 @@ from core.cache import HexStrikeCache
 # Global cache instance
 cache = HexStrikeCache()
 
-class TelemetryCollector:
-    """Collect and manage system telemetry"""
-
-    def __init__(self):
-        self.stats = {
-            "commands_executed": 0,
-            "successful_commands": 0,
-            "failed_commands": 0,
-            "total_execution_time": 0.0,
-            "start_time": time.time()
-        }
-
-    def record_execution(self, success: bool, execution_time: float):
-        """Record command execution statistics"""
-        self.stats["commands_executed"] += 1
-        if success:
-            self.stats["successful_commands"] += 1
-        else:
-            self.stats["failed_commands"] += 1
-        self.stats["total_execution_time"] += execution_time
-
-    def get_system_metrics(self) -> Dict[str, Any]:
-        """Get current system metrics"""
-        return {
-            "cpu_percent": psutil.cpu_percent(interval=1),
-            "memory_percent": psutil.virtual_memory().percent,
-            "disk_usage": psutil.disk_usage('/').percent,
-            "network_io": psutil.net_io_counters()._asdict() if psutil.net_io_counters() else {}
-        }
-
-    def get_stats(self) -> Dict[str, Any]:
-        """Get telemetry statistics"""
-        uptime = time.time() - self.stats["start_time"]
-        success_rate = (self.stats["successful_commands"] / self.stats["commands_executed"] * 100) if self.stats["commands_executed"] > 0 else 0
-        avg_execution_time = (self.stats["total_execution_time"] / self.stats["commands_executed"]) if self.stats["commands_executed"] > 0 else 0
-
-        return {
-            "uptime_seconds": uptime,
-            "commands_executed": self.stats["commands_executed"],
-            "success_rate": f"{success_rate:.1f}%",
-            "average_execution_time": f"{avg_execution_time:.2f}s",
-            "system_metrics": self.get_system_metrics()
-        }
-
 # Global telemetry collector
+from core.telemetry_collector import TelemetryCollector
 telemetry = TelemetryCollector()
 
 class EnhancedCommandExecutor:
