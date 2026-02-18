@@ -4,7 +4,7 @@ from typing import Any, Optional
 
 _config = {
     "APP_NAME": "HexStrike AI Community Edition",
-    "VERSION": "1.0.4",
+    "VERSION": "1.0.6",
     "COMMAND_TIMEOUT": 300,
     "CACHE_SIZE": 1000,
     "CACHE_TTL": 3600  # 1 hour
