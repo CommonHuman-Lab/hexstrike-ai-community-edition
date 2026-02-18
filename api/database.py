@@ -7,9 +7,9 @@ from flask import Blueprint, request, jsonify
 import pymysql
 import psycopg2
 
-database_bp = Blueprint("database", __name__)
+api_database_bp = Blueprint("database", __name__)
 
-@database_bp.route("/api/tools/mysql", methods=["POST"])
+@api_database_bp.route("/api/tools/mysql", methods=["POST"])
 def mysql_query():
     data = request.json
     host = data.get("host")
@@ -34,7 +34,7 @@ def mysql_query():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
-@database_bp.route("/api/tools/sqlite", methods=["POST"])
+@api_database_bp.route("/api/tools/sqlite", methods=["POST"])
 def sqlite_query():
     data = request.json
     db_path = data.get("db_path")
@@ -53,7 +53,7 @@ def sqlite_query():
 
 import psycopg2
 
-@database_bp.route("/api/tools/postgresql", methods=["POST"])
+@api_database_bp.route("/api/tools/postgresql", methods=["POST"])
 def postgresql_query():
     data = request.json
     host = data.get("host")

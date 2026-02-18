@@ -3724,8 +3724,8 @@ def get_telemetry():
 # DATABASE INTERACTION API ENDPOINTS
 # ============================================================================
 
-from api.database import database_bp
-app.register_blueprint(database_bp)
+from api.database import api_database_bp
+app.register_blueprint(api_database_bp)
 
 # ============================================================================
 # PROCESS MANAGEMENT API ENDPOINTS (v5.0 ENHANCEMENT)
