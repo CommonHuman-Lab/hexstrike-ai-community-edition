@@ -76,6 +76,11 @@ app.config['JSON_SORT_KEYS'] = False
 API_PORT = int(os.environ.get('HEXSTRIKE_PORT', 8888))
 API_HOST = os.environ.get('HEXSTRIKE_HOST', '127.0.0.1')
 
+#Wordlists
+ROCKYOU_PATH = config.get_word_list("rockyou")
+COMMON_DIRB_PATH = config.get_word_list("common_dirb")
+COMMON_DIRSEARCH_PATH = config.get_word_list("common_dirsearch")
+
 # ============================================================================
 # INTELLIGENT DECISION ENGINE (v6.0 ENHANCEMENT)
 # ============================================================================
@@ -1449,7 +1454,7 @@ def execute_gobuster_scan(target, params):
     """Execute gobuster scan with optimized parameters"""
     try:
         mode = params.get('mode', 'dir')
-        wordlist = params.get('wordlist', '/usr/share/wordlists/dirb/common.txt')
+        wordlist = params.get('wordlist', COMMON_DIRB_PATH)
         additional_args = params.get('additional_args', '')
 
         cmd_parts = ['gobuster', mode, '-u', target, '-w', wordlist]
@@ -1506,7 +1511,7 @@ def execute_sqlmap_scan(target, params):
 def execute_ffuf_scan(target, params):
     """Execute ffuf scan with optimized parameters"""
     try:
-        wordlist = params.get('wordlist', '/usr/share/wordlists/dirb/common.txt')
+        wordlist = params.get('wordlist', COMMON_DIRB_PATH)
         additional_args = params.get('additional_args', '')
 
         # Ensure target has FUZZ placeholder
@@ -1524,7 +1529,7 @@ def execute_ffuf_scan(target, params):
 def execute_feroxbuster_scan(target, params):
     """Execute feroxbuster scan with optimized parameters"""
     try:
-        wordlist = params.get('wordlist', '/usr/share/wordlists/dirb/common.txt')
+        wordlist = params.get('wordlist', COMMON_DIRB_PATH)
         additional_args = params.get('additional_args', '')
 
         cmd_parts = ['feroxbuster', '-u', target, '-w', wordlist]
@@ -2010,7 +2015,7 @@ def gobuster():
         params = request.json
         url = params.get("url", "")
         mode = params.get("mode", "dir")
-        wordlist = params.get("wordlist", "/usr/share/wordlists/dirb/common.txt")
+        wordlist = params.get("wordlist", COMMON_DIRB_PATH)
         additional_args = params.get("additional_args", "")
         use_recovery = params.get("use_recovery", True)
 
@@ -2589,7 +2594,7 @@ def dirb():
     try:
         params = request.json
         url = params.get("url", "")
-        wordlist = params.get("wordlist", "/usr/share/wordlists/dirb/common.txt")
+        wordlist = params.get("wordlist", COMMON_DIRB_PATH)
         additional_args = params.get("additional_args", "")
 
         if not url:
@@ -2777,7 +2782,7 @@ def john():
     try:
         params = request.json
         hash_file = params.get("hash_file", "")
-        wordlist = params.get("wordlist", "/usr/share/wordlists/rockyou.txt")
+        wordlist = params.get("wordlist", ROCKYOU_PATH)
         format_type = params.get("format", "")
         additional_args = params.get("additional_args", "")
 
@@ -2871,7 +2876,7 @@ def ffuf():
     try:
         params = request.json
         url = params.get("url", "")
-        wordlist = params.get("wordlist", "/usr/share/wordlists/dirb/common.txt")
+        wordlist = params.get("wordlist", COMMON_DIRB_PATH)
         mode = params.get("mode", "directory")
         match_codes = params.get("match_codes", "200,204,301,302,307,401,403")
         additional_args = params.get("additional_args", "")
@@ -2997,7 +3002,7 @@ def hashcat():
         hash_file = params.get("hash_file", "")
         hash_type = params.get("hash_type", "")
         attack_mode = params.get("attack_mode", "0")
-        wordlist = params.get("wordlist", "/usr/share/wordlists/rockyou.txt")
+        wordlist = params.get("wordlist", ROCKYOU_PATH)
         mask = params.get("mask", "")
         additional_args = params.get("additional_args", "")
 
@@ -4309,7 +4314,7 @@ def feroxbuster():
     try:
         params = request.json
         url = params.get("url", "")
-        wordlist = params.get("wordlist", "/usr/share/wordlists/dirb/common.txt")
+        wordlist = params.get("wordlist", COMMON_DIRB_PATH)
         threads = params.get("threads", 10)
         additional_args = params.get("additional_args", "")
 
@@ -4405,7 +4410,7 @@ def wfuzz():
     try:
         params = request.json
         url = params.get("url", "")
-        wordlist = params.get("wordlist", "/usr/share/wordlists/dirb/common.txt")
+        wordlist = params.get("wordlist", COMMON_DIRB_PATH)
         additional_args = params.get("additional_args", "")
 
         if not url:
@@ -4440,7 +4445,7 @@ def dirsearch():
         params = request.json
         url = params.get("url", "")
         extensions = params.get("extensions", "php,html,js,txt,xml,json")
-        wordlist = params.get("wordlist", "/usr/share/wordlists/dirsearch/common.txt")
+        wordlist = params.get("wordlist", COMMON_DIRSEARCH_PATH)
         threads = params.get("threads", 30)
         recursive = params.get("recursive", False)
         additional_args = params.get("additional_args", "")
