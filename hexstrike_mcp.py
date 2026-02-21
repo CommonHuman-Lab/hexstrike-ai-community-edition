@@ -301,7 +301,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False, p
     if compact:
         logger.info("Compact mode: only gateway tools registered (classify_task, run_tool)")
         return mcp
-    print("profiles:", profiles)
+
     # Determine which profiles to load
     if profiles:
         if "default" in profiles:
