@@ -217,6 +217,12 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 **Categories:**
 
 <details>
+<summary><b>🤖 Automated Recon & Enumeration</b></summary>
+
+BBot – AI-powered reconnaissance and enumeration framework supporting subdomain discovery, module filtering, and safe/fast scanning
+</details>
+
+<details>
 <summary><b>🗄️ Database Interaction & Querying</b></summary>
 
 - **MySQL Query** – Direct SQL querying and enumeration for MySQL/MariaDB databases
