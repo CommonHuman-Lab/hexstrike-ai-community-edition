@@ -561,6 +561,26 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False) -
         
     @mcp.tool()
     def sqlite_query(db_path: str, query: str) -> Dict[str, Any]:
+        """
+        Query a SQLite database using the HexStrike server endpoint.
+
+        Args:
+            db_path: Path to the SQLite database file
+            query: SQL query to execute
+
+        Returns:
+            Query results as JSON
+
+        Example:
+            sqlite_query(
+                db_path="/path/to/database.db",
+                query="SELECT * FROM users;"
+            )
+
+        Usage:
+            - Use for executing SELECT, INSERT, UPDATE, or DELETE statements on a local SQLite database file.
+            - Returns JSON with query results or error details.
+        """
         data = {
             "db_path": db_path,
             "query": query
@@ -573,6 +593,32 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False) -
         
     @mcp.tool()
     def postgresql_query(host: str, user: str, password: str = "", database: str = "", query: str = "") -> Dict[str, Any]:
+        """
+        Query a PostgreSQL database using the HexStrike server endpoint.
+
+        Args:
+            host: PostgreSQL server address
+            user: Username
+            password: Password (optional)
+            database: Database name
+            query: SQL query to execute
+
+        Returns:
+            Query results as JSON
+
+        Example:
+            postgresql_query(
+                host="localhost",
+                user="admin",
+                password="secret",
+                database="mydb",
+                query="SELECT * FROM employees;"
+            )
+
+        Usage:
+            - Use for executing SQL statements on a remote or local PostgreSQL database.
+            - Returns JSON with query results or error details.
+        """
         data = {
             "host": host,
             "user": user,
