@@ -22,7 +22,15 @@
 
 </div>
 
----
+
+## 🚀 Differences from HexStrike V6
+- New Tools Added: Expanded arsenal with BBot, Database querying and more. 
+- Refactored: Codebase restructured for clarity, maintainability, and performance.
+- Updated Packages: All dependencies upgraded for security and compatibility.
+- Enhanced Tool Usage: Improved parameter handling, improved tool documentation and Endpoint references.
+- AI Integration: Improved MCP compatibility and agent orchestration (FastMCP v3).
+
+
 ## Architecture Overview
 
 HexStrike AI features a multi-agent architecture with autonomous AI agents, intelligent decision-making, and vulnerability intelligence.
@@ -36,7 +44,6 @@ HexStrike AI features a multi-agent architecture with autonomous AI agents, inte
 5. **Advanced Reporting** - Visual output with vulnerability cards and risk analysis
 
 
----
 
 ## Installation
 
