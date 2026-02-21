@@ -22,14 +22,21 @@
 
 </div>
 
-
 ## 🚀 Differences from HexStrike V6
-- New Tools Added: Expanded arsenal with BBot, Database querying and more. 
-- Refactored: Codebase restructured for clarity, maintainability, and performance.
-- Updated Packages: All dependencies upgraded for security and compatibility.
-- Enhanced Tool Usage: Improved parameter handling, improved tool documentation and Endpoint references.
-- AI Integration: Improved MCP compatibility and agent orchestration (FastMCP v3).
 
+- New Tools: Expanded arsenal, including BBot, database querying, and more.
+- Refactored Codebase: Improved clarity, maintainability, and performance.
+- Updated Dependencies: All packages upgraded for security and compatibility.
+- Enhanced Tool Usage: Smarter parameter handling, improved documentation, and endpoint references.
+- AI Integration: Upgraded MCP compatibility and agent orchestration (FastMCP v3).
+
+### Minimal Mode (`--compact`)
+
+Activate Minimal Mode for the MCP server using the `--compact` flag:
+
+- 🚦 Streamlined & Fast: Only the two essential gateway tools are loaded—perfect for lightweight deployments, automation pipelines, or running on resource-constrained systems.
+- 🧩 Plug-and-Play Integration: Exposes just the intelligent classifier and tool execution gateway, making it easy to embed HexStrike into other platforms or CI/CD workflows.
+- 🏃 Ideal for Local Models: Great for running with smaller, local LLMs or when you want minimal overhead.
 
 ## Architecture Overview
 
@@ -75,12 +82,26 @@ python3 hexstrike_server.py
 hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888
 ```
 
-### Docker Setup
+### MCP flags
+
+#### Compact Mode (`--compact`)
 
 ```bash
-docker build -t hexstrike-ai .
-docker run -d -p 8888:8888 --name hexstrike hexstrike-ai
+hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888 --compact
 ```
+
+This registers only the two core gateway tools:
+
+- classify_task: Analyzes your security task description and recommends the most relevant tools and parameters.
+- run_tool: Executes any recommended security tool by name and parameters, as suggested by the classifier.
+
+Compact mode is ideal for automation pipelines or external orchestrators, exposing only the intelligent classifier and tool execution gateway for streamlined integration.
+
+### Server flags
+
+#### Debug Mode (`--debug`)
+
+Enables debugmode for the server.
 
 ### Verify Installation
 

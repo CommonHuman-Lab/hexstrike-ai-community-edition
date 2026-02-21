@@ -1,3 +1,4 @@
 __pycache__
 *.pyc
 hexstrike.log
+.hexstrike_data/
