@@ -43,7 +43,8 @@ def find_best_wordlist(criteria: dict) -> Optional[dict]:
                 - type: Type of wordlist (e.g., 'password', 'directory')
                 - language: Language of the wordlist (e.g., 'en')
                 - speed: Speed category (e.g., 'fast', 'medium', 'slow')
-                - coverage, format, source, etc.
+                - coverage: Coverage type (e.g., 'broad', 'focused')
+                - format: File format (e.g., 'txt', 'lst')   
 
     Returns:
         Optional[dict]: Dictionary {"name": ..., "wordlist": ...} for the best match, or None if not found.

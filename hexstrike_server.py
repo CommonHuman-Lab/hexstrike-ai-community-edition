@@ -38,10 +38,11 @@ import mitmproxy
 from mitmproxy import http as mitmhttp
 from mitmproxy.tools.dump import DumpMaster
 from mitmproxy.options import Options as MitmOptions
-import config as config
+
 import core.config_core as config_core
-from visual.modern_visual_engine import ModernVisualEngine
+
 from workflows.ctf.CTFChallenge import CTFChallenge
+from core import *
 
 # ============================================================================
 # LOGGING CONFIGURATION (MUST BE FIRST)
@@ -80,6 +81,9 @@ API_HOST = os.environ.get('HEXSTRIKE_HOST', '127.0.0.1')
 ROCKYOU_PATH = config_core.get_word_list_path("rockyou")
 COMMON_DIRB_PATH = config_core.get_word_list_path("common_dirb")
 COMMON_DIRSEARCH_PATH = config_core.get_word_list_path("common_dirsearch")
+
+session_store = SessionStore()
+wordlist_store = WordlistStore()
 
 # ============================================================================
 # INTELLIGENT DECISION ENGINE (v6.0 ENHANCEMENT)
@@ -169,13 +173,10 @@ COMMAND_TIMEOUT = config_core.get("COMMAND_TIMEOUT", 300)  # 5 minutes default t
 CACHE_SIZE = config_core.get("CACHE_SIZE", 1000)
 CACHE_TTL = config_core.get("CACHE_TTL", 3600)  # 1 hour default TTL
 
-from core.cache import HexStrikeCache
-
 # Global cache instance
 cache = HexStrikeCache()
 
 # Global telemetry collector
-from core.telemetry_collector import TelemetryCollector
 telemetry = TelemetryCollector()
 
 from core.enhanced_command_executor import EnhancedCommandExecutor
@@ -886,6 +887,13 @@ app.register_blueprint(api_process_management_bp)
 
 from api.visual import api_visual_bp
 app.register_blueprint(api_visual_bp)
+
+# ============================================================================
+# MEMORY STORE API ENDPOINTS
+# ============================================================================
+
+from api.wordlist_store import api_wordlist_store_bp
+app.register_blueprint(api_wordlist_store_bp)
 
 # ============================================================================
 # BOT API ENDPOINTS

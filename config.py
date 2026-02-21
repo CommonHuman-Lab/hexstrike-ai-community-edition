@@ -19,8 +19,7 @@ _config = {
             "speed": "slow",
             "language": "en",
             "coverage": "broad",
-            "format": "txt",
-            "source": "SecLists"
+            "format": "txt"
         },
         "john": {
             "path": "/usr/share/wordlists/john.lst",
@@ -32,8 +31,7 @@ _config = {
             "speed": "fast",
             "language": "en",
             "coverage": "focused",
-            "format": "lst",
-            "source": "John the Ripper"
+            "format": "lst"
         },
 
         # --- Directory Lists ---
@@ -47,8 +45,7 @@ _config = {
             "speed": "medium",
             "language": "en",
             "coverage": "broad",
-            "format": "txt",
-            "source": "DirB"
+            "format": "txt"
         },
         "big_dirb": {
             "path": "/usr/share/wordlists/dirb/big.txt",
@@ -60,8 +57,7 @@ _config = {
             "speed": "slow",
             "language": "en",
             "coverage": "broad",
-            "format": "txt",
-            "source": "DirB"
+            "format": "txt"
         },
         "small_dirb": {
             "path": "/usr/share/wordlists/dirb/small.txt",
@@ -73,8 +69,7 @@ _config = {
             "speed": "fast",
             "language": "en",
             "coverage": "focused",
-            "format": "txt",
-            "source": "DirB"
+            "format": "txt"
         },
         "common_dirsearch": {
             "path": "/usr/share/wordlists/dirsearch/common.txt",
@@ -86,8 +81,7 @@ _config = {
             "speed": "medium",
             "language": "en",
             "coverage": "focused",
-            "format": "txt",
-            "source": "Dirsearch"
+            "format": "txt"
         }
     }
 }
