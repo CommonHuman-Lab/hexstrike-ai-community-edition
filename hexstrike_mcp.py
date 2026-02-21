@@ -17,7 +17,7 @@ from typing import Dict, Any, Optional
 import requests
 import time
 from datetime import datetime
-import config as config
+import core.config_core as config_core
 
 from mcp.server.fastmcp import FastMCP
 
@@ -5616,7 +5616,7 @@ def main():
         else:
             logger.info(f"🎯 Successfully connected to HexStrike AI API server at {args.server}")
             logger.info(f"🏥 Server health status: {health['status']}")
-            logger.info(f"📊 Version: {config.get('VERSION', 'unknown')}")
+            logger.info(f"📊 Version: {config_core.get('VERSION', 'unknown')}")
             if not health.get("all_essential_tools_available", False):
                 logger.warning("⚠️  Not all essential tools are available on the HexStrike server")
                 missing_tools = [tool for tool, available in health.get("tools_status", {}).items() if not available]

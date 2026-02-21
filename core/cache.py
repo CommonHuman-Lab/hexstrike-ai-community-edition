@@ -1,4 +1,4 @@
-import config
+import core.config_core as config_core
 import hashlib
 import json
 import logging
@@ -7,9 +7,9 @@ from typing import Any, Dict, Optional
 from collections import OrderedDict
 logger = logging.getLogger(__name__)
 
-COMMAND_TIMEOUT = config.get("COMMAND_TIMEOUT", 300)  # 5 minutes default timeout
-CACHE_SIZE = config.get("CACHE_SIZE", 1000)
-CACHE_TTL = config.get("CACHE_TTL", 3600)  # 1 hour default TTL
+COMMAND_TIMEOUT = config_core.get("COMMAND_TIMEOUT", 300)  # 5 minutes default timeout
+CACHE_SIZE = config_core.get("CACHE_SIZE", 1000)
+CACHE_TTL = config_core.get("CACHE_TTL", 3600)  # 1 hour default TTL
 
 class HexStrikeCache:
     """Advanced caching system for command results"""

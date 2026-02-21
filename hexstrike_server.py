@@ -39,6 +39,7 @@ from mitmproxy import http as mitmhttp
 from mitmproxy.tools.dump import DumpMaster
 from mitmproxy.options import Options as MitmOptions
 import config as config
+import core.config_core as config_core
 from visual.modern_visual_engine import ModernVisualEngine
 from workflows.ctf.CTFChallenge import CTFChallenge
 
@@ -76,9 +77,9 @@ API_PORT = int(os.environ.get('HEXSTRIKE_PORT', 8888))
 API_HOST = os.environ.get('HEXSTRIKE_HOST', '127.0.0.1')
 
 #Wordlists
-ROCKYOU_PATH = config.get_word_list("rockyou")
-COMMON_DIRB_PATH = config.get_word_list("common_dirb")
-COMMON_DIRSEARCH_PATH = config.get_word_list("common_dirsearch")
+ROCKYOU_PATH = config_core.get_word_list_path("rockyou")
+COMMON_DIRB_PATH = config_core.get_word_list_path("common_dirb")
+COMMON_DIRSEARCH_PATH = config_core.get_word_list_path("common_dirsearch")
 
 # ============================================================================
 # INTELLIGENT DECISION ENGINE (v6.0 ENHANCEMENT)
@@ -164,9 +165,9 @@ from core.setup_logging import setup_logging
 
 # Configuration (using existing API_PORT from top of file)
 DEBUG_MODE = os.environ.get("DEBUG_MODE", "0").lower() in ("1", "true", "yes", "y")
-COMMAND_TIMEOUT = config.get("COMMAND_TIMEOUT", 300)  # 5 minutes default timeout
-CACHE_SIZE = config.get("CACHE_SIZE", 1000)
-CACHE_TTL = config.get("CACHE_TTL", 3600)  # 1 hour default TTL
+COMMAND_TIMEOUT = config_core.get("COMMAND_TIMEOUT", 300)  # 5 minutes default timeout
+CACHE_SIZE = config_core.get("CACHE_SIZE", 1000)
+CACHE_TTL = config_core.get("CACHE_TTL", 3600)  # 1 hour default TTL
 
 from core.cache import HexStrikeCache
 
@@ -929,7 +930,7 @@ def health_check():
     return jsonify({
         "status": "healthy",
         "message": "HexStrike AI Tools API Server is operational",
-        "version": config.get("VERSION", "unknown"),
+        "version": config_core.get("VERSION", "unknown"),
         "tools_status": tools_status,
         "all_essential_tools_available": all_essential_tools_available,
         "total_tools_available": sum(1 for tool, available in tools_status.items() if available),
@@ -1149,6 +1150,53 @@ def bbot_endpoint():
 # ============================================================================
 # INTELLIGENT DECISION ENGINE API ENDPOINTS
 # ============================================================================
+
+@app.route("/api/intelligence/find-best-wordlist", methods=["POST"])
+def api_find_best_wordlist():
+    """
+    Find the best wordlist for a given task or criteria.
+
+    Request JSON:
+        {
+            "criteria": {
+                "for_task": "dirbusting",     # Task (matches 'recommended_for')
+                "tool": "dirb",               # Tool (matches 'tool')
+                "type": "directory",          # Wordlist type ('password', 'directory')
+                "language": "en",             # Language
+                "speed": "fast",              # Speed category
+                "coverage": "broad",          # Coverage
+                "format": "txt",              # Format
+                "source": "DirB"              # Source
+            }
+        }
+
+    Response JSON:
+        {
+            "wordlist": {
+                "name": "common_dirb",
+                "path": "/usr/share/wordlists/dirb/common.txt",
+                "type": "directory",
+                "description": "...",
+                "recommended_for": [...],
+                "size": 4614,
+                "tool": [...],
+                "speed": "medium",
+                "language": "en",
+                "coverage": "broad",
+                "format": "txt",
+                "source": "DirB"
+            }
+        }
+
+    Returns the best matching wordlist, or a fallback if no perfect match.
+    """
+    data = request.get_json(force=True)
+    criteria = data.get("criteria", {})
+    result = config_core.find_best_wordlist(criteria)
+    if result:
+        return jsonify(result)
+    else:
+        return jsonify({"wordlist": None})
 
 @app.route("/api/intelligence/analyze-target", methods=["POST"])
 def analyze_target():
