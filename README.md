@@ -78,7 +78,7 @@ python3 hexstrike_server.py
 hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888
 ```
 
-### Flags
+### MCP flags
 
 #### Compact Mode (`--compact`)
 
