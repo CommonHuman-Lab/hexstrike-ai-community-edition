@@ -23,19 +23,23 @@
 </div>
 
 ## 🚀 Differences from HexStrike V6
-- New Tools Added: Expanded arsenal with BBot, Database querying and more. 
-- Refactored: Codebase restructured for clarity, maintainability, and performance.
-- Updated Packages: All dependencies upgraded for security and compatibility.
-- Enhanced Tool Usage: Improved parameter handling, improved tool documentation and Endpoint references.
-- AI Integration: Improved MCP compatibility and agent orchestration (FastMCP v3).
 
-**Compact Mode (--compact)**
-  The --compact flag enables a minimal mode for the MCP server, registering only the two core gateway tools:
+- New Tools: Expanded arsenal, including BBot, database querying, and more.
+- Refactored Codebase: Improved clarity, maintainability, and performance.
+- Updated Dependencies: All packages upgraded for security and compatibility.
+- Enhanced Tool Usage: Smarter parameter handling, improved documentation, and endpoint references.
+- AI Integration: Upgraded MCP compatibility and agent orchestration (FastMCP v3).
 
-- **classify_task**: An intelligent classifier that analyzes your security task description and recommends the most relevant tools and parameters.
-- **run_tool**: Executes any recommended security tool by name and parameters, as suggested by the classifier.
+### Compact Mode (`--compact`)
 
-In compact mode, only the intelligent classifier and tool execution gateway are available, making it easy to integrate with automation pipelines or external orchestrators.
+Enable minimal mode for the MCP server with the `--compact flag`
+
+This registers only the two core gateway tools:
+
+- classify_task: Analyzes your security task description and recommends the most relevant tools and parameters.
+- run_tool: Executes any recommended security tool by name and parameters, as suggested by the classifier.
+
+Compact mode is ideal for automation pipelines or external orchestrators, exposing only the intelligent classifier and tool execution gateway for streamlined integration.
 
 ## Architecture Overview
 
