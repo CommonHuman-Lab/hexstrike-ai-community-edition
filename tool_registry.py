@@ -452,6 +452,16 @@ TOOLS: Dict[str, dict] = {
         "optional": {"additional_args": ""},
         "effectiveness": 0.82,
     },
+    # ---- Bots and AI-driven tools ----
+    "bbot": {
+        "desc": "Reconnaissance and enumeration with BBot",
+        "endpoint": "/api/bot/bbot",
+        "method": "POST",
+        "category": "osint",
+        "params": {"target": {"required": True}, "parameters": {"required": True}},
+        "optional": {},
+        "effectiveness": 0.90,
+    },
 }
 
 # Meta-tool for ending the agent loop
@@ -509,7 +519,7 @@ _INTENT_KEYWORDS: Dict[str, List[str]] = {
     ],
     "osint": [
         "subdomain", "dns", "osint", "amass", "subfinder", "domain", "recon",
-        "wayback", "url", "fierce", "enumerate","whois"
+        "wayback", "url", "fierce", "enumerate", "whois", "bbot"
     ],
     "binary": [
         "binary", "reverse", "rop", "gadget", "checksec", "firmware", "elf",

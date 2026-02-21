@@ -22,7 +22,15 @@
 
 </div>
 
----
+
+## 🚀 Differences from HexStrike V6
+- New Tools Added: Expanded arsenal with BBot, Database querying and more. 
+- Refactored: Codebase restructured for clarity, maintainability, and performance.
+- Updated Packages: All dependencies upgraded for security and compatibility.
+- Enhanced Tool Usage: Improved parameter handling, improved tool documentation and Endpoint references.
+- AI Integration: Improved MCP compatibility and agent orchestration (FastMCP v3).
+
+
 ## Architecture Overview
 
 HexStrike AI features a multi-agent architecture with autonomous AI agents, intelligent decision-making, and vulnerability intelligence.
@@ -36,7 +44,6 @@ HexStrike AI features a multi-agent architecture with autonomous AI agents, inte
 5. **Advanced Reporting** - Visual output with vulnerability cards and risk analysis
 
 
----
 
 ## Installation
 
@@ -57,10 +64,13 @@ source hexstrike-env/bin/activate  # Linux/Mac
 # 3. Install Python dependencies
 pip3 install -r requirements.txt
 
-# 4. Start the API server
+# 4. Install Extra Python dependencies
+pip3 install -r requirements-tools.txt
+
+# 5. Start the API server
 python3 hexstrike_server.py
 
-# 5. In a separate terminal, start the MCP client
+# 6. In a separate terminal, start the MCP client
 # (use the venv python to ensure dependencies are available)
 hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888
 ```
@@ -212,6 +222,13 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 ### Security Tools Arsenal
 
 **Categories:**
+
+<details>
+<summary><b>🤖 Automated Recon & Enumeration</b></summary>
+
+- **BBot** – AI-powered reconnaissance and enumeration framework supporting subdomain discovery, module filtering, and safe/fast scanning
+
+</details>
 
 <details>
 <summary><b>🗄️ Database Interaction & Querying</b></summary>

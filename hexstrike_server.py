@@ -22,7 +22,6 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 from pathlib import Path
 from flask import Flask, request, jsonify
-import psutil
 import requests
 import re
 from tool_registry import classify_intent, get_tools_for_category, format_tools_for_prompt, get_all_categories
@@ -75,6 +74,11 @@ app.config['JSON_SORT_KEYS'] = False
 # API Configuration
 API_PORT = int(os.environ.get('HEXSTRIKE_PORT', 8888))
 API_HOST = os.environ.get('HEXSTRIKE_HOST', '127.0.0.1')
+
+#Wordlists
+ROCKYOU_PATH = config.get_word_list("rockyou")
+COMMON_DIRB_PATH = config.get_word_list("common_dirb")
+COMMON_DIRSEARCH_PATH = config.get_word_list("common_dirsearch")
 
 # ============================================================================
 # INTELLIGENT DECISION ENGINE (v6.0 ENHANCEMENT)
@@ -869,7 +873,7 @@ def health_check():
     osint_tools = [
         "amass", "subfinder", "fierce", "dnsenum", "theharvester", "sherlock",
         "social-analyzer", "recon-ng", "maltego", "spiderfoot", "shodan-cli",
-        "censys-cli", "have-i-been-pwned", "whois"
+        "censys-cli", "have-i-been-pwned", "whois", "bbot"
     ]
 
     exploitation_tools = [
@@ -1106,6 +1110,41 @@ app.register_blueprint(api_process_management_bp)
 
 from api.visual import api_visual_bp
 app.register_blueprint(api_visual_bp)
+
+# ============================================================================
+# BOT API ENDPOINTS
+# ============================================================================
+
+@app.route("/api/bot/bbot", methods=["POST"])
+def bbot_endpoint():
+    """Endpoint for BBot interactions
+    
+    parameters:
+        -f Enable these flags (e.g. -f subdomain-enum)
+        -rf Require modules to have this flag (e.g. -rf safe)
+        -ef Exclude these flags (e.g. -ef slow)
+        -em Exclude these individual modules (e.g. -em ipneighbor)
+    """
+    try:
+        data = request.get_json()
+        if not data or "target" not in data or "parameters" not in data:
+            return jsonify({"error": "Missing 'target' or 'parameters' in payload"}), 400
+        target = data["target"]
+        parameters = data["parameters"]
+
+        cmd_parts = ['bbot', "-t " + target]
+        for key, value in parameters.items():
+            if isinstance(value, str) and value:
+                cmd_parts.append(f"-{key} {value}")
+
+        result = execute_command(" ".join(cmd_parts), use_cache=False)
+
+        logger.info(f"📊 BBot scan completed for {target}")
+        return jsonify(result)
+    
+    except Exception as e:
+        logger.error(f"💥 Error in BBot endpoint: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 # ============================================================================
 # INTELLIGENT DECISION ENGINE API ENDPOINTS
@@ -1449,7 +1488,7 @@ def execute_gobuster_scan(target, params):
     """Execute gobuster scan with optimized parameters"""
     try:
         mode = params.get('mode', 'dir')
-        wordlist = params.get('wordlist', '/usr/share/wordlists/dirb/common.txt')
+        wordlist = params.get('wordlist', COMMON_DIRB_PATH)
         additional_args = params.get('additional_args', '')
 
         cmd_parts = ['gobuster', mode, '-u', target, '-w', wordlist]
@@ -1506,7 +1545,7 @@ def execute_sqlmap_scan(target, params):
 def execute_ffuf_scan(target, params):
     """Execute ffuf scan with optimized parameters"""
     try:
-        wordlist = params.get('wordlist', '/usr/share/wordlists/dirb/common.txt')
+        wordlist = params.get('wordlist', COMMON_DIRB_PATH)
         additional_args = params.get('additional_args', '')
 
         # Ensure target has FUZZ placeholder
@@ -1524,7 +1563,7 @@ def execute_ffuf_scan(target, params):
 def execute_feroxbuster_scan(target, params):
     """Execute feroxbuster scan with optimized parameters"""
     try:
-        wordlist = params.get('wordlist', '/usr/share/wordlists/dirb/common.txt')
+        wordlist = params.get('wordlist', COMMON_DIRB_PATH)
         additional_args = params.get('additional_args', '')
 
         cmd_parts = ['feroxbuster', '-u', target, '-w', wordlist]
@@ -2010,7 +2049,7 @@ def gobuster():
         params = request.json
         url = params.get("url", "")
         mode = params.get("mode", "dir")
-        wordlist = params.get("wordlist", "/usr/share/wordlists/dirb/common.txt")
+        wordlist = params.get("wordlist", COMMON_DIRB_PATH)
         additional_args = params.get("additional_args", "")
         use_recovery = params.get("use_recovery", True)
 
@@ -2589,7 +2628,7 @@ def dirb():
     try:
         params = request.json
         url = params.get("url", "")
-        wordlist = params.get("wordlist", "/usr/share/wordlists/dirb/common.txt")
+        wordlist = params.get("wordlist", COMMON_DIRB_PATH)
         additional_args = params.get("additional_args", "")
 
         if not url:
@@ -2777,7 +2816,7 @@ def john():
     try:
         params = request.json
         hash_file = params.get("hash_file", "")
-        wordlist = params.get("wordlist", "/usr/share/wordlists/rockyou.txt")
+        wordlist = params.get("wordlist", ROCKYOU_PATH)
         format_type = params.get("format", "")
         additional_args = params.get("additional_args", "")
 
@@ -2871,7 +2910,7 @@ def ffuf():
     try:
         params = request.json
         url = params.get("url", "")
-        wordlist = params.get("wordlist", "/usr/share/wordlists/dirb/common.txt")
+        wordlist = params.get("wordlist", COMMON_DIRB_PATH)
         mode = params.get("mode", "directory")
         match_codes = params.get("match_codes", "200,204,301,302,307,401,403")
         additional_args = params.get("additional_args", "")
@@ -2997,7 +3036,7 @@ def hashcat():
         hash_file = params.get("hash_file", "")
         hash_type = params.get("hash_type", "")
         attack_mode = params.get("attack_mode", "0")
-        wordlist = params.get("wordlist", "/usr/share/wordlists/rockyou.txt")
+        wordlist = params.get("wordlist", ROCKYOU_PATH)
         mask = params.get("mask", "")
         additional_args = params.get("additional_args", "")
 
@@ -4309,7 +4348,7 @@ def feroxbuster():
     try:
         params = request.json
         url = params.get("url", "")
-        wordlist = params.get("wordlist", "/usr/share/wordlists/dirb/common.txt")
+        wordlist = params.get("wordlist", COMMON_DIRB_PATH)
         threads = params.get("threads", 10)
         additional_args = params.get("additional_args", "")
 
@@ -4405,7 +4444,7 @@ def wfuzz():
     try:
         params = request.json
         url = params.get("url", "")
-        wordlist = params.get("wordlist", "/usr/share/wordlists/dirb/common.txt")
+        wordlist = params.get("wordlist", COMMON_DIRB_PATH)
         additional_args = params.get("additional_args", "")
 
         if not url:
@@ -4440,7 +4479,7 @@ def dirsearch():
         params = request.json
         url = params.get("url", "")
         extensions = params.get("extensions", "php,html,js,txt,xml,json")
-        wordlist = params.get("wordlist", "/usr/share/wordlists/dirsearch/common.txt")
+        wordlist = params.get("wordlist", COMMON_DIRSEARCH_PATH)
         threads = params.get("threads", 30)
         recursive = params.get("recursive", False)
         additional_args = params.get("additional_args", "")
