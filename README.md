@@ -30,16 +30,9 @@
 - Enhanced Tool Usage: Smarter parameter handling, improved documentation, and endpoint references.
 - AI Integration: Upgraded MCP compatibility and agent orchestration (FastMCP v3).
 
-### Compact Mode (`--compact`)
+### Minimal Mode (`--compact`)
 
-Enable minimal mode for the MCP server with the `--compact flag`
-
-This registers only the two core gateway tools:
-
-- classify_task: Analyzes your security task description and recommends the most relevant tools and parameters.
-- run_tool: Executes any recommended security tool by name and parameters, as suggested by the classifier.
-
-Compact mode is ideal for automation pipelines or external orchestrators, exposing only the intelligent classifier and tool execution gateway for streamlined integration.
+Enable minimal mode for the MCP server with the `--compact` flag
 
 ## Architecture Overview
 
@@ -85,12 +78,16 @@ python3 hexstrike_server.py
 hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888
 ```
 
-### Docker Setup
+### Flags
 
-```bash
-docker build -t hexstrike-ai .
-docker run -d -p 8888:8888 --name hexstrike hexstrike-ai
-```
+#### Compact Mode (`--compact`)
+
+This registers only the two core gateway tools:
+
+- classify_task: Analyzes your security task description and recommends the most relevant tools and parameters.
+- run_tool: Executes any recommended security tool by name and parameters, as suggested by the classifier.
+
+Compact mode is ideal for automation pipelines or external orchestrators, exposing only the intelligent classifier and tool execution gateway for streamlined integration.
 
 ### Verify Installation
 
