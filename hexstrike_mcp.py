@@ -365,7 +365,7 @@ def main():
                     logger.warning(f"❌ Missing tools: {', '.join(missing_tools[:5])}{'...' if len(missing_tools) > 5 else ''}")
 
         # Set up and run the MCP server
-        mcp = setup_mcp_server(hexstrike_client, compact=args.compact)
+        mcp = setup_mcp_server(hexstrike_client, compact=args.compact, profiles=args.profile)
         logger.info("🚀 Starting HexStrike AI MCP server")
         logger.info("🤖 Ready to serve AI agents with enhanced cybersecurity capabilities")
         # stdio fallback for MCP clients that don't support the run() method
