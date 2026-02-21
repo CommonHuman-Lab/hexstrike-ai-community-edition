@@ -89,6 +89,12 @@ This registers only the two core gateway tools:
 
 Compact mode is ideal for automation pipelines or external orchestrators, exposing only the intelligent classifier and tool execution gateway for streamlined integration.
 
+### Server flags
+
+#### Debug Mode (`--debug`)
+
+Enables debugmode for the server.
+
 ### Verify Installation
 
 ```bash
