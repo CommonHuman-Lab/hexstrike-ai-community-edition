@@ -1,4 +1,4 @@
-# HexStrike AI MCP Agents v6.0
+# HexStrike AI MCP
 #
 # INSTALLATION COMMANDS:
 # python3 -m venv hexstrike_env

@@ -57,10 +57,13 @@ source hexstrike-env/bin/activate  # Linux/Mac
 # 3. Install Python dependencies
 pip3 install -r requirements.txt
 
-# 4. Start the API server
+# 4. Install Extra Python dependencies
+pip3 install -r requirements-tools.txt
+
+# 5. Start the API server
 python3 hexstrike_server.py
 
-# 5. In a separate terminal, start the MCP client
+# 6. In a separate terminal, start the MCP client
 # (use the venv python to ensure dependencies are available)
 hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888
 ```
