@@ -591,9 +591,6 @@ def classify_intent(user_input: str, llm_client=None) -> tuple:
 
     return ("network_recon", 0.5)
 
-
-
-
 def get_tools_for_category(category: str) -> List[dict]:
     """Return compact tool schemas for a category, sorted by effectiveness."""
     tools = [

@@ -22,7 +22,6 @@
 
 </div>
 
-
 ## 🚀 Differences from HexStrike V6
 - New Tools Added: Expanded arsenal with BBot, Database querying and more. 
 - Refactored: Codebase restructured for clarity, maintainability, and performance.
@@ -30,6 +29,13 @@
 - Enhanced Tool Usage: Improved parameter handling, improved tool documentation and Endpoint references.
 - AI Integration: Improved MCP compatibility and agent orchestration (FastMCP v3).
 
+**Compact Mode (--compact)**
+  The --compact flag enables a minimal mode for the MCP server, registering only the two core gateway tools:
+
+- **classify_task**: An intelligent classifier that analyzes your security task description and recommends the most relevant tools and parameters.
+- **run_tool**: Executes any recommended security tool by name and parameters, as suggested by the classifier.
+
+In compact mode, only the intelligent classifier and tool execution gateway are available, making it easy to integrate with automation pipelines or external orchestrators.
 
 ## Architecture Overview
 
