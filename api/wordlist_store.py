@@ -55,6 +55,13 @@ def find_best_wordlist():
     Request Body:
         JSON object containing search criteria for the wordlist.
 
+    Example Criteria:
+    {
+        "type": "password",
+        "recommended_for": ["brute-force", "credential-stuffing"],
+        "speed": "fast"
+    }
+
     Returns:
         JSON object containing the best matching wordlist, or an error message with a 404 status if no match is found.
     """
