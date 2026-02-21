@@ -1,6 +1,6 @@
 # mcp_tools/database.py
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 def register_database_tools(mcp, hexstrike_client, logger):
     @mcp.tool()
