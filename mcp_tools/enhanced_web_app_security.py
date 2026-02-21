@@ -427,3 +427,327 @@ def register_enhanced_web_app_security_tools(mcp, hexstrike_client, logger):
         else:
             logger.error("❌ uro URL filtering failed")
         return result
+
+    @mcp.tool()
+    def burpsuite_scan(project_file: str = "", config_file: str = "", target: str = "", headless: bool = False, scan_type: str = "", scan_config: str = "", output_file: str = "", additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute Burp Suite with enhanced logging.
+
+        Args:
+            project_file: Burp project file path
+            config_file: Burp configuration file path
+            target: Target URL
+            headless: Run in headless mode
+            scan_type: Type of scan to perform
+            scan_config: Scan configuration
+            output_file: Output file path
+            additional_args: Additional Burp Suite arguments
+
+        Returns:
+            Burp Suite scan results
+        """
+        data = {
+            "project_file": project_file,
+            "config_file": config_file,
+            "target": target,
+            "headless": headless,
+            "scan_type": scan_type,
+            "scan_config": scan_config,
+            "output_file": output_file,
+            "additional_args": additional_args
+        }
+        logger.info(f"🔍 Starting Burp Suite scan")
+        result = hexstrike_client.safe_post("api/tools/burpsuite", data)
+        if result.get("success"):
+            logger.info(f"✅ Burp Suite scan completed")
+        else:
+            logger.error(f"❌ Burp Suite scan failed")
+        return result
+
+    @mcp.tool()
+    def zap_scan(target: str = "", scan_type: str = "baseline", api_key: str = "", daemon: bool = False, port: str = "8090", host: str = "0.0.0.0", format_type: str = "xml", output_file: str = "", additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute OWASP ZAP with enhanced logging.
+
+        Args:
+            target: Target URL
+            scan_type: Type of scan (baseline, full, api)
+            api_key: ZAP API key
+            daemon: Run in daemon mode
+            port: Port for ZAP daemon
+            host: Host for ZAP daemon
+            format_type: Output format (xml, json, html)
+            output_file: Output file path
+            additional_args: Additional ZAP arguments
+
+        Returns:
+            ZAP scan results
+        """
+        data = {
+            "target": target,
+            "scan_type": scan_type,
+            "api_key": api_key,
+            "daemon": daemon,
+            "port": port,
+            "host": host,
+            "format": format_type,
+            "output_file": output_file,
+            "additional_args": additional_args
+        }
+        logger.info(f"🔍 Starting ZAP scan: {target}")
+        result = hexstrike_client.safe_post("api/tools/zap", data)
+        if result.get("success"):
+            logger.info(f"✅ ZAP scan completed for {target}")
+        else:
+            logger.error(f"❌ ZAP scan failed for {target}")
+        return result
+
+    @mcp.tool()
+    def arjun_scan(url: str, method: str = "GET", data: str = "", headers: str = "", timeout: str = "", output_file: str = "", additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute Arjun for parameter discovery with enhanced logging.
+
+        Args:
+            url: Target URL
+            method: HTTP method (GET, POST, etc.)
+            data: POST data for testing
+            headers: Custom headers
+            timeout: Request timeout
+            output_file: Output file path
+            additional_args: Additional Arjun arguments
+
+        Returns:
+            Parameter discovery results
+        """
+        payload = {
+            "url": url,
+            "method": method,
+            "data": data,
+            "headers": headers,
+            "timeout": timeout,
+            "output_file": output_file,
+            "additional_args": additional_args
+        }
+        logger.info(f"🔍 Starting Arjun parameter discovery: {url}")
+        result = hexstrike_client.safe_post("api/tools/arjun", payload)
+        if result.get("success"):
+            logger.info(f"✅ Arjun completed for {url}")
+        else:
+            logger.error(f"❌ Arjun failed for {url}")
+        return result
+
+    @mcp.tool()
+    def wafw00f_scan(target: str, additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute wafw00f to identify and fingerprint WAF products with enhanced logging.
+
+        Args:
+            target: Target URL or IP
+            additional_args: Additional wafw00f arguments
+
+        Returns:
+            WAF detection results
+        """
+        data = {
+            "target": target,
+            "additional_args": additional_args
+        }
+        logger.info(f"🛡️ Starting Wafw00f WAF detection: {target}")
+        result = hexstrike_client.safe_post("api/tools/wafw00f", data)
+        if result.get("success"):
+            logger.info(f"✅ Wafw00f completed for {target}")
+        else:
+            logger.error(f"❌ Wafw00f failed for {target}")
+        return result
+
+    @mcp.tool()
+    def fierce_scan(domain: str, dns_server: str = "", additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute fierce for DNS reconnaissance with enhanced logging.
+
+        Args:
+            domain: Target domain
+            dns_server: DNS server to use
+            additional_args: Additional fierce arguments
+
+        Returns:
+            DNS reconnaissance results
+        """
+        data = {
+            "domain": domain,
+            "dns_server": dns_server,
+            "additional_args": additional_args
+        }
+        logger.info(f"🔍 Starting Fierce DNS recon: {domain}")
+        result = hexstrike_client.safe_post("api/tools/fierce", data)
+        if result.get("success"):
+            logger.info(f"✅ Fierce completed for {domain}")
+        else:
+            logger.error(f"❌ Fierce failed for {domain}")
+        return result
+
+    @mcp.tool()
+    def dnsenum_scan(domain: str, dns_server: str = "", wordlist: str = "", additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute dnsenum for DNS enumeration with enhanced logging.
+
+        Args:
+            domain: Target domain
+            dns_server: DNS server to use
+            wordlist: Wordlist for brute forcing
+            additional_args: Additional dnsenum arguments
+
+        Returns:
+            DNS enumeration results
+        """
+        data = {
+            "domain": domain,
+            "dns_server": dns_server,
+            "wordlist": wordlist,
+            "additional_args": additional_args
+        }
+        logger.info(f"🔍 Starting DNSenum: {domain}")
+        result = hexstrike_client.safe_post("api/tools/dnsenum", data)
+        if result.get("success"):
+            logger.info(f"✅ DNSenum completed for {domain}")
+        else:
+            logger.error(f"❌ DNSenum failed for {domain}")
+        return result
+
+    @mcp.tool()
+    def autorecon_scan(
+        target: str = "",
+        target_file: str = "",
+        ports: str = "",
+        output_dir: str = "",
+        max_scans: str = "",
+        max_port_scans: str = "",
+        heartbeat: str = "",
+        timeout: str = "",
+        target_timeout: str = "",
+        config_file: str = "",
+        global_file: str = "",
+        plugins_dir: str = "",
+        add_plugins_dir: str = "",
+        tags: str = "",
+        exclude_tags: str = "",
+        port_scans: str = "",
+        service_scans: str = "",
+        reports: str = "",
+        single_target: bool = False,
+        only_scans_dir: bool = False,
+        no_port_dirs: bool = False,
+        nmap: str = "",
+        nmap_append: str = "",
+        proxychains: bool = False,
+        disable_sanity_checks: bool = False,
+        disable_keyboard_control: bool = False,
+        force_services: str = "",
+        accessible: bool = False,
+        verbose: int = 0,
+        curl_path: str = "",
+        dirbuster_tool: str = "",
+        dirbuster_wordlist: str = "",
+        dirbuster_threads: str = "",
+        dirbuster_ext: str = "",
+        onesixtyone_community_strings: str = "",
+        global_username_wordlist: str = "",
+        global_password_wordlist: str = "",
+        global_domain: str = "",
+        additional_args: str = ""
+    ) -> Dict[str, Any]:
+        """
+        Execute AutoRecon for comprehensive target enumeration with full parameter support.
+
+        Args:
+            target: Single target to scan
+            target_file: File containing multiple targets
+            ports: Specific ports to scan
+            output_dir: Output directory
+            max_scans: Maximum number of concurrent scans
+            max_port_scans: Maximum number of concurrent port scans
+            heartbeat: Heartbeat interval
+            timeout: Global timeout
+            target_timeout: Per-target timeout
+            config_file: Configuration file path
+            global_file: Global configuration file
+            plugins_dir: Plugins directory
+            add_plugins_dir: Additional plugins directory
+            tags: Plugin tags to include
+            exclude_tags: Plugin tags to exclude
+            port_scans: Port scan plugins to run
+            service_scans: Service scan plugins to run
+            reports: Report plugins to run
+            single_target: Use single target directory structure
+            only_scans_dir: Only create scans directory
+            no_port_dirs: Don't create port directories
+            nmap: Custom nmap command
+            nmap_append: Arguments to append to nmap
+            proxychains: Use proxychains
+            disable_sanity_checks: Disable sanity checks
+            disable_keyboard_control: Disable keyboard control
+            force_services: Force service detection
+            accessible: Enable accessible output
+            verbose: Verbosity level (0-3)
+            curl_path: Custom curl path
+            dirbuster_tool: Directory busting tool
+            dirbuster_wordlist: Directory busting wordlist
+            dirbuster_threads: Directory busting threads
+            dirbuster_ext: Directory busting extensions
+            onesixtyone_community_strings: SNMP community strings
+            global_username_wordlist: Global username wordlist
+            global_password_wordlist: Global password wordlist
+            global_domain: Global domain
+            additional_args: Additional AutoRecon arguments
+
+        Returns:
+            Comprehensive enumeration results with full configurability
+        """
+        data = {
+            "target": target,
+            "target_file": target_file,
+            "ports": ports,
+            "output_dir": output_dir,
+            "max_scans": max_scans,
+            "max_port_scans": max_port_scans,
+            "heartbeat": heartbeat,
+            "timeout": timeout,
+            "target_timeout": target_timeout,
+            "config_file": config_file,
+            "global_file": global_file,
+            "plugins_dir": plugins_dir,
+            "add_plugins_dir": add_plugins_dir,
+            "tags": tags,
+            "exclude_tags": exclude_tags,
+            "port_scans": port_scans,
+            "service_scans": service_scans,
+            "reports": reports,
+            "single_target": single_target,
+            "only_scans_dir": only_scans_dir,
+            "no_port_dirs": no_port_dirs,
+            "nmap": nmap,
+            "nmap_append": nmap_append,
+            "proxychains": proxychains,
+            "disable_sanity_checks": disable_sanity_checks,
+            "disable_keyboard_control": disable_keyboard_control,
+            "force_services": force_services,
+            "accessible": accessible,
+            "verbose": verbose,
+            "curl_path": curl_path,
+            "dirbuster_tool": dirbuster_tool,
+            "dirbuster_wordlist": dirbuster_wordlist,
+            "dirbuster_threads": dirbuster_threads,
+            "dirbuster_ext": dirbuster_ext,
+            "onesixtyone_community_strings": onesixtyone_community_strings,
+            "global_username_wordlist": global_username_wordlist,
+            "global_password_wordlist": global_password_wordlist,
+            "global_domain": global_domain,
+            "additional_args": additional_args
+        }
+        logger.info(f"🔍 Starting AutoRecon comprehensive enumeration: {target}")
+        result = hexstrike_client.safe_post("api/tools/autorecon", data)
+        if result.get("success"):
+            logger.info(f"✅ AutoRecon comprehensive enumeration completed for {target}")
+        else:
+            logger.error(f"❌ AutoRecon failed for {target}")
+        return result
