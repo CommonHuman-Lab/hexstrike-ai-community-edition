@@ -219,7 +219,8 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 <details>
 <summary><b>🤖 Automated Recon & Enumeration</b></summary>
 
-BBot – AI-powered reconnaissance and enumeration framework supporting subdomain discovery, module filtering, and safe/fast scanning
+- **BBot** – AI-powered reconnaissance and enumeration framework supporting subdomain discovery, module filtering, and safe/fast scanning
+
 </details>
 
 <details>
