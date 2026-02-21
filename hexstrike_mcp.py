@@ -272,7 +272,7 @@ TOOL_CATEGORIES = {
 }
 
 DEFAULT_PROFILE = [
-    "core_network", "web_app", "binary", "monitoring", "vuln_intel", "visual", "ai_decision"
+    "core_network", "web_app", "monitoring", "vuln_intel", "visual", "ai_decision"
 ]
 FULL_PROFILE = list(TOOL_CATEGORIES.keys())
 
