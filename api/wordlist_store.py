@@ -4,7 +4,7 @@ wordlist_store = WordlistStore()
 
 api_wordlist_store_bp = Blueprint("wordlist_store", __name__)
 
-@api_wordlist_store_bp.route("/wordlists/<wordlist_id>", methods=["GET"])
+@api_wordlist_store_bp.route("/api/wordlists/<wordlist_id>", methods=["GET"])
 def get_wordlist(wordlist_id):
     """
     Retrieve a specific wordlist entry by its ID.
@@ -20,7 +20,7 @@ def get_wordlist(wordlist_id):
         return jsonify({"error": "Wordlist not found"}), 404
     return jsonify(wordlist)
 
-@api_wordlist_store_bp.route("/wordlists", methods=["GET"])
+@api_wordlist_store_bp.route("/api/wordlists", methods=["GET"])
 def get_all_wordlists():
     """
     Retrieve all wordlist entries.
@@ -31,7 +31,7 @@ def get_all_wordlists():
     wordlists = wordlist_store.load_all()
     return jsonify(wordlists)
 
-@api_wordlist_store_bp.route("/wordlists/<wordlist_id>/path", methods=["GET"])
+@api_wordlist_store_bp.route("/api/wordlists/<wordlist_id>/path", methods=["GET"])
 def get_wordlist_path(wordlist_id):
     """
     Retrieve the file path for a specific wordlist by its ID.
@@ -47,7 +47,7 @@ def get_wordlist_path(wordlist_id):
         return jsonify({"error": "Wordlist not found or missing path"}), 404
     return jsonify(path)
 
-@api_wordlist_store_bp.route("/wordlists/bestmatch", methods=["POST"])
+@api_wordlist_store_bp.route("/api/wordlists/bestmatch", methods=["POST"])
 def find_best_wordlist():
     """
     Find the best matching wordlist based on provided criteria.
@@ -73,7 +73,7 @@ def find_best_wordlist():
         return jsonify({"error": "No matching wordlist found"}), 404
     return jsonify(best_match)
 
-@api_wordlist_store_bp.route("/wordlists/<wordlist_id>", methods=["POST"])
+@api_wordlist_store_bp.route("/api/wordlists/<wordlist_id>", methods=["POST"])
 def save_wordlist(wordlist_id):
     """
     Save or update a wordlist entry in the wordlists.json file in the correct format.
@@ -101,7 +101,7 @@ def save_wordlist(wordlist_id):
         return jsonify({"error": "Failed to save wordlist"}), 500
     return jsonify({"status": "success"})
 
-@api_wordlist_store_bp.route("/wordlists/<wordlist_id>", methods=["DELETE"])
+@api_wordlist_store_bp.route("/api/wordlists/<wordlist_id>", methods=["DELETE"])
 def delete_wordlist(wordlist_id):
     """
     Delete a specific wordlist entry by its ID.
