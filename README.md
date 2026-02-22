@@ -24,7 +24,7 @@
 
 ## 🚀 Differences from HexStrike V6
 
-- New Tools: Expanded arsenal, including BBot, database querying, and more.
+- New Tools: Including BBot, database querying, and more.
 - Refactored Codebase: Improved clarity, maintainability, and performance.
 - Updated Dependencies: All packages upgraded for security and compatibility.
 - Enhanced Tool Usage: Smarter parameter handling, improved documentation, and endpoint references.
