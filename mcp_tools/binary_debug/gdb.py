@@ -31,3 +31,34 @@ def register_gdb_tools(mcp, hexstrike_client, logger):
         else:
             logger.error(f"❌ GDB analysis failed for {binary}")
         return result
+
+    @mcp.tool()
+    def gdb_peda_debug(binary: str = "", commands: str = "", attach_pid: int = 0,
+                      core_file: str = "", additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute GDB with PEDA for enhanced debugging and exploitation.
+
+        Args:
+            binary: Binary to debug
+            commands: GDB commands to execute
+            attach_pid: Process ID to attach to
+            core_file: Core dump file to analyze
+            additional_args: Additional GDB arguments
+
+        Returns:
+            Enhanced debugging results with PEDA
+        """
+        data = {
+            "binary": binary,
+            "commands": commands,
+            "attach_pid": attach_pid,
+            "core_file": core_file,
+            "additional_args": additional_args
+        }
+        logger.info(f"🔧 Starting GDB-PEDA analysis: {binary or f'PID {attach_pid}' or core_file}")
+        result = hexstrike_client.safe_post("api/tools/gdb-peda", data)
+        if result.get("success"):
+            logger.info(f"✅ GDB-PEDA analysis completed")
+        else:
+            logger.error(f"❌ GDB-PEDA analysis failed")
+        return result

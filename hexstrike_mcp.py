@@ -53,6 +53,7 @@ from mcp_tools.web_scan.zap import register_zap_tool
 
 from mcp_tools.exploit_framework.metasploit import register_metasploit_tool
 from mcp_tools.exploit_framework.msfvenom import register_msfvenom
+from mcp_tools.exploit_framework.pwntools import register_pwntools
 
 from mcp_tools.password_cracking.hydra import register_hydra_tool
 from mcp_tools.password_cracking.john import register_john_tool
@@ -140,6 +141,7 @@ from mcp_tools.binary_analysis.checksec import register_checksec_tool
 from mcp_tools.binary_analysis.xxd import register_xxd_tool
 from mcp_tools.binary_analysis.strings import register_strings_tool
 from mcp_tools.binary_analysis.objdump import register_objdump_tool
+from mcp_tools.binary_analysis.ghidra import register_ghidra_tools
 
 from mcp_tools.gadget_search.ropgadget import register_ropgadget_tool
 
@@ -347,6 +349,7 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_xxd_tool(mcp, client, logger),
         lambda mcp, client, logger: register_strings_tool(mcp, client, logger),
         lambda mcp, client, logger: register_objdump_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_ghidra_tools(mcp, client, logger),
     ],
 
     #Tools for credential harvesting and network poisoning (e.g., Responder).
@@ -438,6 +441,7 @@ TOOL_CATEGORIES = {
     "exploit_framework": [
         lambda mcp, client, logger: register_metasploit_tool(mcp, client, logger),
         lambda mcp, client, logger: register_msfvenom(mcp, client, logger),
+        lambda mcp, client, logger: register_pwntools(mcp, client, logger),
     ],
 
     #Tools for URL discovery and reconnaissance (e.g., Gau, Waybackurls).
