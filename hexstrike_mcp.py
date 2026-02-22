@@ -54,6 +54,7 @@ from mcp_tools.web_scan.burpsuite import register_burpsuite_tool
 from mcp_tools.web_scan.zap import register_zap_tool
 
 from mcp_tools.exploit_framework.metasploit import register_metasploit_tool
+from mcp_tools.exploit_framework.msfvenom import register_msfvenom
 
 from mcp_tools.password_cracking.hydra import register_hydra_tool
 from mcp_tools.password_cracking.john import register_john_tool
@@ -369,9 +370,10 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_nuclei(mcp, client, logger, HexStrikeColors),
     ],
 
-    #Tools for automated exploitation and attack frameworks (e.g., Metasploit).
+    #Tools for automated exploitation and attack frameworks (e.g., Metasploit, MSFVenom).
     "exploit_framework": [
         lambda mcp, client, logger: register_metasploit_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_msfvenom(mcp, client, logger),
     ],
 
     #Tools for URL discovery and reconnaissance (e.g., Gau, Waybackurls).

@@ -46,3 +46,46 @@ def register_nmap(mcp, hexstrike_client, logger, HexStrikeColors):
                 logger.error(f"{HexStrikeColors.CRITICAL} HUMAN ESCALATION REQUIRED {HexStrikeColors.RESET}")
 
         return result
+
+    @mcp.tool()
+    def nmap_advanced_scan(target: str, scan_type: str = "-sS", ports: str = "",
+                          timing: str = "T4", nse_scripts: str = "", os_detection: bool = False,
+                          version_detection: bool = False, aggressive: bool = False,
+                          stealth: bool = False, additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute advanced Nmap scans with custom NSE scripts and optimized timing.
+
+        Args:
+            target: The target IP address or hostname
+            scan_type: Nmap scan type (e.g., -sS, -sT, -sU)
+            ports: Specific ports to scan
+            timing: Timing template (T0-T5)
+            nse_scripts: Custom NSE scripts to run
+            os_detection: Enable OS detection
+            version_detection: Enable version detection
+            aggressive: Enable aggressive scanning
+            stealth: Enable stealth mode
+            additional_args: Additional Nmap arguments
+
+        Returns:
+            Advanced Nmap scanning results with custom NSE scripts
+        """
+        data = {
+            "target": target,
+            "scan_type": scan_type,
+            "ports": ports,
+            "timing": timing,
+            "nse_scripts": nse_scripts,
+            "os_detection": os_detection,
+            "version_detection": version_detection,
+            "aggressive": aggressive,
+            "stealth": stealth,
+            "additional_args": additional_args
+        }
+        logger.info(f"🔍 Starting Advanced Nmap: {target}")
+        result = hexstrike_client.safe_post("api/tools/nmap-advanced", data)
+        if result.get("success"):
+            logger.info(f"✅ Advanced Nmap completed for {target}")
+        else:
+            logger.error(f"❌ Advanced Nmap failed for {target}")
+        return result

@@ -78,49 +78,6 @@ def register_enhanced_network_scanning_tools(mcp, hexstrike_client, logger):
         return result
 
     @mcp.tool()
-    def nmap_advanced_scan(target: str, scan_type: str = "-sS", ports: str = "",
-                          timing: str = "T4", nse_scripts: str = "", os_detection: bool = False,
-                          version_detection: bool = False, aggressive: bool = False,
-                          stealth: bool = False, additional_args: str = "") -> Dict[str, Any]:
-        """
-        Execute advanced Nmap scans with custom NSE scripts and optimized timing.
-
-        Args:
-            target: The target IP address or hostname
-            scan_type: Nmap scan type (e.g., -sS, -sT, -sU)
-            ports: Specific ports to scan
-            timing: Timing template (T0-T5)
-            nse_scripts: Custom NSE scripts to run
-            os_detection: Enable OS detection
-            version_detection: Enable version detection
-            aggressive: Enable aggressive scanning
-            stealth: Enable stealth mode
-            additional_args: Additional Nmap arguments
-
-        Returns:
-            Advanced Nmap scanning results with custom NSE scripts
-        """
-        data = {
-            "target": target,
-            "scan_type": scan_type,
-            "ports": ports,
-            "timing": timing,
-            "nse_scripts": nse_scripts,
-            "os_detection": os_detection,
-            "version_detection": version_detection,
-            "aggressive": aggressive,
-            "stealth": stealth,
-            "additional_args": additional_args
-        }
-        logger.info(f"🔍 Starting Advanced Nmap: {target}")
-        result = hexstrike_client.safe_post("api/tools/nmap-advanced", data)
-        if result.get("success"):
-            logger.info(f"✅ Advanced Nmap completed for {target}")
-        else:
-            logger.error(f"❌ Advanced Nmap failed for {target}")
-        return result
-
-    @mcp.tool()
     def autorecon_comprehensive(target: str, output_dir: str = "/tmp/autorecon",
                                port_scans: str = "top-100-ports", service_scans: str = "default",
                                heartbeat: int = 60, timeout: int = 300,
@@ -359,34 +316,3 @@ def register_enhanced_network_scanning_tools(mcp, hexstrike_client, logger):
             logger.error(f"❌ Volatility analysis failed")
         return result
 
-    @mcp.tool()
-    def msfvenom_generate(payload: str, format_type: str = "", output_file: str = "", encoder: str = "", iterations: str = "", additional_args: str = "") -> Dict[str, Any]:
-        """
-        Execute MSFVenom for payload generation with enhanced logging.
-
-        Args:
-            payload: The payload to generate
-            format_type: Output format (exe, elf, raw, etc.)
-            output_file: Output file path
-            encoder: Encoder to use
-            iterations: Number of encoding iterations
-            additional_args: Additional MSFVenom arguments
-
-        Returns:
-            Payload generation results
-        """
-        data = {
-            "payload": payload,
-            "format": format_type,
-            "output_file": output_file,
-            "encoder": encoder,
-            "iterations": iterations,
-            "additional_args": additional_args
-        }
-        logger.info(f"🚀 Starting MSFVenom payload generation: {payload}")
-        result = hexstrike_client.safe_post("api/tools/msfvenom", data)
-        if result.get("success"):
-            logger.info(f"✅ MSFVenom payload generated")
-        else:
-            logger.error(f"❌ MSFVenom payload generation failed")
-        return result
