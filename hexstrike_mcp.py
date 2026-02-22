@@ -144,6 +144,7 @@ from mcp_tools.binary_analysis.objdump import register_objdump_tool
 from mcp_tools.binary_analysis.ghidra import register_ghidra_tools
 
 from mcp_tools.gadget_search.ropgadget import register_ropgadget_tool
+from mcp_tools.gadget_search.one_gadget import register_one_gadget_tool
 
 # Backward compatibility alias
 Colors = HexStrikeColors
@@ -340,6 +341,7 @@ TOOL_CATEGORIES = {
     #Tools for ROP gadget searching and analysis (e.g., ROPgadget).
     "gadget_search": [
         lambda mcp, client, logger: register_ropgadget_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_one_gadget_tool(mcp, client, logger),
     ],
 
     #Tools for binary analysis (e.g., Binwalk, Checksec, xxd, Strings, Objdump).
@@ -612,6 +614,8 @@ DEFAULT_PROFILE = [
     "url_recon",
     "data_processing",
     "error_handling",
+
+    # System tools"
     "monitoring",
     "process_management"
 ]
