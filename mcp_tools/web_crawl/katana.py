@@ -1,7 +1,6 @@
 # mcp_tools/web_crawl/katana.py
 
-
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 def register_katana_tool(mcp, hexstrike_client, logger):
     @mcp.tool()

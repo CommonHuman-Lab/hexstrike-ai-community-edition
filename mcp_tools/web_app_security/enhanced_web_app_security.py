@@ -4,66 +4,8 @@ from typing import Dict, Any, Optional
 
 def register_enhanced_web_app_security_tools(mcp, hexstrike_client, logger, HexStrikeColors):
 
-    @mcp.tool()
-    def gau_discovery(domain: str, providers: str = "wayback,commoncrawl,otx,urlscan",
-                     include_subs: bool = True, blacklist: str = "png,jpg,gif,jpeg,swf,woff,svg,pdf,css,ico",
-                     additional_args: str = "") -> Dict[str, Any]:
-        """
-        Execute Gau (Get All URLs) for URL discovery from multiple sources with enhanced logging.
 
-        Args:
-            domain: The target domain
-            providers: Data providers to use
-            include_subs: Include subdomains
-            blacklist: File extensions to blacklist
-            additional_args: Additional Gau arguments
 
-        Returns:
-            Comprehensive URL discovery results from multiple sources
-        """
-        data = {
-            "domain": domain,
-            "providers": providers,
-            "include_subs": include_subs,
-            "blacklist": blacklist,
-            "additional_args": additional_args
-        }
-        logger.info(f"📡 Starting Gau URL discovery: {domain}")
-        result = hexstrike_client.safe_post("api/tools/gau", data)
-        if result.get("success"):
-            logger.info(f"✅ Gau URL discovery completed for {domain}")
-        else:
-            logger.error(f"❌ Gau URL discovery failed for {domain}")
-        return result
-
-    @mcp.tool()
-    def waybackurls_discovery(domain: str, get_versions: bool = False,
-                             no_subs: bool = False, additional_args: str = "") -> Dict[str, Any]:
-        """
-        Execute Waybackurls for historical URL discovery with enhanced logging.
-
-        Args:
-            domain: The target domain
-            get_versions: Get all versions of URLs
-            no_subs: Don't include subdomains
-            additional_args: Additional Waybackurls arguments
-
-        Returns:
-            Historical URL discovery results from Wayback Machine
-        """
-        data = {
-            "domain": domain,
-            "get_versions": get_versions,
-            "no_subs": no_subs,
-            "additional_args": additional_args
-        }
-        logger.info(f"🕰️  Starting Waybackurls discovery: {domain}")
-        result = hexstrike_client.safe_post("api/tools/waybackurls", data)
-        if result.get("success"):
-            logger.info(f"✅ Waybackurls discovery completed for {domain}")
-        else:
-            logger.error(f"❌ Waybackurls discovery failed for {domain}")
-        return result
 
     @mcp.tool()
     def arjun_parameter_discovery(url: str, method: str = "GET", wordlist: str = "",

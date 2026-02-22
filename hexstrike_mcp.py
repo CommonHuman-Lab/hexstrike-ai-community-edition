@@ -65,6 +65,9 @@ from mcp_tools.smb_enum.smbmap import register_smbmap_tool
 from mcp_tools.recon.amass import register_amass_tool
 from mcp_tools.recon.subfinder import register_subfinder_tool
 
+from mcp_tools.url_recon.gau import register_gau_tool
+from mcp_tools.url_recon.waybackurls import register_waybackurls_tool
+
 # Backward compatibility alias
 Colors = HexStrikeColors
 
@@ -284,6 +287,11 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_metasploit_tool(mcp, client, logger),
     ],
 
+    #Tools for URL discovery and reconnaissance (e.g., Gau).
+    "url_recon": [
+        lambda mcp, client, logger: register_gau_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_waybackurls_tool(mcp, client, logger),
+    ],
 
 
     "wordlist": [
