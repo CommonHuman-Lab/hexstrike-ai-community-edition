@@ -44,6 +44,9 @@ from mcp_tools.ai_agents.intelligent_decision_engine import register_intelligent
 
 from mcp_tools.web_fuzz.dirb import register_dirb_tool
 from mcp_tools.web_fuzz.ffuf import register_ffuf_tool
+from mcp_tools.web_fuzz.dirsearch import register_dirsearch_tools
+
+from mcp_tools.web_crawl.katana import register_katana_tool
 
 from mcp_tools.web_scan.nikto import register_nikto_tool
 from mcp_tools.web_scan.sqlmap import register_sqlmap_tool
@@ -261,6 +264,12 @@ TOOL_CATEGORIES = {
     "web_fuzz": [
         lambda mcp, client, logger: register_dirb_tool(mcp, client, logger),
         lambda mcp, client, logger: register_ffuf_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_dirsearch_tools(mcp, client, logger),
+    ],
+
+    #Tools for web crawling and spidering (e.g., Katana).
+    "web_crawl": [
+        lambda mcp, client, logger: register_katana_tool(mcp, client, logger),
     ],
 
     #Tools for web vulnerability scanning and assessment (e.g., Nikto, WPScan, SQLMap).
