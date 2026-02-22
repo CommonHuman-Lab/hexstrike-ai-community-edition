@@ -107,6 +107,8 @@ from mcp_tools.k8s_scan.kube_hunter import register_kube_hunter_tool
 from mcp_tools.k8s_scan.kube_bench import register_kube_bench_tool
 
 from mcp_tools.container_scan.trivy import register_trivy_tool
+from mcp_tools.container_scan.docker_bench import register_docker_bench_tool
+from mcp_tools.container_scan.clair_vulnerability import register_clair_vulnerability_tool
 
 # Backward compatibility alias
 Colors = HexStrikeColors
@@ -388,7 +390,7 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_test_error_recovery_tool(mcp, client, logger, HexStrikeColors),
     ],
 
-    #Tools for cloud security assessment and auditing (e.g., Prowler, Scout Suite).
+    #Tools for cloud assessment and auditing (e.g., Prowler, Scout Suite).
     "cloud_audit": [
         lambda mcp, client, logger: register_prowler_tool(mcp, client, logger),
         lambda mcp, client, logger: register_scout_suite_tool(mcp, client, logger),
@@ -404,15 +406,17 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_pacu_tool(mcp, client, logger),
     ],
 
-    #Tools for Kubernetes security scanning and penetration testing (e.g., kube-hunter, kube-bench).
+    #Tools for Kubernetes scanning and penetration testing (e.g., kube-hunter, kube-bench).
     "k8s_scan": [
         lambda mcp, client, logger: register_kube_hunter_tool(mcp, client, logger),
         lambda mcp, client, logger: register_kube_bench_tool(mcp, client, logger),
     ],
 
-    #Tools for container security scanning and vulnerability assessment (e.g., Trivy).
-    "container_security": [
+    #Tools for container scanning and vulnerability assessment (e.g., Trivy, Docker Bench, Clair).
+    "container_scan": [
         lambda mcp, client, logger: register_trivy_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_docker_bench_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_clair_vulnerability_tool(mcp, client, logger),
     ],
 
 

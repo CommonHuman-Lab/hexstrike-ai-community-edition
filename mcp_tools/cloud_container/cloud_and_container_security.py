@@ -5,65 +5,6 @@ from typing import Dict, Any
 def register_cloud_and_container_security_tools(mcp, hexstrike_client, logger):
 
     @mcp.tool()
-    def docker_bench_security_scan(checks: str = "", exclude: str = "",
-                                  output_file: str = "/tmp/docker-bench-results.json",
-                                  additional_args: str = "") -> Dict[str, Any]:
-        """
-        Execute Docker Bench for Security for Docker security assessment.
-
-        Args:
-            checks: Specific checks to run
-            exclude: Checks to exclude
-            output_file: Output file path
-            additional_args: Additional Docker Bench arguments
-
-        Returns:
-            Docker security assessment results
-        """
-        data = {
-            "checks": checks,
-            "exclude": exclude,
-            "output_file": output_file,
-            "additional_args": additional_args
-        }
-        logger.info(f"🐳 Starting Docker Bench Security assessment")
-        result = hexstrike_client.safe_post("api/tools/docker-bench-security", data)
-        if result.get("success"):
-            logger.info(f"✅ Docker Bench Security completed")
-        else:
-            logger.error(f"❌ Docker Bench Security failed")
-        return result
-
-    @mcp.tool()
-    def clair_vulnerability_scan(image: str, config: str = "/etc/clair/config.yaml",
-                                output_format: str = "json", additional_args: str = "") -> Dict[str, Any]:
-        """
-        Execute Clair for container vulnerability analysis.
-
-        Args:
-            image: Container image to scan
-            config: Clair configuration file
-            output_format: Output format (json, yaml)
-            additional_args: Additional Clair arguments
-
-        Returns:
-            Container vulnerability analysis results
-        """
-        data = {
-            "image": image,
-            "config": config,
-            "output_format": output_format,
-            "additional_args": additional_args
-        }
-        logger.info(f"🐳 Starting Clair vulnerability scan: {image}")
-        result = hexstrike_client.safe_post("api/tools/clair", data)
-        if result.get("success"):
-            logger.info(f"✅ Clair scan completed for {image}")
-        else:
-            logger.error(f"❌ Clair scan failed for {image}")
-        return result
-
-    @mcp.tool()
     def falco_runtime_monitoring(config_file: str = "/etc/falco/falco.yaml",
                                 rules_file: str = "", output_format: str = "json",
                                 duration: int = 60, additional_args: str = "") -> Dict[str, Any]:
