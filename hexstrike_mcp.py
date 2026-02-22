@@ -48,6 +48,9 @@ from mcp_tools.web_scan.nikto import register_nikto_tool
 from mcp_tools.web_scan.sqlmap import register_sqlmap_tool
 from mcp_tools.exploit_framework.metasploit import register_metasploit_tool
 
+from mcp_tools.password_cracking.hydra import register_hydra_tool
+from mcp_tools.password_cracking.john import register_john_tool
+
 # Backward compatibility alias
 Colors = HexStrikeColors
 
@@ -224,7 +227,10 @@ class HexStrikeClient:
 TOOL_CATEGORIES = {
 
     #Tools for brute-forcing and cracking password hashes (e.g., Hydra, John, Hashcat).
-    "password_cracking": [],
+    "password_cracking": [
+        lambda mcp, client, logger: register_hydra_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_john_tool(mcp, client, logger),
+    ],
 
     #Tools for SMB and network share enumeration (e.g., Enum4linux, NetExec, SMBMap).
     "smb_enum": [],
@@ -248,7 +254,7 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_metasploit_tool(mcp, client, logger),
     ],
 
-    
+
 
     "wordlist": [
         lambda mcp, client, logger: register_wordlist_tools(mcp, client),
