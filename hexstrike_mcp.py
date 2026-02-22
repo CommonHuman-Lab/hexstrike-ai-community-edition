@@ -120,10 +120,15 @@ from mcp_tools.db_query.sqlite import register_sqlite_tools
 from mcp_tools.db_query.postgresql import register_postgresql_tools
 
 from mcp_tools.net_scan.nmap import register_nmap
+from mcp_tools.net_scan.arp_scan import register_arp_scan_tool
 
 from mcp_tools.net_lookup.whois import register_whois
 
 from mcp_tools.vuln_scan.nuclei import register_nuclei
+
+from mcp_tools.memory_forensics.volatility import register_volatility_tool
+
+from mcp_tools.credential_harvest.responder import register_responder_tool
 
 # Backward compatibility alias
 Colors = HexStrikeColors
@@ -300,6 +305,16 @@ class HexStrikeClient:
 
 TOOL_CATEGORIES = {
 
+    #Tools for credential harvesting and network poisoning (e.g., Responder).
+    "credential_harvest": [
+        lambda mcp, client, logger: register_responder_tool(mcp, client, logger),
+    ],
+
+    #Tools for memory forensics analysis (e.g., Volatility).
+    "memory_forensics": [
+        lambda mcp, client, logger: register_volatility_tool(mcp, client, logger),
+    ],
+
     #Tools for brute-forcing and cracking password hashes (e.g., Hydra, John, Hashcat).
     "password_cracking": [
         lambda mcp, client, logger: register_hydra_tool(mcp, client, logger),
@@ -321,9 +336,10 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_autorecon_tool(mcp, client, logger),
     ],
 
-    #Tools for network scanning and enumeration (e.g., Nmap).
+    #Tools for network scanning and enumeration (e.g., Nmap, ARP-Scan).
     "net_scan": [
         lambda mcp, client, logger: register_nmap(mcp, client, logger, HexStrikeColors),
+        lambda mcp, client, logger: register_arp_scan_tool(mcp, client, logger),
     ],
 
     #Tools for network information gathering and lookups (e.g., WHOIS).
@@ -540,7 +556,7 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False, p
     if compact:
         # Register gateway tools for task classification and tool execution
         register_gateway_tools(mcp, hexstrike_client)
-        
+
         logger.info("Compact mode: only gateway tools registered (classify_task, run_tool)")
         return mcp
 

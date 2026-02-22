@@ -141,3 +141,40 @@ def register_autorecon_tool(mcp, hexstrike_client, logger):
         else:
             logger.error(f"❌ AutoRecon failed for {target}")
         return result
+    
+    @mcp.tool()
+    def autorecon_comprehensive(target: str, output_dir: str = "/tmp/autorecon",
+                               port_scans: str = "top-100-ports", service_scans: str = "default",
+                               heartbeat: int = 60, timeout: int = 300,
+                               additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute AutoRecon for comprehensive automated reconnaissance.
+
+        Args:
+            target: The target IP address or hostname
+            output_dir: Output directory for results
+            port_scans: Port scan configuration
+            service_scans: Service scan configuration
+            heartbeat: Heartbeat interval in seconds
+            timeout: Timeout for individual scans
+            additional_args: Additional AutoRecon arguments
+
+        Returns:
+            Comprehensive automated reconnaissance results
+        """
+        data = {
+            "target": target,
+            "output_dir": output_dir,
+            "port_scans": port_scans,
+            "service_scans": service_scans,
+            "heartbeat": heartbeat,
+            "timeout": timeout,
+            "additional_args": additional_args
+        }
+        logger.info(f"🔄 Starting AutoRecon: {target}")
+        result = hexstrike_client.safe_post("api/tools/autorecon", data)
+        if result.get("success"):
+            logger.info(f"✅ AutoRecon completed for {target}")
+        else:
+            logger.error(f"❌ AutoRecon failed for {target}")
+        return result
