@@ -22,7 +22,6 @@ from mcp_core.hexstrikecolors import HexStrikeColors
 
 from mcp_tools.gateway import register_gateway_tools
 from mcp_tools.ops.wordlist import register_wordlist_tools
-from mcp_tools.database.database import register_database_tools
 from mcp_tools.network_recon.core_network_scanning import register_core_network_scanning_tools
 from mcp_tools.ops.file_ops_and_payload_gen import register_file_ops_and_payload_gen_tools
 from mcp_tools.ops.python_env import register_python_env_tools
@@ -114,6 +113,10 @@ from mcp_tools.iac_scan.checkov import register_checkov_tool
 from mcp_tools.iac_scan.terrascan import register_terrascan_tool
 
 from mcp_tools.recon_bot.bbot import register_bbot_tools
+
+from mcp_tools.db_query.mysql import register_mysql_tools
+from mcp_tools.db_query.sqlite import register_sqlite_tools
+from mcp_tools.db_query.postgresql import register_postgresql_tools
 
 # Backward compatibility alias
 Colors = HexStrikeColors
@@ -440,15 +443,19 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_falco_runtime_monitoring_tool(mcp, client, logger),
     ],
 
+    #Tools for database querying and interaction (e.g., SQLite, MySQL, PostgreSQL).
+    "db_query": [
+        lambda mcp, client, logger: register_mysql_tools(mcp, client, logger),
+        lambda mcp, client, logger: register_sqlite_tools(mcp, client, logger),
+        lambda mcp, client, logger: register_postgresql_tools(mcp, client, logger),
+    ],
+
 
     # ----------
 
 
     "wordlist": [
         lambda mcp, client, logger: register_wordlist_tools(mcp, client),
-    ],
-    "database": [
-        lambda mcp, client, logger: register_database_tools(mcp, client, logger),
     ],
     "core_network": [
         lambda mcp, client, logger: register_core_network_scanning_tools(mcp, client, logger, HexStrikeColors),
