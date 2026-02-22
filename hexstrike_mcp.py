@@ -315,8 +315,13 @@ class HexStrikeClient:
 
 TOOL_CATEGORIES = {
 
+    # All Profiles
+    ## `compact` (essential gateway tools only)
+    ## `full` (all tools registered)
+   
+
     #Compact mode 
-    #Only register essential gateway tools for task classification and tool execution, without all the individual tool functions. This allows smaller LLM clients to use the MCP server without running into token limits due to too many registered tools.
+    #Only essential tools for task classification and tool execution, without all the individual tool functions. Allows smaller LLM clients to use the MCP server without running into token limits due to too many registered tools.
     "compact": [
         lambda mcp, client, logger: register_gateway_tools(mcp, client),
     ],
