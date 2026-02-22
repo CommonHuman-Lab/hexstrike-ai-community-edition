@@ -28,7 +28,6 @@ from mcp_tools.network_recon.core_network_scanning import register_core_network_
 from mcp_tools.cloud_container.cloud_and_container_security import register_cloud_and_container_security_tools
 from mcp_tools.ops.file_ops_and_payload_gen import register_file_ops_and_payload_gen_tools
 from mcp_tools.ops.python_env import register_python_env_tools
-from mcp_tools.web_app_security.additional_security_tools import register_additional_security_tools
 from mcp_tools.network_recon.enhanced_network_scanning import register_enhanced_network_scanning_tools
 from mcp_tools.binary_analysis.binary_analysis_and_reverse_engineering import register_binary_analysis_and_reverse_engineering_tools
 from mcp_tools.binary_analysis.enhanced_binary_analysis_and_exploitation import register_enhanced_binary_analysis_and_exploitation_tools
@@ -49,13 +48,19 @@ from mcp_tools.web_fuzz.ffuf import register_ffuf_tool
 from mcp_tools.web_scan.nikto import register_nikto_tool
 from mcp_tools.web_scan.sqlmap import register_sqlmap_tool
 from mcp_tools.web_scan.wpscan import register_wpscan_tool
+
 from mcp_tools.exploit_framework.metasploit import register_metasploit_tool
 
 from mcp_tools.password_cracking.hydra import register_hydra_tool
 from mcp_tools.password_cracking.john import register_john_tool
+from mcp_tools.password_cracking.hashcat import register_hashcat_tool
 
 from mcp_tools.smb_enum.enum4linux import register_enum4linux_tool
 from mcp_tools.smb_enum.netexec import register_netexec_tool
+from mcp_tools.smb_enum.smbmap import register_smbmap_tool
+
+from mcp_tools.recon.amass import register_amass_tool
+from mcp_tools.recon.subfinder import register_subfinder_tool
 
 # Backward compatibility alias
 Colors = HexStrikeColors
@@ -236,16 +241,21 @@ TOOL_CATEGORIES = {
     "password_cracking": [
         lambda mcp, client, logger: register_hydra_tool(mcp, client, logger),
         lambda mcp, client, logger: register_john_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_hashcat_tool(mcp, client, logger),
     ],
 
     #Tools for SMB and network share enumeration (e.g., Enum4linux, NetExec, SMBMap).
     "smb_enum": [
         lambda mcp, client, logger: register_enum4linux_tool(mcp, client, logger),
         lambda mcp, client, logger: register_netexec_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_smbmap_tool(mcp, client, logger),
     ],
 
     #Tools for reconnaissance and subdomain discovery (e.g., Amass, Subfinder).
-    "recon": [],
+    "recon": [
+        lambda mcp, client, logger: register_amass_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_subfinder_tool(mcp, client, logger),
+    ],
 
     #Tools for web content discovery and fuzzing (e.g., Dirb, FFuf).
     "web_fuzz": [
@@ -288,9 +298,6 @@ TOOL_CATEGORIES = {
     ],
     "python_env": [
         lambda mcp, client, logger: register_python_env_tools(mcp, client, logger),
-    ],
-    "additional_security": [
-        lambda mcp, client, logger: register_additional_security_tools(mcp, client, logger),
     ],
     "binary": [
         lambda mcp, client, logger: register_binary_analysis_and_reverse_engineering_tools(mcp, client, logger),
