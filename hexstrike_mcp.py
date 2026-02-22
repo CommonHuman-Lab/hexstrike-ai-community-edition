@@ -527,7 +527,6 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_process_management_tools(mcp, client, logger),
     ],
 
-
     # ----------
 
     "binary": [
@@ -554,8 +553,27 @@ TOOL_CATEGORIES = {
     ],
 }
 
+# Define default and full profiles for easy loading of tool categories
 DEFAULT_PROFILE = [
-    "web_app", "monitoring", "vuln_intel", "visual", "ai_agents"
+    "credential_harvest",
+    "memory_forensics",
+    "net_scan",
+    "net_lookup",
+    "dns_enum",
+    "smb_enum",
+    "recon",
+    "web_probe",
+    "web_crawl",
+    "web_fuzz",
+    "web_scan",
+    "vuln_scan",
+    "exploit_framework",
+    "password_cracking",
+    "param_discovery",
+    "url_recon",
+    "data_processing",
+    "error_handling",
+    "monitoring",
 ]
 FULL_PROFILE = list(TOOL_CATEGORIES.keys())
 
