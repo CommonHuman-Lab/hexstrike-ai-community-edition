@@ -574,6 +574,7 @@ DEFAULT_PROFILE = [
     "data_processing",
     "error_handling",
     "monitoring",
+    "process_management"
 ]
 FULL_PROFILE = list(TOOL_CATEGORIES.keys())
 
