@@ -47,20 +47,6 @@ Specify one or more tool profiles to load only the relevant categories for your 
 
 See Wiki for more info [Flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Flags)
 
-## Architecture Overview
-
-HexStrike AI features a multi-agent architecture with autonomous AI agents, intelligent decision-making, and vulnerability intelligence.
-
-### How It Works
-
-1. **AI Agent Connection** - Claude, GPT, or other MCP-compatible agents connect via FastMCP protocol
-2. **Intelligent Analysis** - Decision engine analyzes targets and selects optimal testing strategies
-3. **Autonomous Execution** - AI agents execute comprehensive security assessments
-4. **Real-time Adaptation** - System adapts based on results and discovered vulnerabilities
-5. **Advanced Reporting** - Visual output with vulnerability cards and risk analysis
-
-
-
 ## Installation
 
 ### Quick Setup & Run Hexstrike Server
