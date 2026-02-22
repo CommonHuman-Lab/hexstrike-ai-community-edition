@@ -84,6 +84,8 @@ from mcp_tools.param_fuzz.qsreplace import register_qsreplace_tool
 
 from mcp_tools.url_filter.uro import register_uro_tool
 
+from mcp_tools.web_framework.http_framework import register_http_framework_tool
+
 # Backward compatibility alias
 Colors = HexStrikeColors
 
@@ -298,7 +300,7 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_wpscan_tool(mcp, client, logger),
         lambda mcp, client, logger: register_jaeles_tool(mcp, client, logger),
         lambda mcp, client, logger: register_dalfox_tool(mcp, client, logger),
-        lambda mcp, client, logger: register_burpsuite_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_burpsuite_tool(mcp, client, logger, HexStrikeColors),
         lambda mcp, client, logger: register_zap_tool(mcp, client, logger),
     ],
 
@@ -338,6 +340,11 @@ TOOL_CATEGORIES = {
     #Tools for URL filtering and duplicate removal (e.g., uro).
     "url_filter": [
         lambda mcp, client, logger: register_uro_tool(mcp, client, logger),
+    ],
+
+    #Tools for web framework interactions and HTTP request manipulation (e.g., custom HTTP framework with match/replace rules, repeater, intruder).
+    "web_framework": [
+        lambda mcp, client, logger: register_http_framework_tool(mcp, client, logger, HexStrikeColors),    
     ],
 
 
