@@ -133,6 +133,11 @@ from mcp_tools.memory_forensics.volatility import register_volatility_tool
 
 from mcp_tools.credential_harvest.responder import register_responder_tool
 
+from mcp_tools.binary_debug.gdb import register_gdb_tools
+from mcp_tools.binary_debug.radare2 import register_radare2_tools
+
+from mcp_tools.binary_analysis.binwalk import register_binwalk_tool
+
 # Backward compatibility alias
 Colors = HexStrikeColors
 
@@ -312,6 +317,17 @@ TOOL_CATEGORIES = {
     #Only register essential gateway tools for task classification and tool execution, without all the individual tool functions. This allows smaller LLM clients to use the MCP server without running into token limits due to too many registered tools.
     "compact": [
         lambda mcp, client, logger: register_gateway_tools(mcp, client),
+    ],
+
+    #Tools for binary debugging
+    "binary_debug": [
+        lambda mcp, client, logger: register_gdb_tools(mcp, client, logger),
+        lambda mcp, client, logger: register_radare2_tools(mcp, client, logger),
+    ],
+
+    #Tools for binary analysis
+    "binary_analysis": [
+        lambda mcp, client, logger: register_binwalk_tool(mcp, client, logger),
     ],
 
     #Tools for credential harvesting and network poisoning (e.g., Responder).
@@ -518,11 +534,12 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_wordlist_tools(mcp, client),
     ],
 
-    #Tools for system monitoring and process management
+    #Tools for system monitoring
     "monitoring": [
         lambda mcp, client, logger: register_system_monitoring_tools(mcp, client, logger),
     ],
 
+    #Tools for process management
     "process_management": [
         lambda mcp, client, logger: register_process_management_tools(mcp, client, logger),
     ],
