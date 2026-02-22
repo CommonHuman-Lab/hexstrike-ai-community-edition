@@ -46,10 +46,13 @@ from mcp_tools.ai_agents.intelligent_decision_engine import register_intelligent
 from mcp_tools.web_fuzz.dirb import register_dirb_tool
 from mcp_tools.web_scan.nikto import register_nikto_tool
 from mcp_tools.web_scan.sqlmap import register_sqlmap_tool
+from mcp_tools.web_scan.wpscan import register_wpscan_tool
 from mcp_tools.exploit_framework.metasploit import register_metasploit_tool
 
 from mcp_tools.password_cracking.hydra import register_hydra_tool
 from mcp_tools.password_cracking.john import register_john_tool
+
+from mcp_tools.smb_enum.enum4linux import register_enum4linux_tool
 
 # Backward compatibility alias
 Colors = HexStrikeColors
@@ -233,7 +236,9 @@ TOOL_CATEGORIES = {
     ],
 
     #Tools for SMB and network share enumeration (e.g., Enum4linux, NetExec, SMBMap).
-    "smb_enum": [],
+    "smb_enum": [
+        lambda mcp, client, logger: register_enum4linux_tool(mcp, client, logger),
+    ],
 
     #Tools for reconnaissance and subdomain discovery (e.g., Amass, Subfinder).
     "recon": [],
@@ -247,6 +252,7 @@ TOOL_CATEGORIES = {
     "web_scan": [
         lambda mcp, client, logger: register_nikto_tool(mcp, client, logger),
         lambda mcp, client, logger: register_sqlmap_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_wpscan_tool(mcp, client, logger),
     ],
 
     #Tools for automated exploitation and attack frameworks (e.g., Metasploit).

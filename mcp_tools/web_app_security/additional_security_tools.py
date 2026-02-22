@@ -5,54 +5,6 @@ from typing import Dict, Any
 def register_additional_security_tools(mcp, hexstrike_client, logger):
 
     @mcp.tool()
-    def wpscan_analyze(url: str, additional_args: str = "") -> Dict[str, Any]:
-        """
-        Execute WPScan for WordPress vulnerability scanning with enhanced logging.
-
-        Args:
-            url: The WordPress site URL
-            additional_args: Additional WPScan arguments
-
-        Returns:
-            WordPress vulnerability scan results
-        """
-        data = {
-            "url": url,
-            "additional_args": additional_args
-        }
-        logger.info(f"🔍 Starting WPScan: {url}")
-        result = hexstrike_client.safe_post("api/tools/wpscan", data)
-        if result.get("success"):
-            logger.info(f"✅ WPScan completed for {url}")
-        else:
-            logger.error(f"❌ WPScan failed for {url}")
-        return result
-
-    @mcp.tool()
-    def enum4linux_scan(target: str, additional_args: str = "-a") -> Dict[str, Any]:
-        """
-        Execute Enum4linux for SMB enumeration with enhanced logging.
-
-        Args:
-            target: The target IP address
-            additional_args: Additional Enum4linux arguments
-
-        Returns:
-            SMB enumeration results
-        """
-        data = {
-            "target": target,
-            "additional_args": additional_args
-        }
-        logger.info(f"🔍 Starting Enum4linux: {target}")
-        result = hexstrike_client.safe_post("api/tools/enum4linux", data)
-        if result.get("success"):
-            logger.info(f"✅ Enum4linux completed for {target}")
-        else:
-            logger.error(f"❌ Enum4linux failed for {target}")
-        return result
-
-    @mcp.tool()
     def ffuf_scan(url: str, wordlist: str = "/usr/share/wordlists/dirb/common.txt", mode: str = "directory", match_codes: str = "200,204,301,302,307,401,403", additional_args: str = "") -> Dict[str, Any]:
         """
         Execute FFuf for web fuzzing with enhanced logging.
