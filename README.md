@@ -559,7 +559,7 @@ We welcome contributions from the cybersecurity and AI community!
 
 ## License
 
-MIT License - see LICENSE file for details.
+see LICENSE file for details.
 
 ---
 

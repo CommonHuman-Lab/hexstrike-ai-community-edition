@@ -96,6 +96,10 @@ from mcp_tools.dns_enum.dnsenum import register_dnsenum_tool
 from mcp_tools.error_handling.error_handling_statistics import register_error_handling_statistics_tool
 from mcp_tools.error_handling.test_error_recovery import register_test_error_recovery_tool
 
+from mcp_tools.cloud_audit.prowler import register_prowler_tool
+
+from mcp_tools.container_scan.trivy import register_trivy_tool
+
 # Backward compatibility alias
 Colors = HexStrikeColors
 
@@ -376,6 +380,20 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_test_error_recovery_tool(mcp, client, logger, HexStrikeColors),
     ],
 
+    #Tools for cloud security assessment and auditing (e.g., Prowler).
+    "cloud_audit": [
+        lambda mcp, client, logger: register_prowler_tool(mcp, client, logger),
+    ],
+
+    #Tools for container security scanning and vulnerability assessment (e.g., Trivy).
+    "container_security": [
+        lambda mcp, client, logger: register_trivy_tool(mcp, client, logger),
+    ],
+
+
+    # ----------
+
+    
     "wordlist": [
         lambda mcp, client, logger: register_wordlist_tools(mcp, client),
     ],
