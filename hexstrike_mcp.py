@@ -103,6 +103,9 @@ from mcp_tools.cloud_visual.cloudmapper import register_cloudmapper_tool
 
 from mcp_tools.cloud_exploit.pacu import register_pacu_tool
 
+from mcp_tools.k8s_scan.kube_hunter import register_kube_hunter_tool
+from mcp_tools.k8s_scan.kube_bench import register_kube_bench_tool
+
 from mcp_tools.container_scan.trivy import register_trivy_tool
 
 # Backward compatibility alias
@@ -399,6 +402,12 @@ TOOL_CATEGORIES = {
     #Tools for cloud exploitation and attack simulation (e.g., Pacu).
     "cloud_exploit": [
         lambda mcp, client, logger: register_pacu_tool(mcp, client, logger),
+    ],
+
+    #Tools for Kubernetes security scanning and penetration testing (e.g., kube-hunter, kube-bench).
+    "k8s_scan": [
+        lambda mcp, client, logger: register_kube_hunter_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_kube_bench_tool(mcp, client, logger),
     ],
 
     #Tools for container security scanning and vulnerability assessment (e.g., Trivy).
