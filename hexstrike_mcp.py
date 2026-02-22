@@ -25,7 +25,6 @@ from mcp_tools.ops.wordlist import register_wordlist_tools
 from mcp_tools.automated_recon.bot import register_bot_tools
 from mcp_tools.database.database import register_database_tools
 from mcp_tools.network_recon.core_network_scanning import register_core_network_scanning_tools
-from mcp_tools.cloud_container.cloud_and_container_security import register_cloud_and_container_security_tools
 from mcp_tools.ops.file_ops_and_payload_gen import register_file_ops_and_payload_gen_tools
 from mcp_tools.ops.python_env import register_python_env_tools
 from mcp_tools.network_recon.enhanced_network_scanning import register_enhanced_network_scanning_tools
@@ -109,6 +108,11 @@ from mcp_tools.k8s_scan.kube_bench import register_kube_bench_tool
 from mcp_tools.container_scan.trivy import register_trivy_tool
 from mcp_tools.container_scan.docker_bench import register_docker_bench_tool
 from mcp_tools.container_scan.clair_vulnerability import register_clair_vulnerability_tool
+
+from mcp_tools.runtime_monitor.falco import register_falco_runtime_monitoring_tool
+
+from mcp_tools.iac_scan.checkov import register_checkov_tool
+from mcp_tools.iac_scan.terrascan import register_terrascan_tool
 
 # Backward compatibility alias
 Colors = HexStrikeColors
@@ -412,11 +416,22 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_kube_bench_tool(mcp, client, logger),
     ],
 
+    #Tools for infrastructure as code security scanning (e.g., Checkov, Terrascan).
+    "iac_scan": [
+        lambda mcp, client, logger: register_checkov_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_terrascan_tool(mcp, client, logger),
+    ],
+
     #Tools for container scanning and vulnerability assessment (e.g., Trivy, Docker Bench, Clair).
     "container_scan": [
         lambda mcp, client, logger: register_trivy_tool(mcp, client, logger),
         lambda mcp, client, logger: register_docker_bench_tool(mcp, client, logger),
         lambda mcp, client, logger: register_clair_vulnerability_tool(mcp, client, logger),
+    ],
+
+    #Tools for runtime monitoring and anomaly detection (e.g., Falco).
+    "runtime_monitor": [
+        lambda mcp, client, logger: register_falco_runtime_monitoring_tool(mcp, client, logger),
     ],
 
 
@@ -435,9 +450,6 @@ TOOL_CATEGORIES = {
     "core_network": [
         lambda mcp, client, logger: register_core_network_scanning_tools(mcp, client, logger, HexStrikeColors),
         lambda mcp, client, logger: register_enhanced_network_scanning_tools(mcp, client, logger),
-    ],
-    "cloud_container": [
-        lambda mcp, client, logger: register_cloud_and_container_security_tools(mcp, client, logger),
     ],
     "file_payload": [
         lambda mcp, client, logger: register_file_ops_and_payload_gen_tools(mcp, client, logger),
