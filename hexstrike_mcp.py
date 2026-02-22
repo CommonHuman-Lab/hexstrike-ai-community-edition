@@ -503,19 +503,33 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_postgresql_tools(mcp, client, logger),
     ],
 
-
-    # ----------
-
-
-    "wordlist": [
-        lambda mcp, client, logger: register_wordlist_tools(mcp, client),
-    ],
-    "file_payload": [
-        lambda mcp, client, logger: register_file_ops_and_payload_gen_tools(mcp, client, logger),
-    ],
+    #Tools for Python environment interaction and code execution
     "python_env": [
         lambda mcp, client, logger: register_python_env_tools(mcp, client, logger),
     ],
+
+    #Tools for file operations and AI-powered payload generation
+    "file_payload": [
+        lambda mcp, client, logger: register_file_ops_and_payload_gen_tools(mcp, client, logger),
+    ],
+
+    #Tools for wordlist management
+    "wordlist": [
+        lambda mcp, client, logger: register_wordlist_tools(mcp, client),
+    ],
+
+    #Tools for system monitoring and process management
+    "monitoring": [
+        lambda mcp, client, logger: register_system_monitoring_tools(mcp, client, logger),
+    ],
+
+    "process_management": [
+        lambda mcp, client, logger: register_process_management_tools(mcp, client, logger),
+    ],
+
+
+    # ----------
+
     "binary": [
         lambda mcp, client, logger: register_binary_analysis_and_reverse_engineering_tools(mcp, client, logger),
         lambda mcp, client, logger: register_enhanced_binary_analysis_and_exploitation_tools(mcp, client, logger),
@@ -528,10 +542,7 @@ TOOL_CATEGORIES = {
     "ctf": [
         lambda mcp, client, logger: register_advanced_ctf_tools(mcp, client, logger),
     ],
-    "monitoring": [
-        lambda mcp, client, logger: register_system_monitoring_tools(mcp, client, logger),
-        lambda mcp, client, logger: register_process_management_tools(mcp, client, logger),
-    ],
+
     "vuln_intel": [
         lambda mcp, client, logger: register_vulnerability_intelligence_tools(mcp, client, logger),
     ],
