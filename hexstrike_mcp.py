@@ -24,7 +24,6 @@ from mcp_tools.gateway import register_gateway_tools
 from mcp_tools.ops.wordlist import register_wordlist_tools
 from mcp_tools.ops.file_ops_and_payload_gen import register_file_ops_and_payload_gen_tools
 from mcp_tools.ops.python_env import register_python_env_tools
-from mcp_tools.network_recon.enhanced_network_scanning import register_enhanced_network_scanning_tools
 from mcp_tools.binary_analysis.binary_analysis_and_reverse_engineering import register_binary_analysis_and_reverse_engineering_tools
 from mcp_tools.binary_analysis.enhanced_binary_analysis_and_exploitation import register_enhanced_binary_analysis_and_exploitation_tools
 
@@ -63,6 +62,8 @@ from mcp_tools.password_cracking.hashcat import register_hashcat_tool
 from mcp_tools.smb_enum.enum4linux import register_enum4linux_tool
 from mcp_tools.smb_enum.netexec import register_netexec_tool
 from mcp_tools.smb_enum.smbmap import register_smbmap_tool
+from mcp_tools.smb_enum.nbtscan import register_nbtscan_tool
+from mcp_tools.smb_enum.rpcclient import register_rpcclient_tool
 
 from mcp_tools.recon.amass import register_amass_tool
 from mcp_tools.recon.subfinder import register_subfinder_tool
@@ -121,6 +122,8 @@ from mcp_tools.db_query.postgresql import register_postgresql_tools
 
 from mcp_tools.net_scan.nmap import register_nmap
 from mcp_tools.net_scan.arp_scan import register_arp_scan_tool
+from mcp_tools.net_scan.masscan import register_masscan_tool
+from mcp_tools.net_scan.rustscan import register_rustscan_tool
 
 from mcp_tools.net_lookup.whois import register_whois
 
@@ -328,11 +331,13 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_hashcat_tool(mcp, client, logger),
     ],
 
-    #Tools for SMB and network share enumeration (e.g., Enum4linux, NetExec, SMBMap).
+    #Tools for SMB and network share enumeration (e.g., Enum4linux, NetExec, SMBMap, NBTSCan, RPCClient).
     "smb_enum": [
         lambda mcp, client, logger: register_enum4linux_tool(mcp, client, logger),
         lambda mcp, client, logger: register_netexec_tool(mcp, client, logger),
         lambda mcp, client, logger: register_smbmap_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_nbtscan_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_rpcclient_tool(mcp, client, logger),
     ],
 
     #Tools for reconnaissance and subdomain discovery (e.g., Amass, Subfinder, AutoRecon).
@@ -342,10 +347,12 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_autorecon_tool(mcp, client, logger),
     ],
 
-    #Tools for network scanning and enumeration (e.g., Nmap, ARP-Scan).
+    #Tools for network scanning and enumeration (e.g., Nmap, ARP-Scan, Masscan, Rustscan).
     "net_scan": [
         lambda mcp, client, logger: register_nmap(mcp, client, logger, HexStrikeColors),
         lambda mcp, client, logger: register_arp_scan_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_masscan_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_rustscan_tool(mcp, client, logger),
     ],
 
     #Tools for network information gathering and lookups (e.g., WHOIS).
@@ -503,9 +510,6 @@ TOOL_CATEGORIES = {
     "wordlist": [
         lambda mcp, client, logger: register_wordlist_tools(mcp, client),
     ],
-    "core_network": [
-        lambda mcp, client, logger: register_enhanced_network_scanning_tools(mcp, client, logger),
-    ],
     "file_payload": [
         lambda mcp, client, logger: register_file_ops_and_payload_gen_tools(mcp, client, logger),
     ],
@@ -540,7 +544,7 @@ TOOL_CATEGORIES = {
 }
 
 DEFAULT_PROFILE = [
-    "core_network", "web_app", "monitoring", "vuln_intel", "visual", "ai_agents"
+    "web_app", "monitoring", "vuln_intel", "visual", "ai_agents"
 ]
 FULL_PROFILE = list(TOOL_CATEGORIES.keys())
 
