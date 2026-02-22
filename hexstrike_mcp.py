@@ -305,6 +305,12 @@ class HexStrikeClient:
 
 TOOL_CATEGORIES = {
 
+    #Compact mode 
+    #Only register essential gateway tools for task classification and tool execution, without all the individual tool functions. This allows smaller LLM clients to use the MCP server without running into token limits due to too many registered tools.
+    "compact": [
+        lambda mcp, client, logger: register_gateway_tools(mcp, client),
+    ],
+
     #Tools for credential harvesting and network poisoning (e.g., Responder).
     "credential_harvest": [
         lambda mcp, client, logger: register_responder_tool(mcp, client, logger),
