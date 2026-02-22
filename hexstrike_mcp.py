@@ -24,7 +24,6 @@ from mcp_tools.gateway import register_gateway_tools
 from mcp_tools.ops.wordlist import register_wordlist_tools
 from mcp_tools.ops.file_ops_and_payload_gen import register_file_ops_and_payload_gen_tools
 from mcp_tools.ops.python_env import register_python_env_tools
-from mcp_tools.binary_analysis.binary_analysis_and_reverse_engineering import register_binary_analysis_and_reverse_engineering_tools
 from mcp_tools.binary_analysis.enhanced_binary_analysis_and_exploitation import register_enhanced_binary_analysis_and_exploitation_tools
 
 from mcp_tools.ai_agents.ai_payload_generation import register_ai_payload_generation_tools
@@ -137,6 +136,10 @@ from mcp_tools.binary_debug.gdb import register_gdb_tools
 from mcp_tools.binary_debug.radare2 import register_radare2_tools
 
 from mcp_tools.binary_analysis.binwalk import register_binwalk_tool
+from mcp_tools.binary_analysis.checksec import register_checksec_tool
+from mcp_tools.binary_analysis.xxd import register_xxd_tool
+from mcp_tools.binary_analysis.strings import register_strings_tool
+from mcp_tools.binary_analysis.objdump import register_objdump_tool
 
 from mcp_tools.gadget_search.ropgadget import register_ropgadget_tool
 
@@ -337,9 +340,13 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_ropgadget_tool(mcp, client, logger),
     ],
 
-    #Tools for binary analysis
+    #Tools for binary analysis (e.g., Binwalk, Checksec, xxd, Strings, Objdump).
     "binary_analysis": [
         lambda mcp, client, logger: register_binwalk_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_checksec_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_xxd_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_strings_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_objdump_tool(mcp, client, logger),
     ],
 
     #Tools for credential harvesting and network poisoning (e.g., Responder).
@@ -559,7 +566,6 @@ TOOL_CATEGORIES = {
     # ----------
 
     "binary": [
-        lambda mcp, client, logger: register_binary_analysis_and_reverse_engineering_tools(mcp, client, logger),
         lambda mcp, client, logger: register_enhanced_binary_analysis_and_exploitation_tools(mcp, client, logger),
     ],
     "web_app": [
