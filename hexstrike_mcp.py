@@ -627,7 +627,7 @@ def parse_args():
                       help=f"Request timeout in seconds (default: {DEFAULT_REQUEST_TIMEOUT})")
     parser.add_argument("--debug", action="store_true", help="Enable debug logging")
     parser.add_argument("--compact", action="store_true", help="Compact mode: register only classify_task and run_tool for small LLM clients")
-    parser.add_argument("--profile", nargs="+", type=str, default=[], help="Tool profile(s) to load (e.g., ctf, binary, web, api)")
+    parser.add_argument("--profile", nargs="+", type=str, default=[], help="Tool profile(s) to load (e.g., web_crawl, exploit_framework, recon or default/full)")
     return parser.parse_args()
 
 def main():
