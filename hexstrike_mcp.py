@@ -22,7 +22,6 @@ from mcp_core.hexstrikecolors import HexStrikeColors
 
 from mcp_tools.gateway import register_gateway_tools
 from mcp_tools.ops.wordlist import register_wordlist_tools
-from mcp_tools.automated_recon.bot import register_bot_tools
 from mcp_tools.database.database import register_database_tools
 from mcp_tools.network_recon.core_network_scanning import register_core_network_scanning_tools
 from mcp_tools.ops.file_ops_and_payload_gen import register_file_ops_and_payload_gen_tools
@@ -113,6 +112,8 @@ from mcp_tools.runtime_monitor.falco import register_falco_runtime_monitoring_to
 
 from mcp_tools.iac_scan.checkov import register_checkov_tool
 from mcp_tools.iac_scan.terrascan import register_terrascan_tool
+
+from mcp_tools.recon_bot.bbot import register_bbot_tools
 
 # Backward compatibility alias
 Colors = HexStrikeColors
@@ -310,6 +311,11 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_autorecon_tool(mcp, client, logger),
     ],
 
+    #Tools for reconnaissance and enumeration (e.g., BBot).
+    "recon_bot": [
+        lambda mcp, client, logger: register_bbot_tools(mcp, client),
+    ],
+
     #Tools for web content discovery and fuzzing (e.g., Dirb, FFuf, Dirsearch).
     "web_fuzz": [
         lambda mcp, client, logger: register_dirb_tool(mcp, client, logger),
@@ -440,9 +446,6 @@ TOOL_CATEGORIES = {
 
     "wordlist": [
         lambda mcp, client, logger: register_wordlist_tools(mcp, client),
-    ],
-    "bot": [
-        lambda mcp, client, logger: register_bot_tools(mcp, client),
     ],
     "database": [
         lambda mcp, client, logger: register_database_tools(mcp, client, logger),
