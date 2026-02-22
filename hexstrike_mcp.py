@@ -22,7 +22,6 @@ from mcp_core.hexstrikecolors import HexStrikeColors
 
 from mcp_tools.gateway import register_gateway_tools
 from mcp_tools.ops.wordlist import register_wordlist_tools
-from mcp_tools.network_recon.core_network_scanning import register_core_network_scanning_tools
 from mcp_tools.ops.file_ops_and_payload_gen import register_file_ops_and_payload_gen_tools
 from mcp_tools.ops.python_env import register_python_env_tools
 from mcp_tools.network_recon.enhanced_network_scanning import register_enhanced_network_scanning_tools
@@ -42,6 +41,7 @@ from mcp_tools.ai_agents.intelligent_decision_engine import register_intelligent
 from mcp_tools.web_fuzz.dirb import register_dirb_tool
 from mcp_tools.web_fuzz.ffuf import register_ffuf_tool
 from mcp_tools.web_fuzz.dirsearch import register_dirsearch_tools
+from mcp_tools.web_fuzz.gobuster import register_gobuster
 
 from mcp_tools.web_crawl.katana import register_katana_tool
 
@@ -117,6 +117,12 @@ from mcp_tools.recon_bot.bbot import register_bbot_tools
 from mcp_tools.db_query.mysql import register_mysql_tools
 from mcp_tools.db_query.sqlite import register_sqlite_tools
 from mcp_tools.db_query.postgresql import register_postgresql_tools
+
+from mcp_tools.net_scan.nmap import register_nmap
+
+from mcp_tools.net_lookup.whois import register_whois
+
+from mcp_tools.vuln_scan.nuclei import register_nuclei
 
 # Backward compatibility alias
 Colors = HexStrikeColors
@@ -314,16 +320,27 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_autorecon_tool(mcp, client, logger),
     ],
 
+    #Tools for network scanning and enumeration (e.g., Nmap).
+    "net_scan": [
+        lambda mcp, client, logger: register_nmap(mcp, client, logger, HexStrikeColors),
+    ],
+
+    #Tools for network information gathering and lookups (e.g., WHOIS).
+    "net_lookup": [
+        lambda mcp, client, logger: register_whois(mcp, client, logger),
+    ],
+
     #Tools for reconnaissance and enumeration (e.g., BBot).
     "recon_bot": [
         lambda mcp, client, logger: register_bbot_tools(mcp, client),
     ],
 
-    #Tools for web content discovery and fuzzing (e.g., Dirb, FFuf, Dirsearch).
+    #Tools for web content discovery and fuzzing (e.g., Dirb, FFuf, Dirsearch, Gobuster).
     "web_fuzz": [
         lambda mcp, client, logger: register_dirb_tool(mcp, client, logger),
         lambda mcp, client, logger: register_ffuf_tool(mcp, client, logger),
         lambda mcp, client, logger: register_dirsearch_tools(mcp, client, logger),
+        lambda mcp, client, logger: register_gobuster(mcp, client, logger, HexStrikeColors),
     ],
 
     #Tools for web crawling and spidering (e.g., Katana).
@@ -345,6 +362,11 @@ TOOL_CATEGORIES = {
     #Tools for web probing and technology detection (e.g., httpx).
     "web_probe": [
         lambda mcp, client, logger: register_httpx_tool(mcp, client, logger),
+    ],
+
+    #Tools for vulnerability scanning and assessment (e.g., Nuclei).
+    "vuln_scan": [
+        lambda mcp, client, logger: register_nuclei(mcp, client, logger, HexStrikeColors),
     ],
 
     #Tools for automated exploitation and attack frameworks (e.g., Metasploit).
@@ -458,7 +480,6 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_wordlist_tools(mcp, client),
     ],
     "core_network": [
-        lambda mcp, client, logger: register_core_network_scanning_tools(mcp, client, logger, HexStrikeColors),
         lambda mcp, client, logger: register_enhanced_network_scanning_tools(mcp, client, logger),
     ],
     "file_payload": [
