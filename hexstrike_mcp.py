@@ -138,6 +138,8 @@ from mcp_tools.binary_debug.radare2 import register_radare2_tools
 
 from mcp_tools.binary_analysis.binwalk import register_binwalk_tool
 
+from mcp_tools.gadget_search.ropgadget import register_ropgadget_tool
+
 # Backward compatibility alias
 Colors = HexStrikeColors
 
@@ -323,6 +325,11 @@ TOOL_CATEGORIES = {
     "binary_debug": [
         lambda mcp, client, logger: register_gdb_tools(mcp, client, logger),
         lambda mcp, client, logger: register_radare2_tools(mcp, client, logger),
+    ],
+
+    #Tools for ROP gadget searching and analysis (e.g., ROPgadget).
+    "gadget_search": [
+        lambda mcp, client, logger: register_ropgadget_tool(mcp, client, logger),
     ],
 
     #Tools for binary analysis
