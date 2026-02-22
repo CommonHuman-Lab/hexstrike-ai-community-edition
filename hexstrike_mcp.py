@@ -536,10 +536,11 @@ def setup_mcp_server(hexstrike_client: HexStrikeClient, compact: bool = False, p
     """
     mcp = FastMCP("hexstrike-ai-mcp")
 
-    # Register gateway tools for task classification and tool execution
-    register_gateway_tools(mcp, hexstrike_client)
 
     if compact:
+        # Register gateway tools for task classification and tool execution
+        register_gateway_tools(mcp, hexstrike_client)
+        
         logger.info("Compact mode: only gateway tools registered (classify_task, run_tool)")
         return mcp
 
