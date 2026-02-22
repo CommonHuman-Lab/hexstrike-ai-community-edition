@@ -34,9 +34,8 @@
 
 Activate Minimal Mode for the MCP server using the `--compact` flag:
 
-- 🚦 Streamlined & Fast: Only the two essential gateway tools are loaded—perfect for lightweight deployments, automation pipelines, or running on resource-constrained systems.
-- 🧩 Plug-and-Play Integration: Exposes just the intelligent classifier and tool execution gateway, making it easy to embed HexStrike into other platforms or CI/CD workflows.
-- 🏃 Ideal for Local Models: Great for running with smaller, local LLMs or when you want minimal overhead.
+- 🚦 Only the two essential gateway tools are loaded—perfect for lightweight deployments, automation pipelines, or running on resource-constrained systems.
+- 🏃 Great for running with smaller, local LLMs or when you want minimal overhead.
 
 ### Profile Mode (`--profile`)
 
