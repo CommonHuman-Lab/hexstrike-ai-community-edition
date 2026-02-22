@@ -97,6 +97,11 @@ from mcp_tools.error_handling.error_handling_statistics import register_error_ha
 from mcp_tools.error_handling.test_error_recovery import register_test_error_recovery_tool
 
 from mcp_tools.cloud_audit.prowler import register_prowler_tool
+from mcp_tools.cloud_audit.scout_suite import register_scout_suite_tool
+
+from mcp_tools.cloud_visual.cloudmapper import register_cloudmapper_tool
+
+from mcp_tools.cloud_exploit.pacu import register_pacu_tool
 
 from mcp_tools.container_scan.trivy import register_trivy_tool
 
@@ -380,9 +385,20 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_test_error_recovery_tool(mcp, client, logger, HexStrikeColors),
     ],
 
-    #Tools for cloud security assessment and auditing (e.g., Prowler).
+    #Tools for cloud security assessment and auditing (e.g., Prowler, Scout Suite).
     "cloud_audit": [
         lambda mcp, client, logger: register_prowler_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_scout_suite_tool(mcp, client, logger),
+    ],
+
+    #Tools for cloud infrastructure visualization and mapping (e.g., CloudMapper).
+    "cloud_visual": [
+        lambda mcp, client, logger: register_cloudmapper_tool(mcp, client, logger),
+    ],
+
+    #Tools for cloud exploitation and attack simulation (e.g., Pacu).
+    "cloud_exploit": [
+        lambda mcp, client, logger: register_pacu_tool(mcp, client, logger),
     ],
 
     #Tools for container security scanning and vulnerability assessment (e.g., Trivy).
@@ -393,7 +409,7 @@ TOOL_CATEGORIES = {
 
     # ----------
 
-    
+
     "wordlist": [
         lambda mcp, client, logger: register_wordlist_tools(mcp, client),
     ],
