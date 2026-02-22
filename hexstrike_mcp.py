@@ -68,6 +68,7 @@ from mcp_tools.smb_enum.smbmap import register_smbmap_tool
 
 from mcp_tools.recon.amass import register_amass_tool
 from mcp_tools.recon.subfinder import register_subfinder_tool
+from mcp_tools.recon.autorecon import register_autorecon_tool
 
 from mcp_tools.url_recon.gau import register_gau_tool
 from mcp_tools.url_recon.waybackurls import register_waybackurls_tool
@@ -85,8 +86,12 @@ from mcp_tools.param_fuzz.qsreplace import register_qsreplace_tool
 from mcp_tools.url_filter.uro import register_uro_tool
 
 from mcp_tools.web_framework.http_framework import register_http_framework_tool
+from mcp_tools.web_framework.browser_agent import register_browser_agent_tool
 
 from mcp_tools.waf_detect.wafw00f import register_wafw00f_tool
+
+from mcp_tools.dns_enum.fierce import register_fierce_tool
+from mcp_tools.dns_enum.dnsenum import register_dnsenum_tool
 
 # Backward compatibility alias
 Colors = HexStrikeColors
@@ -277,10 +282,11 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_smbmap_tool(mcp, client, logger),
     ],
 
-    #Tools for reconnaissance and subdomain discovery (e.g., Amass, Subfinder).
+    #Tools for reconnaissance and subdomain discovery (e.g., Amass, Subfinder, AutoRecon).
     "recon": [
         lambda mcp, client, logger: register_amass_tool(mcp, client, logger),
         lambda mcp, client, logger: register_subfinder_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_autorecon_tool(mcp, client, logger),
     ],
 
     #Tools for web content discovery and fuzzing (e.g., Dirb, FFuf, Dirsearch).
@@ -344,14 +350,21 @@ TOOL_CATEGORIES = {
         lambda mcp, client, logger: register_uro_tool(mcp, client, logger),
     ],
 
-    #Tools for web framework interactions and HTTP request manipulation (e.g., custom HTTP framework with match/replace rules, repeater, intruder).
+    #Tools for web application security testing frameworks (e.g., HTTP Framework, Browser Agent).
     "web_framework": [
-        lambda mcp, client, logger: register_http_framework_tool(mcp, client, logger, HexStrikeColors),    
+        lambda mcp, client, logger: register_http_framework_tool(mcp, client, logger, HexStrikeColors),
+        lambda mcp, client, logger: register_browser_agent_tool(mcp, client, logger, HexStrikeColors),
     ],
 
     #Tools for WAF detection and fingerprinting (e.g., wafw00f).
     "waf_detect": [
         lambda mcp, client, logger: register_wafw00f_tool(mcp, client, logger),    
+    ],
+
+    #Tools for DNS enumeration and subdomain takeover detection (e.g., Fierce, DNSenum).
+    "dns_enum": [
+        lambda mcp, client, logger: register_fierce_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_dnsenum_tool(mcp, client, logger),
     ],
 
 
