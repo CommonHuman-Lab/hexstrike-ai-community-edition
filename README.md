@@ -562,9 +562,9 @@ see LICENSE file for details.
 
 ---
 
-## Original Author
+## Based Of
 
-**[0x4m4](https://github.com/0x4m4)** - [HexStrike AI](https://github.com/0x4m4/hexstrike-ai)
+**@0x4m4** - [HexStrike AI](https://github.com/0x4m4/hexstrike-ai)
 
 <div align="center">
 
