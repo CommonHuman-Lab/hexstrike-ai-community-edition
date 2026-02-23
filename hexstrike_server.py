@@ -904,6 +904,16 @@ from server_api.wordlist_store import api_wordlist_store_bp
 app.register_blueprint(api_wordlist_store_bp)
 
 # ============================================================================
+# PASSWORD CRACKING API ENDPOINTS
+# ============================================================================
+
+from server_api.password_cracking.medusa import api_password_cracking_medusa_bp
+app.register_blueprint(api_password_cracking_medusa_bp)
+
+from server_api.password_cracking.patator import api_password_cracking_patator_bp
+app.register_blueprint(api_password_cracking_patator_bp)
+
+# ============================================================================
 # BOT API ENDPOINTS
 # ============================================================================
 

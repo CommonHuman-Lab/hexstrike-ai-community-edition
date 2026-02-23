@@ -329,6 +329,15 @@ TOOLS: Dict[str, dict] = {
         "optional": {"username": "", "username_file": "", "password": "", "password_file": "", "additional_args": ""},
         "effectiveness": 0.80,
     },
+    "patator": {
+        "desc": "Multi-purpose brute-forcer",
+        "endpoint": "/api/tools/patator",
+        "method": "POST",
+        "category": "brute_force",
+        "params": {"target": {"required": True}, "module": {"required": True}},
+        "optional": {"username": "", "username_file": "", "password": "", "password_file": "", "additional_args": ""},
+        "effectiveness": 0.80,
+    },
 
     # ---- OSINT ----
     "whois": {
@@ -533,7 +542,7 @@ _INTENT_KEYWORDS: Dict[str, List[str]] = {
     ],
     "brute_force": [
         "brute", "crack", "password", "hydra", "hashcat", "login", "credential",
-        "hash", "wordlist","john", "medusa",
+        "hash", "wordlist","john", "medusa", "patator",
     ],
     "osint": [
         "subdomain", "dns", "osint", "amass", "subfinder", "domain", "recon",

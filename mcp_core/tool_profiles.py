@@ -40,7 +40,8 @@ from mcp_tools.password_cracking import (
     register_hydra_tool,
     register_john_tool,
     register_hashcat_tool,
-    register_medusa_tool
+    register_medusa_tool,
+    register_patator_tool
 )
 
 from mcp_tools.smb_enum import (
@@ -215,12 +216,13 @@ TOOL_PROFILES = {
         lambda mcp, client, logger: register_volatility3(mcp, client, logger),
     ],
 
-    #Tools for brute-forcing and cracking password hashes (e.g., Hydra, John, Hashcat, Medusa).
+    #Tools for brute-forcing and cracking password hashes (e.g., Hydra, John, Hashcat, Medusa, Patator).
     "password_cracking": [
         lambda mcp, client, logger: register_hydra_tool(mcp, client, logger),
         lambda mcp, client, logger: register_john_tool(mcp, client, logger),
         lambda mcp, client, logger: register_hashcat_tool(mcp, client, logger),
         lambda mcp, client, logger: register_medusa_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_patator_tool(mcp, client, logger),
     ],
 
     #Tools for SMB and network share enumeration (e.g., Enum4linux, NetExec, SMBMap, NBTSCan, RPCClient).
