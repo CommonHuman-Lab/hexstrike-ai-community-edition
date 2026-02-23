@@ -34,3 +34,33 @@ def register_paramspider_tool(mcp, hexstrike_client, logger):
         else:
             logger.error(f"❌ ParamSpider mining failed for {domain}")
         return result
+    
+    @mcp.tool()
+    def paramspider_discovery(domain: str, exclude: str = "", output_file: str = "", level: int = 2, additional_args: str = "") -> Dict[str, Any]:
+        """
+        Execute ParamSpider for parameter discovery with enhanced logging.
+
+        Args:
+            domain: Target domain
+            exclude: Extensions to exclude
+            output_file: Output file path
+            level: Crawling level
+            additional_args: Additional ParamSpider arguments
+
+        Returns:
+            Parameter discovery results
+        """
+        data = {
+            "domain": domain,
+            "exclude": exclude,
+            "output_file": output_file,
+            "level": level,
+            "additional_args": additional_args
+        }
+        logger.info(f"🔍 Starting ParamSpider discovery: {domain}")
+        result = hexstrike_client.safe_post("api/tools/paramspider", data)
+        if result.get("success"):
+            logger.info(f"✅ ParamSpider discovery completed")
+        else:
+            logger.error(f"❌ ParamSpider discovery failed")
+        return result

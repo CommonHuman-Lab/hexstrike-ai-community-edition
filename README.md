@@ -6,8 +6,13 @@
 ### AI-Powered MCP Cybersecurity Automation Platform
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Security](https://img.shields.io/badge/Security-Penetration%20Testing-red.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
+[![Tools](https://img.shields.io/badge/Security%20Tools-150%2B-brightgreen.svg)](https://github.com/0x4m4/hexstrike-ai)
+[![Agents](https://img.shields.io/badge/AI%20Agents-12%2B-purple.svg)](https://github.com/0x4m4/hexstrike-ai)
+[![Stars](https://img.shields.io/github/stars/CommonHuman-Lab/hexstrike-ai-community-edition?style=social)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
+
 
 **Advanced AI-powered penetration testing MCP framework, on-demand TTP knowledge, and adaptive scanning intelligence**
 
@@ -29,21 +34,33 @@
 - Enhanced Tool Usage: Smarter parameter handling, improved documentation, and endpoint references.
 - AI Integration: Upgraded MCP compatibility and agent orchestration (FastMCP v3).
 
-### Minimal Mode (`--compact`)
+<details>
+<summary>Minimal Mode (`--compact`)</summary>
 
 Activate Minimal Mode for the MCP server using the `--compact` flag:
 
 - 🚦 Only the two essential gateway tools are loaded—perfect for lightweight deployments, automation pipelines, or running on resource-constrained systems.
 - 🏃 Great for running with smaller, local LLMs or when you want minimal overhead.
 
-### Profile Mode (`--profile`)
+<details>
+<summary>Profile Mode (`--profile`)</summary>
 
 Specify one or more tool profiles to load only the relevant categories for your workflow:
 
 - 🚀 Select profiles for targeted workflows to speed up scans and reduce resource usage.
-- 🌐 Use --profile full to enable the complete arsenal, or --profile default for the recommended set.
+- 🌐 Use --profile full to enable the complete arsenal, it's on default out-the-box for the recommended set.
 
 See Wiki for more info [Flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Flags)
+</details>
+
+<details>
+<summary>Major MCP Client Refactor</summary>
+
+- The hexstrike MCP client has been reduced from 5,470 lines of code to just 42 lines.
+- Functionality is now split across multiple focused modules for clarity, maintainability, and easier contribution.
+- This modular approach enables faster development, easier debugging, and better scalability.
+
+</details>
 
 ## Installation
 
@@ -564,7 +581,7 @@ see LICENSE file for details.
 
 ## Based Of
 
-**@0x4m4** - [HexStrike AI](https://github.com/0x4m4/hexstrike-ai)
+**0x4m4** - [HexStrike AI](https://github.com/0x4m4/hexstrike-ai)
 
 <div align="center">
 

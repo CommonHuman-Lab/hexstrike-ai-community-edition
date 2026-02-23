@@ -77,15 +77,11 @@ class ModernVisualEngine:
     @staticmethod
     def create_banner() -> str:
         """Create the enhanced HexStrike banner"""
-        # Build a blood-red themed border using primary/gradient alternation
-        border_color = ModernVisualEngine.COLORS['PRIMARY_BORDER']
         accent = ModernVisualEngine.COLORS['ACCENT_LINE']
-        gradient = ModernVisualEngine.COLORS['ACCENT_GRADIENT']
         RESET = ModernVisualEngine.COLORS['RESET']
         MATRIX_GREEN = ModernVisualEngine.COLORS['MATRIX_GREEN']
         title_block = f"{accent}{MATRIX_GREEN}"
-        banner = f"""
-{title_block}
+        banner = f"""{title_block}
 ██╗  ██╗███████╗██╗  ██╗███████╗████████╗██████╗ ██╗██╗  ██╗███████╗
 ██║  ██║██╔════╝╚██╗██╔╝██╔════╝╚══██╔══╝██╔══██╗██║██║ ██╔╝██╔════╝
 ███████║█████╗   ╚███╔╝ ███████╗   ██║   ██████╔╝██║█████╔╝ █████╗
@@ -93,15 +89,7 @@ class ModernVisualEngine:
 ██║  ██║███████╗██╔╝ ██╗███████║   ██║   ██║  ██║██║██║  ██╗███████╗
 ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚══════╝
 {RESET}
-{border_color}┌─────────────────────────────────────────────────────────────────────┐
-│  {ModernVisualEngine.COLORS['BRIGHT_WHITE']}🚀 HexStrike AI - Blood-Red Offensive Intelligence Core{border_color}        │
-│  {accent}⚡ AI-Automated Recon | Exploitation | Analysis Pipeline{border_color}          │
-│  {gradient}🎯 Bug Bounty | CTF | Red Team | Zero-Day Research{border_color}              │
-└─────────────────────────────────────────────────────────────────────┘{RESET}
-
-{ModernVisualEngine.COLORS['TERMINAL_GRAY']}[INFO] Server starting on {API_HOST}:{API_PORT}
-[INFO] 150+ integrated modules | Adaptive AI decision engine active
-[INFO] Blood-red theme engaged – unified offensive operations UI{RESET}
+{ModernVisualEngine.COLORS['TERMINAL_GRAY']}[INFO] Server starting on {API_HOST}:{API_PORT}{RESET}
 """
         return banner
 

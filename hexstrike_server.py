@@ -717,6 +717,14 @@ def health_check():
         "uptime": time.time() - telemetry.stats["start_time"]
     })
 
+@app.route("/ping", methods=["GET"])
+def ping():
+    return jsonify({
+        "success": True,
+        "message": "Pong! HexStrike AI Tools API Server is responsive",
+        "timestamp": datetime.now().isoformat()
+    })
+
 @app.route("/api/command", methods=["POST"])
 def generic_command():
     """Execute any command provided in the request with enhanced logging"""
