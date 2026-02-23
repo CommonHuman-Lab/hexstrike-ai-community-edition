@@ -35,9 +35,13 @@ from mcp_tools.exploit_framework.metasploit import register_metasploit_tool
 from mcp_tools.exploit_framework.msfvenom import register_msfvenom
 from mcp_tools.exploit_framework.pwntools import register_pwntools
 from mcp_tools.exploit_framework.pwninit import register_pwninit_tool
-from mcp_tools.password_cracking.hydra import register_hydra_tool
-from mcp_tools.password_cracking.john import register_john_tool
-from mcp_tools.password_cracking.hashcat import register_hashcat_tool
+
+from mcp_tools.password_cracking import (
+    register_hydra_tool,
+    register_john_tool,
+    register_hashcat_tool,
+    register_medusa_tool
+)
 
 from mcp_tools.smb_enum import (
     register_enum4linux_tool,
@@ -211,11 +215,12 @@ TOOL_PROFILES = {
         lambda mcp, client, logger: register_volatility3(mcp, client, logger),
     ],
 
-    #Tools for brute-forcing and cracking password hashes (e.g., Hydra, John, Hashcat).
+    #Tools for brute-forcing and cracking password hashes (e.g., Hydra, John, Hashcat, Medusa).
     "password_cracking": [
         lambda mcp, client, logger: register_hydra_tool(mcp, client, logger),
         lambda mcp, client, logger: register_john_tool(mcp, client, logger),
         lambda mcp, client, logger: register_hashcat_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_medusa_tool(mcp, client, logger),
     ],
 
     #Tools for SMB and network share enumeration (e.g., Enum4linux, NetExec, SMBMap, NBTSCan, RPCClient).
