@@ -49,7 +49,7 @@
 - 🚀 Select profiles for targeted workflows to speed up scans and reduce resource usage.
 - 🌐 Use --profile full to enable the complete arsenal, it's on default out-the-box for the recommended set.
 
-See Wiki for more info [Flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Flags)
+> See [Profile flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Profile-Flags) for more info
 </details>
 
 <details>
@@ -107,7 +107,7 @@ hexstrike-env/bin/python3 hexstrike_mcp.py --compact
 hexstrike-env/bin/python3 hexstrike_mcp.py --profile recon dns_enum
 ```
 
-> See Wiki for more info [Flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Flags)
+> See [Flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Flags) for more info.
 
 ### Server flags
 
