@@ -41,6 +41,8 @@ Activate Minimal Mode for the MCP server using the `--compact` flag:
 - 🚦 Only the two essential gateway tools are loaded—perfect for lightweight deployments, automation pipelines, or running on resource-constrained systems.
 - 🏃 Great for running with smaller, local LLMs or when you want minimal overhead.
 
+</details>
+
 <details>
 <summary>Profile Mode (`--profile`)</summary>
 
