@@ -34,20 +34,18 @@
 - AI Integration: Upgraded MCP compatibility and agent orchestration (FastMCP v3).
 
 <details>
-<summary>Minimal Mode (`--compact`)</summary>
+<summary>Minimal Mode (--compact)</summary>
 
 Activate Minimal Mode for the MCP server using the `--compact` flag:
-
 - 🚦 Only the two essential gateway tools are loaded—perfect for lightweight deployments, automation pipelines, or running on resource-constrained systems.
 - 🏃 Great for running with smaller, local LLMs or when you want minimal overhead.
 
 </details>
 
 <details>
-<summary>Profile Mode (`--profile`)</summary>
+<summary>Profile Mode (--profile)</summary>
 
 Specify one or more tool profiles to load only the relevant categories for your workflow:
-
 - 🚀 Select profiles for targeted workflows to speed up scans and reduce resource usage.
 - 🌐 Use --profile full to enable the complete arsenal, it's on default out-the-box for the recommended set.
 
@@ -103,8 +101,10 @@ hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888 --comp
 
 ### Profile Mode (`--profile`)
 
+**Example usage**
+
 ```bash
-hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888 --profile web_app core_network
+hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888 --profile recon dns_enum
 ```
 
 See Wiki for more info [Flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Flags)
