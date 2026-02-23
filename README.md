@@ -96,7 +96,7 @@ hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888
 #### Compact Mode (`--compact`)
 
 ```bash
-hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888 --compact
+hexstrike-env/bin/python3 hexstrike_mcp.py --compact
 ```
 
 ### Profile Mode (`--profile`)
@@ -104,16 +104,16 @@ hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888 --comp
 **Example usage**
 
 ```bash
-hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888 --profile recon dns_enum
+hexstrike-env/bin/python3 hexstrike_mcp.py --profile recon dns_enum
 ```
 
-See Wiki for more info [Flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Flags)
+> See Wiki for more info [Flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Flags)
 
 ### Server flags
 
 #### Debug Mode (`--debug`)
 
-Enables debugmode for the server.
+> Enables debugmode for the server.
 
 ### Verify Installation
 
