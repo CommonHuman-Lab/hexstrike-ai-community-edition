@@ -2,10 +2,12 @@
 
 _config = {
     "APP_NAME": "HexStrike AI Community Edition",
-    "VERSION": "1.0.7",
+    "VERSION": "1.0.8",
     "COMMAND_TIMEOUT": 300,
     "CACHE_SIZE": 1000,
     "CACHE_TTL": 3600,  # 1 hour
+    "DEFAULT_HEXSTRIKE_SERVER": "http://127.0.0.1:8888",
+    "MAX_RETRIES": 3,
     "WORD_LISTS": {
 
         # --- Password Lists ---

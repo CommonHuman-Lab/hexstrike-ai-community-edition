@@ -9,6 +9,9 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Security](https://img.shields.io/badge/Security-Penetration%20Testing-red.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
+[![Tools](https://img.shields.io/badge/Security%20Tools-150%2B-brightgreen.svg)](https://github.com/0x4m4/hexstrike-ai)
+[![Agents](https://img.shields.io/badge/AI%20Agents-12%2B-purple.svg)](https://github.com/0x4m4/hexstrike-ai)
+
 
 **Advanced AI-powered penetration testing MCP framework, on-demand TTP knowledge, and adaptive scanning intelligence**
 
@@ -24,33 +27,39 @@
 
 ## 🚀 Differences from HexStrike V6
 
-- New Tools: Expanded arsenal, including BBot, database querying, and more.
+- New Tools: BBot, database querying, and more.
 - Refactored Codebase: Improved clarity, maintainability, and performance.
 - Updated Dependencies: All packages upgraded for security and compatibility.
 - Enhanced Tool Usage: Smarter parameter handling, improved documentation, and endpoint references.
 - AI Integration: Upgraded MCP compatibility and agent orchestration (FastMCP v3).
 
-### Minimal Mode (`--compact`)
+<details>
+<summary>Minimal Mode (--compact)</summary>
 
-Activate Minimal Mode for the MCP server using the `--compact` flag:
+> Activate Minimal Mode for the MCP server using the `--compact` flag:
+- 🚦 Only the two essential gateway tools are loaded—perfect for lightweight deployments, automation pipelines, or running on resource-constrained systems.
+- 🏃 Great for running with smaller, local LLMs or when you want minimal overhead.
 
-- 🚦 Streamlined & Fast: Only the two essential gateway tools are loaded—perfect for lightweight deployments, automation pipelines, or running on resource-constrained systems.
-- 🧩 Plug-and-Play Integration: Exposes just the intelligent classifier and tool execution gateway, making it easy to embed HexStrike into other platforms or CI/CD workflows.
-- 🏃 Ideal for Local Models: Great for running with smaller, local LLMs or when you want minimal overhead.
+</details>
 
-## Architecture Overview
+<details>
+<summary>Profile Mode (--profile)</summary>
 
-HexStrike AI features a multi-agent architecture with autonomous AI agents, intelligent decision-making, and vulnerability intelligence.
+> Specify one or more tool profiles to load only the relevant categories for your workflow:
+- 🚀 Select profiles for targeted workflows to speed up scans and reduce resource usage.
+- 🌐 Use --profile full to enable the complete arsenal, it's on default out-the-box for the recommended set.
 
-### How It Works
+> See [Profile flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Profile-Flags) for more info
+</details>
 
-1. **AI Agent Connection** - Claude, GPT, or other MCP-compatible agents connect via FastMCP protocol
-2. **Intelligent Analysis** - Decision engine analyzes targets and selects optimal testing strategies
-3. **Autonomous Execution** - AI agents execute comprehensive security assessments
-4. **Real-time Adaptation** - System adapts based on results and discovered vulnerabilities
-5. **Advanced Reporting** - Visual output with vulnerability cards and risk analysis
+<details>
+<summary>Major MCP Client Refactor</summary>
 
+- The hexstrike MCP client has been reduced from 5,470 lines of code to just 42 lines.
+- Functionality is now split across multiple focused modules for clarity, maintainability, and easier contribution.
+- This modular approach enables faster development, easier debugging, and better scalability.
 
+</details>
 
 ## Installation
 
@@ -87,21 +96,24 @@ hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888
 #### Compact Mode (`--compact`)
 
 ```bash
-hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888 --compact
+hexstrike-env/bin/python3 hexstrike_mcp.py --compact
 ```
 
-This registers only the two core gateway tools:
+### Profile Mode (`--profile`)
 
-- classify_task: Analyzes your security task description and recommends the most relevant tools and parameters.
-- run_tool: Executes any recommended security tool by name and parameters, as suggested by the classifier.
+**Example usage**
 
-Compact mode is ideal for automation pipelines or external orchestrators, exposing only the intelligent classifier and tool execution gateway for streamlined integration.
+```bash
+hexstrike-env/bin/python3 hexstrike_mcp.py --profile recon dns_enum
+```
+
+> See [Flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Flags) for more info.
 
 ### Server flags
 
 #### Debug Mode (`--debug`)
 
-Enables debugmode for the server.
+> Enables debugmode for the server.
 
 ### Verify Installation
 
@@ -564,13 +576,13 @@ We welcome contributions from the cybersecurity and AI community!
 
 ## License
 
-MIT License - see LICENSE file for details.
+see LICENSE file for details.
 
 ---
 
-## Original Author
+## Based Of
 
-**0x4m4** - [www.0x4m4.com](https://www.0x4m4.com) | [HexStrike](https://www.hexstrike.com)
+**0x4m4** - [HexStrike AI](https://github.com/0x4m4/hexstrike-ai)
 
 <div align="center">
 

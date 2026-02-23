@@ -7,6 +7,8 @@ API_HOST = os.environ.get('HEXSTRIKE_HOST', '127.0.0.1')
 class ModernVisualEngine:
     """Beautiful, modern output formatting with animations and colors"""
 
+    #HexStrike Green -  #2d6718
+
     # Enhanced color palette with reddish tones and better highlighting
     COLORS = {
         'MATRIX_GREEN': '\033[38;5;46m',
@@ -17,7 +19,7 @@ class ModernVisualEngine:
         'TERMINAL_GRAY': '\033[38;5;240m',
         'BRIGHT_WHITE': '\033[97m',
         'RESET': '\033[0m',
-        'BOLD': '\033[1m',
+        'BOLD': '\033[1m',       
         'DIM': '\033[2m',
         # New reddish tones and highlighting colors
         'BLOOD_RED': '\033[38;5;124m',
@@ -75,15 +77,11 @@ class ModernVisualEngine:
     @staticmethod
     def create_banner() -> str:
         """Create the enhanced HexStrike banner"""
-        # Build a blood-red themed border using primary/gradient alternation
-        border_color = ModernVisualEngine.COLORS['PRIMARY_BORDER']
         accent = ModernVisualEngine.COLORS['ACCENT_LINE']
-        gradient = ModernVisualEngine.COLORS['ACCENT_GRADIENT']
         RESET = ModernVisualEngine.COLORS['RESET']
-        BOLD = ModernVisualEngine.COLORS['BOLD']
-        title_block = f"{accent}{BOLD}"
-        banner = f"""
-{title_block}
+        MATRIX_GREEN = ModernVisualEngine.COLORS['MATRIX_GREEN']
+        title_block = f"{accent}{MATRIX_GREEN}"
+        banner = f"""{title_block}
 ██╗  ██╗███████╗██╗  ██╗███████╗████████╗██████╗ ██╗██╗  ██╗███████╗
 ██║  ██║██╔════╝╚██╗██╔╝██╔════╝╚══██╔══╝██╔══██╗██║██║ ██╔╝██╔════╝
 ███████║█████╗   ╚███╔╝ ███████╗   ██║   ██████╔╝██║█████╔╝ █████╗
@@ -91,15 +89,7 @@ class ModernVisualEngine:
 ██║  ██║███████╗██╔╝ ██╗███████║   ██║   ██║  ██║██║██║  ██╗███████╗
 ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚══════╝
 {RESET}
-{border_color}┌─────────────────────────────────────────────────────────────────────┐
-│  {ModernVisualEngine.COLORS['BRIGHT_WHITE']}🚀 HexStrike AI - Blood-Red Offensive Intelligence Core{border_color}        │
-│  {accent}⚡ AI-Automated Recon | Exploitation | Analysis Pipeline{border_color}          │
-│  {gradient}🎯 Bug Bounty | CTF | Red Team | Zero-Day Research{border_color}              │
-└─────────────────────────────────────────────────────────────────────┘{RESET}
-
-{ModernVisualEngine.COLORS['TERMINAL_GRAY']}[INFO] Server starting on {API_HOST}:{API_PORT}
-[INFO] 150+ integrated modules | Adaptive AI decision engine active
-[INFO] Blood-red theme engaged – unified offensive operations UI{RESET}
+{ModernVisualEngine.COLORS['TERMINAL_GRAY']}[INFO] Server starting on {API_HOST}:{API_PORT}{RESET}
 """
         return banner
 

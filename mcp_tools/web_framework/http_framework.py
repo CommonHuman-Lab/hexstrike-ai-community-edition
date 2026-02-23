@@ -1,0 +1,82 @@
+# mcp_tools/web_framework/http_framework.py
+
+from typing import Dict, Any, Optional
+
+def register_http_framework_tool(mcp, hexstrike_client, logger, HexStrikeColors):
+
+    @mcp.tool()
+    def http_framework_test(url: str, method: str = "GET", data: dict = {},
+                           headers: dict = {}, cookies: dict = {}, action: str = "request") -> Dict[str, Any]:
+        """
+        Enhanced HTTP testing framework (Burp Suite alternative) for comprehensive web security testing.
+
+        Args:
+            url: Target URL to test
+            method: HTTP method (GET, POST, PUT, DELETE, etc.)
+            data: Request data/parameters
+            headers: Custom headers
+            cookies: Custom cookies
+            action: Action to perform (request, spider, proxy_history, set_rules, set_scope, repeater, intruder)
+
+        Returns:
+            HTTP testing results with vulnerability analysis
+        """
+        data_payload = {
+            "url": url,
+            "method": method,
+            "data": data,
+            "headers": headers,
+            "cookies": cookies,
+            "action": action
+        }
+
+        logger.info(f"{HexStrikeColors.FIRE_RED}🔥 Starting HTTP Framework {action}: {url}{HexStrikeColors.RESET}")
+        result = hexstrike_client.safe_post("api/tools/http-framework", data_payload)
+
+        if result.get("success"):
+            logger.info(f"{HexStrikeColors.SUCCESS}✅ HTTP Framework {action} completed for {url}{HexStrikeColors.RESET}")
+
+            # Enhanced logging for vulnerabilities found
+            if result.get("result", {}).get("vulnerabilities"):
+                vuln_count = len(result["result"]["vulnerabilities"])
+                logger.info(f"{HexStrikeColors.HIGHLIGHT_RED} Found {vuln_count} potential vulnerabilities {HexStrikeColors.RESET}")
+        else:
+            logger.error(f"{HexStrikeColors.ERROR}❌ HTTP Framework {action} failed for {url}{HexStrikeColors.RESET}")
+
+        return result
+
+    @mcp.tool()
+    def http_set_rules(rules: list) -> Dict[str, Any]:
+        """Set match/replace rules used to rewrite parts of URL/query/headers/body before sending.
+        Rule format: {'where':'url|query|headers|body','pattern':'regex','replacement':'string'}"""
+        payload = {"action": "set_rules", "rules": rules}
+        return hexstrike_client.safe_post("api/tools/http-framework", payload)
+
+    @mcp.tool()
+    def http_set_scope(host: str, include_subdomains: bool = True) -> Dict[str, Any]:
+        """Define in-scope host (and optionally subdomains) so out-of-scope requests are skipped."""
+        payload = {"action": "set_scope", "host": host, "include_subdomains": include_subdomains}
+        return hexstrike_client.safe_post("api/tools/http-framework", payload)
+
+    @mcp.tool()
+    def http_repeater(request_spec: dict) -> Dict[str, Any]:
+        """Send a crafted request (Burp Repeater equivalent). request_spec keys: url, method, headers, cookies, data."""
+        payload = {"action": "repeater", "request": request_spec}
+        return hexstrike_client.safe_post("api/tools/http-framework", payload)
+
+    @mcp.tool()
+    def http_intruder(url: str, method: str = "GET", location: str = "query", params: Optional[list] = None,
+                      payloads: Optional[list] = None, base_data: Optional[dict] = None, max_requests: int = 100) -> Dict[str, Any]:
+        """Simple Intruder (sniper) fuzzing. Iterates payloads over each param individually.
+        location: query|body|headers|cookie."""
+        payload = {
+            "action": "intruder",
+            "url": url,
+            "method": method,
+            "location": location,
+            "params": params or [],
+            "payloads": payloads or [],
+            "base_data": base_data or {},
+            "max_requests": max_requests
+        }
+        return hexstrike_client.safe_post("api/tools/http-framework", payload)
