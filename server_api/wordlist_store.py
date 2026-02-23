@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from core.wordlist_store import WordlistStore
+from server_core.wordlist_store import WordlistStore
 wordlist_store = WordlistStore()
 
 api_wordlist_store_bp = Blueprint("wordlist_store", __name__)

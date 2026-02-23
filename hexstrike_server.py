@@ -39,10 +39,10 @@ from mitmproxy import http as mitmhttp
 from mitmproxy.tools.dump import DumpMaster
 from mitmproxy.options import Options as MitmOptions
 
-import core.config_core as config_core
+import server_core.config_core as config_core
 
 from workflows.ctf.CTFChallenge import CTFChallenge
-from core import *
+from server_core import *
 
 # ============================================================================
 # LOGGING CONFIGURATION (MUST BE FIRST)
@@ -98,7 +98,7 @@ decision_engine = IntelligentDecisionEngine()
 # INTELLIGENT ERROR HANDLING AND RECOVERY SYSTEM (v11.0 ENHANCEMENT)
 # ============================================================================
 
-from core.error_handling import (
+from server_core.error_handling import (
     ErrorType,
     RecoveryAction,
     ErrorContext,
@@ -121,12 +121,12 @@ fileupload_framework = FileUploadTestingFramework()
 # ADVANCED PROCESS MANAGEMENT AND MONITORING
 # ============================================================================
 
-from core.enhanced_process_manager import EnhancedProcessManager
-from core.technology_detector import TechnologyDetector
-from core.parameter_optimizer import ParameterOptimizer
-from core.rate_limit_detector import RateLimitDetector
-from core.failure_recovery_system import FailureRecoverySystem
-from core.performance_monitor import PerformanceMonitor
+from server_core.enhanced_process_manager import EnhancedProcessManager
+from server_core.technology_detector import TechnologyDetector
+from server_core.parameter_optimizer import ParameterOptimizer
+from server_core.rate_limit_detector import RateLimitDetector
+from server_core.failure_recovery_system import FailureRecoverySystem
+from server_core.performance_monitor import PerformanceMonitor
 
 # Global instances
 tech_detector = TechnologyDetector()
@@ -155,8 +155,8 @@ ctf_coordinator = CTFTeamCoordinator()
 active_processes = {}  # pid -> process info
 process_lock = threading.Lock()
 
-from core.process_manager import ProcessManager
-from core.python_env_manager import env_manager
+from server_core.process_manager import ProcessManager
+from server_core.python_env_manager import env_manager
 
 
 # ============================================================================
@@ -165,7 +165,7 @@ from core.python_env_manager import env_manager
 
 from intelligence.cve_intelligence_manager import CVEIntelligenceManager
 
-from core.setup_logging import setup_logging
+from server_core.setup_logging import setup_logging
 
 # Configuration (using existing API_PORT from top of file)
 DEBUG_MODE = os.environ.get("DEBUG_MODE", "0").lower() in ("1", "true", "yes", "y")
@@ -179,8 +179,8 @@ cache = HexStrikeCache()
 # Global telemetry collector
 telemetry = TelemetryCollector()
 
-from core.enhanced_command_executor import EnhancedCommandExecutor
-from core.ai_exploit_generator import AIExploitGenerator
+from server_core.enhanced_command_executor import EnhancedCommandExecutor
+from server_core.ai_exploit_generator import AIExploitGenerator
 
 class VulnerabilityCorrelator:
     """Correlate vulnerabilities for multi-stage attack chain discovery"""
@@ -599,7 +599,7 @@ def _determine_operation_type(tool_name: str) -> str:
 
     return operation_mapping.get(tool_name, "unknown_operation")
 
-from core.file_ops import file_manager
+from server_core.file_ops import file_manager
 
 # API Routes
 
@@ -879,28 +879,28 @@ def get_telemetry():
 # DATABASE INTERACTION API ENDPOINTS
 # ============================================================================
 
-from api.database import api_database_bp
+from server_api.database import api_database_bp
 app.register_blueprint(api_database_bp)
 
 # ============================================================================
 # PROCESS MANAGEMENT API ENDPOINTS
 # ============================================================================
 
-from api.process_management import api_process_management_bp
+from server_api.process_management import api_process_management_bp
 app.register_blueprint(api_process_management_bp)
 
 # ============================================================================
 # VISUALIZATION API ENDPOINTS
 # ============================================================================
 
-from api.visual import api_visual_bp
+from server_api.visual import api_visual_bp
 app.register_blueprint(api_visual_bp)
 
 # ============================================================================
 # MEMORY STORE API ENDPOINTS
 # ============================================================================
 
-from api.wordlist_store import api_wordlist_store_bp
+from server_api.wordlist_store import api_wordlist_store_bp
 app.register_blueprint(api_wordlist_store_bp)
 
 # ============================================================================
