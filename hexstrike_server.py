@@ -628,7 +628,7 @@ def health_check():
     ]
 
     exploitation_tools = [
-        "metasploit", "exploit-db", "searchsploit"
+        "msfconsole", "msfvenom", "exploit-db", "searchsploit"
     ]
 
     api_tools = [
@@ -642,7 +642,7 @@ def health_check():
     additional_tools = [
         "smbmap", "volatility", "sleuthkit", "autopsy", "evil-winrm",
         "paramspider", "airmon-ng", "airodump-ng", "aireplay-ng", "aircrack-ng",
-        "msfvenom", "msfconsole", "graphql-scanner", "jwt-analyzer"
+        "graphql-scanner", "jwt-analyzer"
     ]
 
     all_tools = (

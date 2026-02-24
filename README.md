@@ -27,6 +27,7 @@
 
 ## 🚀 Differences from HexStrike V6
 
+- Increased toolings from **150** to over **165**
 - New Tools: BBot, database querying, and more.
 - Refactored Codebase: Improved clarity, maintainability, and performance.
 - Updated Dependencies: All packages upgraded for security and compatibility.
