@@ -275,7 +275,7 @@ TOOLS: Dict[str, dict] = {
     },
     "searchsploit": {
         "desc": "Search Exploit-DB for public exploits",
-        "endpoint": "/api/tools/searchsploit",
+        "endpoint": "/api/tools/exploit_framework/searchsploit",
         "method": "POST",
         "category": "exploitation",
         "params": {"query": {"required": True}},

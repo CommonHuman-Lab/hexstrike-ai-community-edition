@@ -9,8 +9,8 @@ def register_theharvester_tool(mcp, hexstrike_client, logger):
         Execute TheHarvester for passive information gathering with enhanced logging.
 
         Args:
-            domain: The target domain
-            additional_args: Additional TheHarvester arguments
+            domain <string, required> : The target domain
+            additional_args <string, optional> : Additional TheHarvester arguments
 
         Returns:
             Passive information gathering results

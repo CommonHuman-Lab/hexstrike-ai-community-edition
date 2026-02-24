@@ -901,6 +901,14 @@ app.register_blueprint(api_password_cracking_ophcrack_bp)
 from server_api.recon.theharvester import api_recon_theharvester_bp
 app.register_blueprint(api_recon_theharvester_bp)
 
+
+# ============================================================================
+# EXPLOITATION API ENDPOINTS
+# ============================================================================
+
+from server_api.exploit_framework.searchsploit import api_exploit_framework_searchsploit_bp
+app.register_blueprint(api_exploit_framework_searchsploit_bp)
+
 # ============================================================================
 # BOT API ENDPOINTS
 # ============================================================================
