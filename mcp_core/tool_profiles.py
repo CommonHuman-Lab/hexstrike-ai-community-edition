@@ -111,6 +111,7 @@ from mcp_tools.binary_analysis import (
     register_ghidra_tools,
     register_libc_tools,
     register_angr_tools,
+    register_autopsy_tools
 )
 from mcp_tools.gadget_search.ropgadget import register_ropgadget_tool
 from mcp_tools.gadget_search.one_gadget import register_one_gadget_tool
@@ -197,7 +198,7 @@ TOOL_PROFILES = {
         lambda mcp, client, logger: register_ropper_tool(mcp, client, logger),
     ],
 
-    #Tools for binary analysis (e.g., Binwalk, Checksec, xxd, Strings, Objdump, Libc, Angr).
+    #Tools for binary analysis (e.g., Binwalk, Checksec, xxd, Strings, Objdump, Libc, Angr, Autopsy).
     "binary_analysis": [
         lambda mcp, client, logger: register_binwalk_tool(mcp, client, logger),
         lambda mcp, client, logger: register_checksec_tool(mcp, client, logger),
@@ -207,6 +208,7 @@ TOOL_PROFILES = {
         lambda mcp, client, logger: register_ghidra_tools(mcp, client, logger),
         lambda mcp, client, logger: register_libc_tools(mcp, client, logger),
         lambda mcp, client, logger: register_angr_tools(mcp, client, logger),
+        lambda mcp, client, logger: register_autopsy_tools(mcp, client, logger),
     ],
 
     #Tools for credential harvesting and network poisoning (e.g., Responder).

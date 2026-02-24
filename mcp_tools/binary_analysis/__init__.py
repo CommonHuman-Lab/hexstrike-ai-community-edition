@@ -6,6 +6,7 @@ from .objdump import register_objdump_tool
 from .ghidra import register_ghidra_tools
 from .libc import register_libc_tools
 from .angr import register_angr_tools
+from .autopsy import register_autopsy_tools
 
 __all__ = [
     "register_binwalk_tool",
@@ -16,4 +17,5 @@ __all__ = [
     "register_ghidra_tools",
     "register_libc_tools",
     "register_angr_tools",
+    "register_autopsy_tools"
 ]

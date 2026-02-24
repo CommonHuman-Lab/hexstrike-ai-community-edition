@@ -909,6 +909,13 @@ app.register_blueprint(api_recon_theharvester_bp)
 from server_api.exploit_framework.exploit_db import api_exploit_framework_exploit_db_bp
 app.register_blueprint(api_exploit_framework_exploit_db_bp)
 
+
+# ============================================================================
+# BINARY ANALYSIS API ENDPOINTS
+# ============================================================================
+from server_api.binary_analysis.autopsy import api_binary_analysis_autopsy_bp
+app.register_blueprint(api_binary_analysis_autopsy_bp)
+
 # ============================================================================
 # BOT API ENDPOINTS
 # ============================================================================
