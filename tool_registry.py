@@ -282,15 +282,6 @@ TOOLS: Dict[str, dict] = {
         "optional": {"additional_args": ""},
         "effectiveness": 0.88,
     },
-    "msf-search": {
-        "desc": "Search Metasploit modules by keyword",
-        "endpoint": "/api/tools/msf-search",
-        "method": "POST",
-        "category": "exploitation",
-        "params": {"query": {"required": True}},
-        "optional": {},
-        "effectiveness": 0.85,
-    },
 
     # ---- Brute Force ----
     "hydra": {
