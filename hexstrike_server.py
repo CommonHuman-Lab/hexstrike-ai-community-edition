@@ -39,10 +39,10 @@ from mitmproxy import http as mitmhttp
 from mitmproxy.tools.dump import DumpMaster
 from mitmproxy.options import Options as MitmOptions
 
-import core.config_core as config_core
+import server_core.config_core as config_core
 
 from workflows.ctf.CTFChallenge import CTFChallenge
-from core import *
+from server_core import *
 
 # ============================================================================
 # LOGGING CONFIGURATION (MUST BE FIRST)
@@ -98,7 +98,7 @@ decision_engine = IntelligentDecisionEngine()
 # INTELLIGENT ERROR HANDLING AND RECOVERY SYSTEM (v11.0 ENHANCEMENT)
 # ============================================================================
 
-from core.error_handling import (
+from server_core.error_handling import (
     ErrorType,
     RecoveryAction,
     ErrorContext,
@@ -121,12 +121,12 @@ fileupload_framework = FileUploadTestingFramework()
 # ADVANCED PROCESS MANAGEMENT AND MONITORING
 # ============================================================================
 
-from core.enhanced_process_manager import EnhancedProcessManager
-from core.technology_detector import TechnologyDetector
-from core.parameter_optimizer import ParameterOptimizer
-from core.rate_limit_detector import RateLimitDetector
-from core.failure_recovery_system import FailureRecoverySystem
-from core.performance_monitor import PerformanceMonitor
+from server_core.enhanced_process_manager import EnhancedProcessManager
+from server_core.technology_detector import TechnologyDetector
+from server_core.parameter_optimizer import ParameterOptimizer
+from server_core.rate_limit_detector import RateLimitDetector
+from server_core.failure_recovery_system import FailureRecoverySystem
+from server_core.performance_monitor import PerformanceMonitor
 
 # Global instances
 tech_detector = TechnologyDetector()
@@ -155,8 +155,8 @@ ctf_coordinator = CTFTeamCoordinator()
 active_processes = {}  # pid -> process info
 process_lock = threading.Lock()
 
-from core.process_manager import ProcessManager
-from core.python_env_manager import env_manager
+from server_core.process_manager import ProcessManager
+from server_core.python_env_manager import env_manager
 
 
 # ============================================================================
@@ -165,7 +165,7 @@ from core.python_env_manager import env_manager
 
 from intelligence.cve_intelligence_manager import CVEIntelligenceManager
 
-from core.setup_logging import setup_logging
+from server_core.setup_logging import setup_logging
 
 # Configuration (using existing API_PORT from top of file)
 DEBUG_MODE = os.environ.get("DEBUG_MODE", "0").lower() in ("1", "true", "yes", "y")
@@ -179,8 +179,8 @@ cache = HexStrikeCache()
 # Global telemetry collector
 telemetry = TelemetryCollector()
 
-from core.enhanced_command_executor import EnhancedCommandExecutor
-from core.ai_exploit_generator import AIExploitGenerator
+from server_core.enhanced_command_executor import EnhancedCommandExecutor
+from server_core.ai_exploit_generator import AIExploitGenerator
 
 class VulnerabilityCorrelator:
     """Correlate vulnerabilities for multi-stage attack chain discovery"""
@@ -308,33 +308,7 @@ cve_intelligence = CVEIntelligenceManager()
 exploit_generator = AIExploitGenerator()
 vulnerability_correlator = VulnerabilityCorrelator()
 
-def execute_command(command: str, use_cache: bool = True) -> Dict[str, Any]:
-    """
-    Execute a shell command with enhanced features
-
-    Args:
-        command: The command to execute
-        use_cache: Whether to use caching for this command
-
-    Returns:
-        A dictionary containing the stdout, stderr, return code, and metadata
-    """
-
-    # Check cache first
-    if use_cache:
-        cached_result = cache.get(command, {})
-        if cached_result:
-            return cached_result
-
-    # Execute command
-    executor = EnhancedCommandExecutor(command)
-    result = executor.execute()
-
-    # Cache successful results
-    if use_cache and result.get("success", False):
-        cache.set(command, {}, result)
-
-    return result
+from server_core.command_executor import execute_command
 
 def execute_command_with_recovery(tool_name: str, command: str, parameters: Optional[Dict[str, Any]] = None,
                                  use_cache: bool = True, max_attempts: int = 3) -> Dict[str, Any]:
@@ -599,7 +573,7 @@ def _determine_operation_type(tool_name: str) -> str:
 
     return operation_mapping.get(tool_name, "unknown_operation")
 
-from core.file_ops import file_manager
+from server_core.file_ops import file_manager
 
 # API Routes
 
@@ -627,7 +601,7 @@ def health_check():
     ]
 
     password_tools = [
-        "medusa", "patator", "hash-identifier", "ophcrack", "hashcat-utils"
+        "medusa", "patator", "hashid", "ophcrack", "hashcat-utils"
     ]
 
     binary_tools = [
@@ -879,29 +853,45 @@ def get_telemetry():
 # DATABASE INTERACTION API ENDPOINTS
 # ============================================================================
 
-from api.database import api_database_bp
+from server_api.database import api_database_bp
 app.register_blueprint(api_database_bp)
 
 # ============================================================================
 # PROCESS MANAGEMENT API ENDPOINTS
 # ============================================================================
 
-from api.process_management import api_process_management_bp
+from server_api.process_management import api_process_management_bp
 app.register_blueprint(api_process_management_bp)
 
 # ============================================================================
 # VISUALIZATION API ENDPOINTS
 # ============================================================================
 
-from api.visual import api_visual_bp
+from server_api.visual import api_visual_bp
 app.register_blueprint(api_visual_bp)
 
 # ============================================================================
 # MEMORY STORE API ENDPOINTS
 # ============================================================================
 
-from api.wordlist_store import api_wordlist_store_bp
+from server_api.wordlist_store import api_wordlist_store_bp
 app.register_blueprint(api_wordlist_store_bp)
+
+# ============================================================================
+# PASSWORD CRACKING API ENDPOINTS
+# ============================================================================
+
+from server_api.password_cracking.medusa import api_password_cracking_medusa_bp
+app.register_blueprint(api_password_cracking_medusa_bp)
+
+from server_api.password_cracking.patator import api_password_cracking_patator_bp
+app.register_blueprint(api_password_cracking_patator_bp)
+
+from server_api.password_cracking.hashid import api_password_cracking_hashid_bp
+app.register_blueprint(api_password_cracking_hashid_bp)
+
+from server_api.password_cracking.ophcrack import api_password_cracking_ophcrack_bp
+app.register_blueprint(api_password_cracking_ophcrack_bp)
 
 # ============================================================================
 # BOT API ENDPOINTS
@@ -4658,7 +4648,7 @@ def httpx():
             logger.warning("🌐 httpx called without target parameter")
             return jsonify({"error": "Target parameter is required"}), 400
 
-        command = f"httpx -l {target} -t {threads}"
+        command = f"httpx -u {target} -t {threads}"
 
         if probe:
             command += " -probe"
@@ -7827,7 +7817,7 @@ def ctf_cryptography_solver():
         if len(clean_text) in hash_patterns and re.match(r'^[0-9a-fA-F]+$', clean_text):
             hash_type = hash_patterns[len(clean_text)]
             results["analysis_results"].append(f"Possible {hash_type} hash")
-            results["recommended_tools"].extend(["hashcat", "john", "hash-identifier"])
+            results["recommended_tools"].extend(["hashcat", "john", "hashid"])
 
         # Frequency analysis for substitution ciphers
         if cipher_type in ["substitution", "caesar", "vigenere"] or "substitution" in results["analysis_results"]:

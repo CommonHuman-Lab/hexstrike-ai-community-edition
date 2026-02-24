@@ -15,7 +15,7 @@ class CTFWorkflowManager:
                 "specialized": ["wpscan", "joomscan", "droopescan"]
             },
             "crypto": {
-                "hash_analysis": ["hashcat", "john", "hash-identifier"],
+                "hash_analysis": ["hashcat", "john", "hashid"],
                 "cipher_analysis": ["cipher-identifier", "cryptool", "cyberchef"],
                 "rsa_attacks": ["rsatool", "factordb", "yafu"],
                 "frequency_analysis": ["frequency-analysis", "substitution-solver"],
@@ -437,7 +437,7 @@ class CTFWorkflowManager:
                 {"step": 8, "action": "flag_extraction", "description": "Extract and validate flag", "parallel": False, "tools": ["manual"], "estimated_time": 300}
             ],
             "crypto": [
-                {"step": 1, "action": "cipher_identification", "description": "Identify cipher type and properties", "parallel": False, "tools": ["cipher-identifier", "hash-identifier"], "estimated_time": 300},
+                {"step": 1, "action": "cipher_identification", "description": "Identify cipher type and properties", "parallel": False, "tools": ["cipher-identifier", "hashid"], "estimated_time": 300},
                 {"step": 2, "action": "key_space_analysis", "description": "Analyze key space and potential weaknesses", "parallel": False, "tools": ["manual"], "estimated_time": 600},
                 {"step": 3, "action": "automated_attacks", "description": "Launch automated cryptographic attacks", "parallel": True, "tools": ["hashcat", "john", "factordb"], "estimated_time": 1800},
                 {"step": 4, "action": "mathematical_analysis", "description": "Mathematical analysis of cipher properties", "parallel": False, "tools": ["sage", "python"], "estimated_time": 1200},

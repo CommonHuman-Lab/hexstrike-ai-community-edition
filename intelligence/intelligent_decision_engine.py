@@ -7,7 +7,7 @@ from typing import Dict, List, Any, Optional
 from shared.target_types import TargetType, TechnologyStack
 from shared.target_profile import TargetProfile
 from shared.attack_chain import AttackChain, AttackStep
-from core.parameter_optimizer import ParameterOptimizer
+from server_core.parameter_optimizer import ParameterOptimizer
 
 parameter_optimizer = ParameterOptimizer()
 

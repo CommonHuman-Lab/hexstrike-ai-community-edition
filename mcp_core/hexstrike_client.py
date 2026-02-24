@@ -3,7 +3,7 @@ import requests
 import time
 from typing import Dict, Any, Optional
 
-import core.config_core as config_core
+import server_core.config_core as config_core
 
 DEFAULT_HEXSTRIKE_SERVER = config_core.get("DEFAULT_HEXSTRIKE_SERVER", "http://127.0.0.1:8888")
 DEFAULT_REQUEST_TIMEOUT = config_core.get("COMMAND_TIMEOUT", 300)

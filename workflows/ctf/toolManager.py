@@ -22,7 +22,6 @@ class CTFToolManager:
             # Cryptography Challenge Tools
             "hashcat": "hashcat -m 0 -a 0 --potfile-disable --quiet",
             "john": "john --wordlist=/usr/share/wordlists/rockyou.txt --format=Raw-MD5",
-            "hash-identifier": "hash-identifier",
             "hashid": "hashid -m",
             "cipher-identifier": "python3 /opt/cipher-identifier/cipher_identifier.py",
             "factordb": "python3 /opt/factordb/factordb.py",
@@ -186,7 +185,7 @@ class CTFToolManager:
             "web_vuln": ["sqlmap", "dalfox", "nikto", "wpscan"],
             "web_discovery": ["gobuster", "dirsearch", "feroxbuster"],
             "web_params": ["arjun", "paramspider"],
-            "crypto_hash": ["hashcat", "john", "hash-identifier", "hashid"],
+            "crypto_hash": ["hashcat", "john", "hashid"],
             "crypto_cipher": ["cipher-identifier", "frequency-analysis", "substitution-solver"],
             "crypto_rsa": ["rsatool", "factordb", "yafu"],
             "crypto_modern": ["sage", "openssl", "gpg"],
@@ -257,7 +256,7 @@ class CTFToolManager:
             suggested_tools.extend(self.tool_categories["web_recon"][:2])
 
             if any(keyword in description_lower for keyword in ["sql", "injection", "database", "mysql", "postgres"]):
-                suggested_tools.extend(["sqlmap", "hash-identifier"])
+                suggested_tools.extend(["sqlmap", "hashid"])
             if any(keyword in description_lower for keyword in ["xss", "script", "javascript", "dom"]):
                 suggested_tools.extend(["dalfox", "katana"])
             if any(keyword in description_lower for keyword in ["wordpress", "wp", "cms"]):
@@ -273,7 +272,7 @@ class CTFToolManager:
 
         elif category == "crypto":
             if any(keyword in description_lower for keyword in ["hash", "md5", "sha", "password"]):
-                suggested_tools.extend(["hashcat", "john", "hash-identifier"])
+                suggested_tools.extend(["hashcat", "john", "hashid"])
             if any(keyword in description_lower for keyword in ["rsa", "public key", "private key", "factorization"]):
                 suggested_tools.extend(["rsatool", "factordb", "yafu"])
             if any(keyword in description_lower for keyword in ["cipher", "encrypt", "decrypt", "substitution"]):

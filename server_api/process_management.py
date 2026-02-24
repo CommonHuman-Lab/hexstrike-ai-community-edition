@@ -7,7 +7,7 @@ import time
 from flask import Blueprint, jsonify
 from datetime import datetime
 import psutil
-from core.process_manager import ProcessManager
+from server_core.process_manager import ProcessManager
 from visual.modern_visual_engine import ModernVisualEngine
 
 import logging

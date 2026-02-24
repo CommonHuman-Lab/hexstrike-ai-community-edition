@@ -62,7 +62,7 @@ psycopg2>=2.9.0,<3.0.0
 #
 # 🔐 Authentication & Password (12+ tools):
 # - hydra, john, hashcat, medusa, patator, netexec
-# - evil-winrm, hash-identifier, ophcrack
+# - evil-winrm, hashid, ophcrack
 #
 # 🔬 Binary Analysis & Reverse Engineering (25+ tools):
 # - ghidra, radare2, gdb, binwalk, ropgadget, checksec, strings

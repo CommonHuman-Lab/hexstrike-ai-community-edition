@@ -1,9 +1,9 @@
 from typing import Any, Dict, List, Optional
 from datetime import datetime
-from core.technology_detector import TechnologyDetector
-from core.rate_limit_detector import RateLimitDetector
-from core.failure_recovery_system import FailureRecoverySystem
-from core.performance_monitor import PerformanceMonitor
+from server_core.technology_detector import TechnologyDetector
+from server_core.rate_limit_detector import RateLimitDetector
+from server_core.failure_recovery_system import FailureRecoverySystem
+from server_core.performance_monitor import PerformanceMonitor
 from shared.target_profile import TargetProfile
 
 class ParameterOptimizer:

@@ -1,4 +1,4 @@
-import core.config_core as config_core
+import server_core.config_core as config_core
 import hashlib
 import json
 import logging

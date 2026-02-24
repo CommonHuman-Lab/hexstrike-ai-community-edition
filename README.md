@@ -9,8 +9,8 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Security](https://img.shields.io/badge/Security-Penetration%20Testing-red.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
-[![Tools](https://img.shields.io/badge/Security%20Tools-150%2B-brightgreen.svg)](https://github.com/0x4m4/hexstrike-ai)
-[![Agents](https://img.shields.io/badge/AI%20Agents-12%2B-purple.svg)](https://github.com/0x4m4/hexstrike-ai)
+[![Tools](https://img.shields.io/badge/Security%20Tools-165%2B-brightgreen.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
+[![Agents](https://img.shields.io/badge/AI%20Agents-12%2B-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 
 
 **Advanced AI-powered penetration testing MCP framework, on-demand TTP knowledge, and adaptive scanning intelligence**
@@ -361,7 +361,6 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 - **NetExec** - Swiss army knife for pentesting networks
 - **SMBMap** - SMB share enumeration and exploitation tool
 - **Evil-WinRM** - Windows Remote Management shell with PowerShell integration
-- **Hash-Identifier** - Hash type identification tool
 - **HashID** - Advanced hash algorithm identifier with confidence scoring
 - **CrackStation** - Online hash lookup integration
 - **Ophcrack** - Windows password cracker using rainbow tables
@@ -447,7 +446,7 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 
 - **John the Ripper** - Password cracker with custom rules and advanced modes
 - **Hashcat** - GPU-accelerated password recovery with 300+ hash types
-- **Hash-Identifier** - Hash type identification with confidence scoring
+- **HashID** - Hash type identification with confidence scoring
 - **CyberChef** - Web-based analysis toolkit for encoding and encryption
 - **Cipher-Identifier** - Automatic cipher type detection and analysis
 - **Frequency-Analysis** - Statistical cryptanalysis for substitution ciphers
