@@ -5,6 +5,7 @@ from .medusa import register_medusa_tool
 from .patator import register_patator_tool
 from .hashid import register_hashid_tool
 from .ophcrack import register_ophcrack_tool
+from .aircrack_ng import register_aircrack_ng_tools
 
 __all__ = [
     "register_hydra_tool", 
@@ -13,5 +14,6 @@ __all__ = [
     "register_medusa_tool",
     "register_patator_tool",
     "register_hashid_tool",
-    "register_ophcrack_tool"
+    "register_ophcrack_tool",
+    "register_aircrack_ng_tools"
 ]

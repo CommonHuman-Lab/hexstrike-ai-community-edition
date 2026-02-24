@@ -893,6 +893,9 @@ app.register_blueprint(api_password_cracking_hashid_bp)
 from server_api.password_cracking.ophcrack import api_password_cracking_ophcrack_bp
 app.register_blueprint(api_password_cracking_ophcrack_bp)
 
+from server_api.password_cracking.aircrack_ng import api_password_cracking_aircrack_ng_bp
+app.register_blueprint(api_password_cracking_aircrack_ng_bp)
+
 
 # ============================================================================
 # RECONNAISSANCE API ENDPOINTS
