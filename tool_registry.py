@@ -273,9 +273,9 @@ TOOLS: Dict[str, dict] = {
         "optional": {"format": "elf", "lhost": "", "lport": "4444", "additional_args": ""},
         "effectiveness": 0.85,
     },
-    "searchsploit": {
+    "exploit_db": {
         "desc": "Search Exploit-DB for public exploits",
-        "endpoint": "/api/tools/exploit_framework/searchsploit",
+        "endpoint": "/api/tools/exploit_framework/exploit_db",
         "method": "POST",
         "category": "exploitation",
         "params": {"query": {"required": True}},
@@ -555,7 +555,7 @@ _INTENT_KEYWORDS: Dict[str, List[str]] = {
         "injection", "exploit", "dalfox", "traversal",
     ],
     "exploitation": [
-        "exploit", "metasploit", "msf", "payload", "msfvenom", "searchsploit",
+        "exploit", "metasploit", "msf", "payload", "msfvenom", "exploit-db",
         "cve", "shell", "reverse", "module",
     ],
     "brute_force": [

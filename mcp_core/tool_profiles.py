@@ -35,7 +35,7 @@ from mcp_tools.exploit_framework.metasploit import register_metasploit_tool
 from mcp_tools.exploit_framework.msfvenom import register_msfvenom
 from mcp_tools.exploit_framework.pwntools import register_pwntools
 from mcp_tools.exploit_framework.pwninit import register_pwninit_tool
-from mcp_tools.exploit_framework.searchsploit import register_searchsploit_tool
+from mcp_tools.exploit_framework.exploit_db import register_exploit_db_tool
 
 from mcp_tools.password_cracking import (
     register_hydra_tool,
@@ -311,7 +311,7 @@ TOOL_PROFILES = {
         lambda mcp, client, logger: register_msfvenom(mcp, client, logger),
         lambda mcp, client, logger: register_pwntools(mcp, client, logger),
         lambda mcp, client, logger: register_pwninit_tool(mcp, client, logger),
-        lambda mcp, client, logger: register_searchsploit_tool(mcp, client, logger), #aka. exploit-db
+        lambda mcp, client, logger: register_exploit_db_tool(mcp, client, logger), #aka. exploit-db
     ],
 
     #Tools for URL discovery and reconnaissance (e.g., Gau, Waybackurls).

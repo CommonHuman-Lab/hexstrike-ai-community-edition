@@ -906,8 +906,8 @@ app.register_blueprint(api_recon_theharvester_bp)
 # EXPLOITATION API ENDPOINTS
 # ============================================================================
 
-from server_api.exploit_framework.searchsploit import api_exploit_framework_searchsploit_bp
-app.register_blueprint(api_exploit_framework_searchsploit_bp)
+from server_api.exploit_framework.exploit_db import api_exploit_framework_exploit_db_bp
+app.register_blueprint(api_exploit_framework_exploit_db_bp)
 
 # ============================================================================
 # BOT API ENDPOINTS
