@@ -52,7 +52,7 @@ from server_core import *
 try:
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        format='%(asctime)s - %(levelname)s - %(message)s',
         handlers=[
             logging.StreamHandler(sys.stdout),
             logging.FileHandler('hexstrike.log')
@@ -62,7 +62,7 @@ except PermissionError:
     # Fallback to console-only logging if file creation fails
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        format='%(asctime)s - %(levelname)s - %(message)s',
         handlers=[
             logging.StreamHandler(sys.stdout)
         ]
