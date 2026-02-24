@@ -338,6 +338,24 @@ TOOLS: Dict[str, dict] = {
         "optional": {"username": "", "username_file": "", "password": "", "password_file": "", "additional_args": ""},
         "effectiveness": 0.80,
     },
+    "ophcrack": {
+        "desc": "Windows hash cracker using rainbow tables",
+        "endpoint": "/api/tools/password-cracking/ophcrack",
+        "method": "POST",
+        "category": "brute_force",
+        "params": {"hash_file": {"required": True}},
+        "optional": {"tables_dir": "", "tables": "", "additional_args": ""},
+        "effectiveness": 0.75,
+    },
+    "hashid": {
+        "desc": "Identify hash types from hash strings",
+        "endpoint": "/api/tools/password-cracking/hashid",
+        "method": "POST",
+        "category": "brute_force",
+        "params": {"hash": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.80,
+    },
 
     # ---- OSINT ----
     "whois": {
@@ -542,7 +560,7 @@ _INTENT_KEYWORDS: Dict[str, List[str]] = {
     ],
     "brute_force": [
         "brute", "crack", "password", "hydra", "hashcat", "login", "credential",
-        "hash", "wordlist","john", "medusa", "patator",
+        "hash", "wordlist","john", "medusa", "patator", "ophcrack"
     ],
     "osint": [
         "subdomain", "dns", "osint", "amass", "subfinder", "domain", "recon",

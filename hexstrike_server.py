@@ -308,33 +308,7 @@ cve_intelligence = CVEIntelligenceManager()
 exploit_generator = AIExploitGenerator()
 vulnerability_correlator = VulnerabilityCorrelator()
 
-def execute_command(command: str, use_cache: bool = True) -> Dict[str, Any]:
-    """
-    Execute a shell command with enhanced features
-
-    Args:
-        command: The command to execute
-        use_cache: Whether to use caching for this command
-
-    Returns:
-        A dictionary containing the stdout, stderr, return code, and metadata
-    """
-
-    # Check cache first
-    if use_cache:
-        cached_result = cache.get(command, {})
-        if cached_result:
-            return cached_result
-
-    # Execute command
-    executor = EnhancedCommandExecutor(command)
-    result = executor.execute()
-
-    # Cache successful results
-    if use_cache and result.get("success", False):
-        cache.set(command, {}, result)
-
-    return result
+from server_core.command_executor import execute_command
 
 def execute_command_with_recovery(tool_name: str, command: str, parameters: Optional[Dict[str, Any]] = None,
                                  use_cache: bool = True, max_attempts: int = 3) -> Dict[str, Any]:
@@ -627,7 +601,7 @@ def health_check():
     ]
 
     password_tools = [
-        "medusa", "patator", "hash-identifier", "ophcrack", "hashcat-utils"
+        "medusa", "patator", "hashid", "ophcrack", "hashcat-utils"
     ]
 
     binary_tools = [
@@ -912,6 +886,12 @@ app.register_blueprint(api_password_cracking_medusa_bp)
 
 from server_api.password_cracking.patator import api_password_cracking_patator_bp
 app.register_blueprint(api_password_cracking_patator_bp)
+
+from server_api.password_cracking.hashid import api_password_cracking_hashid_bp
+app.register_blueprint(api_password_cracking_hashid_bp)
+
+from server_api.password_cracking.ophcrack import api_password_cracking_ophcrack_bp
+app.register_blueprint(api_password_cracking_ophcrack_bp)
 
 # ============================================================================
 # BOT API ENDPOINTS
@@ -4668,7 +4648,7 @@ def httpx():
             logger.warning("🌐 httpx called without target parameter")
             return jsonify({"error": "Target parameter is required"}), 400
 
-        command = f"httpx -l {target} -t {threads}"
+        command = f"httpx -u {target} -t {threads}"
 
         if probe:
             command += " -probe"
@@ -7837,7 +7817,7 @@ def ctf_cryptography_solver():
         if len(clean_text) in hash_patterns and re.match(r'^[0-9a-fA-F]+$', clean_text):
             hash_type = hash_patterns[len(clean_text)]
             results["analysis_results"].append(f"Possible {hash_type} hash")
-            results["recommended_tools"].extend(["hashcat", "john", "hash-identifier"])
+            results["recommended_tools"].extend(["hashcat", "john", "hashid"])
 
         # Frequency analysis for substitution ciphers
         if cipher_type in ["substitution", "caesar", "vigenere"] or "substitution" in results["analysis_results"]:

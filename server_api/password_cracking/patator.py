@@ -1,10 +1,14 @@
 from flask import Blueprint, request, jsonify
 import os
+from server_core.command_executor import execute_command
+import logging
+
+logger = logging.getLogger(__name__)
 
 api_password_cracking_patator_bp = Blueprint("api_password_cracking_patator", __name__)
 
 @api_password_cracking_patator_bp.route("/api/tools/patator", methods=["POST"])
-def patator_attack(logger, execute_command):
+def patator_attack():
     """
     API endpoint to execute Patator for password brute forcing.
 
@@ -23,21 +27,6 @@ def patator_attack(logger, execute_command):
 
     Returns:
       - JSON result from Patator execution, or error message with HTTP 400/500 status.
-
-    Logging:
-      - Logs warnings for missing required parameters.
-      - Logs info for command start and completion.
-      - Logs errors for exceptions or missing files.
-
-    Example usage:
-      POST /api/tools/patator
-      {
-        "module": "ssh_login",
-        "target": "192.168.1.10",
-        "username_file": "/path/to/usernames.txt",
-        "password_file": "/path/to/passwords.txt",
-        "additional_args": "-x ignore:code=1"
-      }
     """
     try:
         params = request.json
@@ -53,21 +42,29 @@ def patator_attack(logger, execute_command):
             logger.warning("Patator called without module or target")
             return jsonify({"error": "module and target are required"}), 400
 
+        # Enforce mutual exclusivity for username/username_file and password/password_file
+        if username and username_file:
+            return jsonify({"error": "Specify only one of username or username_file"}), 400
+        if password and password_file:
+            return jsonify({"error": "Specify only one of password or password_file"}), 400
+
         # Build Patator command based on module syntax
         command = f"patator {module} host={target}"
 
         if username:
             command += f" user={username}"
-        if username_file:
+        elif username_file:
             if not os.path.isfile(username_file):
                 return jsonify({"error": f"username_file not found: {username_file}"}), 400
             command += f" user=FILE:{username_file}"
+
         if password:
             command += f" password={password}"
-        if password_file:
+        elif password_file:
             if not os.path.isfile(password_file):
                 return jsonify({"error": f"password_file not found: {password_file}"}), 400
             command += f" password=FILE:{password_file}"
+
         if additional_args:
             command += f" {additional_args}"
 

@@ -1,12 +1,15 @@
 # server_api/password_cracking/medusa.py
 
 from flask import Blueprint, request, jsonify
-from typing import Dict, Any
+from server_core.command_executor import execute_command
+import logging
+
+logger = logging.getLogger(__name__)
 
 api_password_cracking_medusa_bp = Blueprint("api_password_cracking_medusa", __name__)
 
 @api_password_cracking_medusa_bp.route("/api/tools/medusa", methods=["POST"])
-def medusa_attack(logger, execute_command):
+def medusa_attack():
     """
     Execute Medusa for password brute forcing with enhanced logging.
 

@@ -361,7 +361,6 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 - **NetExec** - Swiss army knife for pentesting networks
 - **SMBMap** - SMB share enumeration and exploitation tool
 - **Evil-WinRM** - Windows Remote Management shell with PowerShell integration
-- **Hash-Identifier** - Hash type identification tool
 - **HashID** - Advanced hash algorithm identifier with confidence scoring
 - **CrackStation** - Online hash lookup integration
 - **Ophcrack** - Windows password cracker using rainbow tables
@@ -447,7 +446,7 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 
 - **John the Ripper** - Password cracker with custom rules and advanced modes
 - **Hashcat** - GPU-accelerated password recovery with 300+ hash types
-- **Hash-Identifier** - Hash type identification with confidence scoring
+- **HashID** - Hash type identification with confidence scoring
 - **CyberChef** - Web-based analysis toolkit for encoding and encryption
 - **Cipher-Identifier** - Automatic cipher type detection and analysis
 - **Frequency-Analysis** - Statistical cryptanalysis for substitution ciphers
