@@ -57,6 +57,7 @@ from mcp_tools.smb_enum import (
 from mcp_tools.recon.amass import register_amass_tool
 from mcp_tools.recon.subfinder import register_subfinder_tool
 from mcp_tools.recon.autorecon import register_autorecon_tool
+from mcp_tools.recon.theharvester import register_theharvester_tool
 from mcp_tools.url_recon.gau import register_gau_tool
 from mcp_tools.url_recon.waybackurls import register_waybackurls_tool
 from mcp_tools.param_discovery.arjun import register_arjun_tool
@@ -238,11 +239,12 @@ TOOL_PROFILES = {
         lambda mcp, client, logger: register_rpcclient_tool(mcp, client, logger),
     ],
 
-    #Tools for reconnaissance and subdomain discovery (e.g., Amass, Subfinder, AutoRecon).
+    #Tools for reconnaissance and subdomain discovery (e.g., Amass, Subfinder, AutoRecon, TheHarvester).
     "recon": [
         lambda mcp, client, logger: register_amass_tool(mcp, client, logger),
         lambda mcp, client, logger: register_subfinder_tool(mcp, client, logger),
         lambda mcp, client, logger: register_autorecon_tool(mcp, client, logger),
+        lambda mcp, client, logger: register_theharvester_tool(mcp, client, logger),
     ],
 
     #Tools for network scanning and enumeration (e.g., Nmap, ARP-Scan, Masscan, Rustscan).

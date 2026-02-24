@@ -468,7 +468,6 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 - **Subjack** - Subdomain takeover vulnerability checker
 - **DNSEnum** - DNS enumeration script with zone transfer capabilities
 - **Fierce** - Domain scanner for locating targets with DNS analysis
-- **TheHarvester** - Email and subdomain harvesting from multiple sources
 - **Sherlock** - Username investigation across 400+ social networks
 - **Social-Analyzer** - Social media analysis and OSINT gathering
 - **Recon-ng** - Web reconnaissance framework with modular architecture

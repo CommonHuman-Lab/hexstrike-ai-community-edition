@@ -421,6 +421,15 @@ TOOLS: Dict[str, dict] = {
         "optional": {"additional_args": ""},
         "effectiveness": 0.80,
     },
+    "theharvester": {
+        "desc": "Passive information gathering from public sources",
+        "endpoint": "/api/tools/recon/theharvester",
+        "method": "POST",
+        "category": "osint",
+        "params": {"domain": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.80,
+    },
 
     # ---- Binary Analysis ----
     "checksec": {
@@ -564,7 +573,8 @@ _INTENT_KEYWORDS: Dict[str, List[str]] = {
     ],
     "osint": [
         "subdomain", "dns", "osint", "amass", "subfinder", "domain", "recon",
-        "wayback", "url", "fierce", "enumerate", "whois", "bbot"
+        "url", "fierce", "enumerate", "whois", "bbot", "theharvester", 
+        "gau", "waybackurls"
     ],
     "binary": [
         "binary", "reverse", "rop", "gadget", "checksec", "firmware", "elf",
