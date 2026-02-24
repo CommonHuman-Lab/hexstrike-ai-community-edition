@@ -7,10 +7,10 @@ def register_autopsy_tools(mcp, hexstrike_client, logger):
     @mcp.tool()
     def autopsy_analysis() -> Dict[str, Any]:
         """
-        Launch Autopsy and return access instructions.
+        Launch the Autopsy digital forensics web server and provide access instructions.
 
         Returns:
-            Access instructions for Autopsy web interface
+            dict: A dictionary containing connection details or error information for accessing the Autopsy web interface.
         """
 
         logger.info("🔍 Launching Autopsy web server")

@@ -628,7 +628,7 @@ def health_check():
     ]
 
     exploitation_tools = [
-        "msfconsole", "msfvenom", "exploit-db", "searchsploit"
+        "msfconsole", "msfvenom", "searchsploit"
     ]
 
     api_tools = [
