@@ -43,6 +43,7 @@ import server_core.config_core as config_core
 
 from workflows.ctf.CTFChallenge import CTFChallenge
 from server_core import *
+from server_api import *
 
 # ============================================================================
 # LOGGING CONFIGURATION (MUST BE FIRST)
@@ -852,72 +853,48 @@ def get_telemetry():
 # ============================================================================
 # DATABASE INTERACTION API ENDPOINTS
 # ============================================================================
-
-from server_api.database import api_database_bp
 app.register_blueprint(api_database_bp)
 
 # ============================================================================
 # PROCESS MANAGEMENT API ENDPOINTS
 # ============================================================================
-
-from server_api.process_management import api_process_management_bp
 app.register_blueprint(api_process_management_bp)
 
 # ============================================================================
 # VISUALIZATION API ENDPOINTS
 # ============================================================================
-
-from server_api.visual import api_visual_bp
 app.register_blueprint(api_visual_bp)
 
 # ============================================================================
 # MEMORY STORE API ENDPOINTS
 # ============================================================================
-
-from server_api.wordlist_store import api_wordlist_store_bp
 app.register_blueprint(api_wordlist_store_bp)
 
 # ============================================================================
 # PASSWORD CRACKING API ENDPOINTS
 # ============================================================================
-
-from server_api.password_cracking.medusa import api_password_cracking_medusa_bp
 app.register_blueprint(api_password_cracking_medusa_bp)
-
-from server_api.password_cracking.patator import api_password_cracking_patator_bp
 app.register_blueprint(api_password_cracking_patator_bp)
-
-from server_api.password_cracking.hashid import api_password_cracking_hashid_bp
 app.register_blueprint(api_password_cracking_hashid_bp)
-
-from server_api.password_cracking.ophcrack import api_password_cracking_ophcrack_bp
 app.register_blueprint(api_password_cracking_ophcrack_bp)
-
-from server_api.password_cracking.aircrack_ng import api_password_cracking_aircrack_ng_bp
 app.register_blueprint(api_password_cracking_aircrack_ng_bp)
-
 
 # ============================================================================
 # RECONNAISSANCE API ENDPOINTS
 # ============================================================================
-
-from server_api.recon.theharvester import api_recon_theharvester_bp
 app.register_blueprint(api_recon_theharvester_bp)
-
 
 # ============================================================================
 # EXPLOITATION API ENDPOINTS
 # ============================================================================
-
-from server_api.exploit_framework.exploit_db import api_exploit_framework_exploit_db_bp
 app.register_blueprint(api_exploit_framework_exploit_db_bp)
-
 
 # ============================================================================
 # BINARY ANALYSIS API ENDPOINTS
 # ============================================================================
-from server_api.binary_analysis.autopsy import api_binary_analysis_autopsy_bp
 app.register_blueprint(api_binary_analysis_autopsy_bp)
+
+# !NEW BLUEPRINTS GOES HERE!
 
 # ============================================================================
 # BOT API ENDPOINTS
