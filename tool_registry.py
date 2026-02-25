@@ -340,7 +340,7 @@ TOOLS: Dict[str, dict] = {
     },
     "hashid": {
         "desc": "Identify hash types from hash strings",
-        "endpoint": "/api/tools/password-cracking/hashid",
+        "endpoint": "/api/tools/password_cracking/hashid",
         "method": "POST",
         "category": "brute_force",
         "params": {"hash": {"required": True}},

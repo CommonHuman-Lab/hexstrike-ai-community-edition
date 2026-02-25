@@ -7,12 +7,12 @@ import logging
 logger = logging.getLogger(__name__)
 api_password_cracking_hashid_bp = Blueprint("api_password_cracking_hashid", __name__)
 
-@api_password_cracking_hashid_bp.route("/api/tools/password-cracking/hashid", methods=["POST"])
+@api_password_cracking_hashid_bp.route("/api/tools/password_cracking/hashid", methods=["POST"])
 def hashid():
     """
     Identify the type of a given hash value using hashID.
 
-    Endpoint: POST /api/tools/password-cracking/hashid
+    Endpoint: POST /api/tools/password_cracking/hashid
 
     Description:
         This endpoint identifies the type of a provided hash string using the hashID tool.
