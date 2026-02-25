@@ -75,8 +75,9 @@ cd hexstrike-ai-community-edition
 
 # 2. Create virtual environment
 python3 -m venv hexstrike-env
-source hexstrike-env/bin/activate  # Linux/Mac
-# hexstrike-env\Scripts\activate   # Windows
+source hexstrike-env/bin/activate        # Linux/Mac
+# sudo source hexstrike-env/bin/activate # Linux as root
+# hexstrike-env\Scripts\activate         # Windows
 
 # 3. Install Python dependencies
 pip3 install -r requirements.txt
@@ -92,63 +93,9 @@ python3 hexstrike_server.py
 hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888
 ```
 
-### MCP flags
+> See [Flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Flags) on how to customize the experience.
 
-#### Compact Mode (`--compact`)
-
-```bash
-hexstrike-env/bin/python3 hexstrike_mcp.py --compact
-```
-
-### Profile Mode (`--profile`)
-
-**Example usage**
-
-```bash
-hexstrike-env/bin/python3 hexstrike_mcp.py --profile recon dns_enum
-```
-
-> See [Flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Flags) for more info.
-
-### Server flags
-
-#### Debug Mode (`--debug`)
-
-> Enables debugmode for the server.
-
-### Verify Installation
-
-```bash
-# Test server health
-curl http://localhost:8888/health
-
-# Test AI agent capabilities
-curl -X POST http://localhost:8888/api/intelligence/analyze-target \
-  -H "Content-Type: application/json" \
-  -d '{"target": "example.com", "analysis_type": "comprehensive"}'
-```
-
-### Security Configuration
-
-<details>
-<summary>Network Binding</summary>
-
-By default, the server binds to `127.0.0.1` (localhost only). To configure security:
-
-```bash
-# Set an API token (server will require Bearer auth on all requests)
-export HEXSTRIKE_API_TOKEN=your-secret-token
-
-# Optionally bind to all interfaces (NOT recommended without a token)
-export HEXSTRIKE_HOST=0.0.0.0
-
-# Start the server
-python3 hexstrike_server.py
-```
-
-</details>
-
-### AI Clients:
+### Use Hexstrike
 
 <details>
 <summary>Installation & Demo Video</summary>
@@ -250,6 +197,38 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 </details>
 
 ---
+
+### Verify Installation
+
+```bash
+# Test server health
+curl http://localhost:8888/health
+
+# Test AI agent capabilities
+curl -X POST http://localhost:8888/api/intelligence/analyze-target \
+  -H "Content-Type: application/json" \
+  -d '{"target": "example.com", "analysis_type": "comprehensive"}'
+```
+
+### Security Configuration
+
+<details>
+<summary>Network Binding</summary>
+
+By default, the server binds to `127.0.0.1` (localhost only). To configure security:
+
+```bash
+# Set an API token (server will require Bearer auth on all requests)
+export HEXSTRIKE_API_TOKEN=your-secret-token
+
+# Optionally bind to all interfaces (NOT recommended without a token)
+export HEXSTRIKE_HOST=0.0.0.0
+
+# Start the server
+python3 hexstrike_server.py
+```
+
+</details>
 
 ## Features
 
