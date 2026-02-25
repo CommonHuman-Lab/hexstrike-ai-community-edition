@@ -95,6 +95,13 @@ hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888
 
 > See [Flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Flags) on how to customize the experience.
 
+### Verify Installation
+
+```bash
+# Test server health
+curl http://localhost:8888/health
+```
+
 ### Use Hexstrike
 
 #### Installation & Demo Video
@@ -196,18 +203,6 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 </details>
 
 ---
-
-### Verify Installation
-
-```bash
-# Test server health
-curl http://localhost:8888/health
-
-# Test AI agent capabilities
-curl -X POST http://localhost:8888/api/intelligence/analyze-target \
-  -H "Content-Type: application/json" \
-  -d '{"target": "example.com", "analysis_type": "comprehensive"}'
-```
 
 ### Security Configuration
 
