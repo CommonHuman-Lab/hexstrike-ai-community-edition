@@ -97,12 +97,9 @@ hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888
 
 ### Use Hexstrike
 
-<details>
-<summary>Installation & Demo Video</summary>
+#### Installation & Demo Video
 
 Watch the full installation and setup walkthrough here: [YouTube - HexStrike AI Installation & Demo](https://www.youtube.com/watch?v=pSoftCagCm8)
-
-</details>
 
 <details>
 <summary>Supported AI Clients for Running & Integration</summary>
