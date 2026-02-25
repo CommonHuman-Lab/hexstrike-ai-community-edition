@@ -33,7 +33,7 @@ def register_hashid_tool(mcp, hexstrike_client, logger):
             "additional_args": additional_args
         }
         logger.info(f"🔍 Starting hash identification for: {hash_value}")
-        result = hexstrike_client.safe_post("api/tools/password-cracking/hashid", data)
+        result = hexstrike_client.safe_post("api/tools/password_cracking/hashid", data)
         if result.get("success"):
             logger.info(f"✅ Hash identification completed for {hash_value}")
         else:

@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Security](https://img.shields.io/badge/Security-Penetration%20Testing-red.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
-[![Tools](https://img.shields.io/badge/Security%20Tools-165%2B-brightgreen.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
+[![Tools](https://img.shields.io/badge/Security%20Tools-170%2B-brightgreen.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![Agents](https://img.shields.io/badge/AI%20Agents-12%2B-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 
 
@@ -27,7 +27,7 @@
 
 ## 🚀 Differences from HexStrike V6
 
-- Increased toolings from **150** to over **165**
+- Increased toolings from **150** to over **170**
 - New Tools: BBot, database querying, and more.
 - Refactored Codebase: Improved clarity, maintainability, and performance.
 - Updated Dependencies: All packages upgraded for security and compatibility.
@@ -468,7 +468,6 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 - **Subjack** - Subdomain takeover vulnerability checker
 - **DNSEnum** - DNS enumeration script with zone transfer capabilities
 - **Fierce** - Domain scanner for locating targets with DNS analysis
-- **TheHarvester** - Email and subdomain harvesting from multiple sources
 - **Sherlock** - Username investigation across 400+ social networks
 - **Social-Analyzer** - Social media analysis and OSINT gathering
 - **Recon-ng** - Web reconnaissance framework with modular architecture

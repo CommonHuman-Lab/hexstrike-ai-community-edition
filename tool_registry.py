@@ -273,23 +273,14 @@ TOOLS: Dict[str, dict] = {
         "optional": {"format": "elf", "lhost": "", "lport": "4444", "additional_args": ""},
         "effectiveness": 0.85,
     },
-    "searchsploit": {
+    "exploit_db": {
         "desc": "Search Exploit-DB for public exploits",
-        "endpoint": "/api/tools/searchsploit",
+        "endpoint": "/api/tools/exploit_framework/exploit_db",
         "method": "POST",
         "category": "exploitation",
         "params": {"query": {"required": True}},
         "optional": {"additional_args": ""},
         "effectiveness": 0.88,
-    },
-    "msf-search": {
-        "desc": "Search Metasploit modules by keyword",
-        "endpoint": "/api/tools/msf-search",
-        "method": "POST",
-        "category": "exploitation",
-        "params": {"query": {"required": True}},
-        "optional": {},
-        "effectiveness": 0.85,
     },
 
     # ---- Brute Force ----
@@ -349,7 +340,7 @@ TOOLS: Dict[str, dict] = {
     },
     "hashid": {
         "desc": "Identify hash types from hash strings",
-        "endpoint": "/api/tools/password-cracking/hashid",
+        "endpoint": "/api/tools/password_cracking/hashid",
         "method": "POST",
         "category": "brute_force",
         "params": {"hash": {"required": True}},
@@ -415,6 +406,15 @@ TOOLS: Dict[str, dict] = {
     "waybackurls": {
         "desc": "Fetch URLs from Wayback Machine",
         "endpoint": "/api/tools/waybackurls",
+        "method": "POST",
+        "category": "osint",
+        "params": {"domain": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.80,
+    },
+    "theharvester": {
+        "desc": "Passive information gathering from public sources",
+        "endpoint": "/api/tools/recon/theharvester",
         "method": "POST",
         "category": "osint",
         "params": {"domain": {"required": True}},
@@ -555,7 +555,7 @@ _INTENT_KEYWORDS: Dict[str, List[str]] = {
         "injection", "exploit", "dalfox", "traversal",
     ],
     "exploitation": [
-        "exploit", "metasploit", "msf", "payload", "msfvenom", "searchsploit",
+        "exploit", "metasploit", "msf", "payload", "msfvenom", "exploit-db",
         "cve", "shell", "reverse", "module",
     ],
     "brute_force": [
@@ -564,7 +564,8 @@ _INTENT_KEYWORDS: Dict[str, List[str]] = {
     ],
     "osint": [
         "subdomain", "dns", "osint", "amass", "subfinder", "domain", "recon",
-        "wayback", "url", "fierce", "enumerate", "whois", "bbot"
+        "url", "fierce", "enumerate", "whois", "bbot", "theharvester", 
+        "gau", "waybackurls"
     ],
     "binary": [
         "binary", "reverse", "rop", "gadget", "checksec", "firmware", "elf",
