@@ -14,19 +14,22 @@ def register_hydra_tool(mcp, hexstrike_client, logger):
         additional_args: str = ""
     ) -> Dict[str, Any]:
         """
-        Execute Hydra for password brute forcing with enhanced logging.
+       Execute Hydra for password brute forcing with enhanced logging.
 
         Args:
-            target: The target IP or hostname
-            service: The service to attack (ssh, ftp, http, etc.)
-            username: Single username to test
-            username_file: File containing usernames
-            password: Single password to test
-            password_file: File containing passwords
-            additional_args: Additional Hydra arguments
+            target: The target IP or hostname.
+            service: The service to attack (ssh, ftp, http, etc.).
+            username: Single username to test. Either this or username_file must be provided.
+            username_file: File containing usernames. Either this or username must be provided.
+            password: Single password to test. Either this or password_file must be provided.
+            password_file: File containing passwords. Either this or password must be provided.
+            additional_args: Additional Hydra arguments.
 
         Returns:
-            Brute force attack results
+            Brute force attack results.
+
+        Note:
+            You must provide at least one of username or username_file, and at least one of password or password_file.
         """
         data = {
             "target": target,
