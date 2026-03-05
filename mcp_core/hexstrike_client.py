@@ -12,10 +12,18 @@ MAX_RETRIES = config_core.get("MAX_RETRIES", 3)
 class HexStrikeClient:
     """Enhanced client for communicating with the HexStrike AI API Server"""
 
-    def __init__(self, server_url: str, timeout: int = DEFAULT_REQUEST_TIMEOUT):
+    def __init__(self, server_url: str,auth_token: str = "",  timeout: int = DEFAULT_REQUEST_TIMEOUT, verify_ssl: bool = True):
         self.server_url = server_url.rstrip("/")
         self.timeout = timeout
         self.session = requests.Session()
+
+        if not verify_ssl:
+            self.session.verify = False  # Disable SSL verification for self-signed certs
+
+        if auth_token:
+            self.session.headers.update({
+                "Authorization": f"Bearer {auth_token}"
+        })
 
         connected = False
         for i in range(MAX_RETRIES):
