@@ -14,10 +14,16 @@ def run_mcp(args, logger):
     logger.info(f"🚀 Starting HexStrike AI MCP Client")
     logger.info(f"🔗 Connecting to: {args.server}")
 
+    auth_token = args.auth_token if args.auth_token else ""
+
     try:
         # Initialize the HexStrike AI client
-        hexstrike_client = HexStrikeClient(args.server, args.timeout)
+        verify_ssl = True
+        if args.disable_ssl_verify:
+            verify_ssl = False
+            logger.warning("⚠️  SSL certificate verification is disabled. This is insecure and should only be used for testing.")
 
+        hexstrike_client = HexStrikeClient(args.server, auth_token=auth_token, timeout=args.timeout, verify_ssl=verify_ssl)
         # Check server health and log the result
         health = hexstrike_client.check_health()
         if "error" in health:
