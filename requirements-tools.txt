@@ -13,3 +13,4 @@ uro>=1.0.0                   # Unified Reconnaissance OSINT tool
 dirsearch>=0.4.0              # Web path scanner for OSINT
 theHarvester>=0.0.1           # Email and domain OSINT tool
 volatility3>=2.26.0           # Memory forensics framework 
+pwntools>=4.0.0                   # CTF framework for exploit development
