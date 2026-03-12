@@ -62,7 +62,7 @@ def execute_command_with_recovery(
       })
 
       if recovery_strategy.action == recovery_action_enum.RETRY_WITH_BACKOFF:
-        delay = getattr(recovery_strategy, "backoff_seconds", 2)
+        delay = getattr(recovery_strategy, "backoff_multiplier", 2)
         logger.warning(f"⏳ Retrying {tool_name} after {delay}s backoff")
         time.sleep(delay)
         continue

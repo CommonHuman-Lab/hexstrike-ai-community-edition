@@ -28,17 +28,8 @@ import re
 from tool_registry import classify_intent, get_tools_for_category, format_tools_for_prompt, get_all_categories
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
-import selenium
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.webdriver import WebDriver as ChromeWebDriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, WebDriverException
-import mitmproxy
-from mitmproxy import http as mitmhttp
-from mitmproxy.tools.dump import DumpMaster
-from mitmproxy.options import Options as MitmOptions
+# selenium and mitmproxy are optional heavy dependencies — imported lazily
+# inside the functions/classes that use them to avoid hard startup failures.
 import server_core.config_core as config_core
 from server_core import *
 from server_api import *
@@ -127,9 +118,8 @@ ctf_coordinator = CTFTeamCoordinator()
 # PROCESS MANAGEMENT FOR COMMAND TERMINATION
 # ============================================================================
 
-# Process management for command termination
-active_processes = {}  # pid -> process info
-process_lock = threading.Lock()
+# Use the canonical registry from process_manager to avoid a duplicate dict
+from server_core.process_manager import active_processes, process_lock
 
 # ============================================================================
 # ADVANCED VULNERABILITY INTELLIGENCE SYSTEM (v6.0 ENHANCEMENT)
@@ -153,6 +143,11 @@ cve_intelligence = CVEIntelligenceManager()
 exploit_generator = AIExploitGenerator()
 vulnerability_correlator = VulnerabilityCorrelator()
 
+
+def execute_command(command: str, use_cache: bool = True, cache=None, timeout: int = COMMAND_TIMEOUT) -> Dict[str, Any]:
+    """Server-level execute_command wrapper that passes the global cache instance."""
+    return _execute_command(command, use_cache=use_cache, cache=cache, timeout=timeout)
+
 def execute_command_with_recovery(
   tool_name: str,
   command: str,
@@ -166,7 +161,7 @@ def execute_command_with_recovery(
     parameters=parameters,
     use_cache=use_cache,
     max_attempts=max_attempts,
-    execute_command_fn=_execute_command,
+    execute_command_fn=execute_command,
     error_handler=error_handler,
     degradation_manager=degradation_manager,
     rebuild_command_with_params_fn= _rebuild_command_with_params,
@@ -192,105 +187,98 @@ def optional_bearer_auth():
     if token != API_TOKEN:
         abort(401, description="Unauthorized!")
 
+# ============================================================================
+# TOOL AVAILABILITY CACHE — populated once at startup, refreshed every 5 min
+# ============================================================================
+
+_HEALTH_TOOL_CATEGORIES = {
+    "essential": ["nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat"],
+    "network": ["rustscan", "masscan", "autorecon", "nbtscan", "arp-scan", "responder",
+                "nxc", "enum4linux-ng", "rpcclient", "enum4linux"],
+    "web_security": ["ffuf", "feroxbuster", "dirsearch", "dotdotpwn", "xsser", "wfuzz",
+                     "gau", "waybackurls", "arjun", "paramspider", "x8", "jaeles", "dalfox",
+                     "httpx", "wafw00f", "burpsuite", "zaproxy", "katana", "hakrawler"],
+    "vuln_scanning": ["nuclei", "wpscan", "graphql-scanner", "jwt-analyzer"],
+    "password": ["medusa", "patator", "hashid", "ophcrack", "hashcat-utils"],
+    "binary": ["gdb", "radare2", "binwalk", "ropgadget", "checksec", "objdump",
+               "ghidra", "pwntools", "one-gadget", "ropper", "angr", "libc-database", "pwninit"],
+    "forensics": ["vol", "steghide", "hashpump", "foremost", "exiftool",
+                  "strings", "xxd", "file", "photorec", "testdisk", "scalpel",
+                  "bulk-extractor", "stegsolve", "zsteg", "outguess"],
+    "cloud": ["prowler", "scout-suite", "trivy", "kube-hunter", "kube-bench",
+              "docker-bench-security", "checkov", "terrascan", "falco", "clair"],
+    "osint": ["amass", "subfinder", "fierce", "dnsenum", "theharvester", "sherlock",
+              "social-analyzer", "recon-ng", "maltego", "spiderfoot", "shodan-cli",
+              "censys-cli", "have-i-been-pwned", "whois", "bbot"],
+    "exploitation": ["msfconsole", "msfvenom", "searchsploit"],
+    "api": ["api-schema-analyzer", "postman", "insomnia", "curl", "httpie", "anew", "qsreplace", "uro"],
+    "wireless": ["kismet", "wireshark", "tshark", "tcpdump"],
+    "additional": ["smbmap", "volatility", "sleuthkit", "autopsy", "evil-winrm",
+                   "paramspider", "airmon-ng", "airodump-ng", "aireplay-ng", "aircrack-ng",
+                   "graphql-scanner", "jwt-analyzer"],
+}
+
+_tool_availability_cache: Dict[str, bool] = {}
+_tool_availability_lock = threading.Lock()
+_tool_availability_last_refresh: float = 0.0
+
+def _refresh_tool_availability() -> None:
+    """Probe all tools with `which` and update the module-level cache."""
+    global _tool_availability_last_refresh
+    all_tools: Dict[str, bool] = {}
+    for tools in _HEALTH_TOOL_CATEGORIES.values():
+        for tool in tools:
+            if tool in all_tools:
+                continue
+            try:
+                result = execute_command(f"which {tool}", use_cache=False)
+                all_tools[tool] = bool(result.get("success"))
+            except Exception:
+                all_tools[tool] = False
+    with _tool_availability_lock:
+        _tool_availability_cache.update(all_tools)
+        _tool_availability_last_refresh = time.time()
+    logger.info(
+        "Tool availability refreshed: %d/%d available",
+        sum(all_tools.values()), len(all_tools),
+    )
+
+
+def _get_tool_availability() -> Dict[str, bool]:
+    """Return cached tool availability, refreshing in a background thread if stale."""
+    now = time.time()
+    with _tool_availability_lock:
+        stale = (now - _tool_availability_last_refresh) > config_core.get("TOOL_AVAILABILITY_TTL", 3600)
+        empty = not _tool_availability_cache
+
+    if empty:
+        # First call — block until we have data
+        _refresh_tool_availability()
+    elif stale:
+        # Stale — refresh asynchronously so the request returns immediately
+        threading.Thread(target=_refresh_tool_availability, daemon=True).start()
+
+    with _tool_availability_lock:
+        return dict(_tool_availability_cache)
+
+
 @app.route("/health", methods=["GET"])
 def health_check():
     """Health check endpoint with comprehensive tool detection"""
+    tools_status = _get_tool_availability()
 
-    essential_tools = [
-        "nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat"
-    ]
-
-    network_tools = [
-        "rustscan", "masscan", "autorecon", "nbtscan", "arp-scan", "responder",
-        "nxc", "enum4linux-ng", "rpcclient", "enum4linux"
-    ]
-
-    web_security_tools = [
-        "ffuf", "feroxbuster", "dirsearch", "dotdotpwn", "xsser", "wfuzz",
-        "gau", "waybackurls", "arjun", "paramspider", "x8", "jaeles", "dalfox",
-        "httpx", "wafw00f", "burpsuite", "zaproxy", "katana", "hakrawler"
-    ]
-
-    vuln_scanning_tools = [
-        "nuclei", "wpscan", "graphql-scanner", "jwt-analyzer"
-    ]
-
-    password_tools = [
-        "medusa", "patator", "hashid", "ophcrack", "hashcat-utils"
-    ]
-
-    binary_tools = [
-        "gdb", "radare2", "binwalk", "ropgadget", "checksec", "objdump",
-        "ghidra", "pwntools", "one-gadget", "ropper", "angr", "libc-database",
-        "pwninit"
-    ]
-
-    forensics_tools = [
-        "vol", "steghide", "hashpump", "foremost", "exiftool",
-        "strings", "xxd", "file", "photorec", "testdisk", "scalpel", "bulk-extractor",
-        "stegsolve", "zsteg", "outguess"
-    ]
-
-    cloud_tools = [
-        "prowler", "scout-suite", "trivy", "kube-hunter", "kube-bench",
-        "docker-bench-security", "checkov", "terrascan", "falco", "clair"
-    ]
-
-    osint_tools = [
-        "amass", "subfinder", "fierce", "dnsenum", "theharvester", "sherlock",
-        "social-analyzer", "recon-ng", "maltego", "spiderfoot", "shodan-cli",
-        "censys-cli", "have-i-been-pwned", "whois", "bbot"
-    ]
-
-    exploitation_tools = [
-        "msfconsole", "msfvenom", "searchsploit"
-    ]
-
-    api_tools = [
-        "api-schema-analyzer", "postman", "insomnia", "curl", "httpie", "anew", "qsreplace", "uro"
-    ]
-
-    wireless_tools = [
-        "kismet", "wireshark", "tshark", "tcpdump"
-    ]
-
-    additional_tools = [
-        "smbmap", "volatility", "sleuthkit", "autopsy", "evil-winrm",
-        "paramspider", "airmon-ng", "airodump-ng", "aireplay-ng", "aircrack-ng",
-        "graphql-scanner", "jwt-analyzer"
-    ]
-
-    all_tools = (
-        essential_tools + network_tools + web_security_tools + vuln_scanning_tools +
-        password_tools + binary_tools + forensics_tools + cloud_tools +
-        osint_tools + exploitation_tools + api_tools + wireless_tools + additional_tools
-    )
-    tools_status = {}
-
-    for tool in all_tools:
-        try:
-            result = execute_command(f"which {tool}", use_cache=True)
-            tools_status[tool] = result["success"]
-        except:
-            tools_status[tool] = False
-
-    all_essential_tools_available = all(tools_status[tool] for tool in essential_tools)
+    essential_tools = _HEALTH_TOOL_CATEGORIES["essential"]
+    all_essential_tools_available = all(tools_status.get(t, False) for t in essential_tools)
 
     category_stats = {
-        "essential": {"total": len(essential_tools), "available": sum(1 for tool in essential_tools if tools_status.get(tool, False))},
-        "network": {"total": len(network_tools), "available": sum(1 for tool in network_tools if tools_status.get(tool, False))},
-        "web_security": {"total": len(web_security_tools), "available": sum(1 for tool in web_security_tools if tools_status.get(tool, False))},
-        "vuln_scanning": {"total": len(vuln_scanning_tools), "available": sum(1 for tool in vuln_scanning_tools if tools_status.get(tool, False))},
-        "password": {"total": len(password_tools), "available": sum(1 for tool in password_tools if tools_status.get(tool, False))},
-        "binary": {"total": len(binary_tools), "available": sum(1 for tool in binary_tools if tools_status.get(tool, False))},
-        "forensics": {"total": len(forensics_tools), "available": sum(1 for tool in forensics_tools if tools_status.get(tool, False))},
-        "cloud": {"total": len(cloud_tools), "available": sum(1 for tool in cloud_tools if tools_status.get(tool, False))},
-        "osint": {"total": len(osint_tools), "available": sum(1 for tool in osint_tools if tools_status.get(tool, False))},
-        "exploitation": {"total": len(exploitation_tools), "available": sum(1 for tool in exploitation_tools if tools_status.get(tool, False))},
-        "api": {"total": len(api_tools), "available": sum(1 for tool in api_tools if tools_status.get(tool, False))},
-        "wireless": {"total": len(wireless_tools), "available": sum(1 for tool in wireless_tools if tools_status.get(tool, False))},
-        "additional": {"total": len(additional_tools), "available": sum(1 for tool in additional_tools if tools_status.get(tool, False))}
+        cat: {
+            "total": len(tools),
+            "available": sum(1 for t in tools if tools_status.get(t, False)),
+        }
+        for cat, tools in _HEALTH_TOOL_CATEGORIES.items()
     }
+
+    all_tools_count = len(tools_status)
 
     return jsonify({
         "status": "healthy",
@@ -298,12 +286,13 @@ def health_check():
         "version": config_core.get("VERSION", "unknown"),
         "tools_status": tools_status,
         "all_essential_tools_available": all_essential_tools_available,
-        "total_tools_available": sum(1 for tool, available in tools_status.items() if available),
-        "total_tools_count": len(all_tools),
+        "total_tools_available": sum(1 for available in tools_status.values() if available),
+        "total_tools_count": all_tools_count,
         "category_stats": category_stats,
         "cache_stats": cache.get_stats(),
         "telemetry": telemetry.get_stats(),
-        "uptime": time.time() - telemetry.stats["start_time"]
+        "uptime": time.time() - telemetry.stats["start_time"],
+        "tool_availability_age_seconds": round(time.time() - _tool_availability_last_refresh, 1),
     })
 
 @app.route("/ping", methods=["GET"])
@@ -4752,6 +4741,9 @@ class BrowserAgent:
     def setup_browser(self, headless: bool = True, proxy_port: Optional[int] = None):
         """Setup Chrome browser with security testing options"""
         try:
+            from selenium.webdriver.chrome.options import Options
+            from selenium.webdriver.chrome.webdriver import WebDriver as ChromeWebDriver
+
             chrome_options = Options()
 
             if headless:
@@ -5016,6 +5008,7 @@ class BrowserAgent:
 
     def _extract_forms(self) -> list:
         """Extract all forms from the page"""
+        from selenium.webdriver.common.by import By
         forms = []
         try:
             driver = self.driver
@@ -5046,6 +5039,7 @@ class BrowserAgent:
 
     def _extract_links(self) -> list:
         """Extract all links from the page"""
+        from selenium.webdriver.common.by import By
         links = []
         try:
             driver = self.driver
@@ -5067,6 +5061,7 @@ class BrowserAgent:
 
     def _extract_inputs(self) -> list:
         """Extract all input elements"""
+        from selenium.webdriver.common.by import By
         inputs = []
         try:
             driver = self.driver
@@ -5088,6 +5083,7 @@ class BrowserAgent:
 
     def _extract_scripts(self) -> list:
         """Extract script sources and inline scripts"""
+        from selenium.webdriver.common.by import By
         scripts = []
         try:
             driver = self.driver
