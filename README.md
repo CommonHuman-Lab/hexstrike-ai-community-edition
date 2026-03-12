@@ -64,6 +64,7 @@
 - The hexstrike MCP client has been reduced from 5,470 lines of code to just 42 lines.
 - Functionality is now split across multiple focused modules for clarity, maintainability, and easier contribution.
 - This modular approach enables faster development, easier debugging, and better scalability.
+- All tools run async now.
 
 </details>
 
