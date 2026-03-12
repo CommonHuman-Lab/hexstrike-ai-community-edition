@@ -29,8 +29,8 @@ from tool_registry import classify_intent, get_tools_for_category, format_tools_
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 import selenium
-from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.webdriver import WebDriver as ChromeWebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -5186,7 +5186,7 @@ class BrowserAgent:
             # Enable network logging
             chrome_options.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
 
-            self.driver = webdriver.Chrome(options=chrome_options)
+            self.driver = ChromeWebDriver(options=chrome_options)
             self.driver.set_page_load_timeout(30)
 
             logger.info(f"{ModernVisualEngine.format_tool_status('BrowserAgent', 'RUNNING', 'Chrome Browser Initialized')}")
