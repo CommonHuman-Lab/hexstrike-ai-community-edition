@@ -39,10 +39,7 @@ import mitmproxy
 from mitmproxy import http as mitmhttp
 from mitmproxy.tools.dump import DumpMaster
 from mitmproxy.options import Options as MitmOptions
-
 import server_core.config_core as config_core
-
-from workflows.ctf.CTFChallenge import CTFChallenge
 from server_core import *
 from server_api import *
 
@@ -100,21 +97,10 @@ decision_engine = IntelligentDecisionEngine()
 # INTELLIGENT ERROR HANDLING AND RECOVERY SYSTEM (v11.0 ENHANCEMENT)
 # ============================================================================
 
-from server_core.error_handling import (
-    ErrorType,
-    RecoveryAction,
-    ErrorContext,
-    IntelligentErrorHandler,
-    GracefulDegradation,
-)
-
 # Global error handler and degradation manager instances
 error_handler = IntelligentErrorHandler()
 degradation_manager = GracefulDegradation()
 
-from workflows.bugbounty.target import BugBountyTarget
-from workflows.bugbounty.workflow import BugBountyWorkflowManager
-from workflows.bugbounty.testing import FileUploadTestingFramework
 # Global bug bounty workflow manager
 bugbounty_manager = BugBountyWorkflowManager()
 fileupload_framework = FileUploadTestingFramework()
@@ -123,13 +109,6 @@ fileupload_framework = FileUploadTestingFramework()
 # ADVANCED PROCESS MANAGEMENT AND MONITORING
 # ============================================================================
 
-from server_core.enhanced_process_manager import EnhancedProcessManager
-from server_core.technology_detector import TechnologyDetector
-from server_core.parameter_optimizer import ParameterOptimizer
-from server_core.rate_limit_detector import RateLimitDetector
-from server_core.failure_recovery_system import FailureRecoverySystem
-from server_core.performance_monitor import PerformanceMonitor
-
 # Global instances
 tech_detector = TechnologyDetector()
 rate_limiter = RateLimitDetector()
@@ -137,11 +116,6 @@ failure_recovery = FailureRecoverySystem()
 performance_monitor = PerformanceMonitor()
 parameter_optimizer = ParameterOptimizer()
 enhanced_process_manager = EnhancedProcessManager()
-
-from workflows.ctf.workflowManager import CTFWorkflowManager
-from workflows.ctf.toolManager import CTFToolManager
-from workflows.ctf.automator import CTFChallengeAutomator
-from workflows.ctf.coordinator import CTFTeamCoordinator
 
 # Global CTF framework instances
 ctf_manager = CTFWorkflowManager()

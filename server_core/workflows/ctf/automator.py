@@ -2,9 +2,9 @@ import re
 import time
 import logging
 from typing import Any, Dict, List
-from workflows.ctf.CTFChallenge import CTFChallenge
-from workflows.ctf.toolManager import CTFToolManager
-from workflows.ctf.workflowManager import CTFWorkflowManager
+from .CTFChallenge import CTFChallenge
+from .toolManager import CTFToolManager
+from .workflowManager import CTFWorkflowManager
 
 logger = logging.getLogger(__name__)
 

@@ -3,13 +3,38 @@ HexStrike Core Module
 Shared infrastructure components for the HexStrike framework
 """
 
-from server_core.cache import HexStrikeCache
-from server_core.session_store import SessionStore
-from server_core.wordlist_store import WordlistStore
-from server_core.telemetry_collector import TelemetryCollector
-from server_core.modern_visual_engine import ModernVisualEngine
-from server_core.intelligence.cve_intelligence_manager import CVEIntelligenceManager
-from server_core.intelligence.intelligent_decision_engine import IntelligentDecisionEngine
+from .cache import HexStrikeCache
+from .session_store import SessionStore
+from .wordlist_store import WordlistStore
+from .telemetry_collector import TelemetryCollector
+from .modern_visual_engine import ModernVisualEngine
+
+from .enhanced_process_manager import EnhancedProcessManager
+from .technology_detector import TechnologyDetector
+from .parameter_optimizer import ParameterOptimizer
+from .rate_limit_detector import RateLimitDetector
+from .failure_recovery_system import FailureRecoverySystem
+from .performance_monitor import PerformanceMonitor
+
+from .intelligence.cve_intelligence_manager import CVEIntelligenceManager
+from .intelligence.intelligent_decision_engine import IntelligentDecisionEngine
+
+from .workflows.ctf.CTFChallenge import CTFChallenge
+from .workflows.bugbounty.target import BugBountyTarget
+from .workflows.bugbounty.workflow import BugBountyWorkflowManager
+from .workflows.bugbounty.testing import FileUploadTestingFramework
+from .workflows.ctf.workflowManager import CTFWorkflowManager
+from .workflows.ctf.toolManager import CTFToolManager
+from .workflows.ctf.automator import CTFChallengeAutomator
+from .workflows.ctf.coordinator import CTFTeamCoordinator
+
+from .error_handling import (
+    ErrorType,
+    RecoveryAction,
+    ErrorContext,
+    IntelligentErrorHandler,
+    GracefulDegradation,
+)
 
 __all__ = [
     "ModernVisualEngine",
@@ -18,5 +43,24 @@ __all__ = [
     "SessionStore",
     "WordlistStore",
     "CVEIntelligenceManager",
-    "IntelligentDecisionEngine"
+    "IntelligentDecisionEngine",
+    "CTFChallenge",
+    "BugBountyTarget",
+    "BugBountyWorkflowManager",
+    "FileUploadTestingFramework",
+    "CTFWorkflowManager",
+    "CTFToolManager",
+    "CTFChallengeAutomator",
+    "CTFTeamCoordinator",
+    "EnhancedProcessManager",
+    "TechnologyDetector",
+    "ParameterOptimizer",
+    "RateLimitDetector",
+    "FailureRecoverySystem",
+    "PerformanceMonitor",
+    "ErrorType",
+    "RecoveryAction",
+    "ErrorContext",
+    "IntelligentErrorHandler",
+    "GracefulDegradation",
 ]

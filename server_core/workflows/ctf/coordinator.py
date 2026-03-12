@@ -1,5 +1,5 @@
 from typing import Any, Dict, List
-from workflows.ctf.CTFChallenge import CTFChallenge
+from .CTFChallenge import CTFChallenge
 
 class CTFTeamCoordinator:
     """Coordinate team efforts in CTF competitions"""
