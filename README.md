@@ -40,6 +40,7 @@
 <summary>Compact Mode (--compact)</summary>
 
 > Activate Compact Mode for the MCP server using the `--compact` flag.
+> See [Flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Flags) for more info
 
 - 🚦 Only the two essential gateway tools are loaded—perfect for lightweight deployments, automation pipelines, or running on resource-constrained systems.
 - 🏃 Great for running with smaller, local LLMs or when you want minimal overhead.
@@ -50,11 +51,11 @@
 <summary>Profile Mode (--profile)</summary>
 
 > Specify one or more profiles to load only the relevant ones for your workflow.
+> See [Profile flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Profile-Flags) for more info
 
 - 🚀 Select profiles for targeted workflows to speed up scans and reduce resource usage.
 - 🌐 Use --profile full to enable the complete arsenal, it's on default out-the-box for the recommended set.
 
-> See [Profile flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Profile-Flags) for more info
 </details>
 
 <details>
