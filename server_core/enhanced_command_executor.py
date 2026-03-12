@@ -7,7 +7,7 @@ from typing import Dict, Any
 from datetime import datetime
 import server_core.config_core as config_core
 from server_core.process_manager import ProcessManager
-from visual.modern_visual_engine import ModernVisualEngine
+from server_core.modern_visual_engine import ModernVisualEngine
 
 # Global telemetry collector
 from server_core.telemetry_collector import TelemetryCollector

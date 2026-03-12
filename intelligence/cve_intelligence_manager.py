@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import time
 import requests
 from typing import Dict, Any
-from visual.modern_visual_engine import ModernVisualEngine
+from server_core.modern_visual_engine import ModernVisualEngine
 import logging
 logger = logging.getLogger(__name__)
 

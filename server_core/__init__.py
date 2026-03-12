@@ -7,7 +7,7 @@ from server_core.cache import HexStrikeCache
 from server_core.session_store import SessionStore
 from server_core.wordlist_store import WordlistStore
 from server_core.telemetry_collector import TelemetryCollector
-from visual.modern_visual_engine import ModernVisualEngine
+from server_core.modern_visual_engine import ModernVisualEngine
 
 __all__ = [
     "ModernVisualEngine",
