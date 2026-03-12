@@ -106,7 +106,6 @@ TOOL_PROFILES = {
         lambda mcp, client, logger: register_patator_tool(mcp, client, logger),
         lambda mcp, client, logger: register_hashid_tool(mcp, client, logger),
         lambda mcp, client, logger: register_ophcrack_tool(mcp, client, logger),
-        lambda mcp, client, logger: register_aircrack_ng_tools(mcp, client, logger),
     ],
 
        # WiFi penetration testing and wireless security assessment
