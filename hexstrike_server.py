@@ -21,7 +21,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from typing import Dict, Any, Optional
 from pathlib import Path
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, abort
 import requests
 import re
 from tool_registry import classify_intent, get_tools_for_category, format_tools_for_prompt, get_all_categories
@@ -76,7 +76,8 @@ app.config['JSON_SORT_KEYS'] = False
 
 # API Configuration
 API_PORT = int(os.environ.get('HEXSTRIKE_PORT', 8888))
-API_HOST = os.environ.get('HEXSTRIKE_HOST', '127.0.0.1')
+API_HOST = os.environ.get("HEXSTRIKE_HOST", "127.0.0.1")  # e.g. export HEXSTRIKE_HOST=0.0.0.0
+API_TOKEN = os.environ.get("HEXSTRIKE_API_TOKEN", None)  # e.g. export API_TOKEN=secret-token
 
 #Wordlists
 ROCKYOU_PATH = config_core.get_word_list_path("rockyou")
@@ -578,6 +579,22 @@ from server_core.file_ops import file_manager
 
 # API Routes
 
+@app.before_request
+def optional_bearer_auth():
+    # If no token is configured, allow all requests
+    if not API_TOKEN:
+        return
+
+    auth_header = request.headers.get("Authorization", "")
+    prefix = "Bearer "
+
+    if not auth_header.startswith(prefix):
+        abort(401, description="Unexpected authorization header format")
+
+    token = auth_header[len(prefix):]
+    if token != API_TOKEN:
+        abort(401, description="Unauthorized!")
+
 @app.route("/health", methods=["GET"])
 def health_check():
     """Health check endpoint with comprehensive tool detection"""
@@ -863,6 +880,7 @@ app.register_blueprint(api_process_management_bp)
 # ============================================================================
 # VISUALIZATION API ENDPOINTS
 # ============================================================================
+app.register_blueprint(api_auto_tool_bp)
 app.register_blueprint(api_visual_bp)
 
 # ============================================================================
@@ -8776,7 +8794,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Run the HexStrike AI API Server")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
-    parser.add_argument("--port", type=int, default=API_PORT, help=f"Port for the API server (default: {API_PORT})")
+    parser.add_argument("--port", type=int, default=API_PORT, help=f"Port for the API server (default: {API_PORT}) i.e export HEXSTRIKE_PORT=8888")
+    parser.add_argument("--host", type=str, default=API_HOST, help=f"Host for the API server (default: {API_HOST}) i.e export HEXSTRIKE_HOST=0.0.0.0")
     args = parser.parse_args()
 
     if args.debug:
@@ -8803,4 +8822,8 @@ if __name__ == "__main__":
         if line.strip():
             logger.info(line)
 
-    app.run(host="0.0.0.0", port=API_PORT, debug=DEBUG_MODE)
+    if args.host != API_HOST:
+        API_HOST = args.host
+
+    # Enhanced startup messages with beautiful formatting
+    app.run(host=API_HOST, port=API_PORT, debug=DEBUG_MODE)
