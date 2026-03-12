@@ -1,5 +1,12 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Tuple, TypedDict
 from .CTFChallenge import CTFChallenge
+
+
+class ChallengeAssignment(TypedDict):
+    challenge: CTFChallenge
+    score: float
+    estimated_time: int
+
 
 class CTFTeamCoordinator:
     """Coordinate team efforts in CTF competitions"""
@@ -35,7 +42,7 @@ class CTFTeamCoordinator:
             }
 
         # Score challenges for each team member
-        member_challenge_scores = {}
+        member_challenge_scores: Dict[str, List[ChallengeAssignment]] = {}
         for member in team_skills.keys():
             member_challenge_scores[member] = []
 
@@ -68,8 +75,8 @@ class CTFTeamCoordinator:
 
         # Create priority queue
         all_assignments = []
-        for member, challenges in assignments.items():
-            for challenge_info in challenges:
+        for member, assigned_challenges in assignments.items():
+            for challenge_info in assigned_challenges:
                 all_assignments.append({
                     "member": member,
                     "challenge": challenge_info["challenge"].name,
@@ -102,14 +109,14 @@ class CTFTeamCoordinator:
 
         return base_time
 
-    def _assign_challenges_optimally(self, member_challenge_scores: Dict[str, List[Dict]]) -> Dict[str, List[Dict]]:
+    def _assign_challenges_optimally(self, member_challenge_scores: Dict[str, List[ChallengeAssignment]]) -> Dict[str, List[ChallengeAssignment]]:
         """Assign challenges to team members optimally"""
-        assignments = {member: [] for member in member_challenge_scores.keys()}
+        assignments: Dict[str, List[ChallengeAssignment]] = {member: [] for member in member_challenge_scores.keys()}
         assigned_challenges = set()
 
         # Simple greedy assignment (in practice, would use Hungarian algorithm)
         for _ in range(len(member_challenge_scores)):
-            best_assignment = None
+            best_assignment: Optional[Tuple[str, ChallengeAssignment]] = None
             best_score = -1
 
             for member, challenge_scores in member_challenge_scores.items():
