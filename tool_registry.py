@@ -7,6 +7,9 @@ Can be increased or decreased as needed, but focus on the most effective tools f
 """
 
 from typing import Dict, List, Optional
+import logging
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Tool definitions - each entry is intentionally compact so the full category
@@ -783,7 +786,8 @@ def _classify_with_llm(user_input: str, llm_client) -> str:
         )
         final_resp = response.lower().split("category:")[1].strip() 
         return final_resp
-    except Exception:
+    except Exception as exc:
+        logger.warning("LLM intent classification failed for input %r: %s", user_input, exc)
         return ""
 
 
