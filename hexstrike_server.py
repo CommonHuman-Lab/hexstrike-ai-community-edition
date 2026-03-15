@@ -442,8 +442,7 @@ def cache_stats():
 @app.route("/api/cache/clear", methods=["POST"])
 def clear_cache():
     """Clear the cache"""
-    cache.cache.clear()
-    cache.stats = {"hits": 0, "misses": 0, "evictions": 0}
+    cache.clear()
     logger.info("🧹 Cache cleared")
     return jsonify({"success": True, "message": "Cache cleared"})
 

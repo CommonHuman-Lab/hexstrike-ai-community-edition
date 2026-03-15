@@ -15,9 +15,11 @@ Functions:
 """
 
 from typing import Any, Optional
+import threading
 import config
 
 _config = config._config
+_config_lock = threading.Lock()
 
 def get_word_list(name: str) -> Optional[dict]:
     """
@@ -118,4 +120,5 @@ def set(key: str, value: Any) -> None:
     Returns:
         None
     """
-    _config[key] = value
+    with _config_lock:
+        _config[key] = value
