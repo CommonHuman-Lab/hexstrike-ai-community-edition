@@ -214,8 +214,7 @@ _HEALTH_TOOL_CATEGORIES = {
     "api": ["api-schema-analyzer", "postman", "insomnia", "curl", "httpie", "anew", "qsreplace", "uro"],
     "wireless": ["kismet", "wireshark", "tshark", "tcpdump"],
     "additional": ["smbmap", "volatility", "sleuthkit", "autopsy", "evil-winrm",
-                   "paramspider", "airmon-ng", "airodump-ng", "aireplay-ng", "aircrack-ng",
-                   "graphql-scanner", "jwt-analyzer"],
+                   "airmon-ng", "airodump-ng", "aireplay-ng", "aircrack-ng"],
 }
 
 _tool_availability_cache: Dict[str, bool] = {}
