@@ -5468,10 +5468,6 @@ def burpsuite_alternative():
     except Exception as e:
         logger.error(f"{ModernVisualEngine.format_error_card('CRITICAL', 'BurpAlternative', str(e))}")
         return jsonify({"error": f"Server error: {str(e)}"}), 500
-        logger.error(f"💥 Error in burpsuite endpoint: {str(e)}")
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
 
 @app.route("/api/tools/zap", methods=["POST"])
 def zap():
@@ -8406,9 +8402,9 @@ def get_alternative_tools():
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 # Create the banner after all classes are defined
-BANNER = ModernVisualEngine.create_banner()
 
 if __name__ == "__main__":
+    BANNER = ModernVisualEngine.create_banner()
     # Display the beautiful new banner
     print(BANNER)
 
