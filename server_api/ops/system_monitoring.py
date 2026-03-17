@@ -1,0 +1,185 @@
+from flask import Blueprint, request, jsonify
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
+from typing import Dict
+import logging
+import threading
+import time
+import traceback
+
+import server_core.config_core as config_core
+from server_core.cache import HexStrikeCache
+from server_core.command_executor import execute_command
+from server_core.enhanced_command_executor import telemetry
+
+logger = logging.getLogger(__name__)
+
+api_system_monitoring_bp = Blueprint("api_system_monitoring", __name__)
+
+# Shared cache instance for this module
+cache = HexStrikeCache()
+
+# ============================================================================
+# TOOL AVAILABILITY CACHE — populated once at startup, refreshed every hour
+# ============================================================================
+
+_HEALTH_TOOL_CATEGORIES = {
+    "essential": ["nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat"],
+    "network": ["rustscan", "masscan", "autorecon", "nbtscan", "arp-scan", "responder",
+                "nxc", "enum4linux-ng", "rpcclient", "enum4linux"],
+    "web_security": ["ffuf", "feroxbuster", "dirsearch", "dotdotpwn", "xsser", "wfuzz",
+                     "gau", "waybackurls", "arjun", "paramspider", "x8", "jaeles", "dalfox",
+                     "httpx", "wafw00f", "burpsuite", "zaproxy", "katana", "hakrawler"],
+    "vuln_scanning": ["nuclei", "wpscan", "graphql-scanner", "jwt-analyzer"],
+    "password": ["medusa", "patator", "hashid", "ophcrack", "hashcat-utils"],
+    "binary": ["gdb", "radare2", "binwalk", "ropgadget", "checksec", "objdump",
+               "ghidra", "pwntools", "one-gadget", "ropper", "angr", "libc-database", "pwninit"],
+    "forensics": ["vol", "steghide", "hashpump", "foremost", "exiftool",
+                  "strings", "xxd", "file", "photorec", "testdisk", "scalpel",
+                  "bulk-extractor", "stegsolve", "zsteg", "outguess"],
+    "cloud": ["prowler", "scout-suite", "trivy", "kube-hunter", "kube-bench",
+              "docker-bench-security", "checkov", "terrascan", "falco", "clair"],
+    "osint": ["amass", "subfinder", "fierce", "dnsenum", "theharvester", "sherlock",
+              "social-analyzer", "recon-ng", "maltego", "spiderfoot", "shodan-cli",
+              "censys-cli", "have-i-been-pwned", "whois", "bbot"],
+    "exploitation": ["msfconsole", "msfvenom", "searchsploit"],
+    "api": ["api-schema-analyzer", "postman", "insomnia", "curl", "httpie", "anew", "qsreplace", "uro"],
+    "wireless": ["kismet", "wireshark", "tshark", "tcpdump"],
+    "additional": ["smbmap", "volatility", "sleuthkit", "autopsy", "evil-winrm",
+                   "airmon-ng", "airodump-ng", "aireplay-ng", "aircrack-ng"],
+}
+
+_tool_availability_cache: Dict[str, bool] = {}
+_tool_availability_lock = threading.Lock()
+_tool_availability_last_refresh: float = 0.0
+
+
+def _refresh_tool_availability() -> None:
+    """Probe all tools with `which` in parallel and update the module-level cache."""
+    global _tool_availability_last_refresh
+    all_tools_flat = list({
+        tool
+        for tools in _HEALTH_TOOL_CATEGORIES.values()
+        for tool in tools
+    })
+
+    def probe(tool: str) -> tuple:
+        try:
+            result = execute_command(f"which {tool}", use_cache=False)
+            return tool, bool(result.get("success"))
+        except Exception:
+            return tool, False
+
+    with ThreadPoolExecutor(max_workers=20) as pool:
+        results = dict(pool.map(probe, all_tools_flat))
+
+    with _tool_availability_lock:
+        _tool_availability_cache.update(results)
+        _tool_availability_last_refresh = time.time()
+    logger.info(
+        "Tool availability refreshed: %d/%d available",
+        sum(results.values()), len(results),
+    )
+
+
+def _get_tool_availability() -> Dict[str, bool]:
+    """Return cached tool availability, refreshing in a background thread if stale."""
+    now = time.time()
+    with _tool_availability_lock:
+        stale = (now - _tool_availability_last_refresh) > config_core.get("TOOL_AVAILABILITY_TTL", 3600)
+        empty = not _tool_availability_cache
+
+    if empty:
+        _refresh_tool_availability()
+    elif stale:
+        threading.Thread(target=_refresh_tool_availability, daemon=True).start()
+
+    with _tool_availability_lock:
+        return dict(_tool_availability_cache)
+
+
+@api_system_monitoring_bp.route("/health", methods=["GET"])
+def health_check():
+    """Health check endpoint with comprehensive tool detection"""
+    tools_status = _get_tool_availability()
+
+    essential_tools = _HEALTH_TOOL_CATEGORIES["essential"]
+    all_essential_tools_available = all(tools_status.get(t, False) for t in essential_tools)
+
+    category_stats = {
+        cat: {
+            "total": len(tools),
+            "available": sum(1 for t in tools if tools_status.get(t, False)),
+        }
+        for cat, tools in _HEALTH_TOOL_CATEGORIES.items()
+    }
+
+    all_tools_count = len(tools_status)
+
+    return jsonify({
+        "status": "healthy",
+        "message": "HexStrike AI Tools API Server is operational",
+        "version": config_core.get("VERSION", "unknown"),
+        "tools_status": tools_status,
+        "all_essential_tools_available": all_essential_tools_available,
+        "total_tools_available": sum(1 for available in tools_status.values() if available),
+        "total_tools_count": all_tools_count,
+        "category_stats": category_stats,
+        "cache_stats": cache.get_stats(),
+        "telemetry": telemetry.get_stats(),
+        "uptime": time.time() - telemetry.stats["start_time"],
+        "tool_availability_age_seconds": round(time.time() - _tool_availability_last_refresh, 1),
+    })
+
+
+@api_system_monitoring_bp.route("/ping", methods=["GET"])
+def ping():
+    return jsonify({
+        "success": True,
+        "message": "Pong! HexStrike AI Tools API Server is responsive",
+        "timestamp": datetime.now().isoformat()
+    })
+
+
+@api_system_monitoring_bp.route("/api/command", methods=["POST"])
+def generic_command():
+    """Execute any command provided in the request with enhanced logging"""
+    try:
+        params = request.json
+        command = params.get("command", "")
+        use_cache = params.get("use_cache", True)
+
+        if not command:
+            logger.warning("Command endpoint called without command parameter")
+            return jsonify({
+                "error": "Command parameter is required"
+            }), 400
+
+        result = execute_command(command, use_cache=use_cache)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Error in command endpoint: {str(e)}")
+        logger.error(traceback.format_exc())
+        return jsonify({
+            "error": f"Server error: {str(e)}"
+        }), 500
+
+
+@api_system_monitoring_bp.route("/api/cache/stats", methods=["GET"])
+def cache_stats():
+    """Get cache statistics"""
+    return jsonify(cache.get_stats())
+
+
+@api_system_monitoring_bp.route("/api/cache/clear", methods=["POST"])
+def clear_cache():
+    """Clear the cache"""
+    cache.clear()
+    logger.info("Cache cleared")
+    return jsonify({"success": True, "message": "Cache cleared"})
+
+
+@api_system_monitoring_bp.route("/api/telemetry", methods=["GET"])
+def get_telemetry():
+    """Get system telemetry"""
+    return jsonify(telemetry.get_stats())
