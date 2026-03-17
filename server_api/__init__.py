@@ -6,6 +6,7 @@ from .api_scan import *
 from .binary_analysis import *
 from .binary_debug import *
 from .bugbounty_workflow import *
+from .cloud_audit import *
 from .cloud_exploit import *
 from .cloud_visual import *
 from .container_scan import *
