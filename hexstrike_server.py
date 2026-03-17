@@ -13,6 +13,7 @@ import base64
 import json
 import logging
 import os
+import shlex
 import subprocess
 import sys
 import traceback
@@ -39,25 +40,8 @@ from shared.target_types import TechnologyStack
 # LOGGING CONFIGURATION (MUST BE FIRST)
 # ============================================================================
 
-# Configure logging with fallback for permission issues
-try:
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.StreamHandler(sys.stdout),
-            logging.FileHandler('hexstrike.log')
-        ]
-    )
-except PermissionError:
-    # Fallback to console-only logging if file creation fails
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.StreamHandler(sys.stdout)
-        ]
-    )
+from server_core.setup_logging import setup_logging
+setup_logging()
 logger = logging.getLogger(__name__)
 
 # Flask app configuration
@@ -124,7 +108,6 @@ from server_core.process_manager import active_processes, process_lock
 # ============================================================================
 # ADVANCED VULNERABILITY INTELLIGENCE SYSTEM (v6.0 ENHANCEMENT)
 # ============================================================================
-from server_core.setup_logging import setup_logging
 
 # Configuration (using existing API_PORT from top of file)
 DEBUG_MODE = os.environ.get("DEBUG_MODE", "0").lower() in ("1", "true", "yes", "y")
@@ -222,24 +205,30 @@ _tool_availability_lock = threading.Lock()
 _tool_availability_last_refresh: float = 0.0
 
 def _refresh_tool_availability() -> None:
-    """Probe all tools with `which` and update the module-level cache."""
+    """Probe all tools with `which` in parallel and update the module-level cache."""
     global _tool_availability_last_refresh
-    all_tools: Dict[str, bool] = {}
-    for tools in _HEALTH_TOOL_CATEGORIES.values():
-        for tool in tools:
-            if tool in all_tools:
-                continue
-            try:
-                result = execute_command(f"which {tool}", use_cache=False)
-                all_tools[tool] = bool(result.get("success"))
-            except Exception:
-                all_tools[tool] = False
+    all_tools_flat = list({
+        tool
+        for tools in _HEALTH_TOOL_CATEGORIES.values()
+        for tool in tools
+    })
+
+    def probe(tool: str) -> tuple:
+        try:
+            result = execute_command(f"which {tool}", use_cache=False)
+            return tool, bool(result.get("success"))
+        except Exception:
+            return tool, False
+
+    with ThreadPoolExecutor(max_workers=20) as pool:
+        results = dict(pool.map(probe, all_tools_flat))
+
     with _tool_availability_lock:
-        _tool_availability_cache.update(all_tools)
+        _tool_availability_cache.update(results)
         _tool_availability_last_refresh = time.time()
     logger.info(
         "Tool availability refreshed: %d/%d available",
-        sum(all_tools.values()), len(all_tools),
+        sum(results.values()), len(results),
     )
 
 
@@ -1032,8 +1021,8 @@ def execute_httpx_scan(target, params):
     """Execute httpx scan with optimized parameters"""
     try:
         additional_args = params.get('additional_args', '-tech-detect -status-code')
-        # Use shell command with pipe for httpx
-        cmd = f"echo {target} | httpx {additional_args}"
+        # Use shell command with pipe for httpx — quote target to prevent injection
+        cmd = f"echo {shlex.quote(target)} | httpx {additional_args}"
 
         return execute_command(cmd)
     except Exception as e:
