@@ -155,23 +155,9 @@ pip install pytest
 # Run the full test suite
 pytest tests/
 
-# Run a specific test file
-pytest tests/test_core_endpoints.py
-
 # Run with verbose output
 pytest tests/ -v
 ```
-
-**Test coverage:**
-
-| File | What it covers |
-|------|----------------|
-| `tests/test_core_endpoints.py` | `/ping`, `/health`, cache, telemetry, generic command, Bearer auth |
-| `tests/test_file_endpoints.py` | `/api/files/create`, `modify`, `delete`, `list` |
-| `tests/test_intelligence_endpoints.py` | `classify-task`, `analyze-target`, `select-tools`, `optimize-parameters`, `create-attack-chain` |
-| `tests/test_tool_endpoints.py` | nmap, gobuster, nikto, sqlmap, hydra, subfinder, checksec |
-
-Tool endpoints are tested with a mocked `execute_command` stub, so no security tools need to be installed to run the suite.
 
 ### Use Hexstrike
 
