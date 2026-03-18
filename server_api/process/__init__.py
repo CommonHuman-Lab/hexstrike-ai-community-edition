@@ -6,3 +6,6 @@ from .clear_cache import *
 from .resource_usage import *
 from .performance_dashboard import *
 from .terminate_gracefully import *
+from .auto_scaling import *
+from .scale_pool import *
+from .health_check import *
