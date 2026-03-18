@@ -1,0 +1,29 @@
+from flask import Blueprint, request, jsonify
+import logging
+from datetime import datetime
+
+from server_core.enhanced_process_manager import EnhancedProcessManager
+
+logger = logging.getLogger(__name__)
+
+api_process_clear_cache_bp = Blueprint("api_process_clear_cache", __name__)
+
+enhanced_process_manager = EnhancedProcessManager()
+
+
+@api_process_clear_cache_bp.route("/api/process/clear-cache", methods=["POST"])
+def clear_process_cache():
+    """Clear the advanced cache"""
+    try:
+        enhanced_process_manager.cache.clear()
+
+        logger.info("🧹 Process cache cleared")
+        return jsonify({
+            "success": True,
+            "message": "Cache cleared successfully",
+            "timestamp": datetime.now().isoformat()
+        })
+
+    except Exception as e:
+        logger.error(f"💥 Error clearing cache: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
