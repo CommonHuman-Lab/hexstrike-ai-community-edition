@@ -39,7 +39,7 @@
 <details>
 <summary>HTB CTF Agent System (@htb-ctf)</summary>
 
-A 14-specialist agent system built natively for OpenCode, designed to autonomously solve HTB machines and CTF challenges end-to-end.
+A 14-specialist agent system built natively for **OpenCode**, designed to autonomously solve HTB machines and CTF challenges end-to-end.
 
 **Key features:**
 
