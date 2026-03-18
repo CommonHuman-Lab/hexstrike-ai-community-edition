@@ -29,6 +29,7 @@
 - Increased toolings from **150** to over **180**
 - **HTB CTF Multi-Agent System**: A full autonomous kill-chain agent suite for Hack The Box and CTF competitions — with a single command.
 - **Bug Bounty Multi-Agent System**: A scope-aware autonomous bug bounty agent suite and a P1–P4 triaged report with PoC per finding.
+- **Recon Multi-Agent System**: A no-exploit recon agent suite for domains, IPs, web apps, and APIs — outputs a structured markdown report.
 - **Compact Mode**: Great for running with smaller, local LLMs.
 - **Profile Mode**: Specify one or more profiles to load only the relevant ones for your workflow.
 - LLM Skills: 9 LLM skills now included.
@@ -68,6 +69,22 @@ A 7-specialist agent system built natively for **OpenCode**, designed for autono
 - P1–P4 severity triage with CVSSv3 scores on every finding.
 - Auto-generated PoC per finding: working `curl` command + numbered reproduction steps.
 - Final report at `/tmp/bb-<program>/report.md` — submission-ready markdown.
+
+</details>
+
+<details>
+<summary>Recon Agent System (@recon)</summary>
+
+A 5-specialist agent system built natively for **OpenCode**, designed for pure read-only information gathering across domains, IP addresses, web applications, and APIs.
+
+**Key features:**
+
+- Read-only by contract — no exploitation, no payload delivery, no login attempts, no brute-force under any circumstances.
+- Auto-detects target type (domain, IP, web, API) and invokes only the relevant specialists.
+- 5 specialist subagents: `domain`, `network`, `web`, `api`, and `report` — running in parallel where possible.
+- Passive-first: certificate transparency, historical URLs, and OSINT sources always run before active scanning.
+- Nuclei runs in `technologies` and `exposures` mode only — no CVE or exploit templates.
+- Structured report at `/tmp/recon-<target>-<timestamp>/report.md` covering subdomains, open ports, tech stack, API surface, and notable observations.
 
 </details>
 
