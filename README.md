@@ -27,14 +27,30 @@
 ## 🚀 Differences from HexStrike V6
 
 - Increased toolings from **150** to over **180**
-- New Tools: BBot, database querying, and more
-- Skills: 9 LLM skills now included
-- Compact Mode: Great for running with smaller, local LLMs.
-- Profile Mode: Specify one or more profiles to load only the relevant ones for your workflow.
+- **HTB CTF Multi-Agent System**: A full autonomous kill-chain agent suite for Hack The Box and CTF competitions — with a single command.
+- **Compact Mode**: Great for running with smaller, local LLMs.
+- **Profile Mode**: Specify one or more profiles to load only the relevant ones for your workflow.
+- LLM Skills: 9 LLM skills now included.
 - Refactored Codebase: Improved clarity, maintainability, and performance.
-- Updated Dependencies: All packages upgraded for security and compatibility
-- Enhanced Tool Usage: Smarter parameter handling, improved documentation, and endpoint references
+- Updated Dependencies: All packages upgraded for security and compatibility.
+- Enhanced Tool Usage: Smarter parameter handling, improved documentation, and endpoint references.
 - AI Integration: Upgraded MCP compatibility and agent orchestration (FastMCP v3).
+
+<details>
+<summary>HTB CTF Agent System (@htb-ctf)</summary>
+
+A 14-specialist agent system built natively for OpenCode, designed to autonomously solve HTB machines and CTF challenges end-to-end.
+
+**Key features:**
+
+- Confirm before fire — the leader builds a structured attack plan and waits for your `yes` before any tool runs.
+- Full kill chain: recon → enumeration → foothold → privilege escalation → flag capture → loot report.
+- 14 specialist subagents: `recon`, `web`, `api`, `service-enum` and more.
+- Shared state machine via `/tmp/htb-<target>/state.json` — all agents coordinate through a single canonical file.
+- Anti-loop rules prevent duplicate tool runs, blind wordlist exhaustion, and credential spray.
+- Generates a full markdown report at `/tmp/htb-<target>/report.md` on completion.
+
+</details>
 
 <details>
 <summary>Compact Mode (--compact)</summary>
@@ -59,12 +75,13 @@
 </details>
 
 <details>
-<summary>Major MCP Client Refactor</summary>
+<summary>Major Refactor</summary>
 
-- The hexstrike MCP client has been reduced from 5,470 lines of code to just 42 lines.
+- Hexstrike Server has been reduced from 17,289 lines of code to just 100 lines.
+- Hexstrike MCP client has been reduced from 5,470 lines of code to just 42 lines.
 - Functionality is now split across multiple focused modules for clarity, maintainability, and easier contribution.
 - This modular approach enables faster development, easier debugging, and better scalability.
-- All tools run async now.
+- All MCP tools run async.
 
 </details>
 
