@@ -6,13 +6,11 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime
 import logging
 
-from server_core.enhanced_process_manager import EnhancedProcessManager
+from server_core.singletons import enhanced_process_manager
 
 logger = logging.getLogger(__name__)
 
 api_process_auto_scaling_bp = Blueprint("api_process_auto_scaling", __name__)
-
-enhanced_process_manager = EnhancedProcessManager()
 
 
 @api_process_auto_scaling_bp.route("/api/process/auto-scaling", methods=["POST"])

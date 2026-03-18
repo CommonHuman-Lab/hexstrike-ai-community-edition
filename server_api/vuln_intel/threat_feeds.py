@@ -2,13 +2,11 @@ from flask import Blueprint, request, jsonify
 import logging
 from datetime import datetime
 
-from server_core.intelligence.cve_intelligence_manager import CVEIntelligenceManager
+from server_core.singletons import cve_intelligence
 
 logger = logging.getLogger(__name__)
 
 api_vuln_intel_threat_feeds_bp = Blueprint("api_vuln_intel_threat_feeds", __name__)
-
-cve_intelligence = CVEIntelligenceManager()
 
 
 @api_vuln_intel_threat_feeds_bp.route("/api/vuln-intel/threat-feeds", methods=["POST"])

@@ -2,15 +2,11 @@ from flask import Blueprint, request, jsonify
 import logging
 from datetime import datetime
 
-from server_core.vulnerability_correlator import VulnerabilityCorrelator
-from server_core.ai_exploit_generator import AIExploitGenerator
+from server_core.singletons import vulnerability_correlator, exploit_generator
 
 logger = logging.getLogger(__name__)
 
 api_vuln_intel_attack_chains_bp = Blueprint("api_vuln_intel_attack_chains", __name__)
-
-vulnerability_correlator = VulnerabilityCorrelator()
-exploit_generator = AIExploitGenerator()
 
 
 @api_vuln_intel_attack_chains_bp.route("/api/vuln-intel/attack-chains", methods=["POST"])

@@ -1,11 +1,9 @@
 from flask import Blueprint, request, jsonify
 import logging
-import server_core.config_core as config_core
 from server_core.command_executor import execute_command
+from server_core.singletons import ROCKYOU_PATH
 
 logger = logging.getLogger(__name__)
-
-ROCKYOU_PATH = config_core.get_word_list_path("rockyou")
 
 api_password_cracking_john_bp = Blueprint("api_password_cracking_john", __name__)
 

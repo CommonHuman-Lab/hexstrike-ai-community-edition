@@ -2,13 +2,11 @@ from flask import Blueprint, request, jsonify
 import logging
 from datetime import datetime
 
-from server_core.workflows.ctf.toolManager import CTFToolManager
+from server_core.singletons import ctf_tools
 
 logger = logging.getLogger(__name__)
 
 api_ctf_suggest_tools_bp = Blueprint("api_ctf_suggest_tools", __name__)
-
-ctf_tools = CTFToolManager()
 
 
 @api_ctf_suggest_tools_bp.route("/api/ctf/suggest-tools", methods=["POST"])

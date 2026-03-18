@@ -6,13 +6,11 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime
 import logging
 
-from server_core.error_handling import GracefulDegradation
+from server_core.singletons import degradation_manager
 
 logger = logging.getLogger(__name__)
 
 api_error_handling_fallback_chains_bp = Blueprint("api_error_handling_fallback_chains", __name__)
-
-degradation_manager = GracefulDegradation()
 
 
 @api_error_handling_fallback_chains_bp.route("/api/error-handling/fallback-chains", methods=["GET"])

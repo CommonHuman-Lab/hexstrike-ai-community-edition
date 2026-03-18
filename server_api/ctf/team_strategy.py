@@ -3,13 +3,11 @@ import logging
 from datetime import datetime
 
 from server_core.workflows.ctf.CTFChallenge import CTFChallenge
-from server_core.workflows.ctf.coordinator import CTFTeamCoordinator
+from server_core.singletons import ctf_coordinator
 
 logger = logging.getLogger(__name__)
 
 api_ctf_team_strategy_bp = Blueprint("api_ctf_team_strategy", __name__)
-
-ctf_coordinator = CTFTeamCoordinator()
 
 
 @api_ctf_team_strategy_bp.route("/api/ctf/team-strategy", methods=["POST"])

@@ -3,15 +3,11 @@ from datetime import datetime
 import logging
 
 from server_core.workflows.bugbounty.target import BugBountyTarget
-from server_core.workflows.bugbounty.workflow import BugBountyWorkflowManager
-from server_core.workflows.bugbounty.testing import FileUploadTestingFramework
+from server_core.singletons import bugbounty_manager, fileupload_framework
 
 logger = logging.getLogger(__name__)
 
 api_bugbounty_workflow_bug_bounty_recon_bp = Blueprint("api_bugbounty_workflow_bug_bounty_recon", __name__)
-
-bugbounty_manager = BugBountyWorkflowManager()
-fileupload_framework = FileUploadTestingFramework()
 
 
 @api_bugbounty_workflow_bug_bounty_recon_bp.route("/api/bugbounty/reconnaissance-workflow", methods=["POST"])

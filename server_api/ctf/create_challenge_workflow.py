@@ -3,13 +3,11 @@ import logging
 from datetime import datetime
 
 from server_core.workflows.ctf.CTFChallenge import CTFChallenge
-from server_core.workflows.ctf.workflowManager import CTFWorkflowManager
+from server_core.singletons import ctf_manager
 
 logger = logging.getLogger(__name__)
 
 api_ctf_create_challenge_workflow_bp = Blueprint("api_ctf_create_challenge_workflow", __name__)
-
-ctf_manager = CTFWorkflowManager()
 
 
 @api_ctf_create_challenge_workflow_bp.route("/api/ctf/create-challenge-workflow", methods=["POST"])

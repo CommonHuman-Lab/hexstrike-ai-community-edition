@@ -6,15 +6,14 @@ from flask import Blueprint, request, jsonify
 from datetime import datetime
 import logging
 
-from server_core.error_handling import IntelligentErrorHandler, ErrorType
+from server_core.error_handling import ErrorType
+from server_core.singletons import error_handler
 
 logger = logging.getLogger(__name__)
 
 api_error_handling_parameter_adjustments_bp = Blueprint(
     "api_error_handling_parameter_adjustments", __name__
 )
-
-error_handler = IntelligentErrorHandler()
 
 
 @api_error_handling_parameter_adjustments_bp.route(

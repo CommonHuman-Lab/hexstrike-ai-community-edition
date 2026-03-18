@@ -2,13 +2,11 @@ from flask import Blueprint, jsonify
 import logging
 from datetime import datetime
 
-from server_core.enhanced_process_manager import EnhancedProcessManager
+from server_core.singletons import enhanced_process_manager
 
 logger = logging.getLogger(__name__)
 
 api_process_resource_usage_bp = Blueprint("api_process_resource_usage", __name__)
-
-enhanced_process_manager = EnhancedProcessManager()
 
 
 @api_process_resource_usage_bp.route("/api/process/resource-usage", methods=["GET"])

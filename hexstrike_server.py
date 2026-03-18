@@ -15,6 +15,7 @@ from typing import Dict, Any, Optional
 from flask import Flask, request, abort
 import server_core.config_core as config_core
 from server_core import *
+from server_core.singletons import cache, error_handler, degradation_manager
 from server_api import register_blueprints
 
 # ============================================================================
@@ -34,81 +35,39 @@ API_PORT = int(os.environ.get('HEXSTRIKE_PORT', 8888))
 API_HOST = os.environ.get('HEXSTRIKE_HOST', '127.0.0.1')  # e.g. export HEXSTRIKE_HOST=0.0.0.0
 API_TOKEN = os.environ.get("HEXSTRIKE_API_TOKEN", None)  # e.g. export API_TOKEN=secret-token
 
-#Wordlists
-ROCKYOU_PATH = config_core.get_word_list_path("rockyou")
-COMMON_DIRB_PATH = config_core.get_word_list_path("common_dirb")
-COMMON_DIRSEARCH_PATH = config_core.get_word_list_path("common_dirsearch")
-
-session_store = SessionStore()
-wordlist_store = WordlistStore()
-
-# Global decision engine instance
-decision_engine = IntelligentDecisionEngine()
-
-# Global error handler and degradation manager instances
-error_handler = IntelligentErrorHandler()
-degradation_manager = GracefulDegradation()
-
-# Global bug bounty workflow manager
-bugbounty_manager = BugBountyWorkflowManager()
-fileupload_framework = FileUploadTestingFramework()
-
-# Global instances
-tech_detector = TechnologyDetector()
-rate_limiter = RateLimitDetector()
-failure_recovery = FailureRecoverySystem()
-performance_monitor = PerformanceMonitor()
-parameter_optimizer = ParameterOptimizer()
-enhanced_process_manager = EnhancedProcessManager()
-
-# Global CTF framework instances
-ctf_manager = CTFWorkflowManager()
-ctf_tools = CTFToolManager()
-ctf_automator = CTFChallengeAutomator()
-ctf_coordinator = CTFTeamCoordinator()
-
-# Configuration (using existing API_PORT from top of file)
+# Configuration
 DEBUG_MODE = os.environ.get("DEBUG_MODE", "0").lower() in ("1", "true", "yes", "y")
 COMMAND_TIMEOUT = config_core.get("COMMAND_TIMEOUT", 300)  # 5 minutes default timeout
 CACHE_SIZE = config_core.get("CACHE_SIZE", 1000)
 CACHE_TTL = config_core.get("CACHE_TTL", 3600)  # 1 hour default TTL
 
-# Global cache instance
-cache = HexStrikeCache()
-
-# Global telemetry collector — reuse the instance from enhanced_command_executor
-from server_core.enhanced_command_executor import telemetry
-
-# Global intelligence managers
-cve_intelligence = CVEIntelligenceManager()
-exploit_generator = AIExploitGenerator()
-vulnerability_correlator = VulnerabilityCorrelator()
 
 def execute_command(command: str, use_cache: bool = True, cache=cache, timeout: int = COMMAND_TIMEOUT) -> Dict[str, Any]:
-    """Server-level execute_command wrapper that passes the global cache instance."""
+    """Server-level execute_command wrapper that passes the shared cache instance."""
     return _execute_command(command, use_cache=use_cache, cache=cache, timeout=timeout)
 
+
 def execute_command_with_recovery(
-  tool_name: str,
-  command: str,
-  parameters: Optional[Dict[str, Any]] = None,
-  use_cache: bool = True,
-  max_attempts: int = 3
+    tool_name: str,
+    command: str,
+    parameters: Optional[Dict[str, Any]] = None,
+    use_cache: bool = True,
+    max_attempts: int = 3,
 ) -> Dict[str, Any]:
-  return _execute_command_with_recovery(
-    tool_name=tool_name,
-    command=command,
-    parameters=parameters,
-    use_cache=use_cache,
-    max_attempts=max_attempts,
-    execute_command_fn=execute_command,
-    error_handler=error_handler,
-    degradation_manager=degradation_manager,
-    rebuild_command_with_params_fn= _rebuild_command_with_params,
-    determine_operation_type_fn= _determine_operation_type,
-    recovery_action_enum=RecoveryAction,
-    logger=logger,
-  )
+    return _execute_command_with_recovery(
+        tool_name=tool_name,
+        command=command,
+        parameters=parameters,
+        use_cache=use_cache,
+        max_attempts=max_attempts,
+        execute_command_fn=execute_command,
+        error_handler=error_handler,
+        degradation_manager=degradation_manager,
+        rebuild_command_with_params_fn=_rebuild_command_with_params,
+        determine_operation_type_fn=_determine_operation_type,
+        recovery_action_enum=RecoveryAction,
+        logger=logger,
+    )
 
 @app.before_request
 def optional_bearer_auth():

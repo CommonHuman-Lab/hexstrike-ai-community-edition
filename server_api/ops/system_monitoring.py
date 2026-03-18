@@ -8,16 +8,12 @@ import time
 import traceback
 
 import server_core.config_core as config_core
-from server_core.cache import HexStrikeCache
 from server_core.command_executor import execute_command
-from server_core.enhanced_command_executor import telemetry
+from server_core.singletons import cache, telemetry
 
 logger = logging.getLogger(__name__)
 
 api_system_monitoring_bp = Blueprint("api_system_monitoring", __name__)
-
-# Shared cache instance for this module
-cache = HexStrikeCache()
 
 # ============================================================================
 # TOOL AVAILABILITY CACHE — populated once at startup, refreshed every hour

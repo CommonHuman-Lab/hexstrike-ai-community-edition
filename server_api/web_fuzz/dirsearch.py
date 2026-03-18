@@ -1,11 +1,9 @@
 from flask import Blueprint, request, jsonify
 import logging
-import server_core.config_core as config_core
 from server_core.command_executor import execute_command
+from server_core.singletons import COMMON_DIRSEARCH_PATH
 
 logger = logging.getLogger(__name__)
-
-COMMON_DIRSEARCH_PATH = config_core.get_word_list_path("common_dirsearch")
 
 api_web_fuzz_dirsearch_bp = Blueprint("api_web_fuzz_dirsearch", __name__)
 

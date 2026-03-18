@@ -3,13 +3,11 @@ import logging
 from datetime import datetime
 
 from server_core.workflows.ctf.CTFChallenge import CTFChallenge
-from server_core.workflows.ctf.automator import CTFChallengeAutomator
+from server_core.singletons import ctf_automator
 
 logger = logging.getLogger(__name__)
 
 api_ctf_auto_solve_challenge_bp = Blueprint("api_ctf_auto_solve_challenge", __name__)
-
-ctf_automator = CTFChallengeAutomator()
 
 
 @api_ctf_auto_solve_challenge_bp.route("/api/ctf/auto-solve-challenge", methods=["POST"])

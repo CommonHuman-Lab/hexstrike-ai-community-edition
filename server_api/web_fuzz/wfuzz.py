@@ -1,11 +1,9 @@
 from flask import Blueprint, request, jsonify
 import logging
-import server_core.config_core as config_core
 from server_core.command_executor import execute_command
+from server_core.singletons import COMMON_DIRB_PATH
 
 logger = logging.getLogger(__name__)
-
-COMMON_DIRB_PATH = config_core.get_word_list_path("common_dirb")
 
 api_web_fuzz_wfuzz_bp = Blueprint("api_web_fuzz_wfuzz", __name__)
 

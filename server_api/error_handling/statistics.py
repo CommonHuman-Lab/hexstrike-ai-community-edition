@@ -6,13 +6,11 @@ from flask import Blueprint, jsonify
 from datetime import datetime
 import logging
 
-from server_core.error_handling import IntelligentErrorHandler
+from server_core.singletons import error_handler
 
 logger = logging.getLogger(__name__)
 
 api_error_handling_statistics_bp = Blueprint("api_error_handling_statistics", __name__)
-
-error_handler = IntelligentErrorHandler()
 
 
 @api_error_handling_statistics_bp.route("/api/error-handling/statistics", methods=["GET"])
