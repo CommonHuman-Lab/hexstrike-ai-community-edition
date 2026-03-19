@@ -5,6 +5,11 @@ from server_core.singletons import cache as _cache
 
 COMMAND_TIMEOUT = config_core.get("COMMAND_TIMEOUT", 300)  # Default to 5 minutes if not set
 
+# Reuse a single executor instance rather than constructing one per call.
+# EnhancedCommandExecutor stores per-execution state only in instance variables
+# that are reset inside execute(), so sharing the instance across calls is safe.
+_executor = EnhancedCommandExecutor("", timeout=COMMAND_TIMEOUT)
+
 def execute_command(command: str, use_cache: bool = True, cache=None, timeout: int = COMMAND_TIMEOUT) -> Dict[str, Any]:
     """
     Execute a shell command with enhanced features
@@ -25,8 +30,9 @@ def execute_command(command: str, use_cache: bool = True, cache=None, timeout: i
         if cached_result:
             return cached_result
 
-    executor = EnhancedCommandExecutor(command, timeout=timeout)
-    result = executor.execute()
+    _executor.command = command
+    _executor.timeout = timeout
+    result = _executor.execute()
 
     if active_cache is not None and result.get("success", False):
         active_cache.set(command, {}, result)

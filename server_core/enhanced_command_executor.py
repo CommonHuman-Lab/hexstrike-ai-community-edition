@@ -63,55 +63,65 @@ class EnhancedCommandExecutor:
         finally:
             self.stderr_data = "".join(self._stderr_chunks)
 
-    def _show_progress(self, duration: float):
+    def _show_progress(self):
         """Show enhanced progress indication for long-running commands"""
-        if duration > 2:  # Show progress for commands taking more than 2 seconds
-            progress_chars = ModernVisualEngine.PROGRESS_STYLES['dots']
-            start = time.time()
-            i = 0
-            while self.process and self.process.poll() is None:
-                elapsed = time.time() - start
-                char = progress_chars[i % len(progress_chars)]
+        progress_chars = ModernVisualEngine.PROGRESS_STYLES['dots']
+        start = time.time()
+        i = 0
+        while self.process and self.process.poll() is None:
+            elapsed = time.time() - start
+            char = progress_chars[i % len(progress_chars)]
 
-                # Calculate progress percentage (rough estimate)
-                progress_percent = min((elapsed / self.timeout) * 100, 99.9)
-                progress_fraction = progress_percent / 100
+            # Calculate progress percentage (rough estimate)
+            progress_percent = min((elapsed / self.timeout) * 100, 99.9)
+            progress_fraction = progress_percent / 100
 
-                # Calculate ETA
-                eta = 0
-                if progress_percent > 5:  # Only show ETA after 5% progress
-                    eta = ((elapsed / progress_percent) * 100) - elapsed
+            # Calculate ETA
+            eta = 0
+            if progress_percent > 5:  # Only show ETA after 5% progress
+                eta = ((elapsed / progress_percent) * 100) - elapsed
 
-                # Calculate speed
-                bytes_processed = sum(len(c) for c in self._stdout_chunks) + sum(len(c) for c in self._stderr_chunks)
-                speed = f"{bytes_processed/elapsed:.0f} B/s" if elapsed > 0 else "0 B/s"
+            # Calculate speed
+            bytes_processed = sum(len(c) for c in self._stdout_chunks) + sum(len(c) for c in self._stderr_chunks)
+            speed = f"{bytes_processed/elapsed:.0f} B/s" if elapsed > 0 else "0 B/s"
 
-                # Update process manager with progress
-                ProcessManager.update_process_progress(
-                    self.process.pid,
-                    progress_fraction,
-                    f"Running for {elapsed:.1f}s",
-                    bytes_processed
-                )
+            # Update process manager with progress
+            ProcessManager.update_process_progress(
+                self.process.pid,
+                progress_fraction,
+                f"Running for {elapsed:.1f}s",
+                bytes_processed
+            )
 
-                # Create beautiful progress bar using ModernVisualEngine
-                progress_bar = ModernVisualEngine.render_progress_bar(
-                    progress_fraction,
-                    width=30,
-                    style='cyber',
-                    label=f"⚡ PROGRESS {char}",
-                    eta=eta,
-                    speed=speed
-                )
+            # Create beautiful progress bar using ModernVisualEngine
+            progress_bar = ModernVisualEngine.render_progress_bar(
+                progress_fraction,
+                width=30,
+                style='cyber',
+                label=f"⚡ PROGRESS {char}",
+                eta=eta,
+                speed=speed
+            )
 
-                logger.info(f"{progress_bar} | {elapsed:.1f}s | PID: {self.process.pid}")
-                time.sleep(0.8)
-                i += 1
-                if elapsed > self.timeout:
-                    break
+            logger.info(f"{progress_bar} | {elapsed:.1f}s | PID: {self.process.pid}")
+            time.sleep(0.8)
+            i += 1
+            if elapsed > self.timeout:
+                break
 
     def execute(self) -> Dict[str, Any]:
         """Execute the command with enhanced monitoring and output"""
+        # Reset per-execution state so the instance can be reused across calls
+        self.stdout_data = ""
+        self.stderr_data = ""
+        self._stdout_chunks = []
+        self._stderr_chunks = []
+        self.process = None
+        self.stdout_thread = None
+        self.stderr_thread = None
+        self.return_code = None
+        self.timed_out = False
+        self.end_time = None
         self.start_time = time.time()
 
         logger.info(f"🚀 EXECUTING: {self.command}")
@@ -141,10 +151,11 @@ class EnhancedCommandExecutor:
             self.stdout_thread.start()
             self.stderr_thread.start()
 
-            # Start progress tracking in a separate thread
-            progress_thread = threading.Thread(target=self._show_progress, args=(self.timeout,))
-            progress_thread.daemon = True
-            progress_thread.start()
+            # Start progress tracking only for commands expected to run > 2 s
+            if self.timeout > 2:
+                progress_thread = threading.Thread(target=self._show_progress)
+                progress_thread.daemon = True
+                progress_thread.start()
 
             # Wait for the process to complete or timeout
             try:

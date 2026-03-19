@@ -9,6 +9,7 @@ Framework: FastMCP integration for AI agent communication
 """
 
 import argparse
+import hmac
 import logging
 import os
 from flask import Flask, request, abort, jsonify
@@ -53,8 +54,18 @@ def optional_bearer_auth():
         abort(401, description="Unexpected authorization header format")
 
     token = auth_header[len(prefix):]
-    if token != API_TOKEN:
+    if not hmac.compare_digest(token, API_TOKEN):
         abort(401, description="Unauthorized!")
+
+
+@app.before_request
+def require_json_for_post():
+    """Return 400 instead of a 500 AttributeError when a POST body is missing or not JSON."""
+    if request.method == "POST" and request.content_length != 0 and request.json is None:
+        return jsonify({
+            "error": "Request body must be valid JSON with Content-Type: application/json",
+            "success": False,
+        }), 400
 
 register_blueprints(app)
 
