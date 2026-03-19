@@ -2,6 +2,7 @@ from .ai_assist import *
 from .ai_payload import *
 from .tools_catalog import *
 from .ui_blueprint import *
+from .settings import *
 from .ctf import *
 from .process import *
 from .api_audit import *
@@ -285,6 +286,9 @@ def register_blueprints(app):
 
   # Tools Catalog
   app.register_blueprint(api_tools_catalog_bp)
+
+  # Settings
+  app.register_blueprint(api_settings_bp)
 
   # Web UI
   app.register_blueprint(api_ui_bp)

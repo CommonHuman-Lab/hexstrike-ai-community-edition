@@ -96,8 +96,52 @@ async function apiFetch<T>(path: string, opts: RequestInit = {}): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+export interface WordlistEntry {
+  name: string;
+  path: string;
+  type: string;
+  speed: string;
+  coverage: string;
+}
+
+export interface Settings {
+  server: {
+    host: string;
+    port: number;
+    auth_enabled: boolean;
+    debug_mode: boolean;
+    data_dir: string;
+  };
+  runtime: {
+    command_timeout: number;
+    cache_size: number;
+    cache_ttl: number;
+    tool_availability_ttl: number;
+  };
+  wordlists: WordlistEntry[];
+}
+
+export interface SettingsResponse {
+  success: boolean;
+  settings: Settings;
+}
+
+export interface PatchSettingsResponse {
+  success: boolean;
+  updated: Record<string, number>;
+  settings?: Settings;
+  errors?: Record<string, string>;
+  error?: string;
+}
+
 export const api = {
   health: () => apiFetch<HealthResponse>('/health'),
   resources: () => apiFetch<ResourceUsageResponse>('/api/process/resource-usage'),
   tools: () => apiFetch<ToolsCatalogResponse>('/api/tools'),
+  getSettings: () => apiFetch<SettingsResponse>('/api/settings'),
+  patchSettings: (runtime: Partial<Settings['runtime']>) =>
+    apiFetch<PatchSettingsResponse>('/api/settings', {
+      method: 'PATCH',
+      body: JSON.stringify({ runtime }),
+    }),
 };
