@@ -73,8 +73,9 @@ def handle_unhandled_exception(e):
     return jsonify({"error": str(e), "success": False}), 500
 
 if __name__ == "__main__":
-    BANNER = ModernVisualEngine.create_banner()
-    print(BANNER)
+    if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+        BANNER = ModernVisualEngine.create_banner()
+        print(BANNER)
 
     parser = argparse.ArgumentParser(description="Run the HexStrike AI API Server")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
@@ -93,38 +94,39 @@ if __name__ == "__main__":
     if args.host != API_HOST:
         API_HOST = args.host
 
-    # Enhanced startup messages with beautiful formatting.
-    # ANSI codes have zero visible width, so we track visible length manually
-    C = ModernVisualEngine.COLORS
-    BOX_WIDTH = 66  # visible characters between the two │ borders (including leading space)
+    if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+        # Enhanced startup messages with beautiful formatting.
+        # ANSI codes have zero visible width, so we track visible length manually
+        C = ModernVisualEngine.COLORS
+        BOX_WIDTH = 66  # visible characters between the two │ borders (including leading space)
 
-    import re as _re
-    from wcwidth import wcswidth as _wcswidth
-    _ansi = _re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
+        import re as _re
+        from wcwidth import wcswidth as _wcswidth
+        _ansi = _re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
 
-    def _box_row(content_with_ansi: str) -> str:
-        """Return a full box row: │ <content padded to BOX_WIDTH> │"""
-        visible = _ansi.sub('', content_with_ansi)
-        visible_len = _wcswidth(visible)
-        if visible_len < 0:
-            visible_len = len(visible)  # fallback if string has non-printable chars
-        padding = ' ' * (BOX_WIDTH - visible_len)
-        return (
-            f"{C['BOLD']}{C['MATRIX_GREEN']}│{C['RESET']}"
-            f"{content_with_ansi}{padding}"
-            f"{C['BOLD']}{C['MATRIX_GREEN']}│{C['RESET']}"
-        )
+        def _box_row(content_with_ansi: str) -> str:
+            """Return a full box row: │ <content padded to BOX_WIDTH> │"""
+            visible = _ansi.sub('', content_with_ansi)
+            visible_len = _wcswidth(visible)
+            if visible_len < 0:
+                visible_len = len(visible)  # fallback if string has non-printable chars
+            padding = ' ' * (BOX_WIDTH - visible_len)
+            return (
+                f"{C['BOLD']}{C['MATRIX_GREEN']}│{C['RESET']}"
+                f"{content_with_ansi}{padding}"
+                f"{C['BOLD']}{C['MATRIX_GREEN']}│{C['RESET']}"
+            )
 
-    _hr  = '─' * BOX_WIDTH
-    lines = [
-        f"{C['MATRIX_GREEN']}{C['BOLD']}╭{_hr}╮{C['RESET']}",
-        _box_row(f" {C['RUBY']}🌐 Running on:{C['RESET']} http://{API_HOST}:{API_PORT}"),
-        _box_row(f" {C['WARNING']}🔧 Debug Mode:{C['RESET']} {DEBUG_MODE}"),
-        _box_row(f" {C['ELECTRIC_PURPLE']}💾 Cache Size:{C['RESET']} {CACHE_SIZE} | TTL: {CACHE_TTL}s"),
-        _box_row(f" {C['SCARLET']}⏰ Command Timeout:{C['RESET']} {COMMAND_TIMEOUT}s"),
-        f"{C['MATRIX_GREEN']}{C['BOLD']}╰{_hr}╯{C['RESET']}",
-    ]
-    print('\n'.join(lines), flush=True)
+        _hr  = '─' * BOX_WIDTH
+        lines = [
+            f"{C['MATRIX_GREEN']}{C['BOLD']}╭{_hr}╮{C['RESET']}",
+            _box_row(f" {C['RUBY']}🌐 Running on:{C['RESET']} http://{API_HOST}:{API_PORT}"),
+            _box_row(f" {C['WARNING']}🔧 Debug Mode:{C['RESET']} {DEBUG_MODE}"),
+            _box_row(f" {C['ELECTRIC_PURPLE']}💾 Cache Size:{C['RESET']} {CACHE_SIZE} | TTL: {CACHE_TTL}s"),
+            _box_row(f" {C['SCARLET']}⏰ Command Timeout:{C['RESET']} {COMMAND_TIMEOUT}s"),
+            f"{C['MATRIX_GREEN']}{C['BOLD']}╰{_hr}╯{C['RESET']}",
+        ]
+        print('\n'.join(lines), flush=True)
 
     # Suppress Flask's click.echo() startup banner ("* Serving Flask app", "* Debug mode").
     # These bypass the logging system entirely, so a logging filter cannot catch them.
