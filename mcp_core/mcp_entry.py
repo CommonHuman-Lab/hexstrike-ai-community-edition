@@ -21,14 +21,14 @@ def run_mcp(args, logger):
         verify_ssl = True
         if args.disable_ssl_verify:
             verify_ssl = False
-            logger.warning("⚠️  SSL certificate verification is disabled. This is insecure and should only be used for testing.")
+            logger.warning("SSL certificate verification is disabled. This is insecure and should only be used for testing.")
 
         hexstrike_client = HexStrikeClient(args.server, auth_token=auth_token, timeout=args.timeout, verify_ssl=verify_ssl)
         # Check server health and log the result
         health = hexstrike_client.check_health()
         if "error" in health:
-            logger.warning(f"⚠️  Unable to connect to HexStrike AI API server at {args.server}: {health['error']}")
-            logger.warning("🚀 MCP server will start, but tool execution may fail")
+            logger.warning(f"Unable to connect to HexStrike AI API server at {args.server}: {health['error']}")
+            logger.warning("MCP server will start, but tool execution may fail")
         else:
             logger.info(f"🏥 Server health status: {health['status']}")
             logger.info(f"📊 Version: {config_core.get('VERSION', 'unknown')}")
