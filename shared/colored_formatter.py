@@ -23,11 +23,19 @@ class ColoredFormatter(logging.Formatter):
         'CRITICAL': '🔥'
     }
 
+    _stream: object = None
+
     def format(self, record):
+        record = logging.makeLogRecord(record.__dict__)
         emoji = self.EMOJIS.get(record.levelname, '📝')
         color = self.COLORS.get(record.levelname, _BRIGHT_WHITE)
+
+        # Only apply ANSI codes if the handler stream is a real TTY
+        stream = getattr(self, '_stream', None)
+        use_color = stream.isatty() if stream and hasattr(stream, 'isatty') else False
+
         if emoji is not None and emoji != '':
-            record.msg = f"{color}{emoji} {record.msg}{_RESET}"
+            record.msg = f"{color}{emoji} {record.msg}{_RESET}" if use_color else f"{emoji} {record.msg}"
         else:
-            record.msg = f"{color}{record.msg}{_RESET}"
+            record.msg = f"{color}{record.msg}{_RESET}" if use_color else record.msg
         return super().format(record)

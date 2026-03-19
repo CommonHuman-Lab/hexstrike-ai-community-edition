@@ -26,10 +26,12 @@ logging.basicConfig(
 
 # Apply colored formatter
 for handler in logging.getLogger().handlers:
-    handler.setFormatter(ColoredFormatter(
+    fmt = ColoredFormatter(
         "[%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S"
-    ))
+    )
+    fmt._stream = getattr(handler, 'stream', None)
+    handler.setFormatter(fmt)
 
 logger = logging.getLogger(__name__)
 
