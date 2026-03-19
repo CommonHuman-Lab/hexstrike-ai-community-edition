@@ -30,7 +30,6 @@ def run_mcp(args, logger):
             logger.warning(f"⚠️  Unable to connect to HexStrike AI API server at {args.server}: {health['error']}")
             logger.warning("🚀 MCP server will start, but tool execution may fail")
         else:
-            logger.info(f"🎯 Successfully connected to HexStrike AI API server at {args.server}")
             logger.info(f"🏥 Server health status: {health['status']}")
             logger.info(f"📊 Version: {config_core.get('VERSION', 'unknown')}")
             if not health.get("all_essential_tools_available", False):
@@ -41,8 +40,7 @@ def run_mcp(args, logger):
 
         # Set up and run the MCP server
         mcp = setup_mcp_server(hexstrike_client, logger, compact=args.compact, profiles=args.profile)
-        logger.info("🚀 Starting HexStrike AI MCP server")
-        logger.info("🤖 Ready to serve AI agents with enhanced cybersecurity capabilities")
+        logger.info("🚀 HexStrike AI MCP server ready")
 
         # stdio fallback for MCP clients that don't support the run() method
         try:
