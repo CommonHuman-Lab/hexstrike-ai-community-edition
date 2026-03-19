@@ -4,6 +4,18 @@ import sys
 from shared.colored_formatter import ColoredFormatter
 
 _ANSI_ESCAPE = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
+_CLF_ACCESS = re.compile(r' - \[\d{2}/\w+/\d{4} \d{2}:\d{2}:\d{2}\]| -\s*$')
+
+
+class _StripCLFNoise(logging.Filter):
+    """Remove redundant CLF timestamp and trailing dash from Werkzeug access log lines."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        msg = record.getMessage()
+        clean = _CLF_ACCESS.sub('', msg)
+        record.msg = clean
+        record.args = None
+        return True
 
 
 class _PlainFormatter(logging.Formatter):
@@ -42,5 +54,8 @@ def setup_logging(log_file: str = 'hexstrike.log') -> logging.Logger:
         root.addHandler(file_handler)
     except PermissionError:
         root.warning("Could not open log file %s — logging to console only.", log_file)
+
+    # Strip redundant CLF timestamp and trailing dash from Werkzeug access log lines
+    logging.getLogger('werkzeug').addFilter(_StripCLFNoise())
 
     return root
