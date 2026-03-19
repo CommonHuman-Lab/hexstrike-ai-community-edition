@@ -40,7 +40,6 @@ COMMAND_TIMEOUT = config_core.get("COMMAND_TIMEOUT", 300)  # 5 minutes default t
 CACHE_SIZE = config_core.get("CACHE_SIZE", 1000)
 CACHE_TTL = config_core.get("CACHE_TTL", 3600)  # 1 hour default TTL
 
-
 @app.before_request
 def optional_bearer_auth():
     # If no token is configured, allow all requests
@@ -57,7 +56,6 @@ def optional_bearer_auth():
     if not hmac.compare_digest(token, API_TOKEN):
         abort(401, description="Unauthorized!")
 
-
 @app.before_request
 def require_json_for_post():
     """Return 400 instead of a 500 AttributeError when a POST body is missing or not JSON."""
@@ -69,7 +67,6 @@ def require_json_for_post():
 
 register_blueprints(app)
 
-
 @app.errorhandler(Exception)
 def handle_unhandled_exception(e):
     logger.exception("Unhandled exception")
@@ -77,7 +74,6 @@ def handle_unhandled_exception(e):
 
 if __name__ == "__main__":
     BANNER = ModernVisualEngine.create_banner()
-    # Display the beautiful new banner
     print(BANNER)
 
     parser = argparse.ArgumentParser(description="Run the HexStrike AI API Server")
@@ -97,19 +93,37 @@ if __name__ == "__main__":
     if args.host != API_HOST:
         API_HOST = args.host
 
-    # Enhanced startup messages with beautiful formatting
-    # Printed directly so the logger prefix doesn't break box alignment
-    startup_info = f"""
-{ModernVisualEngine.COLORS['MATRIX_GREEN']}{ModernVisualEngine.COLORS['BOLD']}╭─────────────────────────────────────────────────────────────────────────────╮{ModernVisualEngine.COLORS['RESET']}
-{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['NEON_BLUE']}🚀 Starting HexStrike AI Tools API Server{ModernVisualEngine.COLORS['RESET']}
-{ModernVisualEngine.COLORS['BOLD']}├─────────────────────────────────────────────────────────────────────────────┤{ModernVisualEngine.COLORS['RESET']}
-{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['RUBY']}🌐 Running on:{ModernVisualEngine.COLORS['RESET']} {API_HOST}:{API_PORT}
-{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['WARNING']}🔧 Debug Mode:{ModernVisualEngine.COLORS['RESET']} {DEBUG_MODE}
-{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['ELECTRIC_PURPLE']}💾 Cache Size:{ModernVisualEngine.COLORS['RESET']} {CACHE_SIZE} | TTL: {CACHE_TTL}s
-{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['SCARLET']}⏱️  Command Timeout:{ModernVisualEngine.COLORS['RESET']} {COMMAND_TIMEOUT}s
-{ModernVisualEngine.COLORS['BOLD']}│{ModernVisualEngine.COLORS['RESET']} {ModernVisualEngine.COLORS['MATRIX_GREEN']}✨ Enhanced Visual Engine:{ModernVisualEngine.COLORS['RESET']} Active
-{ModernVisualEngine.COLORS['MATRIX_GREEN']}{ModernVisualEngine.COLORS['BOLD']}╰─────────────────────────────────────────────────────────────────────────────╯{ModernVisualEngine.COLORS['RESET']}
-"""
-    print(startup_info.strip(), flush=True)
+    # Enhanced startup messages with beautiful formatting.
+    # ANSI codes have zero visible width, so we track visible length manually
+    C = ModernVisualEngine.COLORS
+    BOX_WIDTH = 66  # visible characters between the two │ borders (including leading space)
+
+    import re as _re
+    from wcwidth import wcswidth as _wcswidth
+    _ansi = _re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
+
+    def _box_row(content_with_ansi: str) -> str:
+        """Return a full box row: │ <content padded to BOX_WIDTH> │"""
+        visible = _ansi.sub('', content_with_ansi)
+        visible_len = _wcswidth(visible)
+        if visible_len < 0:
+            visible_len = len(visible)  # fallback if string has non-printable chars
+        padding = ' ' * (BOX_WIDTH - visible_len)
+        return (
+            f"{C['BOLD']}{C['MATRIX_GREEN']}│{C['RESET']}"
+            f"{content_with_ansi}{padding}"
+            f"{C['BOLD']}{C['MATRIX_GREEN']}│{C['RESET']}"
+        )
+
+    _hr  = '─' * BOX_WIDTH
+    lines = [
+        f"{C['MATRIX_GREEN']}{C['BOLD']}╭{_hr}╮{C['RESET']}",
+        _box_row(f" {C['RUBY']}🌐 Running on:{C['RESET']} {API_HOST}:{API_PORT}"),
+        _box_row(f" {C['WARNING']}🔧 Debug Mode:{C['RESET']} {DEBUG_MODE}"),
+        _box_row(f" {C['ELECTRIC_PURPLE']}💾 Cache Size:{C['RESET']} {CACHE_SIZE} | TTL: {CACHE_TTL}s"),
+        _box_row(f" {C['SCARLET']}⏰ Command Timeout:{C['RESET']} {COMMAND_TIMEOUT}s"),
+        f"{C['MATRIX_GREEN']}{C['BOLD']}╰{_hr}╯{C['RESET']}",
+    ]
+    print('\n'.join(lines), flush=True)
 
     app.run(host=API_HOST, port=API_PORT, debug=DEBUG_MODE)
