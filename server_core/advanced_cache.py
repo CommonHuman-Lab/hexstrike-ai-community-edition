@@ -41,11 +41,11 @@ class AdvancedCache:
 
     def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
         """Set value in cache with optional TTL"""
-        if not self._cleanup_thread_started:
-            self._cleanup_thread_started = True
-            threading.Thread(target=self._cleanup_expired, daemon=True).start()
-
         with self.cache_lock:
+            if not self._cleanup_thread_started:
+                self._cleanup_thread_started = True
+                threading.Thread(target=self._cleanup_expired, daemon=True).start()
+
             current_time = time.time()
 
             # Use default TTL if not specified
