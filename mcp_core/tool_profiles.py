@@ -302,7 +302,7 @@ TOOL_PROFILES = {
     "db_query": [
         lambda mcp, client, logger: register_mysql_tools(mcp, client, logger),
         lambda mcp, client, logger: register_sqlite_tools(mcp, client, logger),
-        lambda mcp, client, logger: register_postgresql_tools(mcp, client, logger),
+        #lambda mcp, client, logger: register_postgresql_tools(mcp, client, logger),
     ],
 
     #Tools for Python environment interaction and code execution
