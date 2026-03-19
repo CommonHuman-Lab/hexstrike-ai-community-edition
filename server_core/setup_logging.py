@@ -55,4 +55,15 @@ def setup_logging(log_file: str = 'hexstrike.log') -> logging.Logger:
     # Strip redundant CLF timestamp and trailing dash from Werkzeug access log lines
     logging.getLogger('werkzeug').addFilter(_StripCLFNoise())
 
+    # Suppress Werkzeug's startup banner lines (e.g. "Serving Flask app",
+    # "Development server" warning, "Running on ...").
+    class _SuppressWerkzeugBanner(logging.Filter):
+        _BANNER_PREFIXES = ('WARNING: This is a development server',)
+
+        def filter(self, record: logging.LogRecord) -> bool:
+            msg = record.getMessage()
+            return not any(msg.__contains__(p) for p in self._BANNER_PREFIXES)
+
+    logging.getLogger('werkzeug').addFilter(_SuppressWerkzeugBanner())
+
     return root

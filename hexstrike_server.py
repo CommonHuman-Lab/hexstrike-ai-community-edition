@@ -126,4 +126,9 @@ if __name__ == "__main__":
     ]
     print('\n'.join(lines), flush=True)
 
+    # Suppress Flask's click.echo() startup banner ("* Serving Flask app", "* Debug mode").
+    # These bypass the logging system entirely, so a logging filter cannot catch them.
+    import flask.cli as _flask_cli
+    _flask_cli.show_server_banner = lambda *_a, **_kw: None
+
     app.run(host=API_HOST, port=API_PORT, debug=DEBUG_MODE)
