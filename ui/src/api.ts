@@ -30,11 +30,11 @@ export interface ResourceUsageResponse {
   current_usage: {
     cpu_percent: number;
     memory_percent: number;
-    memory_used_mb: number;
-    memory_total_mb: number;
+    memory_available_gb: number;
     disk_percent: number;
-    disk_used_gb: number;
-    disk_total_gb: number;
+    disk_free_gb: number;
+    disk_used_gb?: number;
+    disk_total_gb?: number;
     load_avg?: number[];
     process_count?: number;
   };
