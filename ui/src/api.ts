@@ -16,10 +16,9 @@ export interface HealthResponse {
     evictions: number;
   };
   telemetry: {
-    total_requests: number;
-    successful_requests: number;
-    failed_requests: number;
-    start_time: number;
+    commands_executed: number;
+    success_rate: string;
+    average_execution_time: string;
   };
   uptime: number;
   tool_availability_age_seconds: number;

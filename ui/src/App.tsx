@@ -1181,9 +1181,15 @@ export default function App() {
                   />
                   <StatCard
                     icon={<Zap size={20} />}
-                    label="Requests"
-                    value={health.telemetry?.total_requests ?? 0}
-                    sub={`${health.telemetry?.successful_requests ?? 0} ok · ${health.telemetry?.failed_requests ?? 0} failed`}
+                    label="Commands"
+                    value={health.telemetry?.commands_executed ?? 0}
+                    sub={(() => {
+                      const total = health.telemetry?.commands_executed ?? 0
+                      const rate = parseFloat(health.telemetry?.success_rate ?? '0')
+                      const ok = Math.round(total * rate / 100)
+                      const failed = total - ok
+                      return `${ok} ok · ${failed} failed`
+                    })()}
                     accent="var(--purple)"
                   />
                 </div>
