@@ -663,6 +663,8 @@ export default function App() {
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [dashCacheSize, setDashCacheSize] = useState<number | null>(null)
+  const [dashCacheTtl, setDashCacheTtl] = useState<number | null>(null)
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -699,14 +701,23 @@ export default function App() {
     } catch { /* non-critical */ }
   }, [])
 
+  const fetchDashSettings = useCallback(async () => {
+    try {
+      const r = await api.getSettings()
+      setDashCacheSize(r.settings.runtime.cache_size)
+      setDashCacheTtl(r.settings.runtime.cache_ttl)
+    } catch { /* non-critical */ }
+  }, [])
+
   useEffect(() => {
     if (!authed) return
     setLoading(true)
     fetchAll()
     fetchTools()
+    fetchDashSettings()
     timerRef.current = setInterval(fetchAll, POLL_MS)
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
-  }, [authed, fetchAll, fetchTools])
+  }, [authed, fetchAll, fetchTools, fetchDashSettings])
 
   // Try without token first
   useEffect(() => {
@@ -816,9 +827,9 @@ export default function App() {
                   />
                   <StatCard
                     icon={<Database size={20} />}
-                    label="Registry"
-                    value={`${tools.length} tools`}
-                    sub="registered tool definitions"
+                    label="Cache"
+                    value={dashCacheSize !== null ? `${dashCacheSize} entries` : '—'}
+                    sub={dashCacheTtl !== null ? `${dashCacheTtl}s TTL` : 'cache config'}
                     accent="var(--blue)"
                   />
                   <StatCard
