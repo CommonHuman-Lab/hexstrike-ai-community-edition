@@ -655,26 +655,6 @@ function HelpPage() {
   return (
     <div className="help-page">
       <section className="section">
-        <div className="section-header"><h3>Quick Start</h3></div>
-        <ol className="help-steps">
-          <li>
-            <strong>Start the HexStrike server</strong>
-            <CodeBlock language="bash" code="python3 hexstrike_server.py" />
-          </li>
-          <li>
-            <strong>Verify it is running</strong>
-            <CodeBlock language="bash" code="curl http://localhost:8888/health" />
-          </li>
-          <li>
-            <strong>Configure your IDE</strong> — choose below and paste the config into the correct file.
-          </li>
-          <li>
-            <strong>Restart your IDE / reload the MCP server</strong> — the hexstrike-ai tools will appear.
-          </li>
-        </ol>
-      </section>
-
-      <section className="section">
         <div className="section-header"><h3>IDE / Agent Configuration</h3></div>
 
         <div className="help-path-row">
