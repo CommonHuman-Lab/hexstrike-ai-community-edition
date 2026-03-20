@@ -52,7 +52,6 @@ def stream_logs():
     """SSE endpoint — streams new log lines as they are appended."""
     n = min(int(request.args.get("lines", 50)), MAX_LINES)
 
-    @stream_with_context
     def generate():
         # Send the last n lines as the initial burst
         initial = _tail(LOG_FILE, n)
@@ -89,5 +88,4 @@ def stream_logs():
                 # Keepalive comment so the browser doesn't time out
                 yield ": keepalive\n\n"
 
-    return Response(generate(), mimetype="text/event-stream",
-                    headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+    return Response(stream_with_context(generate()), mimetype="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
