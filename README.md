@@ -6,7 +6,7 @@
 ### AI-Powered MCP Cybersecurity Automation Platform
 
 [![Python](https://img.shields.io/badge/Python-3.13%2B-blue.svg)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-AGPLv3-green.svg)](LICENSE)
 [![Security](https://img.shields.io/badge/Security-Penetration%20Testing-red.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![Tools](https://img.shields.io/badge/Security%20Tools-180%2B-brightgreen.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
@@ -638,17 +638,17 @@ AI Agent: "Thank you for clarifying ownership and intent. To proceed with a pene
 
 ---
 
-## Contributing
+## License
 
-We welcome contributions from the cybersecurity and AI community!
+This project is licensed under the AGPLv3.
+You're free to use, modify, and distribute this software.
 
-### Priority Areas for Contribution
+However:
 
-- **🤖 AI Agent Integrations** - Support for new AI platforms and agents
-- **🛠️ Security Tool Additions** - Integration of additional security tools
-- **⚡ Performance Optimizations** - Caching improvements and scalability enhancements
-- **📖 Documentation** - AI usage examples and integration guides
-- **🧪 Testing Frameworks** - Automated testing for AI agent interactions
+- If you run this as a service, you must provide source code
+- If you distribute it, it must remain open source
+
+If you want to use this commercially without open-sourcing your changes, contact me.
 
 ---
 
