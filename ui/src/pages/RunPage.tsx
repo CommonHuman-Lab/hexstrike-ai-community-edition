@@ -157,7 +157,7 @@ export function RunPage({ tools, toolsStatus, runHistory: history, setRunHistory
     }
     try {
       const result = await api.runTool(selected.endpoint, payload)
-      const entry: RunHistoryEntry = { id, tool: selected.name, params: payload, result, ts: new Date() }
+      const entry: RunHistoryEntry = { id, tool: selected.name, params: payload, result, ts: new Date(), source: 'browser' }
       setHistory(h => [entry, ...h])
       setViewEntry(entry)
     } catch (e) {

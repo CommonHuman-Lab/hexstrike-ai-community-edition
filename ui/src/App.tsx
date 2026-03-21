@@ -126,7 +126,17 @@ export default function App() {
       setRunHistory(prev => {
         const existingServerIds = new Set(prev.filter(e => e.source === 'server').map(e => e.serverId))
         const newEntries: RunHistoryEntry[] = r.runs
-          .filter((e: ApiRunHistoryEntry) => !existingServerIds.has(e.id))
+          .filter((e: ApiRunHistoryEntry) => {
+            if (existingServerIds.has(e.id)) return false
+            // Skip server entries that match a local browser run (same tool, within 10s)
+            const serverTs = e.timestamp ? new Date(e.timestamp).getTime() : 0
+            return !prev.some(local =>
+              local.source === 'browser' &&
+              local.tool === e.tool &&
+              serverTs > 0 &&
+              Math.abs(local.ts.getTime() - serverTs) < 10_000
+            )
+          })
           .map((e: ApiRunHistoryEntry) => ({
             id: -(e.id),
             serverId: e.id,
