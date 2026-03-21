@@ -7,6 +7,8 @@ import {
   ChevronDown, ChevronRight, Clock, Database, Zap, Wifi,
   Settings as SettingsIcon, HelpCircle, LayoutDashboard,
   Terminal, Copy, Check, Save, Play, ChevronUp, Download, Github,
+  ListTodo, Wrench, FileText, Layers, StopCircle, PauseCircle, PlayCircle,
+  Target, BarChart2, TrendingUp,
 } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer
@@ -15,6 +17,7 @@ import {
   api, setToken, clearToken, hasToken,
   type WebDashboardResponse, type Tool,
   type Settings, type ToolExecResponse, type RunHistoryEntry as ApiRunHistoryEntry,
+  type ProcessDashboardResponse, type SessionsResponse, type SessionSummary,
 } from './api'
 import './App.css'
 
@@ -905,96 +908,6 @@ function ToolModal({ tool, onClose, installed }: { tool: Tool; onClose: () => vo
   )
 }
 
-// ─── Tool Registry Section ────────────────────────────────────────────────────
-
-function ToolRegistrySection({ tools, toolsStatus }: { tools: Tool[]; toolsStatus: Record<string, boolean> }) {
-  const [search, setSearch] = useState('')
-  const [activeCat, setActiveCat] = useState<string>('all')
-  const [selectedTool, setSelectedTool] = useState<Tool | null>(null)
-  const [missingOnly, setMissingOnly] = useState(false)
-
-  const cats = ['all', ...Array.from(new Set(tools.map(t => t.category))).sort()]
-  const filtered = tools.filter(t => {
-    const matchCat = activeCat === 'all' || t.category === activeCat
-    const q = search.toLowerCase()
-    const matchSearch = !q || t.name.includes(q) || t.desc.toLowerCase().includes(q)
-    const matchMissing = !missingOnly || toolsStatus[t.name] === false
-    return matchCat && matchSearch && matchMissing
-  }).sort((a, b) => a.name.localeCompare(b.name))
-
-  const missingCount = tools.filter(t => toolsStatus[t.name] === false).length
-
-  return (
-    <>
-      {selectedTool && <ToolModal tool={selectedTool} onClose={() => setSelectedTool(null)} installed={toolsStatus[selectedTool.name]} />}
-      <section className="section">
-        <div className="section-header">
-          <h3>Tool Registry <span className="badge">{tools.length}</span></h3>
-        </div>
-        <div className="registry-controls">
-          <div className="registry-controls-top">
-            <input
-              className="search-input mono"
-              placeholder="Search tools…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-            <button
-              className={`registry-missing-toggle${missingOnly ? ' active' : ''}`}
-              onClick={() => setMissingOnly(o => !o)}
-              title="Show only tools that are not installed"
-            >
-              <XCircle size={12} />
-              Not installed
-              {missingCount > 0 && <span className="badge">{missingCount}</span>}
-            </button>
-          </div>
-          <div className="cat-tabs">
-            {cats.map(c => (
-              <button
-                key={c}
-                className={`cat-tab ${activeCat === c ? 'active' : ''}`}
-                onClick={() => setActiveCat(c)}
-              >
-                {c.replace(/_/g, ' ')}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="registry-grid">
-          {filtered.map(t => (
-            <div
-              key={t.name}
-              className="registry-card registry-card--clickable"
-              onClick={() => setSelectedTool(t)}
-              title={`Click for details on ${t.name}`}
-            >
-              <div className="registry-card-top">
-                <span className="registry-name mono">{t.name}</span>
-                <span className="registry-cat">{t.category.replace(/_/g, ' ')}</span>
-                {toolsStatus[t.name] === true && (
-                  <span className="registry-installed" title="Installed"><CheckCircle size={11} color="var(--green)" /></span>
-                )}
-                {toolsStatus[t.name] === false && (
-                  <span className="registry-installed" title="Not installed"><XCircle size={11} color="var(--red)" /></span>
-                )}
-              </div>
-              <p className="registry-desc">{t.desc}</p>
-              <div className="registry-footer">
-                <span className="registry-endpoint mono">{t.method} {t.endpoint}</span>
-                <span className="registry-eff" title="Effectiveness">
-                  {'█'.repeat(Math.round(t.effectiveness * 5))}{'░'.repeat(5 - Math.round(t.effectiveness * 5))}
-                </span>
-              </div>
-            </div>
-          ))}
-          {filtered.length === 0 && <p className="empty-state">No tools match your filter.</p>}
-        </div>
-      </section>
-    </>
-  )
-}
-
 // ─── Code Block ──────────────────────────────────────────────────────────────
 
 function CodeBlock({ code, language = '' }: { code: string; language?: string }) {
@@ -1343,12 +1256,519 @@ function SettingsField({ label, unit, hint, value, onChange }: {
   )
 }
 
+// ─── Tasks Page ───────────────────────────────────────────────────────────────
+
+function TasksPage() {
+  const [data, setData] = useState<ProcessDashboardResponse | null>(null)
+  const [poolStats, setPoolStats] = useState<Record<string, unknown> | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [actionMsg, setActionMsg] = useState<string | null>(null)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  async function fetchData() {
+    try {
+      const [dash, pool] = await Promise.all([api.processDashboard(), api.processPoolStats()])
+      setData(dash)
+      setPoolStats(pool as Record<string, unknown>)
+      setError(null)
+    } catch (e) {
+      setError(String(e))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+    pollRef.current = setInterval(fetchData, 3000)
+    return () => { if (pollRef.current) clearInterval(pollRef.current) }
+  }, [])
+
+  async function doAction(fn: () => Promise<{ success: boolean; message?: string; error?: string }>, label: string) {
+    try {
+      const r = await fn()
+      setActionMsg(r.success ? (r.message ?? label + ' OK') : (r.error ?? label + ' failed'))
+    } catch (e) {
+      setActionMsg(String(e))
+    }
+    setTimeout(() => setActionMsg(null), 3000)
+    fetchData()
+  }
+
+  if (loading && !data) return (
+    <div className="loading-state"><RefreshCw size={20} className="spin" color="var(--green)" /><p>Loading tasks…</p></div>
+  )
+  if (error && !data) return (
+    <div className="error-banner"><XCircle size={16} /> {error}</div>
+  )
+
+  const processes = data?.processes ?? []
+  const load = data?.system_load
+
+  return (
+    <div className="page-content">
+      {/* ── Pool Stats Header ── */}
+      {poolStats && (
+        <section className="section">
+          <div className="section-header">
+            <h3>Worker Pool</h3>
+            <span className="section-meta mono">{data?.timestamp?.slice(11, 19)}</span>
+          </div>
+          <div className="tasks-pool-row">
+            {load && (
+              <>
+                <div className="tasks-pool-stat">
+                  <Cpu size={14} color="var(--green)" />
+                  <span className="tasks-pool-label">CPU</span>
+                  <span className="tasks-pool-val mono">{load.cpu_percent.toFixed(1)}%</span>
+                </div>
+                <div className="tasks-pool-stat">
+                  <MemoryStick size={14} color="var(--blue)" />
+                  <span className="tasks-pool-label">Memory</span>
+                  <span className="tasks-pool-val mono">{load.memory_percent.toFixed(1)}%</span>
+                </div>
+                <div className="tasks-pool-stat">
+                  <Wifi size={14} color="var(--text-dim)" />
+                  <span className="tasks-pool-label">Connections</span>
+                  <span className="tasks-pool-val mono">{load.active_connections}</span>
+                </div>
+              </>
+            )}
+            {Object.entries(poolStats)
+              .filter(([k]) => !['success', 'timestamp'].includes(k))
+              .slice(0, 6)
+              .map(([k, v]) => (
+                <div key={k} className="tasks-pool-stat">
+                  <Activity size={14} color="var(--text-dim)" />
+                  <span className="tasks-pool-label">{k.replace(/_/g, ' ')}</span>
+                  <span className="tasks-pool-val mono">{String(v)}</span>
+                </div>
+              ))
+            }
+          </div>
+        </section>
+      )}
+
+      {/* ── Process Table ── */}
+      <section className="section">
+        <div className="section-header">
+          <h3>Active Processes <span className="badge">{processes.length}</span></h3>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {actionMsg && <span className="section-meta" style={{ color: 'var(--amber)' }}>{actionMsg}</span>}
+            <button className="icon-btn" onClick={fetchData} title="Refresh"><RefreshCw size={14} /></button>
+          </div>
+        </div>
+
+        {processes.length === 0 ? (
+          <div className="tasks-empty">
+            <ListTodo size={32} color="var(--text-dim)" />
+            <p>No active processes</p>
+          </div>
+        ) : (
+          <div className="tasks-table">
+            <div className="tasks-thead">
+              <span>PID</span>
+              <span>Command</span>
+              <span>Status</span>
+              <span>Progress</span>
+              <span>Runtime</span>
+              <span>ETA</span>
+              <span>Actions</span>
+            </div>
+            {processes.map(p => {
+              const pct = parseFloat(p.progress_percent) || 0
+              const barColor = p.status === 'running' ? 'var(--green)' : p.status === 'paused' ? 'var(--amber)' : 'var(--text-dim)'
+              return (
+                <div key={p.pid} className="tasks-row">
+                  <span className="mono tasks-pid">{p.pid}</span>
+                  <span className="mono tasks-cmd" title={p.command}>{p.command}</span>
+                  <span className={`tasks-status tasks-status--${p.status}`}>{p.status}</span>
+                  <div className="tasks-progress">
+                    <div className="tasks-progress-bar-bg">
+                      <div className="tasks-progress-bar-fill" style={{ width: `${Math.min(100, pct)}%`, background: barColor }} />
+                    </div>
+                    <span className="tasks-pct mono">{p.progress_percent}</span>
+                  </div>
+                  <span className="mono">{p.runtime}</span>
+                  <span className="mono">{p.eta}</span>
+                  <div className="tasks-actions">
+                    {p.status !== 'paused' && (
+                      <button className="tasks-btn tasks-btn--pause" title="Pause" onClick={() => doAction(() => api.pauseProcess(p.pid), 'Paused')}>
+                        <PauseCircle size={14} />
+                      </button>
+                    )}
+                    {p.status === 'paused' && (
+                      <button className="tasks-btn tasks-btn--resume" title="Resume" onClick={() => doAction(() => api.resumeProcess(p.pid), 'Resumed')}>
+                        <PlayCircle size={14} />
+                      </button>
+                    )}
+                    <button className="tasks-btn tasks-btn--stop" title="Terminate" onClick={() => doAction(() => api.terminateProcess(p.pid), 'Terminated')}>
+                      <StopCircle size={14} />
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </section>
+    </div>
+  )
+}
+
+// ─── Tools Page ───────────────────────────────────────────────────────────────
+
+function ToolsPage({ tools, toolsStatus }: { tools: Tool[]; toolsStatus: Record<string, boolean> }) {
+  const [search, setSearch] = useState('')
+  const [activeCat, setActiveCat] = useState<string>('all')
+  const [selectedTool, setSelectedTool] = useState<Tool | null>(null)
+  const [missingOnly, setMissingOnly] = useState(false)
+
+  const cats = ['all', ...Array.from(new Set(tools.map(t => t.category))).sort()]
+  const filtered = tools.filter(t => {
+    const matchCat = activeCat === 'all' || t.category === activeCat
+    const q = search.toLowerCase()
+    const matchSearch = !q || t.name.includes(q) || t.desc.toLowerCase().includes(q)
+    const matchMissing = !missingOnly || toolsStatus[t.name] === false
+    return matchCat && matchSearch && matchMissing
+  }).sort((a, b) => a.name.localeCompare(b.name))
+
+  const installedCount = tools.filter(t => toolsStatus[t.name] === true).length
+  const missingCount = tools.filter(t => toolsStatus[t.name] === false).length
+
+  return (
+    <div className="page-content">
+      {selectedTool && <ToolModal tool={selectedTool} onClose={() => setSelectedTool(null)} installed={toolsStatus[selectedTool.name]} />}
+
+      {/* ── Summary row ── */}
+      <div className="kpi-row">
+        <StatCard icon={<Wrench size={20} />} label="Total Tools" value={tools.length} sub="in registry" accent="var(--blue)" />
+        <StatCard icon={<CheckCircle size={20} />} label="Installed" value={installedCount} sub={`${((installedCount / Math.max(tools.length, 1)) * 100).toFixed(0)}% coverage`} accent="var(--green)" />
+        <StatCard icon={<XCircle size={20} />} label="Missing" value={missingCount} sub="not installed" accent={missingCount > 0 ? 'var(--amber)' : 'var(--text-dim)'} />
+        <StatCard icon={<Database size={20} />} label="Categories" value={cats.length - 1} sub="tool categories" accent="var(--purple)" />
+      </div>
+
+      <section className="section">
+        <div className="section-header">
+          <h3>Tool Registry <span className="badge">{filtered.length} / {tools.length}</span></h3>
+        </div>
+        <div className="registry-controls">
+          <div className="registry-controls-top">
+            <input
+              className="search-input mono"
+              placeholder="Search tools…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            <button
+              className={`registry-missing-toggle${missingOnly ? ' active' : ''}`}
+              onClick={() => setMissingOnly(o => !o)}
+              title="Show only tools not installed"
+            >
+              <XCircle size={12} />
+              Not installed
+              {missingCount > 0 && <span className="badge">{missingCount}</span>}
+            </button>
+          </div>
+          <div className="cat-tabs">
+            {cats.map(c => (
+              <button key={c} className={`cat-tab ${activeCat === c ? 'active' : ''}`} onClick={() => setActiveCat(c)}>
+                {c.replace(/_/g, ' ')}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="registry-grid registry-grid--wide">
+          {filtered.map(t => (
+            <div
+              key={t.name}
+              className="registry-card registry-card--clickable"
+              onClick={() => setSelectedTool(t)}
+              title={`Click for details on ${t.name}`}
+            >
+              <div className="registry-card-top">
+                <span className="registry-name mono">{t.name}</span>
+                <span className="registry-cat">{t.category.replace(/_/g, ' ')}</span>
+                {toolsStatus[t.name] === true && <span className="registry-installed" title="Installed"><CheckCircle size={11} color="var(--green)" /></span>}
+                {toolsStatus[t.name] === false && <span className="registry-installed" title="Not installed"><XCircle size={11} color="var(--red)" /></span>}
+              </div>
+              <p className="registry-desc">{t.desc}</p>
+              <div className="registry-footer">
+                <span className="registry-endpoint mono">{t.method} {t.endpoint}</span>
+                <span className="registry-eff" title="Effectiveness">
+                  {'█'.repeat(Math.round(t.effectiveness * 5))}{'░'.repeat(5 - Math.round(t.effectiveness * 5))}
+                </span>
+              </div>
+            </div>
+          ))}
+          {filtered.length === 0 && <p className="empty-state">No tools match your filter.</p>}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+// ─── Reports Page ─────────────────────────────────────────────────────────────
+
+function ReportsPage({ runHistory }: { runHistory: RunHistoryEntry[] }) {
+  type GroupBy = 'tool' | 'target'
+  const [groupBy, setGroupBy] = useState<GroupBy>('tool')
+  const [search, setSearch] = useState('')
+
+  // Group by tool name
+  const byTool = runHistory.reduce<Record<string, RunHistoryEntry[]>>((acc, e) => {
+    ;(acc[e.tool] = acc[e.tool] || []).push(e)
+    return acc
+  }, {})
+
+  // Group by first required param value (target / url / host / ip / etc.)
+  function extractTarget(e: RunHistoryEntry): string {
+    const TARGET_KEYS = ['target', 'url', 'host', 'ip', 'domain', 'file']
+    for (const k of TARGET_KEYS) {
+      const v = e.params[k]
+      if (v) return String(v)
+    }
+    const first = Object.values(e.params)[0]
+    return first ? String(first) : '(no target)'
+  }
+
+  const byTarget = runHistory.reduce<Record<string, RunHistoryEntry[]>>((acc, e) => {
+    const t = extractTarget(e)
+    ;(acc[t] = acc[t] || []).push(e)
+    return acc
+  }, {})
+
+  const grouped = groupBy === 'tool' ? byTool : byTarget
+
+  function stats(entries: RunHistoryEntry[]) {
+    const ok = entries.filter(e => e.result.success).length
+    const avgTime = entries.reduce((s, e) => s + e.result.execution_time, 0) / entries.length
+    const last = entries.reduce((a, b) => a.ts > b.ts ? a : b)
+    return { total: entries.length, ok, failed: entries.length - ok, avgTime, last }
+  }
+
+  const q = search.toLowerCase()
+  const keys = Object.keys(grouped).filter(k => !q || k.toLowerCase().includes(q)).sort()
+
+  // Timeline — last 50 runs
+  const timeline = [...runHistory].sort((a, b) => a.ts.getTime() - b.ts.getTime()).slice(-50)
+
+  if (runHistory.length === 0) return (
+    <div className="page-content">
+      <div className="tasks-empty">
+        <FileText size={32} color="var(--text-dim)" />
+        <p>No run history yet. Execute tools from the Run tab to see reports.</p>
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="page-content">
+      {/* ── KPI Row ── */}
+      <div className="kpi-row">
+        <StatCard icon={<BarChart2 size={20} />} label="Total Runs" value={runHistory.length} sub="all time" accent="var(--blue)" />
+        <StatCard
+          icon={<CheckCircle size={20} />}
+          label="Success Rate"
+          value={`${((runHistory.filter(e => e.result.success).length / runHistory.length) * 100).toFixed(0)}%`}
+          sub={`${runHistory.filter(e => e.result.success).length} ok · ${runHistory.filter(e => !e.result.success).length} failed`}
+          accent="var(--green)"
+        />
+        <StatCard
+          icon={<Clock size={20} />}
+          label="Avg Time"
+          value={`${(runHistory.reduce((s, e) => s + e.result.execution_time, 0) / runHistory.length).toFixed(1)}s`}
+          sub="per run"
+          accent="var(--purple)"
+        />
+        <StatCard icon={<TrendingUp size={20} />} label="Unique Tools" value={Object.keys(byTool).length} sub="used" accent="var(--amber)" />
+      </div>
+
+      {/* ── Timeline ── */}
+      <section className="section">
+        <div className="section-header"><h3>Run Timeline <span className="section-meta">last {timeline.length}</span></h3></div>
+        <div className="reports-timeline">
+          {timeline.map((e, i) => (
+            <div
+              key={i}
+              className={`reports-timeline-dot ${e.result.success ? 'ok' : 'fail'}`}
+              title={`${e.tool} — ${e.ts.toLocaleTimeString('en-GB')} — ${e.result.success ? 'ok' : 'failed'} (${e.result.execution_time.toFixed(1)}s)`}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* ── Grouped stats ── */}
+      <section className="section">
+        <div className="section-header">
+          <h3>Breakdown</h3>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input
+              className="search-input mono"
+              style={{ width: 180 }}
+              placeholder="Search…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            <button className={`cat-tab ${groupBy === 'tool' ? 'active' : ''}`} onClick={() => setGroupBy('tool')}>By Tool</button>
+            <button className={`cat-tab ${groupBy === 'target' ? 'active' : ''}`} onClick={() => setGroupBy('target')}>By Target</button>
+          </div>
+        </div>
+        <div className="reports-table">
+          <div className="reports-thead">
+            <span>{groupBy === 'tool' ? 'Tool' : 'Target'}</span>
+            <span>Runs</span>
+            <span>Success</span>
+            <span>Failed</span>
+            <span>Avg Time</span>
+            <span>Last Run</span>
+          </div>
+          {keys.map(k => {
+            const s = stats(grouped[k])
+            const pct = (s.ok / s.total) * 100
+            const col = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--amber)' : 'var(--red)'
+            return (
+              <div key={k} className="reports-row">
+                <span className="mono reports-key">{k}</span>
+                <span className="mono">{s.total}</span>
+                <span className="mono" style={{ color: 'var(--green)' }}>{s.ok}</span>
+                <span className="mono" style={{ color: s.failed > 0 ? 'var(--red)' : 'var(--text-dim)' }}>{s.failed}</span>
+                <span className="mono">{s.avgTime.toFixed(1)}s</span>
+                <div className="reports-last-cell">
+                  <span className="reports-pct-bar-bg">
+                    <span className="reports-pct-bar-fill" style={{ width: `${pct}%`, background: col }} />
+                  </span>
+                  <span className="mono" style={{ fontSize: 11, color: 'var(--text-dim)' }}>
+                    {s.last.ts.toLocaleDateString('en-GB')} {s.last.ts.toLocaleTimeString('en-GB')}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+// ─── Sessions Page ────────────────────────────────────────────────────────────
+
+function SessionsPage() {
+  const [data, setData] = useState<SessionsResponse | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    api.sessions()
+      .then(r => { setData(r); setError(null) })
+      .catch(e => setError(String(e)))
+      .finally(() => setLoading(false))
+  }, [])
+
+  function refresh() {
+    setLoading(true)
+    api.sessions()
+      .then(r => { setData(r); setError(null) })
+      .catch(e => setError(String(e)))
+      .finally(() => setLoading(false))
+  }
+
+  function fmtTs(ts: number) {
+    if (!ts) return '—'
+    return new Date(ts * 1000).toLocaleString('en-GB')
+  }
+
+  function SessionCard({ s }: { s: SessionSummary }) {
+    return (
+      <div className="session-card">
+        <div className="session-card-header">
+          <div className="session-target">
+            <Target size={13} color="var(--blue)" />
+            <span className="mono">{s.target}</span>
+          </div>
+          {s.status && (
+            <span className={`session-status session-status--${s.status}`}>{s.status}</span>
+          )}
+        </div>
+        <div className="session-card-meta">
+          <span><Activity size={11} /> {s.total_findings} findings</span>
+          <span><RefreshCw size={11} /> {s.iterations} iterations</span>
+          <span><Clock size={11} /> {fmtTs(s.updated_at)}</span>
+        </div>
+        {s.tools_executed.length > 0 && (
+          <div className="session-tools">
+            {s.tools_executed.slice(0, 8).map(t => (
+              <span key={t} className="session-tool-chip mono">{t}</span>
+            ))}
+            {s.tools_executed.length > 8 && (
+              <span className="session-tool-chip session-tool-chip--more">+{s.tools_executed.length - 8}</span>
+            )}
+          </div>
+        )}
+        <div className="session-id mono">{s.session_id}</div>
+      </div>
+    )
+  }
+
+  if (loading) return (
+    <div className="loading-state"><RefreshCw size={20} className="spin" color="var(--green)" /><p>Loading sessions…</p></div>
+  )
+  if (error) return (
+    <div className="error-banner"><XCircle size={16} /> {error}</div>
+  )
+
+  const active = data?.active ?? []
+  const completed = data?.completed ?? []
+
+  return (
+    <div className="page-content">
+      <div className="kpi-row">
+        <StatCard icon={<Layers size={20} />} label="Active Sessions" value={active.length} sub="in progress" accent={active.length > 0 ? 'var(--green)' : 'var(--text-dim)'} />
+        <StatCard icon={<CheckCircle size={20} />} label="Completed" value={completed.length} sub="archived" accent="var(--blue)" />
+        <StatCard icon={<Activity size={20} />} label="Total Findings" value={[...active, ...completed].reduce((s, x) => s + x.total_findings, 0)} sub="across all sessions" accent="var(--amber)" />
+        <StatCard icon={<Target size={20} />} label="Unique Targets" value={new Set([...active, ...completed].map(s => s.target)).size} sub="scanned" accent="var(--purple)" />
+      </div>
+
+      <section className="section">
+        <div className="section-header">
+          <h3>Active Sessions <span className="badge">{active.length}</span></h3>
+          <button className="icon-btn" onClick={refresh} title="Refresh"><RefreshCw size={14} className={loading ? 'spin' : ''} /></button>
+        </div>
+        {active.length === 0 ? (
+          <div className="tasks-empty">
+            <Layers size={28} color="var(--text-dim)" />
+            <p>No active sessions. Start a bug bounty or CTF workflow via the MCP to create one.</p>
+          </div>
+        ) : (
+          <div className="sessions-grid">
+            {active.map(s => <SessionCard key={s.session_id} s={s} />)}
+          </div>
+        )}
+      </section>
+
+      <section className="section">
+        <div className="section-header">
+          <h3>Completed Sessions <span className="badge">{completed.length}</span></h3>
+        </div>
+        {completed.length === 0 ? (
+          <p className="empty-state">No completed sessions yet.</p>
+        ) : (
+          <div className="sessions-grid">
+            {completed.map(s => <SessionCard key={s.session_id} s={s} />)}
+          </div>
+        )}
+      </section>
+    </div>
+  )
+}
+
 // ─── Main Dashboard ──────────────────────────────────────────────────────────
 
 const POLL_MS = 10_000
-type Page = 'dashboard' | 'settings' | 'help' | 'logs' | 'run'
+type Page = 'dashboard' | 'settings' | 'help' | 'logs' | 'run' | 'tasks' | 'tools' | 'reports' | 'sessions'
 
-const VALID_PAGES = new Set<Page>(['dashboard', 'settings', 'help', 'logs', 'run'])
+const VALID_PAGES = new Set<Page>(['dashboard', 'settings', 'help', 'logs', 'run', 'tasks', 'tools', 'reports', 'sessions'])
 
 function pageFromHash(): Page {
   const hash = window.location.hash.replace(/^#\/?/, '')
@@ -1559,6 +1979,18 @@ export default function App() {
           <button className={`nav-tab ${page === 'help' ? 'active' : ''}`} onClick={() => setPage('help')}>
             <HelpCircle size={13} /> Help
           </button>
+          <button className={`nav-tab ${page === 'tasks' ? 'active' : ''}`} onClick={() => setPage('tasks')}>
+            <ListTodo size={13} /> Tasks
+          </button>
+          <button className={`nav-tab ${page === 'tools' ? 'active' : ''}`} onClick={() => setPage('tools')}>
+            <Wrench size={13} /> Tools
+          </button>
+          <button className={`nav-tab ${page === 'reports' ? 'active' : ''}`} onClick={() => setPage('reports')}>
+            <FileText size={13} /> Reports
+          </button>
+          <button className={`nav-tab ${page === 'sessions' ? 'active' : ''}`} onClick={() => setPage('sessions')}>
+            <Layers size={13} /> Sessions
+          </button>
         </nav>
 
         <div className="topbar-right">
@@ -1600,6 +2032,18 @@ export default function App() {
         {page === 'run' && (
           <RunPage tools={tools} toolsStatus={health?.tools_status ?? {}} runHistory={runHistory} setRunHistory={setRunHistory} onRefresh={fetchServerRunHistory} />
         )}
+
+        {/* ── Tasks Page ── */}
+        {page === 'tasks' && <TasksPage />}
+
+        {/* ── Tools Page ── */}
+        {page === 'tools' && <ToolsPage tools={tools} toolsStatus={health?.tools_status ?? {}} />}
+
+        {/* ── Reports Page ── */}
+        {page === 'reports' && <ReportsPage runHistory={runHistory} />}
+
+        {/* ── Sessions Page ── */}
+        {page === 'sessions' && <SessionsPage />}
 
         {/* ── Logs Page ── */}
         {page === 'logs' && (
@@ -1800,8 +2244,7 @@ export default function App() {
                   </div>
                 </section>
 
-                {/* ── Tool Registry ── */}
-                {tools.length > 0 && <ToolRegistrySection tools={tools} toolsStatus={health?.tools_status ?? {}} />}
+
               </>
             )}
           </>

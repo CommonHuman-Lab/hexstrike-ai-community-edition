@@ -161,6 +161,60 @@ export interface RunHistoryResponse {
   runs: RunHistoryEntry[];
 }
 
+// ─── Process Dashboard types ─────────────────────────────────────────────────
+
+export interface ProcessEntry {
+  pid: number;
+  command: string;
+  status: string;
+  runtime: string;
+  progress_percent: string;
+  progress_bar: string;
+  eta: string;
+  bytes_processed: number;
+  last_output: string;
+}
+
+export interface ProcessSystemLoad {
+  cpu_percent: number;
+  memory_percent: number;
+  active_connections: number;
+}
+
+export interface ProcessDashboardResponse {
+  timestamp: string;
+  total_processes: number;
+  visual_dashboard: string;
+  processes: ProcessEntry[];
+  system_load: ProcessSystemLoad;
+}
+
+export interface PoolStatsResponse {
+  success?: boolean;
+  [key: string]: unknown;
+}
+
+// ─── Sessions types ──────────────────────────────────────────────────────────
+
+export interface SessionSummary {
+  session_id: string;
+  target: string;
+  status?: string;
+  total_findings: number;
+  iterations: number;
+  tools_executed: string[];
+  created_at: number;
+  updated_at: number;
+}
+
+export interface SessionsResponse {
+  success: boolean;
+  active: SessionSummary[];
+  completed: SessionSummary[];
+  total_active: number;
+  total_completed: number;
+}
+
 export const api = {
   dashboard: () => apiFetch<WebDashboardResponse>('/web-dashboard'),
   tools: () => apiFetch<ToolsCatalogResponse>('/api/tools'),
@@ -180,4 +234,13 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(params),
     }),
+  processDashboard: () => apiFetch<ProcessDashboardResponse>('/api/processes/dashboard'),
+  processPoolStats: () => apiFetch<PoolStatsResponse>('/api/process/pool-stats'),
+  terminateProcess: (pid: number) =>
+    apiFetch<{ success: boolean; message?: string; error?: string }>(`/api/processes/terminate/${pid}`, { method: 'POST' }),
+  pauseProcess: (pid: number) =>
+    apiFetch<{ success: boolean; message?: string; error?: string }>(`/api/processes/pause/${pid}`, { method: 'POST' }),
+  resumeProcess: (pid: number) =>
+    apiFetch<{ success: boolean; message?: string; error?: string }>(`/api/processes/resume/${pid}`, { method: 'POST' }),
+  sessions: () => apiFetch<SessionsResponse>('/api/sessions'),
 };

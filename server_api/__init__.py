@@ -61,6 +61,7 @@ def register_blueprints(app):
   app.register_blueprint(api_logs_bp)
   app.register_blueprint(api_web_dashboard_bp)
   app.register_blueprint(api_runs_bp)
+  app.register_blueprint(api_sessions_bp)
 
   # Database
   app.register_blueprint(api_database_bp)

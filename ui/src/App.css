@@ -1801,3 +1801,320 @@
   background: var(--green);
   border-color: var(--green);
 }
+
+/* ── Tasks Page ─────────────────────────────────────────────────────────────── */
+
+.tasks-pool-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 0 4px;
+}
+
+.tasks-pool-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.tasks-pool-label {
+  color: var(--text-dim);
+  text-transform: capitalize;
+}
+
+.tasks-pool-val {
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+.tasks-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 48px 0;
+  color: var(--text-dim);
+}
+
+.tasks-table {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  font-size: 12px;
+}
+
+.tasks-thead,
+.tasks-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 90px 160px 80px 80px 90px;
+  gap: 0;
+  align-items: center;
+  padding: 8px 12px;
+}
+
+.tasks-thead {
+  background: var(--bg-card2);
+  color: var(--text-dim);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tasks-row {
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.tasks-row:last-child { border-bottom: none; }
+.tasks-row:hover { background: var(--bg-card2); }
+
+.tasks-pid { color: var(--text-dim); }
+.tasks-cmd {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-h);
+}
+
+.tasks-status {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+  width: fit-content;
+}
+.tasks-status--running { background: var(--green)22; color: var(--green); }
+.tasks-status--paused  { background: var(--amber)22; color: var(--amber); }
+.tasks-status--stopped { background: var(--red)22;   color: var(--red);   }
+
+.tasks-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tasks-progress-bar-bg {
+  flex: 1;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.tasks-progress-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s;
+}
+
+.tasks-pct { font-size: 10px; color: var(--text-dim); width: 36px; }
+
+.tasks-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.tasks-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px;
+  cursor: pointer;
+  color: var(--text-dim);
+  transition: color 0.12s, border-color 0.12s;
+}
+.tasks-btn:hover { color: var(--text-h); border-color: var(--text); }
+.tasks-btn--pause:hover  { color: var(--amber); border-color: var(--amber); }
+.tasks-btn--resume:hover { color: var(--green); border-color: var(--green); }
+.tasks-btn--stop:hover   { color: var(--red);   border-color: var(--red);   }
+
+/* ── Tools Page ─────────────────────────────────────────────────────────────── */
+
+.registry-grid--wide {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+/* ── Reports Page ────────────────────────────────────────────────────────────── */
+
+.reports-timeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 0;
+}
+
+.reports-timeline-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  cursor: default;
+  transition: transform 0.1s;
+}
+.reports-timeline-dot:hover { transform: scale(1.4); }
+.reports-timeline-dot.ok   { background: var(--green); opacity: 0.75; }
+.reports-timeline-dot.fail { background: var(--red);   opacity: 0.75; }
+
+.reports-table {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  font-size: 12px;
+}
+
+.reports-thead,
+.reports-row {
+  display: grid;
+  grid-template-columns: 1fr 60px 60px 60px 80px 1fr;
+  gap: 0;
+  align-items: center;
+  padding: 8px 12px;
+}
+
+.reports-thead {
+  background: var(--bg-card2);
+  color: var(--text-dim);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+
+.reports-row {
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.reports-row:last-child { border-bottom: none; }
+.reports-row:hover { background: var(--bg-card2); }
+
+.reports-key {
+  color: var(--text-h);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reports-last-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.reports-pct-bar-bg {
+  display: block;
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.reports-pct-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+/* ── Sessions Page ───────────────────────────────────────────────────────────── */
+
+.sessions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.session-card {
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.15s;
+}
+.session-card:hover { border-color: var(--text-dim); }
+
+.session-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.session-target {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  overflow: hidden;
+}
+.session-target .mono {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.session-status {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.session-status--active    { background: var(--green)22; color: var(--green); }
+.session-status--completed { background: var(--blue)22;  color: var(--blue);  }
+.session-status--failed    { background: var(--red)22;   color: var(--red);   }
+
+.session-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.session-card-meta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.session-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.session-tool-chip {
+  font-size: 10px;
+  padding: 1px 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  color: var(--text-dim);
+}
+.session-tool-chip--more {
+  color: var(--text-dim);
+  border-style: dashed;
+}
+
+.session-id {
+  font-size: 10px;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
