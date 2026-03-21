@@ -1662,13 +1662,21 @@ export default function App() {
                   <StatCard
                     icon={<Zap size={20} />}
                     label="Commands"
-                    value={health.telemetry?.commands_executed ?? 0}
+                    value={(() => {
+                      const serverCount = health.telemetry?.commands_executed ?? 0
+                      return Math.max(serverCount, runHistory.length)
+                    })()}
                     sub={(() => {
-                      const total = health.telemetry?.commands_executed ?? 0
+                      const serverCount = health.telemetry?.commands_executed ?? 0
+                      const localCount = runHistory.length
+                      if (localCount > serverCount) {
+                        // Use local history for ok/failed breakdown
+                        const ok = runHistory.filter(e => e.result.success).length
+                        return `${ok} ok · ${localCount - ok} failed`
+                      }
                       const rate = parseFloat(health.telemetry?.success_rate ?? '0')
-                      const ok = Math.round(total * rate / 100)
-                      const failed = total - ok
-                      return `${ok} ok · ${failed} failed`
+                      const ok = Math.round(serverCount * rate / 100)
+                      return `${ok} ok · ${serverCount - ok} failed`
                     })()}
                     accent="var(--purple)"
                   />
