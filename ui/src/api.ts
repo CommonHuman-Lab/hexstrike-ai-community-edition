@@ -31,6 +31,16 @@ export interface WebDashboardResponse {
     load_avg?: number[];
   };
   resources_timestamp: string;
+
+  // Cache stats
+  cache_stats: {
+    evictions: number;
+    hit_rate: string;
+    hits: number;
+    max_size: number;
+    misses: number;
+    size: number;
+  };
 }
 
 // Keep legacy aliases so callers can use familiar field names

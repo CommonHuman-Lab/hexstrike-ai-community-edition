@@ -51,6 +51,9 @@ def web_dashboard():
       # System resources
       "resources": current_usage,
       "resources_timestamp": datetime.now().isoformat(),
+
+      # Cache stats
+      "cache_stats": cache.get_stats(),
     })
 
   except Exception as e:

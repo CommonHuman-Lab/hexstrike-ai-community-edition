@@ -232,6 +232,14 @@ export const DEMO_HEALTH: WebDashboardResponse = {
     load_avg: [1.12, 1.05, 0.98],
   },
   resources_timestamp: new Date().toISOString(),
+  cache_stats: {
+    evictions: 12,
+    hit_rate: '88.3%',
+    hits: 256,
+    max_size: 1000,
+    misses: 34,
+    size: 23,
+  },
 }
 
 // ── History points (sparkline) ────────────────────────────────────────────────
