@@ -1,45 +1,41 @@
 // Typed API wrappers for the HexStrike Flask backend
 
-export interface HealthResponse {
+export interface WebDashboardResponse {
+  // Server identity
   status: string;
-  message: string;
   version: string;
-  tools_status: Record<string, boolean>;
-  all_essential_tools_available: boolean;
-  total_tools_available: number;
-  total_tools_count: number;
-  category_stats: Record<string, { total: number; available: number }>;
-  cache_stats: {
-    hits: number;
-    misses: number;
-    size: number;
-    evictions: number;
-  };
+  uptime: number;
+
+  // Telemetry
   telemetry: {
     commands_executed: number;
     success_rate: string;
     average_execution_time: string;
   };
-  uptime: number;
-  tool_availability_age_seconds: number;
-}
 
-export interface ResourceUsageResponse {
-  success: boolean;
-  current_usage: {
+  // Tool availability
+  tools_status: Record<string, boolean>;
+  all_essential_tools_available: boolean;
+  total_tools_available: number;
+  total_tools_count: number;
+  category_stats: Record<string, { total: number; available: number }>;
+  tool_availability_age_seconds: number;
+
+  // System resources
+  resources: {
     cpu_percent: number;
     memory_percent: number;
     memory_available_gb: number;
     disk_percent: number;
     disk_free_gb: number;
-    disk_used_gb?: number;
-    disk_total_gb?: number;
     load_avg?: number[];
-    process_count?: number;
   };
-  usage_trends?: unknown;
-  timestamp: string;
+  resources_timestamp: string;
 }
+
+// Keep legacy aliases so callers can use familiar field names
+export type HealthResponse = WebDashboardResponse;
+export type ResourceUsageResponse = { current_usage: WebDashboardResponse['resources']; timestamp: string };
 
 export interface Tool {
   name: string;
@@ -145,8 +141,7 @@ export interface ToolExecResponse {
 }
 
 export const api = {
-  health: () => apiFetch<HealthResponse>('/health'),
-  resources: () => apiFetch<ResourceUsageResponse>('/api/process/resource-usage'),
+  dashboard: () => apiFetch<WebDashboardResponse>('/web-dashboard'),
   tools: () => apiFetch<ToolsCatalogResponse>('/api/tools'),
   getSettings: () => apiFetch<SettingsResponse>('/api/settings'),
   patchSettings: (runtime: Partial<Settings['runtime']>) =>

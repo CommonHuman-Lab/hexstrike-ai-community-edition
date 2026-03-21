@@ -12,7 +12,7 @@ import {
 } from 'recharts'
 import {
   api, setToken, clearToken, hasToken,
-  type HealthResponse, type ResourceUsageResponse, type Tool,
+  type WebDashboardResponse, type Tool,
   type Settings, type ToolExecResponse,
 } from './api'
 import './App.css'
@@ -43,7 +43,7 @@ function TokenGate({ onUnlocked }: { onUnlocked: () => void }) {
     setErr('')
     setToken(val.trim())
     try {
-      await api.health()
+      await api.dashboard()
       onUnlocked()
     } catch (e: unknown) {
       clearToken()
@@ -1157,8 +1157,7 @@ export default function App() {
   const [needsAuth, setNeedsAuth] = useState(false)
   const [page, setPage] = useState<Page>('dashboard')
 
-  const [health, setHealth] = useState<HealthResponse | null>(null)
-  const [resources, setResources] = useState<ResourceUsageResponse | null>(null)
+  const [health, setHealth] = useState<WebDashboardResponse | null>(null)
   const [tools, setTools] = useState<Tool[]>([])
   const [history, setHistory] = useState<HistoryPoint[]>([])
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
@@ -1176,13 +1175,12 @@ export default function App() {
 
   const fetchAll = useCallback(async () => {
     try {
-      const [h, r] = await Promise.all([api.health(), api.resources()])
+      const h = await api.dashboard()
       setHealth(h)
-      setResources(r)
       setHistory(prev => {
         const next = [
           ...prev.slice(-29),
-          { t: Date.now(), cpu: r.current_usage.cpu_percent, mem: r.current_usage.memory_percent },
+          { t: Date.now(), cpu: h.resources.cpu_percent, mem: h.resources.memory_percent },
         ]
         return next
       })
@@ -1228,7 +1226,7 @@ export default function App() {
   // Try without token first
   useEffect(() => {
     if (hasToken()) return
-    api.health().then(h => {
+    api.dashboard().then(h => {
       setHealth(h)
       setAuthed(true)
       setLoading(false)
@@ -1264,7 +1262,7 @@ export default function App() {
     return <TokenGate onUnlocked={() => { setAuthed(true); setNeedsAuth(false) }} />
   }
 
-  const cu = resources?.current_usage
+  const cu = health?.resources
 
   return (
     <div className="layout">
@@ -1436,7 +1434,7 @@ export default function App() {
                   <section className="section">
                     <div className="section-header">
                       <h3>System Resources</h3>
-                      <span className="section-meta mono">{resources?.timestamp?.slice(11, 19)}</span>
+                      <span className="section-meta mono">{health?.resources_timestamp?.slice(11, 19)}</span>
                     </div>
                     <div className="resources-layout">
                       <div className="gauges-col">
