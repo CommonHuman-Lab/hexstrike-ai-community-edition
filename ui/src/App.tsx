@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import faviconUrl from './favicon-16x16.png'
 import {
   Activity, Cpu, HardDrive, MemoryStick, Shield, Server,
@@ -372,6 +373,56 @@ function installHint(name: string): string {
   return INSTALL_HINTS[name] ?? `sudo apt install ${name}  # check project docs for exact install`
 }
 
+// ─── Run Result Modal ─────────────────────────────────────────────────────────
+
+function RunResultModal({ entry, onClose }: { entry: RunHistoryEntry; onClose: () => void }) {
+  const r = entry.result
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  return createPortal(
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal run-result-modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-title-row">
+            <span className="modal-name mono">{entry.tool}</span>
+            <span className={`run-output-status ${r.success ? 'ok' : 'fail'}`} style={{ fontSize: 12 }}>
+              {r.success ? <CheckCircle size={12} /> : <XCircle size={12} />}
+              {r.success ? 'success' : 'failed'}
+            </span>
+          </div>
+          <button className="modal-close" onClick={onClose}><XCircle size={18} /></button>
+        </div>
+
+        <div className="run-result-modal-meta">
+          <span className="run-output-meta mono">exit {r.return_code}</span>
+          <span className="run-output-meta mono">{r.execution_time.toFixed(2)}s</span>
+          <span className="run-output-meta mono">{entry.ts.toLocaleTimeString('en-GB')}</span>
+          {r.timed_out && <span className="run-output-meta amber">timed out</span>}
+          {r.partial_results && <span className="run-output-meta amber">partial results</span>}
+        </div>
+
+        {Object.keys(entry.params).length > 0 && (
+          <div className="run-result-modal-params">
+            {Object.entries(entry.params).map(([k, v]) => (
+              <span key={k} className="run-result-param mono">{k}=<em>{String(v)}</em></span>
+            ))}
+          </div>
+        )}
+
+        <pre className="run-result-modal-output mono">
+          {r.stdout || r.stderr || '(no output)'}
+        </pre>
+      </div>
+    </div>,
+    document.body
+  )
+}
+
 // ─── Run Page ─────────────────────────────────────────────────────────────────
 
 interface RunHistoryEntry {
@@ -415,6 +466,7 @@ function RunPage({ tools, toolsStatus }: { tools: Tool[]; toolsStatus: Record<st
   const [running, setRunning] = useState(false)
   const [history, setHistory] = useState<RunHistoryEntry[]>([])
   const [viewEntry, setViewEntry] = useState<RunHistoryEntry | null>(null)
+  const [modalEntry, setModalEntry] = useState<RunHistoryEntry | null>(null)
   const [runError, setRunError] = useState<string | null>(null)
   const runIdRef = useRef(0)
 
@@ -469,6 +521,7 @@ function RunPage({ tools, toolsStatus }: { tools: Tool[]; toolsStatus: Record<st
 
   return (
     <div className="run-page">
+      {modalEntry && <RunResultModal entry={modalEntry} onClose={() => setModalEntry(null)} />}
       {/* ── Left: tool picker ── */}
       <div className="run-picker">
         <div className="run-picker-controls">
@@ -603,11 +656,7 @@ function RunPage({ tools, toolsStatus }: { tools: Tool[]; toolsStatus: Record<st
             <button
               key={e.id}
               className={`run-history-item${viewEntry?.id === e.id ? ' active' : ''}`}
-              onClick={() => {
-                setViewEntry(e)
-                const t = tools.find(t => t.name === e.tool)
-                if (t) selectTool(t)
-              }}
+              onClick={() => setModalEntry(e)}
             >
               <span className={`run-hist-dot ${e.result.success ? 'ok' : 'fail'}`} />
               <span className="run-hist-name mono">{e.tool}</span>

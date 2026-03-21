@@ -1628,3 +1628,57 @@
   color: var(--text-dim);
   flex-shrink: 0;
 }
+
+/* ── Run Result Modal ──────────────────────────────────────────────────────── */
+
+.run-result-modal {
+  width: min(860px, 92vw);
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.run-result-modal-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card2);
+  flex-wrap: wrap;
+}
+
+.run-result-modal-params {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.run-result-param {
+  font-size: 11px;
+  color: var(--text);
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+
+.run-result-param em {
+  font-style: normal;
+  color: var(--text-h);
+}
+
+.run-result-modal-output {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0;
+  padding: 16px 20px;
+  font-size: 12px;
+  color: var(--text-h);
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.6;
+  background: var(--bg);
+}
