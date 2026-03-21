@@ -1568,7 +1568,7 @@ export default function App() {
             </span>
           )}
           <div className={`status-dot ${health?.status === 'healthy' ? 'online' : error ? 'error' : 'loading'}`} />
-          <span className="status-label">{health?.status ?? (loading ? 'connecting…' : error ?? 'unknown')}</span>
+          <span className="status-label">{health?.status ? health.status.charAt(0).toUpperCase() + health.status.slice(1) : (loading ? 'connecting…' : error ?? 'unknown')}</span>
           <button className="icon-btn" onClick={fetchAll} title="Refresh now">
             <RefreshCw size={14} className={loading ? 'spin' : ''} />
           </button>
@@ -1664,7 +1664,7 @@ export default function App() {
                   <StatCard
                     icon={<Activity size={20} />}
                     label="Server Status"
-                    value={health.status}
+                    value={health.status.charAt(0).toUpperCase() + health.status.slice(1)}
                     sub={`uptime ${uptimeStr(health.uptime)}`}
                     accent={health.status === 'healthy' ? 'var(--green)' : 'var(--red)'}
                   />
