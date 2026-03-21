@@ -1330,10 +1330,29 @@ function SettingsField({ label, unit, hint, value, onChange }: {
 const POLL_MS = 10_000
 type Page = 'dashboard' | 'settings' | 'help' | 'logs' | 'run'
 
+const VALID_PAGES = new Set<Page>(['dashboard', 'settings', 'help', 'logs', 'run'])
+
+function pageFromHash(): Page {
+  const hash = window.location.hash.replace(/^#\/?/, '')
+  return VALID_PAGES.has(hash as Page) ? (hash as Page) : 'dashboard'
+}
+
 export default function App() {
   const [authed, setAuthed] = useState(hasToken())
   const [needsAuth, setNeedsAuth] = useState(false)
-  const [page, setPage] = useState<Page>('dashboard')
+  const [page, setPageState] = useState<Page>(pageFromHash)
+
+  function setPage(p: Page) {
+    window.location.hash = p === 'dashboard' ? '' : `/${p}`
+    setPageState(p)
+  }
+
+  // Keep state in sync if the user presses Back/Forward
+  useEffect(() => {
+    function onHashChange() { setPageState(pageFromHash()) }
+    window.addEventListener('hashchange', onHashChange)
+    return () => window.removeEventListener('hashchange', onHashChange)
+  }, [])
 
   const [health, setHealth] = useState<WebDashboardResponse | null>(null)
   const [tools, setTools] = useState<Tool[]>([])
