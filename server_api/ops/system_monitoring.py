@@ -20,6 +20,9 @@ api_system_monitoring_bp = Blueprint("api_system_monitoring", __name__)
 # ============================================================================
 # TOOL AVAILABILITY CACHE — populated once at startup, refreshed every hour
 # ============================================================================
+# List of tools considered always installed (built-in, code-provided or simulated)
+BUILT_IN_TOOLS = ["jwt-analyzer"]
+
 
 _HEALTH_TOOL_CATEGORIES = {
     "essential": ["nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat"],
@@ -66,6 +69,9 @@ def _refresh_tool_availability() -> None:
     })
 
     def probe(tool: str) -> tuple:
+        if tool in BUILT_IN_TOOLS:
+            # Always report built-ins as available without probing
+            return tool, True
         try:
             result = subprocess.run(
                 ["which", tool],
@@ -109,7 +115,11 @@ def _get_tool_availability() -> Dict[str, bool]:
         threading.Thread(target=_refresh_tool_availability, daemon=True).start()
 
     with _tool_availability_lock:
-        return dict(_tool_availability_cache)
+        # Always set any built-in tool as available in returned status
+        output_status = dict(_tool_availability_cache)
+        for tool in BUILT_IN_TOOLS:
+            output_status[tool] = True
+        return output_status
 
 
 @api_system_monitoring_bp.route("/health", methods=["GET"])
