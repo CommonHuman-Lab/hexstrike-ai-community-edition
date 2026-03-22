@@ -48,6 +48,7 @@ bcrypt==4.0.1                # Pin bcrypt version for passlib compatibility (fix
 checkov>=3.0.0               # Infrastructure as code security scanner
 ROPgadget>=7.0.0,<8.0.0      # ROP gadget finder
 one_gadget>=1.0.0,<2.0.0     # One-gadget RCE finder
+social-analyzer>=0.45.0      # Social media OSINT tool
 
 #Below is not a happy camper.
 #psycopg2>=2.9.11,<3.0.0      # PostgreSQL database connector (conditionally used for database interactions)
