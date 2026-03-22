@@ -22,7 +22,7 @@ TOOLS: Dict[str, dict] = {
         "desc": "Port scan and service detection",
         "endpoint": "/api/tools/nmap",
         "method": "POST",
-        "category": "network_recon",
+        "category": "essential",
         "params": {"target": {"required": True}},
         "optional": {"scan_type": "-sCV", "ports": "", "additional_args": "-T4 -Pn"},
         "effectiveness": 0.95,
@@ -88,7 +88,7 @@ TOOLS: Dict[str, dict] = {
         "desc": "Directory and file brute-forcer",
         "endpoint": "/api/tools/gobuster",
         "method": "POST",
-        "category": "web_recon",
+        "category": "essential",
         "params": {"url": {"required": True}},
         "optional": {"mode": "dir", "wordlist": "/usr/share/wordlists/dirb/common.txt", "additional_args": ""},
         "effectiveness": 0.90,
@@ -171,7 +171,7 @@ TOOLS: Dict[str, dict] = {
         "desc": "Web server vulnerability scanner",
         "endpoint": "/api/tools/nikto",
         "method": "POST",
-        "category": "web_vuln",
+        "category": "essential",
         "params": {"target": {"required": True}},
         "optional": {"additional_args": ""},
         "effectiveness": 0.85,
@@ -180,7 +180,7 @@ TOOLS: Dict[str, dict] = {
         "desc": "Automatic SQL injection detection and exploitation",
         "endpoint": "/api/tools/sqlmap",
         "method": "POST",
-        "category": "web_vuln",
+        "category": "essential",
         "params": {"url": {"required": True}},
         "optional": {"data": "", "additional_args": ""},
         "effectiveness": 0.90,
@@ -237,7 +237,7 @@ TOOLS: Dict[str, dict] = {
         "desc": "Network login brute-forcer",
         "endpoint": "/api/tools/hydra",
         "method": "POST",
-        "category": "brute_force",
+        "category": "essential",
         "params": {"target": {"required": True}, "service": {"required": True}},
         "optional": {"username": "", "username_file": "", "password": "", "password_file": "", "additional_args": ""},
         "effectiveness": 0.80,
@@ -246,7 +246,7 @@ TOOLS: Dict[str, dict] = {
         "desc": "GPU-accelerated password cracker",
         "endpoint": "/api/tools/hashcat",
         "method": "POST",
-        "category": "brute_force",
+        "category": "esstential",
         "params": {"hash_file": {"required": True}, "hash_type": {"required": True}},
         "optional": {"attack_mode": "0", "wordlist": "/usr/share/wordlists/rockyou.txt", "mask": "", "additional_args": ""},
         "effectiveness": 0.85,
@@ -255,7 +255,7 @@ TOOLS: Dict[str, dict] = {
         "desc": "Password cracker with many formats",
         "endpoint": "/api/tools/john",
         "method": "POST",
-        "category": "brute_force",
+        "category": "essential",
         "params": {"hash_file": {"required": True}},
         "optional": {"wordlist": "/usr/share/wordlists/rockyou.txt", "format_type": "", "additional_args": ""},
         "effectiveness": 0.80,
@@ -620,7 +620,7 @@ TOOLS: Dict[str, dict] = {
         "desc": "Classic web content scanner using a wordlist",
         "endpoint": "/api/tools/dirb",
         "method": "POST",
-        "category": "web_recon",
+        "category": "essential",
         "params": {"url": {"required": True}},
         "optional": {"wordlist": "/usr/share/wordlists/dirb/common.txt", "additional_args": ""},
         "effectiveness": 0.78,
@@ -1232,6 +1232,15 @@ TOOLS: Dict[str, dict] = {
         "optional": {"bssid": ""},
         "effectiveness": 0.85,
     },
+    "airdecap-ng": {
+        "desc": "Decrypt WEP/WPA/WPA2 capture files with known keys",
+        "endpoint": "/api/tools/wifi_pentest/airdecap_ng",
+        "method": "POST",
+        "category": "wifi_pentest",
+        "params": {"capture_file": {"required": True}},
+        "optional": {"password": "", "wep_key": "", "bssid": "", "essid": ""},
+        "effectiveness": 0.80,
+    },
     "mysql": {
         "desc": "MySQL command-line client for database management and querying",
         "endpoint": "/api/tools/mysql",
@@ -1290,15 +1299,15 @@ CATEGORIES = {
 
 _INTENT_KEYWORDS: Dict[str, List[str]] = {
     "network_recon": [
-        "scan", "port", "nmap", "host", "network", "service", "smb",
+        "scan", "port", "host", "network", "service", "smb",
         "enum4linux", "discovery", "arp", "netbios", "smbmap",
     ],
     "web_recon": [
-        "directory", "dir", "brute", "fuzz", "gobuster", "ffuf", "crawl",
+        "directory", "dir", "brute", "fuzz", "ffuf", "crawl",
         "spider", "wordpress", "wpscan", "vhost", "content", "ferox",
     ],
     "web_vuln": [
-        "vuln", "vulnerability", "nuclei", "nikto", "sql", "sqli", "xss",
+        "vuln", "vulnerability", "nuclei", "sql", "sqli", "xss",
         "injection", "exploit", "dalfox", "traversal",
     ],
     "exploitation": [
@@ -1306,8 +1315,8 @@ _INTENT_KEYWORDS: Dict[str, List[str]] = {
         "cve", "shell", "reverse", "module",
     ],
     "brute_force": [
-        "brute", "crack", "password", "hydra", "hashcat", "login", "credential",
-        "hash", "wordlist","john", "medusa", "patator", "ophcrack"
+        "brute", "crack", "password", "login", "credential",
+        "hash", "wordlist", "medusa", "patator", "ophcrack"
     ],
     "osint": [
         "subdomain", "dns", "osint", "amass", "subfinder", "domain", "recon",
