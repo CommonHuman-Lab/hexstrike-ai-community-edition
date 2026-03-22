@@ -127,5 +127,5 @@ export const INSTALL_HINTS: Record<string, string> = {
 }
 
 export function installHint(name: string): string {
-  return INSTALL_HINTS[name] ?? `sudo apt install ${name}  # check project docs for exact install`
+  return INSTALL_HINTS[name] ?? `# check project docs for exact install`
 }
