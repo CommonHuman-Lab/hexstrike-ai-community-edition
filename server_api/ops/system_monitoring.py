@@ -23,16 +23,15 @@ api_system_monitoring_bp = Blueprint("api_system_monitoring", __name__)
 # List of tools considered always installed (built-in, code-provided or simulated)
 BUILT_IN_TOOLS = ["jwt-analyzer"]
 
-
 _HEALTH_TOOL_CATEGORIES = {
     "essential": ["nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat"],
     "network_recon": ["rustscan", "masscan", "autorecon", "nbtscan", "arp-scan", "responder",
                 "nxc", "enum4linux-ng", "rpcclient", "enum4linux", "smbmap", "evil-winrm"],
     "web_recon": ["ffuf", "feroxbuster", "dirsearch", "dotdotpwn", "xsser", "wfuzz",
-                     "gau", "waybackurls", "arjun", "paramspider", "x8", "jaeles", "dalfox",
-                     "httpx", "wafw00f", "burpsuite", "zaproxy", "katana", "hakrawler"],
-    "web_vuln": ["nuclei", "wpscan", "graphql-scanner", "jwt-analyzer"],
-    "password": ["medusa", "patator", "hashid", "ophcrack", "hashcat-utils"],
+                     "arjun", "paramspider", "x8", "jaeles", "dalfox",
+                     "httpx", "wafw00f", "burpsuite", "katana", "hakrawler", "wpscan"],
+    "web_vuln": ["nuclei", "graphql-scanner", "jwt-analyzer", "zaproxy"],
+    "brute_force": ["medusa", "patator", "hashid", "ophcrack", "hashcat-utils"],
     "binary": ["gdb", "radare2", "binwalk", "ropgadget", "checksec", "objdump",
                "ghidra", "pwntools", "one-gadget", "ropper", "angr", "libc-database", "pwninit"],
     "forensics": ["vol", "steghide", "hashpump", "foremost", "exiftool",
@@ -43,7 +42,7 @@ _HEALTH_TOOL_CATEGORIES = {
               "cloudmapper", "pacu"],
     "osint": ["amass", "subfinder", "fierce", "dnsenum", "theharvester", "sherlock",
               "social-analyzer", "recon-ng", "maltego", "spiderfoot", "shodan-cli",
-              "censys-cli", "have-i-been-pwned", "whois", "bbot"],
+              "censys-cli", "have-i-been-pwned", "whois", "bbot", "gau", "waybackurls"],
     "exploitation": ["msfconsole", "msfvenom", "searchsploit"],
     "api": ["api-schema-analyzer", "postman", "insomnia", "curl", "httpie", "anew", "qsreplace", "uro"],
     "wifi_pentest": ["kismet", "wireshark", "tshark", "tcpdump",
