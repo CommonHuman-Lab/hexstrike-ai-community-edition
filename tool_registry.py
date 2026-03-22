@@ -482,6 +482,15 @@ TOOLS: Dict[str, dict] = {
     },
 
     # ---- Cloud ----
+    "pacu" : {
+        "desc": "AWS exploitation framework for post-compromise activities",
+        "endpoint": "/api/tools/pacu",
+        "method": "POST",
+        "category": "cloud",
+        "params": {"session_name": {"required": True}},
+        "optional": {"modules": "", "data_services": "", "regions": "", "additional_args": ""},
+        "effectiveness": 0.90,
+    },
     "cloudmapper" : {
         "desc": "AWS network visualization and security analysis",
         "endpoint": "/api/tools/cloudmapper",
@@ -1259,7 +1268,6 @@ TOOLS: Dict[str, dict] = {
         "optional": {"password": "", "wep_key": "", "bssid": "", "essid": ""},
         "effectiveness": 0.80,
     },
-
     "bettercap" : {
         "desc": "Advanced network attack framework for MITM, sniffing, and spoofing",
         "endpoint": "/api/tools/wifi_pentest/bettercap_wifi",
@@ -1268,6 +1276,24 @@ TOOLS: Dict[str, dict] = {
         "params": {"interface": {"required": True}},
         "optional": {"mode": "", "target_bssid": "", "caplet": ""},
         "effectiveness": 0.88,
+    },
+    "hcxdumptool": {
+        "desc": "Capture raw 802.11 frames for offline analysis and cracking",
+        "endpoint": "/api/tools/wifi_pentest/hcxdumptool",
+        "method": "POST",
+        "category": "wifi_pentest",
+        "params": {"interface": {"required": True}},
+        "optional": {"output_file": "", "target_bssid": "", "duration": 1, "additional_args": ""},
+        "effectiveness": 0.85,
+    },
+    "wifite": {
+        "desc": "Automated wireless attack tool for WEP/WPA/WPA2 networks",
+        "endpoint": "/api/tools/wifi_pentest/wifite2",
+        "method": "POST",
+        "category": "wifi_pentest",
+        "params": {"interface": {"required": True}},
+        "optional": {"target_essid": "", "target_bssid": "attack_wps", "attack_pmkid": True, "attack_handshake": True, "wordlist": "", "timeout": 300},
+        "effectiveness": 0.85,
     },
     "mysql": {
         "desc": "MySQL command-line client for database management and querying",
