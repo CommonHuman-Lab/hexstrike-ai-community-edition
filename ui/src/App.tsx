@@ -251,9 +251,9 @@ export default function App() {
     }
   }, [demo, authed, fetchAll])
 
-  // SSE log stream (skipped in demo — logs pre-populated from demo data)
+  // SSE log stream — only active in logs tab
   useEffect(() => {
-    if (demo) return
+    if (demo || page !== 'logs') return
     const es = api.logStream(150)
     sseRef.current = es
     es.onmessage = (e) => {
@@ -263,7 +263,7 @@ export default function App() {
       })
     }
     return () => { es.close() }
-  }, [])
+  }, [demo, page])
 
   // Auto-scroll log to bottom
   useEffect(() => {
