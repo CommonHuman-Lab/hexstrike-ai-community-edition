@@ -27,6 +27,8 @@ REQUIRE_DPKG_CHECK = ["hashcat-utils", "sleuthkit"]
 
 REQUIRE_PIP_CHECK = ["pwntools", "one-gadget"]
 
+REQUIRE_GEM_CHECK = ["zsteg"]
+
 _HEALTH_TOOL_CATEGORIES = {
     "essential": ["nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat"],
     "network_recon": ["rustscan", "masscan", "autorecon", "nbtscan", "arp-scan", "responder",
@@ -40,7 +42,7 @@ _HEALTH_TOOL_CATEGORIES = {
                "ghidra", "pwntools", "one-gadget", "ropper", "angr", "libc-database", "pwninit"],
     "forensics": ["vol", "steghide", "hashpump", "foremost", "exiftool",
                   "strings", "xxd", "file", "photorec", "testdisk", "scalpel",
-                  "bulk-extractor", "stegsolve", "zsteg", "outguess", "volatility", "sleuthkit", "autopsy"],
+                  "bulk_extractor", "stegsolve", "zsteg", "outguess", "volatility", "sleuthkit", "autopsy"],
     "cloud": ["prowler", "scout-suite", "trivy", "kube-hunter", "kube-bench",
               "docker-bench-security", "checkov", "terrascan", "falco", "clair",
               "cloudmapper", "pacu"],
@@ -86,6 +88,14 @@ def _refresh_tool_availability() -> None:
                 # For tools that require pip, check if the package is installed
                 result = subprocess.run(
                     ["pip3", "list", "|", "grep", tool],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                return tool, result.returncode == 0
+            elif tool in REQUIRE_GEM_CHECK:
+                # For tools that require gem, check if the package is installed
+                result = subprocess.run(
+                    ["gem", "list", "|", "grep", tool],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                 )

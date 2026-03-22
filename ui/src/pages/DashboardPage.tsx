@@ -141,7 +141,7 @@ const HEALTH_CAT_TOOLS: Record<string, string[]> = {
                "ghidra", "pwntools", "one-gadget", "ropper", "angr", "libc-database", "pwninit"],
     "forensics": ["vol", "steghide", "hashpump", "foremost", "exiftool",
                   "strings", "xxd", "file", "photorec", "testdisk", "scalpel",
-                  "bulk-extractor", "stegsolve", "zsteg", "outguess", "volatility", "sleuthkit", "autopsy"],
+                  "bulk_extractor", "stegsolve", "zsteg", "outguess", "volatility", "sleuthkit", "autopsy"],
     "cloud": ["prowler", "scout-suite", "trivy", "kube-hunter", "kube-bench",
               "docker-bench-security", "checkov", "terrascan", "falco", "clair",
               "cloudmapper", "pacu"],

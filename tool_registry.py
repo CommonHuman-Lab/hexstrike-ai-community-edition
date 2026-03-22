@@ -1135,7 +1135,7 @@ TOOLS: Dict[str, dict] = {
         "optional": {"output_dir": "/tmp/scalpel_output", "config": "", "additional_args": ""},
         "effectiveness": 0.78,
     },
-    "bulk-extractor": {
+    "bulk_extractor": {
         "desc": "Extract features (emails, URLs, credit cards) from disk images or files",
         "endpoint": "/api/tools/bulk_extractor",
         "method": "POST",

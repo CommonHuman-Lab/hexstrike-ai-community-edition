@@ -122,7 +122,7 @@ export const INSTALL_HINTS: Record<string, string> = {
   'social-analyzer': 'pip3 install social-analyzer',
   sleuthkit:         'sudo apt install sleuthkit',
   autopsy:           'sudo apt install autopsy',
-  'bulk-extractor':  'sudo apt install bulk-extractor',
+  'bulk_extractor':  'sudo apt install bulk-extractor',
   'hashcat-utils':   'sudo apt install hashcat-utils',
 }
 
