@@ -23,7 +23,7 @@ api_system_monitoring_bp = Blueprint("api_system_monitoring", __name__)
 # List of tools considered always installed (built-in, code-provided or simulated)
 BUILT_IN_TOOLS = ["jwt-analyzer", "api-schema-analyzer", "graphql-scanner"]
 
-REQUIRE_DPKG_CHECK = ["hashcat-utils"]
+REQUIRE_DPKG_CHECK = ["hashcat-utils", "sleuthkit"]
 
 REQUIRE_PIP_CHECK = ["pwntools", "one-gadget"]
 
