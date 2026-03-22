@@ -27,7 +27,7 @@ BUILT_IN_TOOLS = ["jwt-analyzer"]
 _HEALTH_TOOL_CATEGORIES = {
     "essential": ["nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat"],
     "network": ["rustscan", "masscan", "autorecon", "nbtscan", "arp-scan", "responder",
-                "nxc", "enum4linux-ng", "rpcclient", "enum4linux"],
+                "nxc", "enum4linux-ng", "rpcclient", "enum4linux", "smbmap", "evil-winrm"],
     "web_security": ["ffuf", "feroxbuster", "dirsearch", "dotdotpwn", "xsser", "wfuzz",
                      "gau", "waybackurls", "arjun", "paramspider", "x8", "jaeles", "dalfox",
                      "httpx", "wafw00f", "burpsuite", "zaproxy", "katana", "hakrawler"],
@@ -37,7 +37,7 @@ _HEALTH_TOOL_CATEGORIES = {
                "ghidra", "pwntools", "one-gadget", "ropper", "angr", "libc-database", "pwninit"],
     "forensics": ["vol", "steghide", "hashpump", "foremost", "exiftool",
                   "strings", "xxd", "file", "photorec", "testdisk", "scalpel",
-                  "bulk-extractor", "stegsolve", "zsteg", "outguess"],
+                  "bulk-extractor", "stegsolve", "zsteg", "outguess", "volatility", "sleuthkit", "autopsy"],
     "cloud": ["prowler", "scout-suite", "trivy", "kube-hunter", "kube-bench",
               "docker-bench-security", "checkov", "terrascan", "falco", "clair",
               "cloudmapper", "pacu"],
@@ -46,11 +46,9 @@ _HEALTH_TOOL_CATEGORIES = {
               "censys-cli", "have-i-been-pwned", "whois", "bbot"],
     "exploitation": ["msfconsole", "msfvenom", "searchsploit"],
     "api": ["api-schema-analyzer", "postman", "insomnia", "curl", "httpie", "anew", "qsreplace", "uro"],
-    "wireless": ["kismet", "wireshark", "tshark", "tcpdump",
+    "wifi_pentest": ["kismet", "wireshark", "tshark", "tcpdump",
                  "airbase-ng", "airdecap-ng", "hcxdumptool", "hcxpcapngtool",
-                 "mdk4", "eaphammer", "wifite", "bettercap"],
-    "additional": ["smbmap", "volatility", "sleuthkit", "autopsy", "evil-winrm",
-                   "airmon-ng", "airodump-ng", "aireplay-ng", "aircrack-ng"],
+                 "mdk4", "eaphammer", "wifite", "bettercap", "airmon-ng", "airodump-ng", "aireplay-ng", "aircrack-ng"],
     "database": ["mysql", "sqlite3"]
 }
 

@@ -1214,6 +1214,42 @@ TOOLS: Dict[str, dict] = {
         "optional": {"log_prefix": "kismet", "duration": 60, "additional_args": ""},
         "effectiveness": 0.85,
     },
+    "airbase-ng": {
+        "desc": "Rogue access point framework for WiFi attacks",
+        "endpoint": "/api/tools/wifi_pentest/airbase_ng",
+        "method": "POST",
+        "category": "wifi_pentest",
+        "params": {"interface": {"required": True}, "essid": {"required": True}},
+        "optional": {"channel": 6, "bssid": "", "wpa_mode": ""},
+        "effectiveness": 0.80,
+    },
+    "aircrack-ng": {
+        "desc": "WiFi password cracking tool for WEP/WPA/WPA2 handshakes",
+        "endpoint": "/api/tools/password_cracking/aircrack_ng",
+        "method": "POST",
+        "category": "wifi_pentest",
+        "params": {"capture_files": {"required": True}, "wordlist": {"required": True}},
+        "optional": {"bssid": ""},
+        "effectiveness": 0.85,
+    },
+    "mysql": {
+        "desc": "MySQL command-line client for database management and querying",
+        "endpoint": "/api/tools/mysql",
+        "method": "POST",
+        "category": "database",
+        "params": {"query": {"required": True}, "host": {"required": True}, "user": {"required": True}, "password": {"required": True}, "database": {"required": True}},
+        "optional": {},
+        "effectiveness": 0.90,
+    },
+    "sqlite3": {
+        "desc": "SQLite command-line client for database management and querying",
+        "endpoint": "/api/tools/sqlite3",
+        "method": "POST",
+        "category": "database",
+        "params": {"db_path": {"required": True}, "query": {"required": True}},
+        "optional": {},
+        "effectiveness": 0.90,
+    },
 }
 
 # Meta-tool for ending the agent loop
@@ -1239,6 +1275,8 @@ CATEGORIES = {
     "cloud": "Cloud security auditing (AWS, containers, Kubernetes, IaC)",
     "wifi_pentest": "WiFi pentesting and wireless attacks",
     "forensics": "Memory forensics, file carving, steganography, metadata",
+    "database": "Database management and querying",
+    "essential": "Essential tools",
 }
 
 # ---------------------------------------------------------------------------
@@ -1295,6 +1333,9 @@ _INTENT_KEYWORDS: Dict[str, List[str]] = {
         "steghide", "stego", "steganography", "metadata", "exiftool", "foremost",
         "hashpump", "length extension", "hash extension", "file recovery",
     ],
+    "database": ["mysql", "sqlite3"],
+    "essential": ["nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat"]
+
 }
 
 
