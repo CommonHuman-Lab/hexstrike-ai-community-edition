@@ -21,7 +21,7 @@ api_system_monitoring_bp = Blueprint("api_system_monitoring", __name__)
 # TOOL AVAILABILITY CACHE — populated once at startup, refreshed every hour
 # ============================================================================
 # List of tools considered always installed (built-in, code-provided or simulated)
-BUILT_IN_TOOLS = ["jwt-analyzer"]
+BUILT_IN_TOOLS = ["jwt-analyzer", "api-schema-analyzer"]
 
 _HEALTH_TOOL_CATEGORIES = {
     "essential": ["nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat"],
