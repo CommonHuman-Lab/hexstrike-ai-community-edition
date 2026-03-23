@@ -1,16 +1,17 @@
 import { useState } from 'react'
-import { CheckCircle, XCircle, Wrench, Database } from 'lucide-react'
-import { type Tool } from '../api'
+import { CheckCircle, XCircle, Wrench, Database, Shield } from 'lucide-react'
+import { type Tool, type WebDashboardResponse } from '../api'
 import { StatCard } from '../components/StatCard'
 import { ToolModal } from '../components/ToolModal'
 import './ToolsPage.css'
 
 interface ToolsPageProps {
+  health: WebDashboardResponse
   tools: Tool[]
   toolsStatus: Record<string, boolean>
 }
 
-export default function ToolsPage({ tools, toolsStatus }: ToolsPageProps) {
+export default function ToolsPage({ health, tools, toolsStatus }: ToolsPageProps) {
   const [search, setSearch] = useState('')
   const [activeCat, setActiveCat] = useState<string>('all')
   const [selectedTool, setSelectedTool] = useState<Tool | null>(null)
@@ -25,8 +26,7 @@ export default function ToolsPage({ tools, toolsStatus }: ToolsPageProps) {
     return matchCat && matchSearch && matchMissing
   }).sort((a, b) => a.name.localeCompare(b.name))
 
-  const installedCount = tools.filter(t => toolsStatus[t.name] === true).length
-  const missingCount = tools.filter(t => toolsStatus[t.name] === false).length
+  const missingCount = health.total_tools_count - health.total_tools_available
 
   return (
     <div className="page-content">
@@ -39,13 +39,13 @@ export default function ToolsPage({ tools, toolsStatus }: ToolsPageProps) {
       )}
 
       <div className="kpi-row">
-        <StatCard icon={<Wrench size={20} />} label="Total Tools" value={tools.length} sub="in registry" accent="var(--blue)" />
-        <StatCard
-          icon={<CheckCircle size={20} />}
-          label="Installed"
-          value={installedCount}
-          sub={`${((installedCount / Math.max(tools.length, 1)) * 100).toFixed(0)}% coverage`}
-          accent="var(--green)"
+        <StatCard icon={<Wrench size={20} />} label="Total Server Tools" value={tools.length} sub="in registry" accent="var(--blue)" />
+         <StatCard
+          icon={<Shield size={20} />}
+          label="Kali Tools Installed"
+          value={`${health.total_tools_available} / ${health.total_tools_count}`}
+          sub={`${((health.total_tools_available / Math.max(health.total_tools_count, 1)) * 100).toFixed(0)}% coverage`}
+          accent="var(--green)"        
         />
         <StatCard
           icon={<XCircle size={20} />}

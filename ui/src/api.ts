@@ -56,6 +56,7 @@ export interface Tool {
   params: Record<string, { required?: boolean }>;
   optional: Record<string, string | number | boolean>;
   effectiveness: number;
+  parent_tool?: string;
 }
 
 export interface ToolsCatalogResponse {

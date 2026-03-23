@@ -50,7 +50,7 @@ from .web_fuzz import *
 from .web_probe import *
 from .web_scan import *
 from .wifi_pentest import *
-
+from .active_directory import *
 
 def register_blueprints(app):
   """Register all API blueprints with the Flask app."""
@@ -65,6 +65,9 @@ def register_blueprints(app):
 
   # Database
   app.register_blueprint(api_database_bp)
+
+  #Active Directory
+  app.register_blueprint(api_tools_impacket_bp)
 
   # OPS — General
   app.register_blueprint(api_visual_bp)

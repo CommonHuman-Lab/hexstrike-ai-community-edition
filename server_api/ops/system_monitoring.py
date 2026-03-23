@@ -23,7 +23,7 @@ api_system_monitoring_bp = Blueprint("api_system_monitoring", __name__)
 # List of tools considered always installed (built-in, code-provided or simulated)
 BUILT_IN_TOOLS = ["jwt-analyzer", "api-schema-analyzer", "graphql-scanner"]
 
-REQUIRE_DPKG_CHECK = ["hashcat-utils", "sleuthkit"]
+REQUIRE_DPKG_CHECK = ["hashcat-utils", "sleuthkit", "impacket-scripts"]
 
 REQUIRE_PIP_CHECK = ["pwntools", "one-gadget"]
 
@@ -55,6 +55,9 @@ _HEALTH_TOOL_CATEGORIES = {
                  "airbase-ng", "airdecap-ng", "hcxdumptool", "hcxpcapngtool",
                  "mdk4", "eaphammer", "wifite", "bettercap", "airmon-ng", "airodump-ng", "aireplay-ng", "aircrack-ng"],
     "database": ["mysql", "sqlite3"],
+    "active_directory": [
+        "impacket-scripts"
+    ]
     #"active_directory": [
     #    "impacket-scripts", "bloodhound-ce-python", "ldapdomaindump",
     #    "certipy-ad", "mitm6", "adidnsdump", "pywerview"

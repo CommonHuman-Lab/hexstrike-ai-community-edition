@@ -154,6 +154,9 @@ const HEALTH_CAT_TOOLS: Record<string, string[]> = {
                  "airbase-ng", "airdecap-ng", "hcxdumptool", "hcxpcapngtool",
                  "mdk4", "eaphammer", "wifite", "bettercap", "airmon-ng", "airodump-ng", "aireplay-ng", "aircrack-ng"],
     "database": ["mysql", "sqlite3"],
+    "active_directory": [
+        "impacket-scripts"
+    ]
     //"active_directory": [
     //    "impacket-scripts", "bloodhound-ce-python", "ldapdomaindump",
     //    "certipy-ad", "mitm6", "adidnsdump", "pywerview"
@@ -208,7 +211,7 @@ export function DashboardPage({ health, tools, history, dashCacheSize, dashCache
         />
         <StatCard
           icon={<Shield size={20} />}
-          label="Tools Installed"
+          label="Kali Tools Installed"
           value={`${health.total_tools_available} / ${health.total_tools_count}`}
           sub={health.all_essential_tools_available ? 'all essential ready' : 'some essential missing'}
           accent={health.all_essential_tools_available ? 'var(--green)' : 'var(--amber)'}

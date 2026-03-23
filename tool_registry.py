@@ -296,7 +296,85 @@ TOOLS: Dict[str, dict] = {
         "optional": {"additional_args": ""},
         "effectiveness": 0.80,
     },
-
+    # ---- Active Directory ----
+    "impacket-scripts": {
+        "desc": "Execute Impacket scripts with dynamic arguments (e.g. GetADUsers, secretsdump, smbclient, psexec)",
+        "endpoint": "/api/tools/impacket",
+        "method": "POST",
+        "category": "active_directory",
+        "params": {
+            "script": {"required": True},
+            "target": {"required": True}
+        },
+        "optional": {
+            "options": ""
+        },
+        "effectiveness": 0.90
+    },
+    "impacket-spec": {
+        "desc": "Retrieve argument specification and usage for a given Impacket script",
+        "endpoint": "/api/tools/impacket/spec",
+        "method": "POST",
+        "category": "active_directory",
+        "params": {
+            "script": {"required": True}
+        },
+        "optional": {},
+        "effectiveness": 0.85,
+        "parent_tool": "impacket-scripts"
+    },
+    "impacket-ad-enum": {
+        "desc": "Convenience wrapper for Active Directory enumeration Impacket scripts such as GetADUsers, GetNPUsers, GetUserSPNs, lookupsid, and findDelegation",
+        "endpoint": "/api/tools/impacket",
+        "method": "POST",
+        "category": "active_directory",
+        "params": {
+            "script": {"required": True},
+            "target": {"required": True}
+        },
+        "optional": {
+            "dc_ip": "",
+            "username": "",
+            "password": "",
+            "hashes": "",
+            "kerberos": False,
+            "no_pass": False,
+            "aes_key": "",
+            "debug": False,
+            "extra_options": "",
+            "extra_args": ""
+        },
+        "effectiveness": 0.92,
+        "parent_tool": "impacket-scripts"
+    },
+    "impacket-remote-exec": {
+        "desc": "Convenience wrapper for remote execution Impacket scripts such as psexec, wmiexec, smbexec, dcomexec, and atexec",
+        "endpoint": "/api/tools/impacket",
+        "method": "POST",
+        "category": "lateral_movement",
+        "params": {
+            "script": {"required": True},
+            "target": {"required": True}
+        },
+        "optional": {
+            "command": "",
+            "username": "",
+            "password": "",
+            "domain": "",
+            "hashes": "",
+            "kerberos": False,
+            "no_pass": False,
+            "aes_key": "",
+            "share": "",
+            "shell_type": "",
+            "debug": False,
+            "extra_options": "",
+            "extra_args": "",
+            "use_recovery": True
+        },
+        "effectiveness": 0.91,
+        "parent_tool": "impacket-scripts"
+    },
     # ---- OSINT ----
     "whois": {
         "desc": "WHOIS lookup for domains and IPs",
@@ -917,7 +995,7 @@ TOOLS: Dict[str, dict] = {
         "effectiveness": 0.83,
     },
 
-    # ---- Network (additional binaries tracked by health endpoint) ----
+    # ---- Network ----
     "nxc": {
         "desc": "NetExec (nxc) — network service exploitation framework (SMB/WinRM/LDAP)",
         "endpoint": "/api/tools/netexec",
@@ -937,7 +1015,7 @@ TOOLS: Dict[str, dict] = {
         "effectiveness": 0.85,
     },
 
-    # ---- Exploitation (additional binaries tracked by health endpoint) ----
+    # ---- Exploitation ----
     "msfconsole": {
         "desc": "Metasploit console — interactive exploitation framework",
         "endpoint": "/api/tools/metasploit",
@@ -957,7 +1035,7 @@ TOOLS: Dict[str, dict] = {
         "effectiveness": 0.88,
     },
 
-    # ---- Web / API (additional binaries tracked by health endpoint) ----
+    # ---- Web / API ----
     "burpsuite": {
         "desc": "Burp Suite web application security testing platform",
         "endpoint": "/api/tools/burpsuite-alternative",
@@ -1013,7 +1091,7 @@ TOOLS: Dict[str, dict] = {
         "effectiveness": 0.76,
     },
 
-    # ---- OSINT (additional binaries tracked by health endpoint) ----
+    # ---- OSINT ----
     "sherlock": {
         "desc": "Username investigation across 400+ social networks",
         "endpoint": "/api/tools/sherlock",
@@ -1087,7 +1165,7 @@ TOOLS: Dict[str, dict] = {
         "effectiveness": 0.80,
     },
 
-    # ---- Password (additional binaries tracked by health endpoint) ----
+    # ---- Password ----
     "hashcat-utils": {
         "desc": "Hashcat utility tools — cap2hccapx, combinator, expander, etc.",
         "endpoint": "/api/tools/hashcat",
@@ -1098,7 +1176,7 @@ TOOLS: Dict[str, dict] = {
         "effectiveness": 0.80,
     },
 
-    # ---- Forensics (additional binaries tracked by health endpoint) ----
+    # ---- Forensics ----
     "vol": {
         "desc": "Volatility memory forensics (vol shorthand) — analyse RAM dumps",
         "endpoint": "/api/tools/volatility",
@@ -1190,7 +1268,7 @@ TOOLS: Dict[str, dict] = {
         "effectiveness": 0.83,
     },
 
-    # ---- Wireless (additional binaries tracked by health endpoint) ----
+    # ---- Wireless  ----
     "wireshark": {
         "desc": "Network protocol analyser — capture and dissect packets",
         "endpoint": "/api/tools/wireshark",
@@ -1299,6 +1377,8 @@ TOOLS: Dict[str, dict] = {
         "optional": {},
         "effectiveness": 0.82,
     },
+    
+    # ---- Database ----
     "mysql": {
         "desc": "MySQL command-line client for database management and querying",
         "endpoint": "/api/tools/mysql",
@@ -1345,6 +1425,7 @@ CATEGORIES = {
     "api": "API testing and schema analysis",
     "wifi_pentest": "WiFi pentesting and wireless attacks",
     "database": "Database management and querying",
+    "active_directory": "Active Directory enumeration and exploitation",
 }
 
 # ---------------------------------------------------------------------------
@@ -1360,6 +1441,10 @@ _INTENT_KEYWORDS: Dict[str, List[str]] = {
     "network_recon": [
         "scan", "port", "host", "network", "service", "smb",
         "enum4linux", "discovery", "arp", "netbios", "smbmap",
+    ],
+    "active_directory": [
+        "active directory", "ad", "ldap", "kerberos", "domain",
+        "dc", "gpo", "group policy", "bloodhound", "impacket",
     ],
     "web_recon": [
         "directory", "dir", "brute", "fuzz", "ffuf", "crawl",
@@ -1479,7 +1564,7 @@ def get_tools_for_category(category: str) -> List[dict]:
             "params": {
                 **{k: "REQUIRED" for k in t["params"]},
                 **{k: f"default={v}" for k, v in t["optional"].items()},
-            },
+            }
         }
         for name, t in TOOLS.items()
         if t["category"] == category

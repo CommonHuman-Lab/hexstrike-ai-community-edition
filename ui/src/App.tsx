@@ -64,12 +64,12 @@ export default function App() {
   }, [])
 
   const [health, setHealth] = useState<WebDashboardResponse | null>(demo ? DEMO_HEALTH : null)
-   const [tools, setTools] = useState<Tool[]>(demo ? DEMO_TOOLS : [])
-   const [history, setHistory] = useState<HistoryPoint[]>(demo ? demoCpuMemHistory() : [])
-   useEffect(() => {
-     if (demo) return
-     api.tools().then(r => setTools(r.tools)).catch(() => {})
-   }, [demo])
+  const [tools, setTools] = useState<Tool[]>(demo ? DEMO_TOOLS : [])
+  const [history, setHistory] = useState<HistoryPoint[]>(demo ? demoCpuMemHistory() : [])
+  useEffect(() => {
+    if (demo) return
+    api.tools().then(r => setTools(r.tools)).catch(() => {})
+  }, [demo])
   const [runHistory, setRunHistory] = useState<RunHistoryEntry[]>(() => {
     if (demo) return DEMO_RUN_HISTORY
     try {
@@ -389,7 +389,9 @@ export default function App() {
           />
         )}
         {page === 'tasks' && <TasksPage demoData={demo ? { processes: DEMO_PROCESSES } : undefined} />}
-        {page === 'tools' && <ToolsPage tools={tools} toolsStatus={health?.tools_status ?? {}} />}
+        {page === 'tools' && health && (
+          <ToolsPage health={health} tools={tools} toolsStatus={health.tools_status ?? {}} />
+        )}
         {page === 'reports' && <ReportsPage runHistory={runHistory} />}
         {page === 'sessions' && <SessionsPage demoData={demo ? { sessions: DEMO_SESSIONS } : undefined} />}
         {page === 'logs' && (

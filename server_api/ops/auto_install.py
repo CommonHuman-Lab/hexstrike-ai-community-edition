@@ -7,8 +7,8 @@ APT_TOOLS = {
     "bulk-extractor", "bettercap", "checksec", "dirb", "dirsearch", "enum4linux", "enum4linux-ng", 
     "eaphammer","exiftool", "feroxbuster", "ffuf", "file", "foremost", "gdb", "gobuster", "hashcat", 
     "hashcat-utils", "hashid", "hydra", "john", "kismet", "masscan", "mdk4" "medusa", "nbtscan", 
-    "nikto", "nmap", "ophcrack", "outguess", "paramspider", "patator",
-    "radare2", "responder", "ropper", "rustscan", "scalpel", "sleuthkit",
+    "nikto", "nmap", "ophcrack", "paramspider", "patator",
+    "radare2", "responder", "scalpel", "sleuthkit",
     "smbmap", "sqlmap", "steghide", "subfinder", "tcpdump", "testdisk", "tshark",
     "wireshark", "wpscan", "xxd"
 }

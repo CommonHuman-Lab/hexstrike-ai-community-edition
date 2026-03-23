@@ -24,6 +24,10 @@ TOOL_PROFILES = {
         lambda mcp, client, logger: register_gateway_tools(mcp, client),
     ],
 
+    "active_directory": [
+        lambda mcp, client, logger: register_impacket(mcp, client, logger, HexStrikeColors),
+    ],
+
     "api_audit": [
         lambda mcp, client, logger: register_comprehensive_api_audit_tool(mcp, client, logger), #Uses api_fuzz and api_scan tools internally, so they are needed for this profile as well.
     ],

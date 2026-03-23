@@ -152,7 +152,7 @@ export default function HelpPage() {
         <div className="section-header"><h3>Demo Mode</h3></div>
         <div className="help-about">
           <p className="help-about-desc">
-            Activate demo mode to explore the dashboard and IDE integration. All data is synthetic but designed to feel realistic. Ideal for learning, demos, or just satisfying your curiosity!
+            Activate demo mode to explore the dashboard. All data is synthetic but designed to feel realistic. Ideal for learning, demos, or just satisfying your curiosity!
           </p>
           <button
             className="help-demo-btn"
