@@ -2,7 +2,7 @@
 
 _config = {
     "APP_NAME": "HexStrike AI Community Edition",
-    "VERSION": "1.1.0",
+    "VERSION": "1.1.1",
     "DATA_DIR_NAME": ".hexstrike_data",  # Root data directory name (relative to cwd, override with HEXSTRIKE_DATA_DIR env var)
     "COMMAND_TIMEOUT": 300,
     "CACHE_SIZE": 1000,
