@@ -214,12 +214,12 @@ export function DashboardPage({ health, tools, history, runHistory, loading, err
         />
         <StatCard
           icon={<Shield size={20} />}
-          label="Kali Tools Installed"
+          label="Kali Tools"
           value={`${health.total_tools_available} / ${health.total_tools_count}`}
           sub={health.all_essential_tools_available ? 'all essential ready' : 'some essential missing'}
           accent={health.all_essential_tools_available ? 'var(--green)' : 'var(--amber)'}
         />
-        <StatCard icon={<Wrench size={20} />} label="Total Server Tools" value={tools.length} sub="in registry" accent="var(--blue)" />
+        <StatCard icon={<Wrench size={20} />} label="Server Tools" value={tools.length} sub="in registry" accent="var(--blue)" />
         <StatCard
           icon={<Zap size={20} />}
           label="Commands"
