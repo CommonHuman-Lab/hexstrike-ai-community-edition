@@ -224,18 +224,18 @@ export function RunPage({ tools, toolsStatus, runHistory: history, setRunHistory
                 <div className="run-output-header">
                   {running ? (
                     <span className="run-output-status running">
-                      <RefreshCw size={12} className="spin" /> running…
+                      <RefreshCw size={12} className="spin" /> Running…
                     </span>
                   ) : viewEntry && (
                     <>
                       <span className={`run-output-status ${viewEntry.result.success ? 'ok' : 'fail'}`}>
                         {viewEntry.result.success ? <CheckCircle size={12} /> : <XCircle size={12} />}
-                        {viewEntry.result.success ? 'success' : 'failed'}
+                        {viewEntry.result.success ? 'Success' : 'Failed'}
                       </span>
                       <span className="run-output-meta mono">exit {viewEntry.result.return_code}</span>
                       <span className="run-output-meta mono">{viewEntry.result.execution_time.toFixed(2)}s</span>
-                      {viewEntry.result.timed_out && <span className="run-output-meta amber">timed out</span>}
-                      {viewEntry.result.partial_results && <span className="run-output-meta amber">partial</span>}
+                      {viewEntry.result.timed_out && <span className="run-output-meta amber">Timed out</span>}
+                      {viewEntry.result.partial_results && <span className="run-output-meta amber">Partial</span>}
                       <div className="run-export-btns">
                         <button className="run-export-btn" onClick={() => exportEntry(viewEntry, 'txt')} title="Export as .txt">
                           <Download size={11} /> TXT

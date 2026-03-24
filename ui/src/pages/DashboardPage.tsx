@@ -5,6 +5,7 @@ import {
   ChevronDown, ChevronRight, Database, Zap, Wifi,
   Lock, Eye,
   Bug,
+  Wrench,
 } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer
@@ -179,14 +180,12 @@ interface DashboardPageProps {
   health: WebDashboardResponse
   tools: Tool[]
   history: HistoryPoint[]
-  dashCacheSize: number | null
-  dashCacheHits: number | null
   runHistory: RunHistoryEntry[]
   loading: boolean
   error: string | null
 }
 
-export function DashboardPage({ health, tools, history, dashCacheSize, dashCacheHits, runHistory, loading, error }: DashboardPageProps) {
+export function DashboardPage({ health, tools, history, runHistory, loading, error }: DashboardPageProps) {
   const cu = health.resources
 
   return (
@@ -220,13 +219,7 @@ export function DashboardPage({ health, tools, history, dashCacheSize, dashCache
           sub={health.all_essential_tools_available ? 'all essential ready' : 'some essential missing'}
           accent={health.all_essential_tools_available ? 'var(--green)' : 'var(--amber)'}
         />
-        <StatCard
-          icon={<Database size={20} />}
-          label="Cache"
-          value={dashCacheHits !== null ? `${dashCacheHits} hits` : '—'}
-          sub={dashCacheSize !== null ? `${dashCacheSize} size` : 'cache config'}
-          accent="var(--blue)"
-        />
+        <StatCard icon={<Wrench size={20} />} label="Total Server Tools" value={tools.length} sub="in registry" accent="var(--blue)" />
         <StatCard
           icon={<Zap size={20} />}
           label="Commands"

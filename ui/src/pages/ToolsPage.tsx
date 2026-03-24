@@ -40,7 +40,7 @@ export default function ToolsPage({ health, tools, toolsStatus }: ToolsPageProps
 
       <div className="kpi-row">
         <StatCard icon={<Wrench size={20} />} label="Total Server Tools" value={tools.length} sub="in registry" accent="var(--blue)" />
-         <StatCard
+        <StatCard
           icon={<Shield size={20} />}
           label="Kali Tools Installed"
           value={`${health.total_tools_available} / ${health.total_tools_count}`}
