@@ -64,7 +64,8 @@ _HEALTH_TOOL_CATEGORIES = {
     "database": ["mysql", "sqlite3"],
     "active_directory": [
         "impacket-scripts"
-    ]
+    ],
+    "vulnerability_intelligence": ["vulnx"]
     #"active_directory": [
     #    "impacket-scripts", "bloodhound-ce-python", "ldapdomaindump",
     #    "certipy-ad", "mitm6", "adidnsdump", "pywerview"

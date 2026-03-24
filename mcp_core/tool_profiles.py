@@ -342,6 +342,7 @@ TOOL_PROFILES = {
     #Tools for vulnerability intelligence gathering and analysis
     "vuln_intel": [
         lambda mcp, client, logger: register_vulnerability_intelligence_tools(mcp, client, logger),
+        lambda mcp, client, logger: register_vulnx_tool(mcp, client, logger),
     ],
 
     #Tools for visual output and reporting

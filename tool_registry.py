@@ -17,6 +17,29 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 TOOLS: Dict[str, dict] = {
+    # ---- Vulnerability Intelligence ----
+    "vulnx": {
+        "desc": "CVE vulnerability intelligence and analysis",
+        "endpoint": "/api/vuln-intel/vulnx",
+        "method": "POST",
+        "category": "vulnerability_intelligence",
+        "params": {},
+        "optional": {"cve_id": "", "search": "", "auth_key": ""},
+        "effectiveness": 0.90,
+    },
+
+    # "cve-monitor": {
+    #     "desc": "Monitor CVE databases for new vulnerabilities with AI analysis.",
+    #     "endpoint": "/api/vuln-intel/cve-monitor",
+    #     "method": "POST",
+    #     "category": "vulnerability_intelligence",
+    #     "params": {},
+    #     "optional": {
+    #         "keywords": ""
+    #     },
+    #     "effectiveness": 0.90,
+    # },
+    
     # ---- Network Recon ----
     "nmap": {
         "desc": "Port scan and service detection",
@@ -1426,6 +1449,7 @@ CATEGORIES = {
     "wifi_pentest": "WiFi pentesting and wireless attacks",
     "database": "Database management and querying",
     "active_directory": "Active Directory enumeration and exploitation",
+    "vulnerability_intelligence": "Vulnerability research and intelligence gathering",
 }
 
 # ---------------------------------------------------------------------------
@@ -1487,7 +1511,8 @@ _INTENT_KEYWORDS: Dict[str, List[str]] = {
         "hashpump", "length extension", "hash extension", "file recovery",
     ],
     "database": ["mysql", "sqlite3"],
-    "essential": ["nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat"]
+    "essential": ["nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat"],
+    "vulnerability_intelligence": ["vulnx", "vulnerability intelligence", "vulnerability research", "cve search", "exploit research"]
 
 }
 

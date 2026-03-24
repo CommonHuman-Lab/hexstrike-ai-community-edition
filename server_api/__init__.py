@@ -284,6 +284,7 @@ def register_blueprints(app):
   app.register_blueprint(api_vuln_intel_attack_chains_bp)
   app.register_blueprint(api_vuln_intel_threat_feeds_bp)
   app.register_blueprint(api_vuln_intel_zero_day_research_bp)
+  app.register_blueprint(api_vuln_intel_vulnx_bp)
 
   # Bug Bounty Workflow
   app.register_blueprint(api_bugbounty_workflow_bug_bounty_recon_bp)

@@ -4,6 +4,7 @@ import {
   CheckCircle, XCircle, AlertCircle,
   ChevronDown, ChevronRight, Database, Zap, Wifi,
   Lock, Eye,
+  Bug,
 } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer
@@ -65,6 +66,8 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   api: <Activity size={14} />,
   wifi_pentest: <Wifi size={14} />,
   database: <Database size={14} />,
+  vulnerability_intelligence: <Bug size={14} />,
+  
 }
 
 function ToolCategoryRow({ category, stats, toolStatuses, toolsByName }: {
@@ -127,7 +130,7 @@ function ToolCategoryRow({ category, stats, toolStatuses, toolsByName }: {
 }
 
 // Map health category names to their tool lists (mirrors _HEALTH_TOOL_CATEGORIES in Python)
-// Also includes tool_registry.py category names used by demo mode.
+// Also includes tool_registry.py category names
 const HEALTH_CAT_TOOLS: Record<string, string[]> = {
     "essential": ["nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat"],
     "network_recon": ["rustscan", "masscan", "autorecon", "nbtscan", "arp-scan", "responder",
@@ -156,7 +159,8 @@ const HEALTH_CAT_TOOLS: Record<string, string[]> = {
     "database": ["mysql", "sqlite3"],
     "active_directory": [
         "impacket-scripts"
-    ]
+    ],
+    "vulnerability_intelligence": ["vulnx"]
     //"active_directory": [
     //    "impacket-scripts", "bloodhound-ce-python", "ldapdomaindump",
     //    "certipy-ad", "mitm6", "adidnsdump", "pywerview"
