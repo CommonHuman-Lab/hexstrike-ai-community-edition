@@ -124,8 +124,9 @@ export const INSTALL_HINTS: Record<string, string> = {
   autopsy:           'sudo apt install autopsy',
   'bulk_extractor':  'sudo apt install bulk-extractor',
   'hashcat-utils':   'sudo apt install hashcat-utils',
-  cloudmapper:       '# https://github.com/duo-labs/cloudmapper',
+  cloudmapper:       'https://github.com/duo-labs/cloudmapper',
   vulnx:             'go install github.com/projectdiscovery/cvemap/cmd/vulnx@latest',
+  falco:             'https://falco.org/docs/setup/packages/#install-with-apt',
 }
 
 export function installHint(name: string): string {
