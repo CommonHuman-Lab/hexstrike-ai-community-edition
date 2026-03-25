@@ -151,7 +151,7 @@ const HEALTH_CAT_TOOLS: Record<string, string[]> = {
               "cloudmapper", "pacu"],
     "osint": ["amass", "subfinder", "fierce", "dnsenum", "theharvester", "sherlock",
               "social-analyzer", "recon-ng", "maltego", "spiderfoot",
-              "censys-cli", "have-i-been-pwned", "whois", "bbot", "gau", "waybackurls"],
+              "have-i-been-pwned", "whois", "bbot", "gau", "waybackurls"],
     "exploitation": ["msfconsole", "msfvenom", "searchsploit"],
     "api": ["api-schema-analyzer", "curl", "http-framework", "anew", "qsreplace", "uro"],
     "wifi_pentest": ["kismet", "wireshark", "tshark", "tcpdump",
@@ -163,7 +163,7 @@ const HEALTH_CAT_TOOLS: Record<string, string[]> = {
     ],
     "vulnerability_intelligence": ["vulnx"]
 
-    //Not in use: httpie, postman, insomnia, "shodan-cli"
+    //Not in use: httpie, postman, insomnia, "shodan-cli", "censys-cli", 
 
     //"active_directory": [
     //    "impacket-scripts", "bloodhound-ce-python", "ldapdomaindump",
