@@ -150,10 +150,10 @@ const HEALTH_CAT_TOOLS: Record<string, string[]> = {
               "docker-bench-security", "checkov", "terrascan", "falco", "clair",
               "cloudmapper", "pacu"],
     "osint": ["amass", "subfinder", "fierce", "dnsenum", "theharvester", "sherlock",
-              "social-analyzer", "recon-ng", "maltego", "spiderfoot", "shodan-cli",
+              "social-analyzer", "recon-ng", "maltego", "spiderfoot",
               "censys-cli", "have-i-been-pwned", "whois", "bbot", "gau", "waybackurls"],
     "exploitation": ["msfconsole", "msfvenom", "searchsploit"],
-    "api": ["api-schema-analyzer", "postman", "insomnia", "curl", "httpie", "anew", "qsreplace", "uro"],
+    "api": ["api-schema-analyzer", "curl", "http-framework", "anew", "qsreplace", "uro"],
     "wifi_pentest": ["kismet", "wireshark", "tshark", "tcpdump",
                  "airbase-ng", "airdecap-ng", "hcxdumptool", "hcxpcapngtool",
                  "mdk4", "eaphammer", "wifite", "bettercap", "airmon-ng", "airodump-ng", "aireplay-ng", "aircrack-ng"],
@@ -162,6 +162,9 @@ const HEALTH_CAT_TOOLS: Record<string, string[]> = {
         "impacket-scripts"
     ],
     "vulnerability_intelligence": ["vulnx"]
+
+    //Not in use: httpie, postman, insomnia, "shodan-cli"
+
     //"active_directory": [
     //    "impacket-scripts", "bloodhound-ce-python", "ldapdomaindump",
     //    "certipy-ad", "mitm6", "adidnsdump", "pywerview"
