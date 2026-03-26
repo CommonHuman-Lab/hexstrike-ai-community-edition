@@ -14,7 +14,8 @@ APT_TOOLS = {
     "radare2", "responder", "scalpel", "sleuthkit",
     "smbmap", "sqlmap", "steghide", "subfinder", 
     "tcpdump", "testdisk", "tshark", "wireshark", "wpscan", 
-    "xxd", "python3-ldapdomaindump", "commix", "theharvester", "sublist3r"
+    "xxd", "python3-ldapdomaindump", "commix", "theharvester", 
+    "sublist3r", "parsero"
 }
 
 def is_tool_installed(tool):

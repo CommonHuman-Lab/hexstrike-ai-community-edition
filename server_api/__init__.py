@@ -68,6 +68,7 @@ def register_blueprints(app):
   app.register_blueprint(api_osint_sherlock_bp)
   app.register_blueprint(api_osint_spiderfoot_bp)
   app.register_blueprint(api_osint_sublist3r_bp)
+  app.register_blueprint(api_osint_parsero_bp)
 
   # Database
   app.register_blueprint(api_database_bp)

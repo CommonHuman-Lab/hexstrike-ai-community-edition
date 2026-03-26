@@ -126,6 +126,7 @@ export const INSTALL_HINTS: Record<string, string> = {
   falco:             'https://falco.org/docs/setup/packages/#install-with-apt',
   ldapdomaindump:    'sudo apt install python3-ldapdomaindump',
   sublist3r:         'sudo apt install sublist3r',
+  parsero:           'sudo apt install parsero',
 }
 
 export function installHint(name: string): string {

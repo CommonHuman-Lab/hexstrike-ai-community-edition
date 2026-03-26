@@ -470,6 +470,15 @@ TOOLS: Dict[str, dict] = {
         "parent_tool": "impacket-scripts"
     },
     # ---- OSINT ----
+    "parsero": {
+        "desc": " Reads the Robots.txt file of a web server and looks at the Disallow entries.",
+        "endpoint": "/api/tools/osint/parsero",
+        "method": "POST",
+        "category": "osint",
+        "params": {"target": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.85,
+    },
     "whois": {
         "desc": "WHOIS lookup for domains and IPs",
         "endpoint": "/api/tools/whois",
