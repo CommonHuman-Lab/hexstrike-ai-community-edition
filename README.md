@@ -26,12 +26,10 @@
 
 ## 🚀 Differences from HexStrike V6
 
-- Increased MCP toolings from **150** to over **185**
-- **Web Dashboard**: A real-time web UI — monitor health, tools, system resources, live logs, and much more without touching the terminal.
-- **3 Multi-Agent System**: Full end-to-end agent workflows for **OpenCode**.
+- Many new tools, workflows, skills and end-to-end agent workflows added!
+- **Web Dashboard**: Monitor health, tools, live logs, run tools, export artifacts and much more without touching the terminal.
 - **Compact Mode**: Great for running with smaller, local LLMs.
 - **Profile Mode**: Specify one or more profiles to load only the relevant ones for your workflow.
-- LLM Skills: 9 LLM skills now included.
 - Refactored Codebase: Improved clarity, maintainability, and performance.
 - Updated Dependencies: All packages upgraded for security and compatibility.
 - Enhanced Tool Usage: Smarter parameter handling, improved documentation, and endpoint references.
@@ -46,11 +44,12 @@ Served automatically at `http://localhost:8888` the moment the server starts —
 
 **What you get:**
 
-- **Dashboard** — live KPI cards for tools installed, command telemetry, cache stats, and uptime. CPU and memory history charts update in real time.
-- **Tool Availability** — every tool organised by category. Expand any category to see individual install status. Click any tool chip to open a detail modal with description, install command, API endpoint, and parameters.
-- **Tool Registry** — searchable, filterable card grid of all registered tools. Click any card for the same detail modal. Cards show a green/red install indicator pulled live from the health check.
-- **Server Logs** — near-realtime SSE log stream with auto-scroll, configurable line buffer (50–500 lines), and a line count display.
-- **Help** — IDE/agent configuration snippets for Claude Desktop, VS Code Copilot, Cursor, and OpenCode — with a custom install path input so the snippets are copy-paste ready.
+- **Dashboard** — KPI cards for tools installed, command telemetry, uptime and more.
+- **Tool Run** — Run any tool, straight from the dashboard!
+- **Reports** — Searchable, filterable tool run history, with export.
+- **Tool Registry** — Searchable, filterable for all registered tools. Click any tool for more details.
+- **Server Logs** — near-realtime SSE log stream.
+- **Help** — IDE/agent configuration snippets for Claude Desktop, VS Code Copilot, Cursor, and OpenCode.
 - **And much more!**
 
 <img src="assets/screenshots/dashboard.png" alt="dashboard" style="margin-bottom: 20px;"/>
@@ -139,8 +138,8 @@ A 5-specialist agent system built natively for **OpenCode**, designed for pure r
 <details>
 <summary>Major Refactor</summary>
 
-- Hexstrike Server has been reduced from 17,289 lines of code to just 100 lines.
-- Hexstrike MCP client has been reduced from 5,470 lines of code to just 42 lines.
+- Hexstrike Server has been reduced from 17,289 lines of code to just under 200 lines.
+- Hexstrike MCP client has been reduced from 5,470 lines of code to just under 50 lines.
 - Functionality is now split across multiple focused modules for clarity, maintainability, and easier contribution.
 - This modular approach enables faster development, easier debugging, and better scalability.
 - All MCP tools run async.
@@ -371,6 +370,28 @@ python3 hexstrike_server.py
 - **SMBMap** - SMB share enumeration and exploitation
 - **Responder** - LLMNR, NBT-NS and MDNS poisoner for credential harvesting
 - **NetExec** - Network service exploitation framework (formerly CrackMapExec)
+
+</details>
+
+<details>
+<summary><b>📡 WiFi Penetration Testing</b></summary>
+
+- Aircrack-ng Suite:
+- Aircrack-ng - WPA/WPA2 PSK cracking from captured handshakes using dictionary attacks
+- Airmon-ng - Enable/disable monitor mode and kill interfering processes
+- Airodump-ng - Passive 802.11 packet capture for AP discovery and WPA handshake collection
+- Aireplay-ng - Packet injection for deauthentication, fake authentication, and ARP replay attacks
+- Airbase-ng - Rogue/soft access point creation for Evil Twin and client capture attacks
+- Airdecap-ng - Decrypt WEP/WPA/WPA2 encrypted pcap capture files
+
+*Modern WiFi Tools:*
+
+- hcxdumptool - Clientless PMKID capture and WPA/WPA2 handshake collection (v7.0.0+)
+- hcxpcapngtool - Convert hcxdumptool pcapng output to hashcat -m 22000 format
+- EAPHammer - WPA-Enterprise Evil Twin for harvesting 802.1X EAP credentials
+- Wifite2 - Automated WiFi auditing with PMKID, handshake, and WPS attack support
+- Bettercap - WiFi recon, deauthentication, and Evil Twin via Bettercap wifi module
+- mdk4 - 802.11 protocol stress testing and WIDS/WIPS evasion validation
 
 </details>
 
@@ -648,20 +669,9 @@ However:
 - If you run this as a service, you must provide source code
 - If you distribute it, it must remain open source
 
-If you want to use this commercially without open-sourcing your changes, contact me.
-
----
+For commercial licensing options that do not require open-sourcing your changes,
+please contact the authors.
 
 ## Based Of
 
 **0x4m4** - [HexStrike AI](https://github.com/0x4m4/hexstrike-ai)
-
-<div align="center">
-
-### **🚀 Ready to Transform Your AI Agents?**
-
-**Made with ❤️ by the cybersecurity community for AI-powered security automation**
-
-*HexStrike AI - Where artificial intelligence meets cybersecurity excellence*
-
-</div>

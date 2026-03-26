@@ -21,7 +21,10 @@ api_system_monitoring_bp = Blueprint("api_system_monitoring", __name__)
 # TOOL AVAILABILITY CACHE — populated once at startup, refreshed every hour
 # ============================================================================
 # List of tools considered always installed (built-in, code-provided or simulated)
-BUILT_IN_TOOLS = ["jwt-analyzer", "api-schema-analyzer", "graphql-scanner"]
+BUILT_IN_TOOLS = ["jwt-analyzer", "api-schema-analyzer", "graphql-scanner", 
+                  "http-framework", "auto_install_missing_apt_tools", 
+                  "analyze-target", "create-attack-chain", "smart-scan",
+                  "technology-detection"]
 
 REQUIRE_DPKG_CHECK = ["hashcat-utils", "sleuthkit", "impacket-scripts"]
 
@@ -29,13 +32,20 @@ REQUIRE_PIP_CHECK = ["pwntools", "one-gadget"]
 
 REQUIRE_GEM_CHECK = ["zsteg"]
 
+REQUIRE_CARGO_CHECK = ["pwninit", "x8"]
+
+BINARY_NAME_OVERRIDES = {
+    "scout-suite": "scout",
+    "volatility": "vol"
+}
+
 _HEALTH_TOOL_CATEGORIES = {
     "essential": ["nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat"],
     "network_recon": ["rustscan", "masscan", "autorecon", "nbtscan", "arp-scan", "responder",
                 "nxc", "enum4linux-ng", "rpcclient", "enum4linux", "smbmap", "evil-winrm"],
     "web_recon": ["ffuf", "feroxbuster", "dirsearch", "dotdotpwn", "xsser", "wfuzz",
                      "arjun", "paramspider", "x8", "jaeles", "dalfox",
-                     "httpx", "wafw00f", "burpsuite", "katana", "hakrawler", "wpscan"],
+                     "httpx", "wafw00f", "burpsuite", "katana", "hakrawler", "wpscan", "joomscan"],
     "web_vuln": ["nuclei", "graphql-scanner", "jwt-analyzer", "zaproxy"],
     "brute_force": ["medusa", "patator", "hashid", "ophcrack", "hashcat-utils"],
     "binary": ["gdb", "radare2", "binwalk", "ROPgadget", "checksec", "objdump",
@@ -46,20 +56,29 @@ _HEALTH_TOOL_CATEGORIES = {
     "cloud": ["prowler", "scout-suite", "trivy", "kube-hunter", "kube-bench",
               "docker-bench-security", "checkov", "terrascan", "falco", "clair",
               "cloudmapper", "pacu"],
-    "osint": ["amass", "subfinder", "fierce", "dnsenum", "theharvester", "sherlock",
-              "social-analyzer", "recon-ng", "maltego", "spiderfoot", "shodan-cli",
-              "censys-cli", "have-i-been-pwned", "whois", "bbot", "gau", "waybackurls"],
-    "exploitation": ["msfconsole", "msfvenom", "searchsploit"],
-    "api": ["api-schema-analyzer", "postman", "insomnia", "curl", "httpie", "anew", "qsreplace", "uro"],
+    "osint": ["amass", "subfinder", "fierce", "dnsenum", "theHarvester", "sherlock",
+              "social-analyzer", "recon-ng", "maltego", "spiderfoot",
+              "whois", "bbot", "gau", "waybackurls", "sublist3r", "parsero"],
+    "exploitation": ["msfconsole", "msfvenom", "searchsploit", "commix"],
+    "api": ["api-schema-analyzer", "curl", "http-framework", "anew", "qsreplace", "uro"],
     "wifi_pentest": ["kismet", "wireshark", "tshark", "tcpdump",
                  "airbase-ng", "airdecap-ng", "hcxdumptool", "hcxpcapngtool",
                  "mdk4", "eaphammer", "wifite", "bettercap", "airmon-ng", "airodump-ng", "aireplay-ng", "aircrack-ng"],
     "database": ["mysql", "sqlite3"],
     "active_directory": [
-        "impacket-scripts"
-    ]
+        "impacket-scripts", "ldapdomaindump"
+    ],
+    "vulnerability_intelligence": ["vulnx"],
+    "fingerprint": ["whatweb"],
+
+    "ops": ["auto_install_missing_apt_tools"],
+
+    "intelligence": ["analyze-target", "create-attack-chain", "smart-scan", "technology-detection"],
+
+    #Not in use: httpie, postman, insomnia, "shodan-cli", "censys-cli", "have-i-been-pwned",
+    
     #"active_directory": [
-    #    "impacket-scripts", "bloodhound-ce-python", "ldapdomaindump",
+    #    "bloodhound-ce-python"
     #    "certipy-ad", "mitm6", "adidnsdump", "pywerview"
     #]
 }
@@ -79,37 +98,49 @@ def _refresh_tool_availability() -> None:
     })
 
     def probe(tool: str) -> tuple:
-        if tool in BUILT_IN_TOOLS:
+        if tool in BINARY_NAME_OVERRIDES:
+            tool_to_check = BINARY_NAME_OVERRIDES[tool]
+        else:
+            tool_to_check = tool
+        if tool_to_check in BUILT_IN_TOOLS:
             # Always report built-ins as available without probing
             return tool, True
         try:
-            if tool in REQUIRE_DPKG_CHECK:
+            if tool_to_check in REQUIRE_DPKG_CHECK:
                 # For tools that require dpkg, check if the package is installed
                 result = subprocess.run(
-                    ["dpkg", "-s", tool],
+                    ["dpkg", "-s", tool_to_check],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                 )
                 return tool, result.returncode == 0
-            elif tool in REQUIRE_PIP_CHECK:
+            elif tool_to_check in REQUIRE_PIP_CHECK:
                 # For tools that require pip, check if the package is installed
                 result = subprocess.run(
-                    ["pip3", "list", "|", "grep", tool],
+                    ["pip3", "list", "|", "grep", tool_to_check],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                 )
                 return tool, result.returncode == 0
-            elif tool in REQUIRE_GEM_CHECK:
+            elif tool_to_check in REQUIRE_GEM_CHECK:
                 # For tools that require gem, check if the package is installed
                 result = subprocess.run(
-                    ["gem", "list", "|", "grep", tool],
+                    ["gem", "list", "|", "grep", tool_to_check],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                return tool, result.returncode == 0
+            elif tool_to_check in REQUIRE_CARGO_CHECK:
+                # For tools that require cargo, check if the package is installed
+                result = subprocess.run(
+                    ["cargo", "install", "--list", "|", "grep", tool_to_check],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                 )
                 return tool, result.returncode == 0
             else:
                 result = subprocess.run(
-                    ["which", tool],
+                    ["which", tool_to_check],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                 )

@@ -4,6 +4,13 @@ import {
   CheckCircle, XCircle, AlertCircle,
   ChevronDown, ChevronRight, Database, Zap, Wifi,
   Lock, Eye,
+  Bug,
+  Wrench,
+  Box,
+  Wand,
+  Fingerprint,
+  Earth,
+  Brain,
 } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer
@@ -49,10 +56,10 @@ function ResourceChart({ data }: { data: HistoryPoint[] }) {
 }
 
 // ─── Tool Availability Section ────────────────────────────────────────────────
-
+// Icons : https://lucide.dev/icons/
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   // server health category names
-  essential: <Shield size={14} />,
+  essential: <Wand size={14} />,
   network_recon: <Wifi size={14} />,
   web_recon: <Activity size={14} />,
   web_vuln: <AlertCircle size={14} />,
@@ -65,6 +72,11 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   api: <Activity size={14} />,
   wifi_pentest: <Wifi size={14} />,
   database: <Database size={14} />,
+  vulnerability_intelligence: <Bug size={14} />,
+  active_directory: <Box size={14} />,
+  fingerprint: <Fingerprint size={14} />,
+  ops: <Earth size={14} />,
+  intelligence: <Brain size={14} />,
 }
 
 function ToolCategoryRow({ category, stats, toolStatuses, toolsByName }: {
@@ -127,14 +139,14 @@ function ToolCategoryRow({ category, stats, toolStatuses, toolsByName }: {
 }
 
 // Map health category names to their tool lists (mirrors _HEALTH_TOOL_CATEGORIES in Python)
-// Also includes tool_registry.py category names used by demo mode.
+// Also includes tool_registry.py category names
 const HEALTH_CAT_TOOLS: Record<string, string[]> = {
     "essential": ["nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat"],
     "network_recon": ["rustscan", "masscan", "autorecon", "nbtscan", "arp-scan", "responder",
                 "nxc", "enum4linux-ng", "rpcclient", "enum4linux", "smbmap", "evil-winrm"],
     "web_recon": ["ffuf", "feroxbuster", "dirsearch", "dotdotpwn", "xsser", "wfuzz",
                      "arjun", "paramspider", "x8", "jaeles", "dalfox",
-                     "httpx", "wafw00f", "burpsuite", "katana", "hakrawler", "wpscan"],
+                     "httpx", "wafw00f", "burpsuite", "katana", "hakrawler", "wpscan", "joomscan"],
     "web_vuln": ["nuclei", "graphql-scanner", "jwt-analyzer", "zaproxy"],
     "brute_force": ["medusa", "patator", "hashid", "ophcrack", "hashcat-utils"],
     "binary": ["gdb", "radare2", "binwalk", "ROPgadget", "checksec", "objdump",
@@ -145,20 +157,27 @@ const HEALTH_CAT_TOOLS: Record<string, string[]> = {
     "cloud": ["prowler", "scout-suite", "trivy", "kube-hunter", "kube-bench",
               "docker-bench-security", "checkov", "terrascan", "falco", "clair",
               "cloudmapper", "pacu"],
-    "osint": ["amass", "subfinder", "fierce", "dnsenum", "theharvester", "sherlock",
-              "social-analyzer", "recon-ng", "maltego", "spiderfoot", "shodan-cli",
-              "censys-cli", "have-i-been-pwned", "whois", "bbot", "gau", "waybackurls"],
-    "exploitation": ["msfconsole", "msfvenom", "searchsploit"],
-    "api": ["api-schema-analyzer", "postman", "insomnia", "curl", "httpie", "anew", "qsreplace", "uro"],
+    "osint": ["amass", "subfinder", "fierce", "dnsenum", "theHarvester", "sherlock",
+              "social-analyzer", "recon-ng", "maltego", "spiderfoot",
+              "whois", "bbot", "gau", "waybackurls", "sublist3r", "parsero"],
+    "exploitation": ["msfconsole", "msfvenom", "searchsploit", "commix"],
+    "api": ["api-schema-analyzer", "curl", "http-framework", "anew", "qsreplace", "uro"],
     "wifi_pentest": ["kismet", "wireshark", "tshark", "tcpdump",
                  "airbase-ng", "airdecap-ng", "hcxdumptool", "hcxpcapngtool",
                  "mdk4", "eaphammer", "wifite", "bettercap", "airmon-ng", "airodump-ng", "aireplay-ng", "aircrack-ng"],
     "database": ["mysql", "sqlite3"],
     "active_directory": [
-        "impacket-scripts"
-    ]
+        "impacket-scripts", "ldapdomaindump"
+    ],
+    "vulnerability_intelligence": ["vulnx"],
+    "fingerprint": ["whatweb"],
+    "ops": ["auto_install_missing_apt_tools"],
+    "intelligence": ["analyze-target", "create-attack-chain", "smart-scan", "technology-detection"],
+
+    //Not in use: httpie, postman, insomnia, "shodan-cli", "censys-cli", "have-i-been-pwned", 
+
     //"active_directory": [
-    //    "impacket-scripts", "bloodhound-ce-python", "ldapdomaindump",
+    //    "bloodhound-ce-python"
     //    "certipy-ad", "mitm6", "adidnsdump", "pywerview"
     //]
 }
@@ -175,14 +194,12 @@ interface DashboardPageProps {
   health: WebDashboardResponse
   tools: Tool[]
   history: HistoryPoint[]
-  dashCacheSize: number | null
-  dashCacheHits: number | null
   runHistory: RunHistoryEntry[]
   loading: boolean
   error: string | null
 }
 
-export function DashboardPage({ health, tools, history, dashCacheSize, dashCacheHits, runHistory, loading, error }: DashboardPageProps) {
+export function DashboardPage({ health, tools, history, runHistory, loading, error }: DashboardPageProps) {
   const cu = health.resources
 
   return (
@@ -211,18 +228,12 @@ export function DashboardPage({ health, tools, history, dashCacheSize, dashCache
         />
         <StatCard
           icon={<Shield size={20} />}
-          label="Kali Tools Installed"
+          label="Kali Tools"
           value={`${health.total_tools_available} / ${health.total_tools_count}`}
           sub={health.all_essential_tools_available ? 'all essential ready' : 'some essential missing'}
           accent={health.all_essential_tools_available ? 'var(--green)' : 'var(--amber)'}
         />
-        <StatCard
-          icon={<Database size={20} />}
-          label="Cache"
-          value={dashCacheHits !== null ? `${dashCacheHits} hits` : '—'}
-          sub={dashCacheSize !== null ? `${dashCacheSize} size` : 'cache config'}
-          accent="var(--blue)"
-        />
+        <StatCard icon={<Wrench size={20} />} label="Server Tools" value={tools.length} sub="in registry" accent="var(--blue)" />
         <StatCard
           icon={<Zap size={20} />}
           label="Commands"

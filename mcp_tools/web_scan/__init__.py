@@ -1,4 +1,3 @@
-
 from .nikto import *
 from .sqlmap import *
 from .wpscan import *
@@ -7,3 +6,4 @@ from .dalfox import *
 from .burpsuite import *
 from .zap import *
 from .xsser import *
+from .joomscan import *

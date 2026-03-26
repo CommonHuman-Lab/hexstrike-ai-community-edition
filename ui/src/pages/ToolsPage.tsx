@@ -21,7 +21,7 @@ export default function ToolsPage({ health, tools, toolsStatus }: ToolsPageProps
   const filtered = tools.filter(t => {
     const matchCat = activeCat === 'all' || t.category === activeCat
     const q = search.toLowerCase()
-    const matchSearch = !q || t.name.includes(q) || t.desc.toLowerCase().includes(q)
+    const matchSearch = !q || t.name.includes(q) || t.desc.toLowerCase().includes(q) || t.parent_tool?.includes(q) || t.parent_tool?.toLowerCase().includes(q)
     const matchMissing = !missingOnly || toolsStatus[t.name] === false
     return matchCat && matchSearch && matchMissing
   }).sort((a, b) => a.name.localeCompare(b.name))
@@ -40,7 +40,7 @@ export default function ToolsPage({ health, tools, toolsStatus }: ToolsPageProps
 
       <div className="kpi-row">
         <StatCard icon={<Wrench size={20} />} label="Total Server Tools" value={tools.length} sub="in registry" accent="var(--blue)" />
-         <StatCard
+        <StatCard
           icon={<Shield size={20} />}
           label="Kali Tools Installed"
           value={`${health.total_tools_available} / ${health.total_tools_count}`}
@@ -108,6 +108,13 @@ export default function ToolsPage({ health, tools, toolsStatus }: ToolsPageProps
               <div className="registry-card-top">
                 <span className="registry-name mono">{t.name}</span>
                 <span className="registry-cat">{t.category.replace(/_/g, ' ')}</span>
+                {
+                  t.parent_tool && (
+                    <span className="registry-cat" title={`Based on ${t.parent_tool}`}>
+                      {t.parent_tool}
+                    </span>
+                  )
+                }
                 {toolsStatus[t.name] === true && (
                   <span className="registry-installed" title="Installed">
                     <CheckCircle size={11} color="var(--green)" />

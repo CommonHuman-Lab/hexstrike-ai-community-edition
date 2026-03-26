@@ -17,6 +17,70 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 TOOLS: Dict[str, dict] = {
+    # ---- Vulnerability Intelligence ----
+    "vulnx": {
+        "desc": "CVE vulnerability intelligence and analysis",
+        "endpoint": "/api/vuln-intel/vulnx",
+        "method": "POST",
+        "category": "vulnerability_intelligence",
+        "params": {},
+        "optional": {"cve_id": "", "search": "", "auth_key": ""},
+        "effectiveness": 0.90,
+    },
+
+    # ---- Intelligence ----
+    "analyze-target": {
+        "desc": "Analyze target and create comprehensive profile using Intelligent Decision Engine",
+        "endpoint": "/api/intelligence/analyze-target",
+        "method": "POST",
+        "category": "intelligence",
+        "params": {"target": {"required": True}},
+        "optional": {},
+        "effectiveness": 0.92,
+    },
+
+    "create-attack-chain": {
+        "desc": "Create an intelligent attack chain based on target profile",
+        "endpoint": "/api/intelligence/create-attack-chain",
+        "method": "POST",
+        "category": "intelligence",
+        "params": {"target": {"required": True}},
+        "optional": {"objective": "comprehensive"},
+        "effectiveness": 0.90,
+    },
+
+    "smart-scan": {
+        "desc": "Execute an intelligent scan using AI-driven tool selection and parameter optimization with parallel execution",
+        "endpoint": "/api/intelligence/smart-scan",
+        "method": "POST",
+        "category": "intelligence",
+        "params": {"target": {"required": True}},
+        "optional": {"objective": "comprehensive", "max_tools": 5},
+        "effectiveness": 0.93,
+    },
+
+    "technology-detection": {
+        "desc": "Detect technologies and create technology-specific testing recommendations",
+        "endpoint": "/api/intelligence/technology-detection",
+        "method": "POST",
+        "category": "intelligence",
+        "params": {"target": {"required": True}},
+        "optional": {},
+        "effectiveness": 0.90,
+    },
+
+    # "cve-monitor": {
+    #     "desc": "Monitor CVE databases for new vulnerabilities with AI analysis.",
+    #     "endpoint": "/api/vuln-intel/cve-monitor",
+    #     "method": "POST",
+    #     "category": "vulnerability_intelligence",
+    #     "params": {},
+    #     "optional": {
+    #         "keywords": ""
+    #     },
+    #     "effectiveness": 0.90,
+    # },
+    
     # ---- Network Recon ----
     "nmap": {
         "desc": "Port scan and service detection",
@@ -27,6 +91,18 @@ TOOLS: Dict[str, dict] = {
         "optional": {"scan_type": "-sCV", "ports": "", "additional_args": "-T4 -Pn"},
         "effectiveness": 0.95,
     },
+
+    "nmap_advanced": {
+        "desc": "Advanced Nmap scans with custom NSE scripts and optimized timing",
+        "endpoint": "/api/tools/nmap-advanced",
+        "method": "POST",
+        "category": "network_recon",
+        "params": {"target": {"required": True}},
+        "optional": {"scan_type": "-sS", "ports": "", "timing": "T4", "nse_scripts": "", "os_detection": False, "version_detection": False, "aggressive": False, "stealth": False, "additional_args": ""},
+        "effectiveness": 0.97,
+        "parent_tool": "nmap"
+    },
+
     "masscan": {
         "desc": "Fast mass port scanner",
         "endpoint": "/api/tools/masscan",
@@ -156,6 +232,15 @@ TOOLS: Dict[str, dict] = {
         "optional": {"additional_args": ""},
         "effectiveness": 0.95,
     },
+    "joomscan": {
+        "desc": "Joomla vulnerability scanner",
+        "endpoint": "/api/tools/web_recon/joomscan",
+        "method": "POST",
+        "category": "web_recon",
+        "params": {"url": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.90,
+    },
 
     # ---- Web Vuln ----
     "nuclei": {
@@ -223,6 +308,15 @@ TOOLS: Dict[str, dict] = {
     },
 
     # ---- Exploitation ----
+    "commix": {
+        "desc": "Command injection exploitation tool",
+        "endpoint": "/api/tools/exploitation/commix",
+        "method": "POST",
+        "category": "exploitation",
+        "params": {"url": {"required": True}},
+        "optional": {"level": "", "additional_args": ""},
+        "effectiveness": 0.85,
+    },
     "msfvenom": {
         "desc": "Metasploit payload generator",
         "endpoint": "/api/tools/msfvenom",
@@ -297,9 +391,18 @@ TOOLS: Dict[str, dict] = {
         "effectiveness": 0.80,
     },
     # ---- Active Directory ----
+    "ldapdomaindump": {
+        "desc": "Dump LDAP information from Active Directory",
+        "endpoint": "/api/tools/active_directory/ldapdomaindump",
+        "method": "POST",
+        "category": "active_directory",
+        "params": {"hostname": {"required": True}},
+        "optional": {"username": "", "password": "", "authtype" : "NTLM"},
+        "effectiveness": 0.85,
+    },
     "impacket-scripts": {
         "desc": "Execute Impacket scripts with dynamic arguments (e.g. GetADUsers, secretsdump, smbclient, psexec)",
-        "endpoint": "/api/tools/impacket",
+        "endpoint": "/api/tool/active_directory/impacket",
         "method": "POST",
         "category": "active_directory",
         "params": {
@@ -313,7 +416,7 @@ TOOLS: Dict[str, dict] = {
     },
     "impacket-spec": {
         "desc": "Retrieve argument specification and usage for a given Impacket script",
-        "endpoint": "/api/tools/impacket/spec",
+        "endpoint": "/api/tool/active_directory/impacket/spec",
         "method": "POST",
         "category": "active_directory",
         "params": {
@@ -325,7 +428,7 @@ TOOLS: Dict[str, dict] = {
     },
     "impacket-ad-enum": {
         "desc": "Convenience wrapper for Active Directory enumeration Impacket scripts such as GetADUsers, GetNPUsers, GetUserSPNs, lookupsid, and findDelegation",
-        "endpoint": "/api/tools/impacket",
+        "endpoint": "/api/tool/active_directory/impacket",
         "method": "POST",
         "category": "active_directory",
         "params": {
@@ -349,7 +452,7 @@ TOOLS: Dict[str, dict] = {
     },
     "impacket-remote-exec": {
         "desc": "Convenience wrapper for remote execution Impacket scripts such as psexec, wmiexec, smbexec, dcomexec, and atexec",
-        "endpoint": "/api/tools/impacket",
+        "endpoint": "/api/tool/active_directory/impacket",
         "method": "POST",
         "category": "lateral_movement",
         "params": {
@@ -376,6 +479,15 @@ TOOLS: Dict[str, dict] = {
         "parent_tool": "impacket-scripts"
     },
     # ---- OSINT ----
+    "parsero": {
+        "desc": " Reads the Robots.txt file of a web server and looks at the Disallow entries.",
+        "endpoint": "/api/tools/osint/parsero",
+        "method": "POST",
+        "category": "osint",
+        "params": {"target": {"required": True}},
+        "optional": {"additional_args": ""},
+        "effectiveness": 0.85,
+    },
     "whois": {
         "desc": "WHOIS lookup for domains and IPs",
         "endpoint": "/api/tools/whois",
@@ -402,6 +514,15 @@ TOOLS: Dict[str, dict] = {
         "params": {"domain": {"required": True}},
         "optional": {"silent": True, "all_sources": False, "additional_args": ""},
         "effectiveness": 0.82,
+    },
+    "sublist3r": {
+        "desc": "Subdomain enumeration using OSINT sources",
+        "endpoint": "/api/osint/tools/sublist3r",
+        "method": "POST",
+        "category": "osint",
+        "params": {"domain": {"required": True}},
+        "optional": {"threads": 3, "engine": ""},
+        "effectiveness": 0.80,
     },
     "fierce": {
         "desc": "DNS reconnaissance tool",
@@ -439,7 +560,7 @@ TOOLS: Dict[str, dict] = {
         "optional": {"additional_args": ""},
         "effectiveness": 0.80,
     },
-    "theharvester": {
+    "theHarvester": {
         "desc": "Passive information gathering from public sources",
         "endpoint": "/api/tools/recon/theharvester",
         "method": "POST",
@@ -689,6 +810,19 @@ TOOLS: Dict[str, dict] = {
         "optional": {"case_name": "hexstrike_case", "additional_args": ""},
         "effectiveness": 0.82,
     },
+
+    # ---- OPS ----
+    "auto_install_missing_apt_tools": {
+        "desc": "REQUIRES root! - Automatically install missing tools",
+        "endpoint": "api/tools/auto-install-missing-apt",
+        "method": "POST",
+        "category": "ops",
+        "params": {},
+        "optional": {},
+        "effectiveness": 0.90,
+    },
+
+
 
     # ---- Binary Debug ----
     "gdb": {
@@ -1036,6 +1170,15 @@ TOOLS: Dict[str, dict] = {
     },
 
     # ---- Web / API ----
+    "whatweb": {
+        "desc": "Web scanner for technology fingerprinting and version detection",
+        "endpoint": "/api/tools/web_recon/whatweb",
+        "method": "POST",
+        "category": "fingerprint",
+        "params": {"url": {"required": True}},
+        "optional": {},
+        "effectiveness": 0.80,
+    },
     "burpsuite": {
         "desc": "Burp Suite web application security testing platform",
         "endpoint": "/api/tools/burpsuite-alternative",
@@ -1054,62 +1197,73 @@ TOOLS: Dict[str, dict] = {
         "optional": {"scan_type": "baseline", "api_key": "", "port": "8090", "output_format": "xml", "additional_args": ""},
         "effectiveness": 0.88,
     },
-    "curl": {
+    "http-framework": {
         "desc": "HTTP/S request tool — manual probing and PoC verification",
         "endpoint": "/api/tools/http-framework",
         "method": "POST",
         "category": "api",
         "params": {"url": {"required": True}},
-        "optional": {"method": "GET", "data": {}, "headers": {}},
+        "optional": {"method": "GET", "data": "", "headers": "", "action": "request", "cookies": ""},
         "effectiveness": 0.75,
+        "parent_tool": "curl",
     },
-    "httpie": {
-        "desc": "Human-friendly HTTP client for API testing and inspection",
-        "endpoint": "/api/tools/http-framework",
+    # "httpie": {
+    #     "desc": "Human-friendly HTTP client for API testing and inspection",
+    #     "endpoint": "/api/tools/http-framework",
+    #     "method": "POST",
+    #     "category": "api",
+    #     "params": {"url": {"required": True}},
+    #     "optional": {"method": "GET", "data": "", "headers": ""},
+    #     "effectiveness": 0.75,
+    # },
+    # "postman": {
+    #     "desc": "API platform for building and testing HTTP requests",
+    #     "endpoint": "/api/tools/http-framework",
+    #     "method": "POST",
+    #     "category": "api",
+    #     "params": {"url": {"required": True}},
+    #     "optional": {"method": "GET", "data": "", "headers": ""},
+    #     "effectiveness": 0.78,
+    # },
+    # "insomnia": {
+    #     "desc": "REST/GraphQL API client for design and testing",
+    #     "endpoint": "/api/tools/http-framework",
+    #     "method": "POST",
+    #     "category": "api",
+    #     "params": {"url": {"required": True}},
+    #     "optional": {"method": "GET", "data": "", "headers": ""},
+    #     "effectiveness": 0.76,
+    # },
+    "api_fuzzer": {
+        "desc": "Custom API fuzzer for parameter and endpoint fuzzing.",
+        "endpoint": "/api/tools/api_fuzzer",
         "method": "POST",
         "category": "api",
-        "params": {"url": {"required": True}},
-        "optional": {"method": "GET", "data": {}, "headers": {}},
-        "effectiveness": 0.75,
-    },
-    "postman": {
-        "desc": "API platform for building and testing HTTP requests",
-        "endpoint": "/api/tools/http-framework",
-        "method": "POST",
-        "category": "api",
-        "params": {"url": {"required": True}},
-        "optional": {"method": "GET", "data": {}, "headers": {}},
-        "effectiveness": 0.78,
-    },
-    "insomnia": {
-        "desc": "REST/GraphQL API client for design and testing",
-        "endpoint": "/api/tools/http-framework",
-        "method": "POST",
-        "category": "api",
-        "params": {"url": {"required": True}},
-        "optional": {"method": "GET", "data": {}, "headers": {}},
-        "effectiveness": 0.76,
+        "params": {"base_url": {"required": True}},
+        "optional": {"method": "GET", "wordlist": "/usr/share/wordlists/dirb/common.txt", "endpoints": []},
+        "effectiveness": 0.80,
+        "parent_tool": "ffuf",
     },
 
     # ---- OSINT ----
     "sherlock": {
         "desc": "Username investigation across 400+ social networks",
-        "endpoint": "/api/tools/sherlock",
+        "endpoint": "/api/tools/osint/sherlock",
         "method": "POST",
         "category": "osint",
         "params": {"username": {"required": True}},
-        "optional": {"additional_args": ""},
+        "optional": {},
         "effectiveness": 0.85,
     },
-    "social-analyzer": {
-        "desc": "Social media presence analysis and OSINT gathering",
-        "endpoint": "/api/tools/social_analyzer",
-        "method": "POST",
-        "category": "osint",
-        "params": {"username": {"required": True}},
-        "optional": {"additional_args": ""},
-        "effectiveness": 0.80,
-    },
+    # "social-analyzer": {
+    #     "desc": "Social media presence analysis and OSINT gathering",
+    #     "endpoint": "/api/tools/osint/social_analyzer",
+    #     "method": "POST",
+    #     "category": "osint",
+    #     "params": {"username": {"required": True}},
+    #     "optional": {"additional_args": ""},
+    #     "effectiveness": 0.80,
+    # },
     "recon-ng": {
         "desc": "Web reconnaissance framework with modular architecture",
         "endpoint": "/api/tools/recon_ng",
@@ -1130,40 +1284,40 @@ TOOLS: Dict[str, dict] = {
     },
     "spiderfoot": {
         "desc": "OSINT automation with 200+ data-gathering modules",
-        "endpoint": "/api/tools/spiderfoot",
+        "endpoint": "/api/tools/osint/spiderfoot",
         "method": "POST",
         "category": "osint",
         "params": {"target": {"required": True}},
-        "optional": {"modules": "", "additional_args": ""},
+        "optional": {},
         "effectiveness": 0.85,
     },
-    "shodan-cli": {
-        "desc": "Shodan CLI — search internet-connected devices and services",
-        "endpoint": "/api/tools/shodan",
-        "method": "POST",
-        "category": "osint",
-        "params": {"query": {"required": True}},
-        "optional": {"additional_args": ""},
-        "effectiveness": 0.88,
-    },
-    "censys-cli": {
-        "desc": "Censys CLI — internet asset discovery and certificate analysis",
-        "endpoint": "/api/tools/censys",
-        "method": "POST",
-        "category": "osint",
-        "params": {"query": {"required": True}},
-        "optional": {"additional_args": ""},
-        "effectiveness": 0.85,
-    },
-    "have-i-been-pwned": {
-        "desc": "Check if credentials or domains appear in breach data",
-        "endpoint": "/api/tools/hibp",
-        "method": "POST",
-        "category": "osint",
-        "params": {"query": {"required": True}},
-        "optional": {"additional_args": ""},
-        "effectiveness": 0.80,
-    },
+    # "shodan-cli": {
+    #     "desc": "Shodan CLI — search internet-connected devices and services",
+    #     "endpoint": "/api/tools/shodan",
+    #     "method": "POST",
+    #     "category": "osint",
+    #     "params": {"query": {"required": True}},
+    #     "optional": {"additional_args": ""},
+    #     "effectiveness": 0.88,
+    # },
+    # "censys-cli": {
+    #     "desc": "Censys CLI — internet asset discovery and certificate analysis",
+    #     "endpoint": "/api/tools/censys",
+    #     "method": "POST",
+    #     "category": "osint",
+    #     "params": {"query": {"required": True}},
+    #     "optional": {"additional_args": ""},
+    #     "effectiveness": 0.85,
+    # },
+    # "have-i-been-pwned": {
+    #     "desc": "Check if credentials or domains appear in breach data",
+    #     "endpoint": "/api/tools/hibp",
+    #     "method": "POST",
+    #     "category": "osint",
+    #     "params": {"query": {"required": True}},
+    #     "optional": {"additional_args": ""},
+    #     "effectiveness": 0.80,
+    # },
 
     # ---- Password ----
     "hashcat-utils": {
@@ -1426,6 +1580,7 @@ CATEGORIES = {
     "wifi_pentest": "WiFi pentesting and wireless attacks",
     "database": "Database management and querying",
     "active_directory": "Active Directory enumeration and exploitation",
+    "vulnerability_intelligence": "Vulnerability research and intelligence gathering",
 }
 
 # ---------------------------------------------------------------------------
@@ -1487,7 +1642,8 @@ _INTENT_KEYWORDS: Dict[str, List[str]] = {
         "hashpump", "length extension", "hash extension", "file recovery",
     ],
     "database": ["mysql", "sqlite3"],
-    "essential": ["nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat"]
+    "essential": ["nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat"],
+    "vulnerability_intelligence": ["vulnx", "vulnerability intelligence", "vulnerability research", "cve search", "exploit research"]
 
 }
 
