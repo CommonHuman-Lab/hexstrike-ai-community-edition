@@ -142,24 +142,6 @@ hexstrike-env/bin/python3 hexstrike_mcp.py --server http://localhost:8888 --prof
 curl http://localhost:8888/health
 ```
 
-### Run Tests
-
-The test suite uses [pytest](https://pytest.org) and the Flask test client — no running server or external tools required.
-
-```bash
-# Activate the virtual environment
-source hexstrike-env/bin/activate
-
-# Install pytest (one-time)
-pip3 install pytest
-
-# Run the full test suite
-pytest tests/
-
-# Run with verbose output
-pytest tests/ -v
-```
-
 ### Use Hexstrike
 
 #### Installation & Demo Video
@@ -245,7 +227,6 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
   "mcp": {
     "hexstrike-ai": {
       "type": "local",
-      "timeout": 000,
       "command": ["/path/to/hexstrike-ai/hexstrike_env/bin/python3",
         "/path/to/hexstrike-ai/hexstrike_mcp.py",
         "--server",
