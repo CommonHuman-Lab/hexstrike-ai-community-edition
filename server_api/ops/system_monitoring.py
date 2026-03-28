@@ -60,27 +60,30 @@ def _refresh_tool_availability() -> None:
             elif tool_to_check in REQUIRE_PIP_CHECK:
                 # For tools that require pip, check if the package is installed
                 result = subprocess.run(
-                    ["pip3", "list", "|", "grep", tool_to_check],
-                    stdout=subprocess.DEVNULL,
+                    ["pip3", "list"],
+                    stdout=subprocess.PIPE,
                     stderr=subprocess.DEVNULL,
+                    text=True,
                 )
-                return tool, result.returncode == 0
+                return tool, tool_to_check in result.stdout
             elif tool_to_check in REQUIRE_GEM_CHECK:
                 # For tools that require gem, check if the package is installed
                 result = subprocess.run(
-                    ["gem", "list", "|", "grep", tool_to_check],
-                    stdout=subprocess.DEVNULL,
+                    ["gem", "list"],
+                    stdout=subprocess.PIPE,
                     stderr=subprocess.DEVNULL,
+                    text=True,
                 )
-                return tool, result.returncode == 0
+                return tool, tool_to_check in result.stdout
             elif tool_to_check in REQUIRE_CARGO_CHECK:
                 # For tools that require cargo, check if the package is installed
                 result = subprocess.run(
-                    ["cargo", "install", "--list", "|", "grep", tool_to_check],
-                    stdout=subprocess.DEVNULL,
+                    ["cargo", "install", "--list"],
+                    stdout=subprocess.PIPE,
                     stderr=subprocess.DEVNULL,
+                    text=True,
                 )
-                return tool, result.returncode == 0
+                return tool, tool_to_check in result.stdout
             else:
                 result = subprocess.run(
                     ["which", tool_to_check],
