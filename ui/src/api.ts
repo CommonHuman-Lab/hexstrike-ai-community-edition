@@ -239,9 +239,14 @@ export interface CacheStatsResponse {
   [key: string]: number;
 }
 
+export interface ToolCategoriesResponse {
+  categories: Record<string, string[]>;
+}
+
 export const api = {
   dashboard: () => apiFetch<WebDashboardResponse>('/web-dashboard'),
   tools: () => apiFetch<ToolsCatalogResponse>('/api/tools'),
+  getToolCategories: () => apiFetch<ToolCategoriesResponse>('/api/tools/categories'),
   getSettings: () => apiFetch<SettingsResponse>('/api/settings'),
   patchSettings: (runtime: Partial<Settings['runtime']>) =>
     apiFetch<PatchSettingsResponse>('/api/settings', {

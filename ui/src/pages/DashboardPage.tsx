@@ -138,53 +138,9 @@ function ToolCategoryRow({ category, stats, toolStatuses, toolsByName }: {
   )
 }
 
-// Map health category names to their tool lists (mirrors _HEALTH_TOOL_CATEGORIES in Python)
-// Also includes tool_registry.py category names
-const HEALTH_CAT_TOOLS: Record<string, string[]> = {
-    "essential": ["nmap", "gobuster", "dirb", "nikto", "sqlmap", "hydra", "john", "hashcat"],
-    "network_recon": ["rustscan", "masscan", "autorecon", "nbtscan", "arp-scan", "responder",
-                "nxc", "enum4linux-ng", "rpcclient", "enum4linux", "smbmap", "evil-winrm"],
-    "web_recon": ["ffuf", "feroxbuster", "dirsearch", "dotdotpwn", "xsser", "wfuzz",
-                     "arjun", "paramspider", "x8", "jaeles", "dalfox",
-                     "httpx", "wafw00f", "burpsuite", "katana", "hakrawler", "wpscan", "joomscan"],
-    "web_vuln": ["nuclei", "graphql-scanner", "jwt-analyzer", "zaproxy"],
-    "brute_force": ["medusa", "patator", "hashid", "ophcrack", "hashcat-utils"],
-    "binary": ["gdb", "radare2", "binwalk", "ROPgadget", "checksec", "objdump",
-               "ghidra", "pwntools", "one-gadget", "ropper", "angr", "libc-database", "pwninit"],
-    "forensics": ["vol", "steghide", "hashpump", "foremost", "exiftool",
-                  "strings", "xxd", "file", "photorec", "testdisk", "scalpel",
-                  "bulk_extractor", "stegsolve", "zsteg", "outguess", "volatility", "sleuthkit", "autopsy"],
-    "cloud": ["prowler", "scout-suite", "trivy", "kube-hunter", "kube-bench",
-              "docker-bench-security", "checkov", "terrascan", "falco", "clair",
-              "cloudmapper", "pacu"],
-    "osint": ["amass", "subfinder", "fierce", "dnsenum", "theHarvester", "sherlock",
-              "social-analyzer", "recon-ng", "maltego", "spiderfoot",
-              "whois", "bbot", "gau", "waybackurls", "sublist3r", "parsero"],
-    "exploitation": ["msfconsole", "msfvenom", "searchsploit", "commix"],
-    "api": ["api-schema-analyzer", "curl", "http-framework", "anew", "qsreplace", "uro"],
-    "wifi_pentest": ["kismet", "wireshark", "tshark", "tcpdump",
-                 "airbase-ng", "airdecap-ng", "hcxdumptool", "hcxpcapngtool",
-                 "mdk4", "eaphammer", "wifite", "bettercap", "airmon-ng", "airodump-ng", "aireplay-ng", "aircrack-ng"],
-    "database": ["mysql", "sqlite3"],
-    "active_directory": [
-        "impacket-scripts", "ldapdomaindump"
-    ],
-    "vulnerability_intelligence": ["vulnx"],
-    "fingerprint": ["whatweb"],
-    "ops": ["auto_install_missing_apt_tools"],
-    "intelligence": ["analyze-target", "create-attack-chain", "smart-scan", "technology-detection"],
-
-    //Not in use: httpie, postman, insomnia, "shodan-cli", "censys-cli", "have-i-been-pwned", 
-
-    //"active_directory": [
-    //    "bloodhound-ce-python"
-    //    "certipy-ad", "mitm6", "adidnsdump", "pywerview"
-    //]
-}
-
-function getCatTools(cat: string, allStatuses: Record<string, boolean>): string[] {
-  const known = HEALTH_CAT_TOOLS[cat] ?? []
-  if (known.length > 0) return known
+function getCatTools(cat: string, allStatuses: Record<string, boolean>, toolCategories: Record<string, string[]>): string[] {
+  const fromApi = toolCategories[cat] ?? []
+  if (fromApi.length > 0) return fromApi
   return Object.keys(allStatuses)
 }
 
@@ -197,9 +153,10 @@ interface DashboardPageProps {
   runHistory: RunHistoryEntry[]
   loading: boolean
   error: string | null
+  toolCategories: Record<string, string[]>;
 }
 
-export function DashboardPage({ health, tools, history, runHistory, loading, error }: DashboardPageProps) {
+export function DashboardPage({ health, tools, history, runHistory, loading, error, toolCategories }: DashboardPageProps) {
   const cu = health.resources
 
   return (
@@ -324,7 +281,7 @@ export function DashboardPage({ health, tools, history, runHistory, loading, err
         </div>
         <div className="cat-list">
           {Object.entries(health.category_stats).sort(([a], [b]) => a.localeCompare(b)).map(([cat, stats]) => {
-            const catToolNames = getCatTools(cat, health.tools_status)
+            const catToolNames = getCatTools(cat, health.tools_status, toolCategories)
             const catStatuses = Object.fromEntries(
               catToolNames.map(n => [n, health.tools_status[n] ?? false])
             )

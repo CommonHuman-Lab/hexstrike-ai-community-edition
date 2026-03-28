@@ -273,3 +273,10 @@ def clear_cache():
 def get_telemetry():
     """Get system telemetry"""
     return jsonify(telemetry.get_stats())
+
+@api_system_monitoring_bp.route("/api/tools/categories", methods=["GET"])
+def get_tool_categories():
+    """Get the list of tool categories and their tools"""
+    return jsonify({
+        "categories": _HEALTH_TOOL_CATEGORIES
+    })

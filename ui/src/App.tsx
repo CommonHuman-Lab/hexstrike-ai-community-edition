@@ -93,7 +93,7 @@ export default function App() {
   const dashboardPollTimer = useRef<number | null>(null)
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamingError, setStreamingError] = useState<string | null>(null)
-
+  const [toolCategories, setToolCategories] = useState<Record<string, string[]>>({});
 
   const fetchAll = useCallback(async () => {
     if (demo) return
@@ -120,6 +120,18 @@ export default function App() {
       setLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    if (demo || !authed) return;
+    (async () => {
+      try {
+        const t = await api.getToolCategories();
+        setToolCategories(t.categories);
+      } catch (e) {
+        // Optionally handle error
+      }
+    })();
+  }, [demo, authed]);
 
 
   const fetchServerRunHistory = useCallback(async () => {
@@ -437,6 +449,7 @@ export default function App() {
                 runHistory={runHistory}
                 loading={loading}
                 error={error}
+                toolCategories={toolCategories}
               />
             )}
           </>
