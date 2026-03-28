@@ -233,10 +233,10 @@ export function DashboardPage({ health, tools, history, runHistory, loading, err
           </div>
           <div className="resources-layout">
             <div className="gauges-col">
-              <GaugeBar label="CPU" value={cu.cpu_percent} />
-              <GaugeBar label="Memory" value={cu.memory_percent} />
+              <GaugeBar label="CPU" value={cu.cpu_percent} color='var(--green' />
+              <GaugeBar label="Memory" value={cu.memory_percent} color='var(--blue)' />
               {cu.disk_percent !== undefined && (
-                <GaugeBar label="Disk" value={cu.disk_percent} />
+                <GaugeBar label="Disk" value={cu.disk_percent} color='var(--purple)' />
               )}
               <div className="resource-detail-row">
                 <div className="resource-detail">
