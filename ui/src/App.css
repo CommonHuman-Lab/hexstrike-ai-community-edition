@@ -728,7 +728,6 @@
 }
 .nav-tab:hover { background: var(--bg-card2); color: var(--text-h); }
 .nav-tab.active {
-  background: var(--green-dim);
   border-color: rgba(0,230,118,0.35);
   color: var(--green);
 }
