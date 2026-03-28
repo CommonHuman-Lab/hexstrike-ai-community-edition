@@ -87,22 +87,17 @@ Served automatically at `http://localhost:8888` the moment the server starts —
 
 > See [Agents](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Agents) for more info
 
-**HTB CTF Agent System (@htb-ctf)**
+#### HTB CTF Agent System (@htb-ctf)
+
 A 14-specialist agent system built natively for **OpenCode**, designed to autonomously solve HTB machines and CTF challenges end-to-end.
 
-**Bug Bounty Agent System (@bugbounty)**
+#### Bug Bounty Agent System (@bugbounty)
+
 A 7-specialist agent system built natively for **OpenCode**, designed for autonomous bug bounty hunting across web, API, and broad wildcard scopes.
 
-**Recon Agent System (@recon)**
-A 5-specialist agent system built natively for **OpenCode**, designed for pure read-only information gathering across domains, IP addresses, web applications, and APIs.
+#### Recon Agent System (@recon)
 
-**Key features:**
-- Read-only by contract — no exploitation, no payload delivery, no login attempts, no brute-force under any circumstances.
-- Auto-detects target type (domain, IP, web, API) and invokes only the relevant specialists.
-- 5 specialist subagents: `domain`, `network`, `web`, `api`, and `report` — running in parallel where possible.
-- Passive-first: certificate transparency, historical URLs, and OSINT sources always run before active scanning.
-- Nuclei runs in `technologies` and `exposures` mode only — no CVE or exploit templates.
-- Structured report at `/tmp/recon-<target>-<timestamp>/report.md` covering subdomains, open ports, tech stack, API surface, and notable observations.
+A 5-specialist agent system built natively for **OpenCode**, designed for pure read-only information gathering across domains, IP addresses, web applications, and APIs.
 
 </details>
 
