@@ -33,7 +33,7 @@ const IDE_CONFIGS = [
         hexstrike: {
           type: "stdio",
           command: `${p}/hexstrike-env/bin/python3`,
-          args: [`${p}/hexstrike_mcp.py`, "--server", "http://localhost:8888", "--profile", "full"],
+          args: [`${p}/hexstrike_mcp.py`, "--server", "http://127.0.0.1:8888", "--profile", "full"],
         }
       },
       inputs: []
@@ -48,10 +48,16 @@ const IDE_CONFIGS = [
     json: (p: string) => JSON.stringify({
       $schema: "https://opencode.ai/config.json",
       mcp: {
-        "hexstrike-ai": {
+        "hexstrike": {
           type: "local",
-          timeout: 300,
-          command: [`${p}/hexstrike-env/bin/python3`, `${p}/hexstrike_mcp.py`, "--server", "http://localhost:8888", "--profile", "full"],
+          command: [
+            `${p}/hexstrike-env/bin/python3`, 
+            `${p}/hexstrike_mcp.py`,
+             "--server",
+             "http://127.0.0.1:8888",
+             "--profile", 
+             "default"
+            ],
           enabled: true,
         }
       }
@@ -65,9 +71,9 @@ const IDE_CONFIGS = [
     note: 'Open Roo Code → MCP Servers → Edit Config and paste the block below.',
     json: (p: string) => JSON.stringify({
       mcpServers: {
-        "hexstrike-ai": {
+        "hexstrike": {
           command: `${p}/hexstrike-env/bin/python3`,
-          args: [`${p}/hexstrike_mcp.py`, "--server", "http://localhost:8888", "--profile", "full"],
+          args: [`${p}/hexstrike_mcp.py`, "--server", "http://127.0.0.1:8888", "--profile", "full"],
           timeout: 300,
         }
       }
