@@ -173,10 +173,10 @@ Edit `~/.config/Claude/claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "hexstrike-ai": {
-      "command": "/path/to/hexstrike-ai/hexstrike-env/bin/python3",
+    "hexstrike": {
+      "command": "/path/to/hexstrike/hexstrike-env/bin/python3",
       "args": [
-        "/path/to/hexstrike-ai/hexstrike_mcp.py",
+        "/path/to/hexstrike/hexstrike_mcp.py",
         "--server",
         "http://localhost:8888",
         "--profile",
@@ -201,9 +201,9 @@ Configure VS Code settings in `.vscode/settings.json`:
   "servers": {
     "hexstrike": {
       "type": "stdio",
-      "command": "/path/to/hexstrike-ai/hexstrike-env/bin/python3",
+      "command": "/path/to/hexstrike/hexstrike-env/bin/python3",
       "args": [
-        "/path/to/hexstrike-ai/hexstrike_mcp.py",
+        "/path/to/hexstrike/hexstrike_mcp.py",
         "--server",
         "http://localhost:8888",
         "--profile",
@@ -225,14 +225,15 @@ Configure OpenCode settings in `~/.config/opencode/opencode.json`:
 {
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "hexstrike-ai": {
+    "hexstrike": {
       "type": "local",
-      "command": ["/path/to/hexstrike-ai/hexstrike_env/bin/python3",
-        "/path/to/hexstrike-ai/hexstrike_mcp.py",
+      "command": [
+        "/path/to/hexstrike/hexstrike-env/bin/python3",
+        "/path/to/hexstrike/hexstrike_mcp.py",
         "--server",
-        "http://localhost:8888",
+        "http://127.0.0.1:8888",
         "--profile",
-        "full"
+        "default"
       ],
       "enabled": true
     }
