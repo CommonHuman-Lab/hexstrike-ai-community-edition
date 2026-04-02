@@ -16,6 +16,43 @@ function normalizeStepsFromSession(s: SessionSummary): AttackChainStep[] {
   return s.tools_executed.map(tool => ({ tool, parameters: {} }))
 }
 
+function normalizeToken(v: string): string {
+  return v.toLowerCase().replace(/[^a-z0-9]/g, '')
+}
+
+function resolveToolForStep(stepTool: string, tools: Tool[]): Tool | null {
+  const step = stepTool.trim()
+  if (!step) return null
+
+  const directByName = tools.find(t => t.name === step)
+  if (directByName) return directByName
+
+  const directByEndpoint = tools.find(t => t.endpoint === step)
+  if (directByEndpoint) return directByEndpoint
+
+  const directByParent = tools.find(t => t.parent_tool === step)
+  if (directByParent) return directByParent
+
+  const ns = normalizeToken(step)
+  let best: { tool: Tool; score: number } | null = null
+  for (const t of tools) {
+    const name = normalizeToken(t.name)
+    const parent = normalizeToken(t.parent_tool ?? '')
+    const endpoint = normalizeToken(t.endpoint)
+    let score = 0
+    if (name === ns) score = Math.max(score, 80)
+    if (parent === ns) score = Math.max(score, 75)
+    if (endpoint === ns) score = Math.max(score, 70)
+    if (name.includes(ns)) score = Math.max(score, 62)
+    if (endpoint.includes(ns)) score = Math.max(score, 58)
+    if (parent && parent.includes(ns)) score = Math.max(score, 56)
+    if (ns.includes(name)) score = Math.max(score, 52)
+    if (score === 0) continue
+    if (!best || score > best.score) best = { tool: t, score }
+  }
+  return best?.tool ?? null
+}
+
 type StepState = 'idle' | 'success' | 'failed'
 
 type PersistedStepResult = {
@@ -47,6 +84,8 @@ export default function SessionDetailPage({
   const [stepResults, setStepResults] = useState<Record<string, { result?: ToolExecResponse; error?: string }>>({})
   const [stepState, setStepState] = useState<Record<string, StepState>>({})
   const [selectedStepIndex, setSelectedStepIndex] = useState(0)
+  const [showAddTool, setShowAddTool] = useState(false)
+  const [addToolSearch, setAddToolSearch] = useState('')
   const [handoffLoading, setHandoffLoading] = useState(false)
   const [handoffMsg, setHandoffMsg] = useState<string | null>(null)
 
@@ -159,9 +198,9 @@ export default function SessionDetailPage({
     if (!session) return
     const sessionRef = session
     const stepKey = `${sessionRef.session_id}:${index}`
-    const tool = tools.find(t => t.name === step.tool)
+    const tool = resolveToolForStep(step.tool, tools)
     if (!tool) {
-      setStepResults(prev => ({ ...prev, [stepKey]: { error: `Tool ${step.tool} not found in tool catalog` } }))
+      setStepResults(prev => ({ ...prev, [stepKey]: { error: `Tool ${step.tool} could not be mapped to registry` } }))
       setStepState(prev => ({ ...prev, [stepKey]: 'failed' }))
       return
     }
@@ -230,6 +269,36 @@ export default function SessionDetailPage({
     }
   }
 
+  async function addToolToSession(tool: Tool) {
+    if (!session) return
+    const nextSteps = [...steps, { tool: tool.name, parameters: {} }]
+    try {
+      await api.updateSession(session.session_id, { workflow_steps: nextSteps })
+      setShowAddTool(false)
+      setAddToolSearch('')
+      await loadSession()
+      setSelectedStepIndex(Math.max(0, nextSteps.length - 1))
+    } catch (e) {
+      setHandoffMsg(`Add tool failed: ${String(e)}`)
+    }
+  }
+
+  async function removeToolFromSession(index: number) {
+    if (!session) return
+    const nextSteps = steps.filter((_, i) => i !== index)
+    try {
+      await api.updateSession(session.session_id, { workflow_steps: nextSteps })
+      await loadSession()
+      setSelectedStepIndex(prev => {
+        if (nextSteps.length === 0) return 0
+        if (prev > index) return prev - 1
+        return Math.min(prev, nextSteps.length - 1)
+      })
+    } catch (e) {
+      setHandoffMsg(`Remove tool failed: ${String(e)}`)
+    }
+  }
+
   if (loading) return (
     <div className="loading-state">
       <RefreshCw size={20} className="spin" color="var(--green)" />
@@ -239,6 +308,13 @@ export default function SessionDetailPage({
   if (error || !session) return <div className="error-banner">{error ?? 'Session not found'}</div>
 
   const isCompleted = (session.status ?? 'active') === 'completed'
+  const addCandidates = tools
+    .filter(t => {
+      if (!addToolSearch.trim()) return true
+      const q = addToolSearch.toLowerCase()
+      return t.name.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q) || t.category.toLowerCase().includes(q)
+    })
+    .slice(0, 12)
 
   return (
     <div className="page-content">
@@ -270,6 +346,30 @@ export default function SessionDetailPage({
         </div>
         <div className="session-workbench">
           <aside className="session-workbench-tools">
+            {!isCompleted && (
+              <div className="session-tool-manage">
+                <button className="session-add-tool-btn" onClick={() => setShowAddTool(v => !v)}>+ Add tool</button>
+                {showAddTool && (
+                  <div className="session-add-tool-panel">
+                    <input
+                      className="search-input mono"
+                      placeholder="Search tool..."
+                      value={addToolSearch}
+                      onChange={e => setAddToolSearch(e.target.value)}
+                    />
+                    <div className="session-add-tool-list">
+                      {addCandidates.map(t => (
+                        <button key={t.name} className="session-add-tool-item" onClick={() => addToolToSession(t)}>
+                          <span className="mono">{t.name}</span>
+                          <span>{t.category}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {steps.map((step, idx) => {
               const stepKey = `${session.session_id}:${idx}`
               return (
@@ -279,6 +379,18 @@ export default function SessionDetailPage({
                   onClick={() => setSelectedStepIndex(idx)}
                 >
                   <span className={`session-tool-chip mono session-tool-chip--${stepState[stepKey] ?? 'idle'}`}>{step.tool}</span>
+                  {!isCompleted && (
+                    <span
+                      className="session-remove-tool"
+                      onClick={e => {
+                        e.stopPropagation()
+                        removeToolFromSession(idx)
+                      }}
+                      title="Remove tool"
+                    >
+                      x
+                    </span>
+                  )}
                 </button>
               )
             })}

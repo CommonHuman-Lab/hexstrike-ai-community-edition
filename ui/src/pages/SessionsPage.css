@@ -375,6 +375,60 @@
   overflow-y: auto;
 }
 
+.session-tool-manage {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.session-add-tool-btn {
+  border: 1px dashed var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.session-add-tool-panel {
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.session-add-tool-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.session-add-tool-item {
+  border: 1px solid var(--border);
+  background: var(--bg-main);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.session-add-tool-item:hover {
+  border-color: var(--text-dim);
+}
+
 .session-workbench-tool {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -382,6 +436,24 @@
   padding: 8px;
   text-align: left;
   cursor: pointer;
+}
+
+.session-remove-tool {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.session-remove-tool:hover {
+  color: var(--red);
+  border-color: color-mix(in srgb, var(--red) 45%, var(--border));
 }
 
 .session-workbench-tool.active {
