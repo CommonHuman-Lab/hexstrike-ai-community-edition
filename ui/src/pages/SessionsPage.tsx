@@ -250,6 +250,7 @@ export default function SessionsPage({ demoData }: SessionsPageProps) {
   const [modalError, setModalError] = useState<string | null>(null)
   const [loading, setLoading] = useState(!demoData)
   const [error, setError] = useState<string | null>(null)
+  const [showHandoverHelp, setShowHandoverHelp] = useState(false)
   const [streamStatus, setStreamStatus] = useState<'streaming' | 'polling' | 'error'>(demoData ? 'polling' : 'streaming')
   const streamRef = useRef<EventSource | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -633,6 +634,9 @@ export default function SessionsPage({ demoData }: SessionsPageProps) {
         <div className="section-header">
           <h3>Active Sessions <span className="badge">{active.length}</span></h3>
           <div className="sessions-header-actions">
+            <button className="session-help-btn" onClick={() => setShowHandoverHelp(v => !v)}>
+              {showHandoverHelp ? 'Hide handover help' : 'Handover help'}
+            </button>
             <span className={`sessions-stream-status sessions-stream-status--${streamStatus}`}>
               {streamStatus === 'streaming' ? 'Live' : streamStatus === 'polling' ? 'Polling' : 'Offline'}
             </span>
@@ -641,6 +645,13 @@ export default function SessionsPage({ demoData }: SessionsPageProps) {
             </button>
           </div>
         </div>
+        {showHandoverHelp && (
+          <div className="session-help-box">
+            <p><strong>Web handover:</strong> open/expand a session card and click <span className="mono">Handover to LLM</span>.</p>
+            <p><strong>MCP handover:</strong> call <span className="mono">handover_session("&lt;session_id&gt;", "optional note")</span>.</p>
+            <p><strong>Tip:</strong> update target/step parameters before handover so the LLM gets the latest context.</p>
+          </div>
+        )}
         {active.length === 0 ? (
           <div className="tasks-empty">
             <Layers size={28} color="var(--text-dim)" />
