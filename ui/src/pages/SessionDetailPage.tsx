@@ -126,6 +126,16 @@ export default function SessionDetailPage({
     }
   }
 
+  async function deleteSession() {
+    if (!session) return
+    try {
+      await api.deleteSession(session.session_id)
+      onBack()
+    } catch (e) {
+      setHandoffMsg(`Delete failed: ${String(e)}`)
+    }
+  }
+
   const selectedStep = steps[selectedStepIndex] ?? null
   const selectedStepKey = selectedStep && session ? `${session.session_id}:${selectedStepIndex}` : null
   const selectedResult = selectedStepKey ? stepResults[selectedStepKey] : undefined
@@ -249,6 +259,7 @@ export default function SessionDetailPage({
             <Bot size={12} /> {handoffLoading ? 'Handing over…' : 'Handover to LLM'}
           </button>
           {session.status !== 'completed' && <button className="session-complete-btn" onClick={completeSession}>Complete Session</button>}
+          <button className="session-delete-btn" onClick={deleteSession}>Delete Session</button>
           {handoffMsg && <span className="section-meta">{handoffMsg}</span>}
         </div>
       </section>

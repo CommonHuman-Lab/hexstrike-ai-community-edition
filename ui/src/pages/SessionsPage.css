@@ -270,6 +270,23 @@
   background: color-mix(in srgb, var(--green) 20%, transparent);
 }
 
+.session-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid color-mix(in srgb, var(--red) 45%, var(--border));
+  background: color-mix(in srgb, var(--red) 12%, transparent);
+  color: var(--red);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.session-delete-btn:hover {
+  background: color-mix(in srgb, var(--red) 20%, transparent);
+}
+
 .session-action-btn:disabled,
 .session-run-btn:disabled {
   opacity: 0.55;

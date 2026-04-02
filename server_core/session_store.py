@@ -163,6 +163,14 @@ class SessionStore:
             return True
         return False
 
+    def delete_completed(self, session_id: str) -> bool:
+        """Delete an archived/completed session file."""
+        path = self._completed_path(session_id)
+        if os.path.exists(path):
+            os.remove(path)
+            return True
+        return False
+
     # ── Restore ───────────────────────────────────────────────────────
 
     def load_all_active(self) -> List[Dict[str, Any]]:

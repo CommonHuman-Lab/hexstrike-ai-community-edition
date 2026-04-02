@@ -187,6 +187,29 @@ def patch_session(session_id):
     return jsonify({"success": False, "error": str(e)}), 500
 
 
+@api_sessions_bp.route("/api/sessions/<session_id>", methods=["DELETE"])
+def delete_session(session_id):
+  """Delete a session from active or completed storage."""
+  try:
+    active_deleted = session_store.delete(session_id)
+    completed_deleted = session_store.delete_completed(session_id)
+    if not active_deleted and not completed_deleted:
+      return jsonify({"success": False, "error": "Session not found"}), 404
+
+    return jsonify({
+      "success": True,
+      "deleted": {
+        "active": active_deleted,
+        "completed": completed_deleted,
+      },
+      "session_id": session_id,
+      "timestamp": datetime.now().isoformat(),
+    })
+  except Exception as e:
+    logger.error(f"Error deleting session {session_id}: {e}")
+    return jsonify({"success": False, "error": str(e)}), 500
+
+
 @api_sessions_bp.route("/api/sessions/<session_id>/handover", methods=["POST"])
 def handover_session(session_id):
   """Handover session context to LLM classification and store result in session history."""

@@ -287,6 +287,17 @@ export interface SessionMutationResponse {
   error?: string;
 }
 
+export interface SessionDeleteResponse {
+  success: boolean;
+  deleted?: {
+    active: boolean;
+    completed: boolean;
+  };
+  session_id?: string;
+  timestamp?: string;
+  error?: string;
+}
+
 export interface SessionDetailResponse {
   success: boolean;
   state: 'active' | 'completed';
@@ -378,6 +389,10 @@ export const api = {
     apiFetch<SessionMutationResponse>(`/api/sessions/${sessionId}`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
+    }),
+  deleteSession: (sessionId: string) =>
+    apiFetch<SessionDeleteResponse>(`/api/sessions/${sessionId}`, {
+      method: 'DELETE',
     }),
   handoverSession: (sessionId: string, note = '') =>
     apiFetch<SessionHandoverResponse>(`/api/sessions/${sessionId}/handover`, {
