@@ -7,7 +7,6 @@ import {
   api,
   type SessionsResponse,
   type SessionSummary,
-  type AttackChainStep,
 } from '../api'
 import { StatCard } from '../components/StatCard'
 import './SessionsPage.css'
@@ -71,11 +70,21 @@ function fmtTs(ts: number) {
   return new Date(ts * 1000).toLocaleString('en-GB')
 }
 
-function normalizeStepsFromSession(s: SessionSummary): AttackChainStep[] {
-  if (Array.isArray(s.workflow_steps) && s.workflow_steps.length > 0) {
-    return s.workflow_steps
+function sessionName(s: SessionSummary): string {
+  const meta = (s.metadata ?? {}) as Record<string, unknown>
+  const explicitName = meta.session_name
+  if (typeof explicitName === 'string' && explicitName.trim()) {
+    const v = explicitName.trim()
+    return v.charAt(0).toUpperCase() + v.slice(1)
   }
-  return s.tools_executed.map(tool => ({ tool, parameters: {} }))
+
+  const mode = (typeof s.objective === 'string' && s.objective) || (typeof meta.mode === 'string' ? meta.mode : '')
+  if (mode) {
+    const v = mode.replace(/_/g, ' ').trim()
+    return v.charAt(0).toUpperCase() + v.slice(1)
+  }
+
+  return 'Session'
 }
 
 function SessionCard({ s, onOpen }: { s: SessionSummary; onOpen: (sessionId: string) => void }) {
@@ -86,7 +95,6 @@ function SessionCard({ s, onOpen }: { s: SessionSummary; onOpen: (sessionId: str
     return_code?: number
     execution_time?: number
   } | null)
-  const toolCount = normalizeStepsFromSession(s).length
 
   return (
     <div className="session-card session-card--compact registry-card--clickable" onClick={() => onOpen(s.session_id)}>
@@ -122,7 +130,7 @@ function SessionCard({ s, onOpen }: { s: SessionSummary; onOpen: (sessionId: str
 
       <div className="session-card-footer">
         <span className="session-id mono">{s.session_id}</span>
-        <span className="session-open-hint">Open ({toolCount} tools)</span>
+        <span className="session-tool-chip mono">{sessionName(s)}</span>
       </div>
       {lastRun?.tool && (
         <div className="session-last-run mono">
