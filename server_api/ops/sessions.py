@@ -13,6 +13,7 @@ from server_core.session_flow import (
   create_session,
   extract_workflow_steps,
   load_session_any,
+  normalize_step,
   update_session,
 )
 from tool_registry import classify_intent
@@ -46,7 +47,14 @@ def _build_sessions_payload():
   }
 
 def _summary_from_data(data, fallback_sid):
-  workflow_steps = data.get("workflow_steps", [])
+  raw_steps = data.get("workflow_steps", [])
+  workflow_steps = []
+  if isinstance(raw_steps, list):
+    target = data.get("target", "")
+    for s in raw_steps:
+      ns = normalize_step(s, target)
+      if ns:
+        workflow_steps.append(ns)
   return {
     "session_id": data.get("session_id", fallback_sid),
     "target": data.get("target", "unknown"),
@@ -146,6 +154,17 @@ def get_session(session_id):
     if not loaded:
       return jsonify({"success": False, "error": "Session not found"}), 404
     session_data, state = loaded
+    cleaned_steps = []
+    if isinstance(session_data.get("workflow_steps"), list):
+      target = session_data.get("target", "")
+      for s in session_data.get("workflow_steps", []):
+        ns = normalize_step(s, target)
+        if ns:
+          cleaned_steps.append(ns)
+      if cleaned_steps != session_data.get("workflow_steps", []):
+        session_data["workflow_steps"] = cleaned_steps
+        session_data["tools_executed"] = [s.get("tool", "") for s in cleaned_steps if isinstance(s, dict)]
+        update_session(session_id, {"workflow_steps": cleaned_steps})
     return jsonify({
       "success": True,
       "state": state,

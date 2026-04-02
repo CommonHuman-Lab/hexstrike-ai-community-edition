@@ -80,7 +80,6 @@ export default function SessionDetailPage({
   const [error, setError] = useState<string | null>(null)
   const [targetValue, setTargetValue] = useState('')
   const [stepFieldValues, setStepFieldValues] = useState<Record<string, Record<string, string>>>({})
-  const [showParamsByStep, setShowParamsByStep] = useState<Record<string, boolean>>({})
   const [showOptionalByStep, setShowOptionalByStep] = useState<Record<string, boolean>>({})
   const [runningStepKey, setRunningStepKey] = useState<string | null>(null)
   const [stepResults, setStepResults] = useState<Record<string, { result?: ToolExecResponse; error?: string }>>({})
@@ -192,7 +191,6 @@ export default function SessionDetailPage({
         [selectedStepKey]: buildInitialFieldValues(selectedTool, selectedStep, targetValue.trim() || session.target),
       }
     })
-    setShowParamsByStep(prev => ({ ...prev, [selectedStepKey]: prev[selectedStepKey] ?? false }))
     setShowOptionalByStep(prev => ({ ...prev, [selectedStepKey]: prev[selectedStepKey] ?? false }))
   }, [session, selectedStep, selectedStepKey, selectedTool, targetValue])
 
@@ -429,54 +427,44 @@ export default function SessionDetailPage({
                     </button>
                   </div>
 
-                  <button
-                    className="run-opt-btn"
-                    onClick={() => setShowParamsByStep(prev => ({ ...prev, [selectedStepKey]: !prev[selectedStepKey] }))}
-                  >
-                    {showParamsByStep[selectedStepKey] ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                    Parameters
-                  </button>
+                  <div className="session-param-grid">
+                    {Object.keys(selectedTool.params).map(k => (
+                      <ParamField
+                        key={k}
+                        name={k}
+                        value={stepFieldValues[selectedStepKey]?.[k] ?? ''}
+                        onChange={v => setStepFieldValues(prev => ({
+                          ...prev,
+                          [selectedStepKey]: { ...(prev[selectedStepKey] ?? {}), [k]: v },
+                        }))}
+                        required
+                        disabled={isCompleted}
+                      />
+                    ))}
 
-                  {showParamsByStep[selectedStepKey] && (
-                    <div className="session-param-grid">
-                      {Object.keys(selectedTool.params).map(k => (
-                        <ParamField
-                          key={k}
-                          name={k}
-                          value={stepFieldValues[selectedStepKey]?.[k] ?? ''}
-                          onChange={v => setStepFieldValues(prev => ({
-                            ...prev,
-                            [selectedStepKey]: { ...(prev[selectedStepKey] ?? {}), [k]: v },
-                          }))}
-                          required
-                          disabled={isCompleted}
-                        />
-                      ))}
+                    {Object.keys(selectedTool.optional).length > 0 && (
+                      <button
+                        className="run-opt-btn"
+                        onClick={() => setShowOptionalByStep(prev => ({ ...prev, [selectedStepKey]: !prev[selectedStepKey] }))}
+                      >
+                        {showOptionalByStep[selectedStepKey] ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                        Optional parameters ({Object.keys(selectedTool.optional).length})
+                      </button>
+                    )}
 
-                      {Object.keys(selectedTool.optional).length > 0 && (
-                        <button
-                          className="run-opt-btn"
-                          onClick={() => setShowOptionalByStep(prev => ({ ...prev, [selectedStepKey]: !prev[selectedStepKey] }))}
-                        >
-                          {showOptionalByStep[selectedStepKey] ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                          Optional parameters ({Object.keys(selectedTool.optional).length})
-                        </button>
-                      )}
-
-                      {showOptionalByStep[selectedStepKey] && Object.keys(selectedTool.optional).map(k => (
-                        <ParamField
-                          key={k}
-                          name={k}
-                          value={stepFieldValues[selectedStepKey]?.[k] ?? ''}
-                          onChange={v => setStepFieldValues(prev => ({
-                            ...prev,
-                            [selectedStepKey]: { ...(prev[selectedStepKey] ?? {}), [k]: v },
-                          }))}
-                          disabled={isCompleted}
-                        />
-                      ))}
-                    </div>
-                  )}
+                    {showOptionalByStep[selectedStepKey] && Object.keys(selectedTool.optional).map(k => (
+                      <ParamField
+                        key={k}
+                        name={k}
+                        value={stepFieldValues[selectedStepKey]?.[k] ?? ''}
+                        onChange={v => setStepFieldValues(prev => ({
+                          ...prev,
+                          [selectedStepKey]: { ...(prev[selectedStepKey] ?? {}), [k]: v },
+                        }))}
+                        disabled={isCompleted}
+                      />
+                    ))}
+                  </div>
                 </div>
 
                 <div className="session-result-panel">

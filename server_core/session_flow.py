@@ -26,6 +26,20 @@ def _infer_param_value(param_name: str, target: str) -> Optional[str]:
     return None
 
 
+def _sanitize_parameters(value: Any) -> Any:
+    """Strip noisy/internal keys from persisted step parameters."""
+    if isinstance(value, dict):
+        cleaned: Dict[str, Any] = {}
+        for k, v in value.items():
+            if isinstance(k, str) and k.startswith("_"):
+                continue
+            cleaned[k] = _sanitize_parameters(v)
+        return cleaned
+    if isinstance(value, list):
+        return [_sanitize_parameters(v) for v in value]
+    return value
+
+
 def normalize_step(step: Any, target: str = "") -> Optional[Dict[str, Any]]:
     if isinstance(step, str):
         return {"tool": step, "parameters": {}}
@@ -40,6 +54,7 @@ def normalize_step(step: Any, target: str = "") -> Optional[Dict[str, Any]]:
     params = step.get("parameters", step.get("params", {}))
     if not isinstance(params, dict):
         params = {}
+    params = _sanitize_parameters(params)
 
     required = step.get("required_params", {})
     if isinstance(required, dict) and target:
