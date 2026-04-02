@@ -1,24 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, Bot, Play, RefreshCw, Target, Activity, Clock } from 'lucide-react'
+import { ArrowLeft, Bot, Play, RefreshCw, Target, Activity, Clock, ChevronDown, ChevronUp } from 'lucide-react'
 import { api, type SessionSummary, type AttackChainStep, type Tool, type ToolExecResponse } from '../api'
+import { ParamField } from '../components/tool-run/ParamField'
+import { buildInitialFieldValues, buildRunPayload } from '../components/tool-run/payload'
 import './SessionsPage.css'
+import '../components/tool-run/shared.css'
 
 function fmtTs(ts: number) {
   if (!ts) return '—'
   return new Date(ts * 1000).toLocaleString('en-GB')
-}
-
-function inferTargetValue(paramName: string, target: string): string | undefined {
-  const k = paramName.toLowerCase()
-  if (k === 'target' || k === 'host' || k === 'query') return target
-  if (k === 'url' || k === 'endpoint') {
-    if (target.startsWith('http://') || target.startsWith('https://')) return target
-    return `https://${target}`
-  }
-  if (k === 'domain') {
-    return target.replace(/^https?:\/\//, '').replace(/\/.*/, '')
-  }
-  return undefined
 }
 
 function normalizeStepsFromSession(s: SessionSummary): AttackChainStep[] {
@@ -50,7 +40,9 @@ export default function SessionDetailPage({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [targetValue, setTargetValue] = useState('')
-  const [stepDrafts, setStepDrafts] = useState<Record<string, string>>({})
+  const [stepFieldValues, setStepFieldValues] = useState<Record<string, Record<string, string>>>({})
+  const [showParamsByStep, setShowParamsByStep] = useState<Record<string, boolean>>({})
+  const [showOptionalByStep, setShowOptionalByStep] = useState<Record<string, boolean>>({})
   const [runningStepKey, setRunningStepKey] = useState<string | null>(null)
   const [stepResults, setStepResults] = useState<Record<string, { result?: ToolExecResponse; error?: string }>>({})
   const [stepState, setStepState] = useState<Record<string, StepState>>({})
@@ -92,7 +84,6 @@ export default function SessionDetailPage({
           },
         }
       }
-
       setStepState(hydratedState)
       setStepResults(hydratedResults)
       setError(null)
@@ -135,6 +126,25 @@ export default function SessionDetailPage({
     }
   }
 
+  const selectedStep = steps[selectedStepIndex] ?? null
+  const selectedStepKey = selectedStep && session ? `${session.session_id}:${selectedStepIndex}` : null
+  const selectedResult = selectedStepKey ? stepResults[selectedStepKey] : undefined
+  const selectedRunning = selectedStepKey ? runningStepKey === selectedStepKey : false
+  const selectedTool = selectedStep ? toolMap[selectedStep.tool] : null
+
+  useEffect(() => {
+    if (!session || !selectedStep || !selectedStepKey || !selectedTool) return
+    setStepFieldValues(prev => {
+      if (prev[selectedStepKey]) return prev
+      return {
+        ...prev,
+        [selectedStepKey]: buildInitialFieldValues(selectedTool, selectedStep, targetValue.trim() || session.target),
+      }
+    })
+    setShowParamsByStep(prev => ({ ...prev, [selectedStepKey]: prev[selectedStepKey] ?? false }))
+    setShowOptionalByStep(prev => ({ ...prev, [selectedStepKey]: prev[selectedStepKey] ?? false }))
+  }, [session, selectedStep, selectedStepKey, selectedTool, targetValue])
+
   async function runStep(step: AttackChainStep, index: number) {
     if (!session) return
     const sessionRef = session
@@ -146,52 +156,18 @@ export default function SessionDetailPage({
       return
     }
 
-    let manualParams: Record<string, unknown> = {}
-    const raw = stepDrafts[stepKey] ?? JSON.stringify(step.parameters ?? {}, null, 2)
-    try {
-      const parsed = JSON.parse(raw)
-      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-        setStepResults(prev => ({ ...prev, [stepKey]: { error: 'Parameters must be a JSON object' } }))
-        setStepState(prev => ({ ...prev, [stepKey]: 'failed' }))
-        return
-      }
-      manualParams = parsed as Record<string, unknown>
-    } catch {
-      setStepResults(prev => ({ ...prev, [stepKey]: { error: 'Invalid JSON in parameters editor' } }))
-      setStepState(prev => ({ ...prev, [stepKey]: 'failed' }))
-      return
-    }
-
     const target = targetValue.trim()
-    const payload: Record<string, unknown> = { ...manualParams }
-    const missing: string[] = []
-    for (const req of Object.keys(tool.params)) {
-      const current = payload[req]
-      if (current !== undefined && String(current).trim() !== '') continue
-      const guessed = inferTargetValue(req, target)
-      if (guessed !== undefined && guessed !== '') payload[req] = guessed
-    }
-    for (const req of Object.keys(tool.params)) {
-      const current = payload[req]
-      if (current === undefined || String(current).trim() === '') missing.push(req)
-    }
-
+    const fieldValues = stepFieldValues[stepKey] ?? buildInitialFieldValues(tool, step, target || sessionRef.target)
+    const { payload, missing } = buildRunPayload(tool, fieldValues)
     if (missing.length > 0) {
-      setStepResults(prev => ({ ...prev, [stepKey]: { error: `Missing required params: ${missing.join(', ')}` } }))
+      setStepResults(prev => ({ ...prev, [stepKey]: { error: `Missing required: ${missing.join(', ')}` } }))
       setStepState(prev => ({ ...prev, [stepKey]: 'failed' }))
       return
     }
 
-    const editedSteps = steps.map((existingStep, i) => {
-      if (i !== index) return existingStep
-      return { ...existingStep, parameters: payload }
-    })
-
+    const editedSteps = steps.map((existingStep, i) => (i === index ? { ...existingStep, parameters: payload } : existingStep))
     try {
-      await api.updateSession(sessionRef.session_id, {
-        target,
-        workflow_steps: editedSteps,
-      })
+      await api.updateSession(sessionRef.session_id, { target, workflow_steps: editedSteps })
     } catch {
       // non-fatal
     }
@@ -204,14 +180,8 @@ export default function SessionDetailPage({
       setStepState(prev => ({ ...prev, [stepKey]: result.success ? 'success' : 'failed' }))
 
       const existingMeta = (sessionRef.metadata ?? {}) as Record<string, unknown>
-      const existingToolStatus =
-        existingMeta.tool_status && typeof existingMeta.tool_status === 'object'
-          ? (existingMeta.tool_status as Record<string, string>)
-          : {}
-      const existingStepResults =
-        existingMeta.step_results && typeof existingMeta.step_results === 'object'
-          ? (existingMeta.step_results as Record<string, PersistedStepResult>)
-          : {}
+      const existingToolStatus = (existingMeta.tool_status && typeof existingMeta.tool_status === 'object') ? (existingMeta.tool_status as Record<string, string>) : {}
+      const existingStepResults = (existingMeta.step_results && typeof existingMeta.step_results === 'object') ? (existingMeta.step_results as Record<string, PersistedStepResult>) : {}
       await api.updateSession(sessionRef.session_id, {
         metadata: {
           ...existingMeta,
@@ -245,56 +215,19 @@ export default function SessionDetailPage({
     } catch (e) {
       setStepResults(prev => ({ ...prev, [stepKey]: { error: String(e) } }))
       setStepState(prev => ({ ...prev, [stepKey]: 'failed' }))
-      try {
-        const existingMeta = (sessionRef.metadata ?? {}) as Record<string, unknown>
-        const existingToolStatus =
-          existingMeta.tool_status && typeof existingMeta.tool_status === 'object'
-            ? (existingMeta.tool_status as Record<string, string>)
-            : {}
-        await api.updateSession(sessionRef.session_id, {
-          metadata: {
-            ...existingMeta,
-            tool_status: {
-              ...existingToolStatus,
-              [step.tool]: 'failed',
-              [stepKey]: 'failed',
-            },
-            last_run: {
-              step_key: stepKey,
-              tool: step.tool,
-              success: false,
-              return_code: -1,
-              execution_time: 0,
-              timestamp: new Date().toISOString(),
-            },
-          },
-        })
-        await loadSession()
-      } catch {
-        // non-fatal
-      }
     } finally {
       setRunningStepKey(null)
     }
   }
 
-  if (loading) {
-    return (
-      <div className="loading-state">
-        <RefreshCw size={20} className="spin" color="var(--green)" />
-        <p>Loading session…</p>
-      </div>
-    )
-  }
-  if (error || !session) {
-    return <div className="error-banner">{error ?? 'Session not found'}</div>
-  }
+  if (loading) return (
+    <div className="loading-state">
+      <RefreshCw size={20} className="spin" color="var(--green)" />
+      <p>Loading session…</p>
+    </div>
+  )
+  if (error || !session) return <div className="error-banner">{error ?? 'Session not found'}</div>
 
-  const selectedStep = steps[selectedStepIndex] ?? null
-  const selectedStepKey = selectedStep ? `${session.session_id}:${selectedStepIndex}` : null
-  const selectedResult = selectedStepKey ? stepResults[selectedStepKey] : undefined
-  const selectedRunning = selectedStepKey ? runningStepKey === selectedStepKey : false
-  const selectedTool = selectedStep ? toolMap[selectedStep.tool] : null
   const isCompleted = (session.status ?? 'active') === 'completed'
 
   return (
@@ -315,11 +248,7 @@ export default function SessionDetailPage({
           <button className="session-action-btn" onClick={handoverToLlm} disabled={handoffLoading}>
             <Bot size={12} /> {handoffLoading ? 'Handing over…' : 'Handover to LLM'}
           </button>
-          {session.status !== 'completed' && (
-            <button className="session-complete-btn" onClick={completeSession}>
-              Complete Session
-            </button>
-          )}
+          {session.status !== 'completed' && <button className="session-complete-btn" onClick={completeSession}>Complete Session</button>}
           {handoffMsg && <span className="section-meta">{handoffMsg}</span>}
         </div>
       </section>
@@ -345,7 +274,7 @@ export default function SessionDetailPage({
           </aside>
 
           <div className="session-workbench-center">
-            {!selectedStep ? (
+            {!selectedStep || !selectedStepKey || !selectedTool ? (
               <p className="empty-state">No tools in this session.</p>
             ) : (
               <>
@@ -362,31 +291,65 @@ export default function SessionDetailPage({
 
                 <div className="session-step-row">
                   <div className="session-step-head">
-                    <span className={`session-tool-chip mono session-tool-chip--${selectedStepKey ? (stepState[selectedStepKey] ?? 'idle') : 'idle'}`}>{selectedStep.tool}</span>
+                    <span className={`session-tool-chip mono session-tool-chip--${stepState[selectedStepKey] ?? 'idle'}`}>{selectedStep.tool}</span>
                     <button
                       className="session-run-btn"
                       onClick={() => runStep(selectedStep, selectedStepIndex)}
-                      disabled={isCompleted || selectedRunning || !selectedTool}
-                      title={
-                        isCompleted
-                          ? 'Completed sessions are read-only'
-                          : (!selectedTool ? 'Tool endpoint not found in catalog' : 'Run this tool now')
-                      }
+                      disabled={isCompleted || selectedRunning}
                     >
                       {selectedRunning ? <RefreshCw size={12} className="spin" /> : <Play size={12} />}
-                      {isCompleted ? 'Completed' : (selectedRunning ? 'Running…' : 'Run')}
+                      {isCompleted ? 'Completed' : (selectedRunning ? 'Running…' : `Run ${selectedStep.tool}`)}
                     </button>
                   </div>
-                  <textarea
-                    className="session-step-params mono"
-                    value={selectedStepKey ? (stepDrafts[selectedStepKey] ?? JSON.stringify(selectedStep.parameters ?? {}, null, 2)) : ''}
-                    onChange={e => {
-                      if (!selectedStepKey) return
-                      setStepDrafts(prev => ({ ...prev, [selectedStepKey]: e.target.value }))
-                    }}
-                    rows={6}
-                    readOnly={isCompleted}
-                  />
+
+                  <button
+                    className="run-opt-btn"
+                    onClick={() => setShowParamsByStep(prev => ({ ...prev, [selectedStepKey]: !prev[selectedStepKey] }))}
+                  >
+                    {showParamsByStep[selectedStepKey] ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                    Parameters
+                  </button>
+
+                  {showParamsByStep[selectedStepKey] && (
+                    <div className="session-param-grid">
+                      {Object.keys(selectedTool.params).map(k => (
+                        <ParamField
+                          key={k}
+                          name={k}
+                          value={stepFieldValues[selectedStepKey]?.[k] ?? ''}
+                          onChange={v => setStepFieldValues(prev => ({
+                            ...prev,
+                            [selectedStepKey]: { ...(prev[selectedStepKey] ?? {}), [k]: v },
+                          }))}
+                          required
+                          disabled={isCompleted}
+                        />
+                      ))}
+
+                      {Object.keys(selectedTool.optional).length > 0 && (
+                        <button
+                          className="run-opt-btn"
+                          onClick={() => setShowOptionalByStep(prev => ({ ...prev, [selectedStepKey]: !prev[selectedStepKey] }))}
+                        >
+                          {showOptionalByStep[selectedStepKey] ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                          Optional parameters ({Object.keys(selectedTool.optional).length})
+                        </button>
+                      )}
+
+                      {showOptionalByStep[selectedStepKey] && Object.keys(selectedTool.optional).map(k => (
+                        <ParamField
+                          key={k}
+                          name={k}
+                          value={stepFieldValues[selectedStepKey]?.[k] ?? ''}
+                          onChange={v => setStepFieldValues(prev => ({
+                            ...prev,
+                            [selectedStepKey]: { ...(prev[selectedStepKey] ?? {}), [k]: v },
+                          }))}
+                          disabled={isCompleted}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="session-result-panel">

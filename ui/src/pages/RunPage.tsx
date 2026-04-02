@@ -7,33 +7,10 @@ import { api, type Tool } from '../api'
 import { exportEntry } from '../utils'
 import type { RunHistoryEntry } from '../types'
 import { RunResultModal } from '../components/RunResultModal'
+import { ParamField } from '../components/tool-run/ParamField'
+import { buildRunPayload } from '../components/tool-run/payload'
+import '../components/tool-run/shared.css'
 import './RunPage.css'
-
-// ─── Param Field ──────────────────────────────────────────────────────────────
-
-function ParamField({
-  name, value, onChange, required,
-}: {
-  name: string
-  value: string
-  onChange: (v: string) => void
-  required?: boolean
-}) {
-  return (
-    <div className="run-field">
-      <label className="run-field-label mono">
-        {name}
-        {required && <span className="run-required">*</span>}
-      </label>
-      <input
-        className="run-field-input mono"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder={required ? 'required' : 'optional'}
-      />
-    </div>
-  )
-}
 
 // ─── Run Page ─────────────────────────────────────────────────────────────────
 
@@ -79,19 +56,12 @@ export function RunPage({ tools, toolsStatus, runHistory: history, setRunHistory
 
   async function runTool() {
     if (!selected) return
-    const required = Object.keys(selected.params)
-    const missing = required.filter(k => !fieldValues[k]?.trim())
+    const { payload, missing } = buildRunPayload(selected, fieldValues)
     if (missing.length) { setRunError(`Missing required: ${missing.join(', ')}`); return }
     setRunError(null)
     setRunning(true)
     setViewEntry(null)
     const id = ++runIdRef.current
-    const payload: Record<string, unknown> = {}
-    for (const k of required) payload[k] = fieldValues[k].trim()
-    for (const k of Object.keys(selected.optional)) {
-      const v = fieldValues[k]
-      if (v !== undefined && v !== '') payload[k] = v
-    }
     try {
       const result = await api.runTool(selected.endpoint, payload)
       const entry: RunHistoryEntry = { id, tool: selected.name, params: payload, result, ts: new Date(), source: 'browser' }

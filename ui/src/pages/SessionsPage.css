@@ -397,6 +397,12 @@
   letter-spacing: 0.4px;
 }
 
+.session-param-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .session-result-pre {
   margin: 0;
   white-space: pre-wrap;
