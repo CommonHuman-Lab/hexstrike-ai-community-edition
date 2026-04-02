@@ -476,46 +476,48 @@ export default function SessionDetailPage({
                   {selectedResult?.error && <div className="run-error">{selectedResult.error}</div>}
                   {resultData ? (
                     <>
-                      {selectedStepKey && resultData && (
-                        <div className="session-result-actions">
-                          <button
-                            className="run-export-btn"
-                            onClick={() => {
-                              const entry: RunHistoryEntry = {
-                                id: Date.now(),
-                                tool: selectedStep.tool,
-                                params: stepFieldValues[selectedStepKey] ?? {},
-                                result: resultData,
-                                ts: new Date(resultData.timestamp),
-                                source: 'browser',
-                              }
-                              exportEntry(entry, 'txt')
-                            }}
-                            title="Export as .txt"
-                          >
-                            <Download size={11} /> TXT
-                          </button>
-                          <button
-                            className="run-export-btn"
-                            onClick={() => {
-                              const entry: RunHistoryEntry = {
-                                id: Date.now(),
-                                tool: selectedStep.tool,
-                                params: stepFieldValues[selectedStepKey] ?? {},
-                                result: resultData,
-                                ts: new Date(resultData.timestamp),
-                                source: 'browser',
-                              }
-                              exportEntry(entry, 'json')
-                            }}
-                            title="Export as .json"
-                          >
-                            <Download size={11} /> JSON
-                          </button>
+                      <div className="session-result-head">
+                        <div className="session-step-result mono">
+                          {resultData.success ? 'OK' : 'FAIL'} | exit {resultData.return_code} | {resultData.execution_time.toFixed(2)}s
                         </div>
-                      )}
-                      <div className="session-step-result mono">
-                        {resultData.success ? 'OK' : 'FAIL'} | exit {resultData.return_code} | {resultData.execution_time.toFixed(2)}s
+                        {selectedStepKey && resultData && (
+                          <div className="session-result-actions">
+                            <button
+                              className="run-export-btn"
+                              onClick={() => {
+                                const entry: RunHistoryEntry = {
+                                  id: Date.now(),
+                                  tool: selectedStep.tool,
+                                  params: stepFieldValues[selectedStepKey] ?? {},
+                                  result: resultData,
+                                  ts: new Date(resultData.timestamp),
+                                  source: 'browser',
+                                }
+                                exportEntry(entry, 'txt')
+                              }}
+                              title="Export as .txt"
+                            >
+                              <Download size={11} /> TXT
+                            </button>
+                            <button
+                              className="run-export-btn"
+                              onClick={() => {
+                                const entry: RunHistoryEntry = {
+                                  id: Date.now(),
+                                  tool: selectedStep.tool,
+                                  params: stepFieldValues[selectedStepKey] ?? {},
+                                  result: resultData,
+                                  ts: new Date(resultData.timestamp),
+                                  source: 'browser',
+                                }
+                                exportEntry(entry, 'json')
+                              }}
+                              title="Export as .json"
+                            >
+                              <Download size={11} /> JSON
+                            </button>
+                          </div>
+                        )}
                       </div>
                       <pre className="session-result-pre mono">{resultData.stdout || '(no stdout)'}</pre>
                       {resultData.stderr && <pre className="session-result-pre mono">{resultData.stderr}</pre>}

@@ -508,6 +508,20 @@
   gap: 8px;
 }
 
+.session-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.session-result-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
 .session-result-panel h4 {
   margin: 0;
   font-size: 12px;
