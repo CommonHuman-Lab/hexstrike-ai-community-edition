@@ -17,7 +17,7 @@ interface SessionsPageProps {
 }
 
 interface StartMode {
-  key: 'comprehensive' | 'reconnaissance' | 'vulnerability_hunting' | 'osint'
+  key: 'comprehensive' | 'reconnaissance' | 'vulnerability_hunting' | 'osint' | 'manual'
   title: string
   description: string
   details: string
@@ -62,6 +62,15 @@ const START_MODES: StartMode[] = [
     modalDescription: 'Collects passive intelligence from public sources to understand exposure before active scanning. This includes historical URLs, publicly indexed assets, and reconnaissance artifacts useful for planning follow-up testing.',
     tools: ['theharvester', 'subfinder', 'amass', 'gau', 'waybackurls'],
     placeholder: 'Domain or org target (target.tld)',
+  },
+  {
+    key: 'manual',
+    title: 'Manual Session',
+    description: 'Start an empty session and add tools yourself.',
+    details: 'Best when you want full manual control.',
+    modalDescription: 'Creates a clean session with only target context. No predefined workflow is added, so you can build your own tool chain step-by-step from the session detail page.',
+    tools: [],
+    placeholder: 'Target URL/domain/IP (example.com)',
   },
 ]
 
@@ -299,17 +308,32 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
     setCreatingSession(true)
     try {
       const target = targetValue.trim()
-      const chain = await api.createAttackChain(target, mode.key)
-      const sessionRes = await api.createSession({
-        target,
-        workflow_steps: chain.attack_chain.steps,
-        source: 'web',
-        objective: mode.key,
-        session_id: chain.session_id,
-        metadata: { origin: 'ui/sessions/create', mode: mode.key, note: noteValue },
-      })
+      let sessionRes
+      let stepCount = 0
+      if (mode.key === 'manual') {
+        sessionRes = await api.createSession({
+          target,
+          workflow_steps: [],
+          source: 'web',
+          objective: mode.key,
+          metadata: { origin: 'ui/sessions/create', mode: mode.key, note: noteValue, session_name: 'Manual session' },
+        })
+      } else {
+        const chain = await api.createAttackChain(target, mode.key)
+        stepCount = chain.attack_chain.steps.length
+        sessionRes = await api.createSession({
+          target,
+          workflow_steps: chain.attack_chain.steps,
+          source: 'web',
+          objective: mode.key,
+          session_id: chain.session_id,
+          metadata: { origin: 'ui/sessions/create', mode: mode.key, note: noteValue },
+        })
+      }
       const sid = sessionRes.session.session_id
-      setCreateMsg(`Session created: ${sid} (${chain.attack_chain.steps.length} tool calls ready).`)
+      setCreateMsg(mode.key === 'manual'
+        ? `Session created: ${sid} (empty workflow, add tools manually).`
+        : `Session created: ${sid} (${stepCount} tool calls ready).`)
       closeStartModal()
       refresh()
     } catch (e) {
@@ -401,6 +425,7 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
               <div className="modal-section">
                 <span className="modal-label">Typical Tooling</span>
                 <div className="modal-params">
+                  {startMode.tools.length === 0 && <span className="modal-param mono">none preloaded</span>}
                   {startMode.tools.map(tool => (
                     <span key={tool} className="modal-param mono">{tool}</span>
                   ))}
