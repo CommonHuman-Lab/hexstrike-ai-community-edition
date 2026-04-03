@@ -13,6 +13,7 @@ export interface Settings {
     port: number;
     auth_enabled: boolean;
     debug_mode: boolean;
+    working_dir: string;
     data_dir: string;
   };
   runtime: {

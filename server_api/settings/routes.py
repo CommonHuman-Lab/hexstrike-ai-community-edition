@@ -20,6 +20,7 @@ def _current_settings() -> dict:
             "port": int(os.environ.get("HEXSTRIKE_PORT", 8888)),
             "auth_enabled": bool(os.environ.get("HEXSTRIKE_API_TOKEN")),
             "debug_mode": os.environ.get("DEBUG_MODE", "0") in ("1", "true", "yes", "y"),
+            "working_dir": os.getcwd(),
             "data_dir": os.environ.get(
                 "HEXSTRIKE_DATA_DIR",
                 os.path.join(os.getcwd(), ".hexstrike_data"),

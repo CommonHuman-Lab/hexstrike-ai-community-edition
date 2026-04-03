@@ -40,6 +40,16 @@
   max-width: 480px;
 }
 
+.help-path-detected {
+  font-size: 11px;
+  color: var(--green);
+  border: 1px solid color-mix(in srgb, var(--green) 35%, var(--border));
+  background: color-mix(in srgb, var(--green) 10%, var(--bg));
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
 .ide-tabs {
   display: flex;
   flex-wrap: wrap;

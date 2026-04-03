@@ -15,6 +15,7 @@ const MCP_FLAGS: Array<[string, string, string]> = [
 export function IdeConfigSection({
   installPath,
   setInstallPath,
+  pathDetected,
   activeIde,
   setActiveIde,
   ideConfigs,
@@ -22,6 +23,7 @@ export function IdeConfigSection({
 }: {
   installPath: string
   setInstallPath: (value: string) => void
+  pathDetected: boolean
   activeIde: string
   setActiveIde: (ideId: string) => void
   ideConfigs: IdeConfig[]
@@ -39,6 +41,7 @@ export function IdeConfigSection({
           onChange={e => setInstallPath(e.target.value)}
           placeholder="/path/to/hexstrike-ai-community-edition"
         />
+        {pathDetected && <span className="help-path-detected">Detected from server</span>}
       </div>
 
       <div className="ide-tabs">
