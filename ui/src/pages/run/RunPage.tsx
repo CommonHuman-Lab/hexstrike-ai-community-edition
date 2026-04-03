@@ -1,12 +1,18 @@
 import React, { useState, useRef } from 'react'
 import { api, type Tool } from '../../api'
+import type { Page } from '../../app/routing'
 import type { RunHistoryEntry } from '../../shared/types'
 import { RunResultModal } from '../../components/RunResultModal'
+import { usePersistentState } from '../../hooks/usePersistentState'
 import { buildRunPayload } from '../../components/tool-run/payload'
 import { filterToolsByOptions, getToolCategories } from '../../shared/toolUtils'
+import { CommandPalette } from '../../components/CommandPalette'
+import { buildRunDiff } from './compare'
 import { RunToolPicker } from './RunToolPicker'
 import { RunPanel } from './RunPanel'
 import { RunHistoryPanel } from './RunHistoryPanel'
+import { RunQuickBar } from './RunQuickBar'
+import { deriveTargetFromParams, RUN_FAVORITES_KEY, RUN_RECENT_TARGETS_KEY } from './storage'
 import '../../components/tool-run/shared.css'
 import './RunPage.css'
 
@@ -17,11 +23,12 @@ interface RunPageProps {
   toolsStatus: Record<string, boolean>
   runHistory: RunHistoryEntry[]
   setRunHistory: React.Dispatch<React.SetStateAction<RunHistoryEntry[]>>
+  setPage: (page: Page) => void
   onRefresh?: () => void
   onClearHistory?: () => Promise<void>
 }
 
-export function RunPage({ tools, toolsStatus, runHistory: history, setRunHistory: setHistory, onRefresh, onClearHistory }: RunPageProps) {
+export function RunPage({ tools, toolsStatus, runHistory: history, setRunHistory: setHistory, setPage, onRefresh, onClearHistory }: RunPageProps) {
   const [search, setSearch] = useState('')
   const [activeCat, setActiveCat] = useState('all')
   const [selected, setSelected] = useState<Tool | null>(null)
@@ -32,6 +39,9 @@ export function RunPage({ tools, toolsStatus, runHistory: history, setRunHistory
   const [modalEntry, setModalEntry] = useState<RunHistoryEntry | null>(null)
   const [histSearch, setHistSearch] = useState('')
   const [runError, setRunError] = useState<string | null>(null)
+  const [paletteOpen, setPaletteOpen] = useState(false)
+  const [favorites, setFavorites] = usePersistentState<string[]>(RUN_FAVORITES_KEY, [])
+  const [recentTargets, setRecentTargets] = usePersistentState<string[]>(RUN_RECENT_TARGETS_KEY, [])
   const runIdRef = useRef(0)
 
   const cats = getToolCategories(tools)
@@ -53,6 +63,31 @@ export function RunPage({ tools, toolsStatus, runHistory: history, setRunHistory
     setFieldValues(defaults)
   }
 
+  function toggleFavoriteSelected() {
+    if (!selected) return
+    const name = selected.name
+    setFavorites(prev => prev.includes(name) ? prev.filter(t => t !== name) : [name, ...prev].slice(0, 30))
+  }
+
+  function selectToolByName(name: string) {
+    const tool = tools.find(t => t.name === name)
+    if (tool) selectTool(tool)
+  }
+
+  function applyTarget(target: string) {
+    const targetKeys = ['target', 'url', 'domain', 'host', 'ip', 'rhost', 'hostname']
+    setFieldValues(prev => {
+      const next = { ...prev }
+      for (const key of targetKeys) {
+        if (Object.prototype.hasOwnProperty.call(next, key)) {
+          next[key] = target
+          break
+        }
+      }
+      return next
+    })
+  }
+
   async function runTool() {
     if (!selected) return
     const { payload, missing } = buildRunPayload(selected, fieldValues)
@@ -66,6 +101,10 @@ export function RunPage({ tools, toolsStatus, runHistory: history, setRunHistory
       const entry: RunHistoryEntry = { id, tool: selected.name, params: payload, result, ts: new Date(), source: 'browser' }
       setHistory(h => [entry, ...h].slice(0, 100)) // Limit to last 100 runs
       setViewEntry(entry)
+      const target = deriveTargetFromParams(payload)
+      if (target) {
+        setRecentTargets(prev => [target, ...prev.filter(t => t !== target)].slice(0, 10))
+      }
     } catch (e) {
       setRunError(String(e))
     } finally {
@@ -73,11 +112,43 @@ export function RunPage({ tools, toolsStatus, runHistory: history, setRunHistory
     }
   }
 
+  React.useEffect(() => {
+    function onGlobalKeyDown(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setPaletteOpen(true)
+      }
+    }
+    window.addEventListener('keydown', onGlobalKeyDown)
+    return () => window.removeEventListener('keydown', onGlobalKeyDown)
+  }, [])
+
+  const compareText = modalEntry
+    ? (() => {
+        const prev = history.find(e => e.id !== modalEntry.id && e.tool === modalEntry.tool)
+        return prev ? buildRunDiff(modalEntry, prev) : undefined
+      })()
+    : undefined
+
+  const favoriteTools = filtered
+    .filter(tool => favorites.includes(tool.name))
+    .sort((a, b) => favorites.indexOf(a.name) - favorites.indexOf(b.name))
+
+  const nonFavoriteTools = filtered.filter(tool => !favorites.includes(tool.name))
+
   return (
     <div className="run-page">
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        setPage={setPage}
+        tools={tools}
+        onSelectTool={selectTool}
+      />
       {modalEntry && (
         <RunResultModal
           entry={modalEntry}
+          compareText={compareText}
           onClose={() => setModalEntry(null)}
           onRerun={() => {
             const t = tools.find(t => t.name === modalEntry.tool)
@@ -99,7 +170,8 @@ export function RunPage({ tools, toolsStatus, runHistory: history, setRunHistory
         activeCat={activeCat}
         setActiveCat={setActiveCat}
         cats={cats}
-        filtered={filtered}
+        filtered={nonFavoriteTools}
+        favorites={favoriteTools}
         selected={selected}
         onSelectTool={selectTool}
       />
@@ -115,6 +187,17 @@ export function RunPage({ tools, toolsStatus, runHistory: history, setRunHistory
         runError={runError}
         onRunTool={runTool}
         viewEntry={viewEntry}
+      />
+
+      <RunQuickBar
+        selectedToolName={selected?.name ?? null}
+        favorites={favorites}
+        onPickFavorite={selectToolByName}
+        onToggleFavoriteSelected={toggleFavoriteSelected}
+        isSelectedFavorite={selected ? favorites.includes(selected.name) : false}
+        recentTargets={recentTargets}
+        onPickTarget={applyTarget}
+        onClearRecentTargets={() => setRecentTargets([])}
       />
 
       <RunHistoryPanel

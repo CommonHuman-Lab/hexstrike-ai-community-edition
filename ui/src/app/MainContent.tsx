@@ -80,6 +80,7 @@ export function MainContent({
           toolsStatus={toolsStatusWithParents}
           runHistory={runHistory}
           setRunHistory={setRunHistory}
+          setPage={setPage}
           onRefresh={fetchServerRunHistory}
           onClearHistory={clearServerRunHistory}
         />

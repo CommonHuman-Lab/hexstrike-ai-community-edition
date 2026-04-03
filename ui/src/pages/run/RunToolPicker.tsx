@@ -6,6 +6,7 @@ interface RunToolPickerProps {
   activeCat: string
   setActiveCat: (value: string) => void
   cats: string[]
+  favorites: Tool[]
   filtered: Tool[]
   selected: Tool | null
   onSelectTool: (tool: Tool) => void
@@ -17,6 +18,7 @@ export function RunToolPicker({
   activeCat,
   setActiveCat,
   cats,
+  favorites,
   filtered,
   selected,
   onSelectTool,
@@ -43,6 +45,22 @@ export function RunToolPicker({
         </div>
       </div>
       <div className="run-tool-list">
+        {favorites.length > 0 && (
+          <>
+            <div className="run-tool-group-label">Favorites</div>
+            {favorites.map(tool => (
+              <button
+                key={tool.name}
+                className={`run-tool-item run-tool-item--favorite${selected?.name === tool.name ? ' active' : ''}`}
+                onClick={() => onSelectTool(tool)}
+              >
+                <span className="run-tool-name mono">{tool.name}</span>
+                <span className="run-tool-cat">{tool.category.replace(/_/g, ' ')}</span>
+              </button>
+            ))}
+            <div className="run-tool-group-label">All Tools</div>
+          </>
+        )}
         {filtered.map(tool => (
           <button
             key={tool.name}
