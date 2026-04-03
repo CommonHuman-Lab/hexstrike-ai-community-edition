@@ -23,6 +23,7 @@ interface TopBarProps {
   fetchAll: () => Promise<void>
   themeId: ThemeId
   setThemeId: (theme: ThemeId) => void
+  onOpenCommandPalette: () => void
   onSignOut: () => void
 }
 
@@ -49,6 +50,7 @@ export function TopBar({
   fetchAll,
   themeId,
   setThemeId,
+  onOpenCommandPalette,
   onSignOut,
 }: TopBarProps) {
   const [themeMenuOpen, setThemeMenuOpen] = useState(false)
@@ -150,6 +152,13 @@ export function TopBar({
         >
           <DiscordIcon />
         </a>
+        <button
+          className="icon-btn"
+          title="Command palette (Ctrl/Cmd+K)"
+          onClick={onOpenCommandPalette}
+        >
+          <span className="palette-icon-k mono">K</span>
+        </button>
         <div className="theme-menu" ref={themeMenuRef}>
           <button
             className="icon-btn"

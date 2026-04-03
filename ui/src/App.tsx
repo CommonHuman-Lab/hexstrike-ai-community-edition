@@ -22,6 +22,7 @@ import { CommandPalette } from './components/CommandPalette'
 import './App.css'
 
 const POLL_MS = 10_000
+const PALETTE_HINT_SEEN_KEY = 'hexstrike_palette_hint_seen'
 
 export default function App() {
   const [demo] = useState(isDemoMode)
@@ -83,6 +84,13 @@ export default function App() {
   const [toolCategories, setToolCategories] = useState<Record<string, string[]>>({});
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [commandToolRequest, setCommandToolRequest] = useState<{ toolName: string; requestId: number } | null>(null)
+  const [showPaletteHint, setShowPaletteHint] = useState(() => {
+    try {
+      return localStorage.getItem(PALETTE_HINT_SEEN_KEY) !== '1'
+    } catch {
+      return true
+    }
+  })
   const [themeId, setThemeId] = useState<ThemeId>(() => {
     try {
       const stored = localStorage.getItem(THEME_STORAGE_KEY)
@@ -112,6 +120,20 @@ export default function App() {
   function handleCommandSelectTool(tool: Tool) {
     setPage('run')
     setCommandToolRequest({ toolName: tool.name, requestId: Date.now() })
+  }
+
+  function dismissPaletteHint() {
+    setShowPaletteHint(false)
+    try {
+      localStorage.setItem(PALETTE_HINT_SEEN_KEY, '1')
+    } catch {
+      // ignore storage failures
+    }
+  }
+
+  function openCommandPalette() {
+    setPaletteOpen(true)
+    if (showPaletteHint) dismissPaletteHint()
   }
 
   const addBrowserRunEntry = useCallback((tool: string, params: Record<string, unknown>, result: ToolExecResponse) => {
@@ -356,8 +378,19 @@ export default function App() {
           fetchAll={fetchAll}
           themeId={themeId}
           setThemeId={setThemeId}
+          onOpenCommandPalette={openCommandPalette}
           onSignOut={() => { setAuthed(false); setNeedsAuth(true) }}
         />
+
+        {showPaletteHint && (
+          <div className="palette-hint-floating" role="status" aria-live="polite">
+            <button className="palette-hint-main" onClick={openCommandPalette} title="Open command palette">
+              <span className="palette-hint-title">Try Command Palette</span>
+              <span className="palette-hint-kbd mono">Ctrl/Cmd + K</span>
+            </button>
+            <button className="palette-hint-close" onClick={dismissPaletteHint} title="Dismiss hint">x</button>
+          </div>
+        )}
 
         <MainContent
           page={page}

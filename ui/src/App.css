@@ -157,6 +157,79 @@
   position: relative;
 }
 
+.palette-icon-k {
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.palette-hint-floating {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  align-items: stretch;
+  border: 1px solid color-mix(in srgb, var(--blue) 40%, var(--border));
+  background: color-mix(in srgb, var(--blue) 10%, var(--bg-card));
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+  animation: paletteHintIn 0.25s ease;
+  z-index: 220;
+}
+
+.palette-hint-main {
+  border: none;
+  background: transparent;
+  color: var(--text-h);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  cursor: pointer;
+  min-width: 190px;
+}
+
+.palette-hint-main:hover {
+  background: color-mix(in srgb, var(--blue) 13%, var(--bg-card2));
+}
+
+.palette-hint-title {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.palette-hint-kbd {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.palette-hint-close {
+  border: none;
+  border-left: 1px solid color-mix(in srgb, var(--blue) 35%, var(--border));
+  background: transparent;
+  color: var(--text-dim);
+  width: 28px;
+  cursor: pointer;
+}
+
+.palette-hint-close:hover {
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 10%, transparent);
+}
+
+@keyframes paletteHintIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .theme-menu-popover {
   position: absolute;
   top: calc(100% + 8px);
