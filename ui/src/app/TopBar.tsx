@@ -1,12 +1,14 @@
+import { useEffect, useRef, useState } from 'react'
 import faviconUrl from '../favicon-16x16.png'
 import {
   Clock, RefreshCw, Lock, Github,
   LayoutDashboard, Terminal, Play,
   Settings as SettingsIcon, HelpCircle,
-  ListTodo, Wrench, FileText, Layers,
+  ListTodo, Wrench, FileText, Layers, Palette,
 } from 'lucide-react'
 import { clearToken, hasToken, type WebDashboardResponse } from '../api'
 import type { Page } from './routing'
+import { THEME_OPTIONS, type ThemeId } from './themes'
 
 interface TopBarProps {
   page: Page
@@ -19,6 +21,8 @@ interface TopBarProps {
   error: string | null
   loading: boolean
   fetchAll: () => Promise<void>
+  themeId: ThemeId
+  setThemeId: (theme: ThemeId) => void
   onSignOut: () => void
 }
 
@@ -43,8 +47,22 @@ export function TopBar({
   error,
   loading,
   fetchAll,
+  themeId,
+  setThemeId,
   onSignOut,
 }: TopBarProps) {
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false)
+  const themeMenuRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    function onPointerDown(e: MouseEvent) {
+      if (!themeMenuRef.current) return
+      if (!themeMenuRef.current.contains(e.target as Node)) setThemeMenuOpen(false)
+    }
+    if (themeMenuOpen) window.addEventListener('mousedown', onPointerDown)
+    return () => window.removeEventListener('mousedown', onPointerDown)
+  }, [themeMenuOpen])
+
   return (
     <header className="topbar">
       <div className="topbar-brand">
@@ -126,6 +144,29 @@ export function TopBar({
         >
           <DiscordIcon />
         </a>
+        <div className="theme-menu" ref={themeMenuRef}>
+          <button
+            className="icon-btn"
+            title="Change theme"
+            onClick={() => setThemeMenuOpen(v => !v)}
+          >
+            <Palette size={14} />
+          </button>
+          {themeMenuOpen && (
+            <div className="theme-menu-popover">
+              {THEME_OPTIONS.map(theme => (
+                <button
+                  key={theme.id}
+                  className={`theme-menu-item${themeId === theme.id ? ' active' : ''}`}
+                  onClick={() => { setThemeId(theme.id); setThemeMenuOpen(false) }}
+                >
+                  <span className="theme-menu-label">{theme.label}</span>
+                  <span className="theme-menu-hint">{theme.hint}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         {hasToken() && (
           <button className="icon-btn" onClick={() => { clearToken(); onSignOut() }} title="Sign out">
             <Lock size={14} />

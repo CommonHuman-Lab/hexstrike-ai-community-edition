@@ -153,6 +153,61 @@
 }
 .icon-btn:hover { background: var(--bg-card2); color: var(--text-h); }
 
+.theme-menu {
+  position: relative;
+}
+
+.theme-menu-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+  z-index: 120;
+}
+
+.theme-menu-item {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.theme-menu-item:last-child {
+  border-bottom: 0;
+}
+
+.theme-menu-item:hover {
+  background: var(--bg-card2);
+}
+
+.theme-menu-item.active {
+  background: color-mix(in srgb, var(--blue) 16%, var(--bg-card));
+}
+
+.theme-menu-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.theme-menu-hint {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
 .btn-primary {
   background: var(--green-dim);
   border: 1px solid var(--green);

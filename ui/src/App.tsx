@@ -16,6 +16,7 @@ import type { RunHistoryEntry, HistoryPoint } from './shared/types'
 import { routeFromHash, type Page } from './app/routing'
 import { getToolsStatusWithParents } from './app/tools'
 import { TopBar } from './app/TopBar'
+import { THEME_STORAGE_KEY, isThemeId, type ThemeId } from './app/themes'
 import { MainContent } from './app/MainContent'
 import './App.css'
 
@@ -79,6 +80,20 @@ export default function App() {
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamingError, setStreamingError] = useState<string | null>(null)
   const [toolCategories, setToolCategories] = useState<Record<string, string[]>>({});
+  const [themeId, setThemeId] = useState<ThemeId>(() => {
+    try {
+      const stored = localStorage.getItem(THEME_STORAGE_KEY)
+      if (stored && isThemeId(stored)) return stored
+    } catch { /* ignored */ }
+    return 'dark'
+  })
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', themeId)
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, themeId)
+    } catch { /* ignored */ }
+  }, [themeId])
 
   const addBrowserRunEntry = useCallback((tool: string, params: Record<string, unknown>, result: ToolExecResponse) => {
     setRunHistory(prev => {
@@ -313,6 +328,8 @@ export default function App() {
           error={error}
           loading={loading}
           fetchAll={fetchAll}
+          themeId={themeId}
+          setThemeId={setThemeId}
           onSignOut={() => { setAuthed(false); setNeedsAuth(true) }}
         />
 
