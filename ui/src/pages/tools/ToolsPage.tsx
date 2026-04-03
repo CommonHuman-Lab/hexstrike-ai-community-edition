@@ -3,8 +3,8 @@ import { Wrench, Database, Shield, XCircle } from 'lucide-react'
 import { type Tool, type WebDashboardResponse } from '../../api'
 import { StatCard } from '../../components/StatCard'
 import { ToolModal } from '../../components/ToolModal'
+import { filterToolsByOptions, getToolCategories } from '../../shared/toolUtils'
 import { ToolsRegistrySection } from './ToolsRegistrySection'
-import { filterTools, getToolCategories } from './utils'
 import './ToolsPage.css'
 
 interface ToolsPageProps {
@@ -20,7 +20,13 @@ export default function ToolsPage({ health, tools, toolsStatus }: ToolsPageProps
   const [missingOnly, setMissingOnly] = useState(false)
 
   const cats = getToolCategories(tools)
-  const filtered = filterTools(tools, toolsStatus, activeCat, search, missingOnly)
+  const filtered = filterToolsByOptions(tools, {
+    toolsStatus,
+    activeCategory: activeCat,
+    search,
+    missingOnly,
+    includeParentToolSearch: true,
+  })
 
   const missingCount = health.total_tools_count - health.total_tools_available
 

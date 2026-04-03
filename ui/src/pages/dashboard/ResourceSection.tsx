@@ -2,9 +2,8 @@ import { Activity, Cpu, HardDrive, HardDriveDownload, MemoryStick, Upload } from
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { WebDashboardResponse } from '../../api'
 import type { HistoryPoint } from '../../shared/types'
-import { fmt } from '../../shared/utils'
+import { fmt, formatBytes } from '../../shared/utils'
 import { GaugeBar } from '../../components/GaugeBar'
-import { formatBytes } from './utils'
 
 function ResourceChart({ data }: { data: HistoryPoint[] }) {
   const ticks = data.map(d => ({ ...d, time: new Date(d.t).toLocaleTimeString('en-GB') }))

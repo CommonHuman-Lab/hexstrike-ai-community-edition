@@ -3,10 +3,10 @@ import { api, type Tool } from '../../api'
 import type { RunHistoryEntry } from '../../shared/types'
 import { RunResultModal } from '../../components/RunResultModal'
 import { buildRunPayload } from '../../components/tool-run/payload'
+import { filterToolsByOptions, getToolCategories } from '../../shared/toolUtils'
 import { RunToolPicker } from './RunToolPicker'
 import { RunPanel } from './RunPanel'
 import { RunHistoryPanel } from './RunHistoryPanel'
-import { getCategories, getFilteredTools } from './utils'
 import '../../components/tool-run/shared.css'
 import './RunPage.css'
 
@@ -33,8 +33,13 @@ export function RunPage({ tools, toolsStatus, runHistory: history, setRunHistory
   const [runError, setRunError] = useState<string | null>(null)
   const runIdRef = useRef(0)
 
-  const cats = getCategories(tools)
-  const filtered = getFilteredTools(tools, toolsStatus, activeCat, search)
+  const cats = getToolCategories(tools)
+  const filtered = filterToolsByOptions(tools, {
+    toolsStatus,
+    activeCategory: activeCat,
+    search,
+    requireAvailable: true,
+  })
 
   function selectTool(t: Tool) {
     setSelected(t)

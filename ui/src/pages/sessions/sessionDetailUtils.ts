@@ -1,9 +1,5 @@
 import type { AttackChainStep, SessionSummary, Tool } from '../../api'
-
-export function fmtTs(ts: number) {
-  if (!ts) return '—'
-  return new Date(ts * 1000).toLocaleString('en-GB')
-}
+export { fmtTs } from '../../shared/utils'
 
 export function normalizeStepsFromSession(session: SessionSummary): AttackChainStep[] {
   if (Array.isArray(session.workflow_steps) && session.workflow_steps.length > 0) return session.workflow_steps

@@ -4,6 +4,26 @@ export function fmt(n: number, dec = 1): string {
   return n.toFixed(dec)
 }
 
+export function fmtTs(ts: number): string {
+  if (!ts) return '—'
+  return new Date(ts * 1000).toLocaleString('en-GB')
+}
+
+export function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  const value = parseFloat((bytes / Math.pow(k, i)).toFixed(2))
+  return `${value} ${sizes[i]}`
+}
+
+export function getSuccessAccent(ok: number, total: number): string {
+  if (ok === total) return 'var(--success)'
+  if (ok === 0) return 'var(--danger)'
+  return 'var(--warning)'
+}
+
 export function uptimeStr(secs: number): string {
   const h = Math.floor(secs / 3600)
   const m = Math.floor((secs % 3600) / 60)

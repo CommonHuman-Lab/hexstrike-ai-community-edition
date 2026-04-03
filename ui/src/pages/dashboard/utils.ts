@@ -1,5 +1,6 @@
 import type { WebDashboardResponse } from '../../api'
 import type { RunHistoryEntry } from '../../shared/types'
+import { getSuccessAccent } from '../../shared/utils'
 
 export function getCatTools(
   category: string,
@@ -9,15 +10,6 @@ export function getCatTools(
   const fromApi = toolCategories[category] ?? []
   if (fromApi.length > 0) return fromApi
   return Object.keys(allStatuses)
-}
-
-export function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  const value = parseFloat((bytes / Math.pow(k, i)).toFixed(2))
-  return `${value} ${sizes[i]}`
 }
 
 export function getCommandsCardData(health: WebDashboardResponse, runHistory: RunHistoryEntry[]) {
@@ -30,7 +22,7 @@ export function getCommandsCardData(health: WebDashboardResponse, runHistory: Ru
     return {
       value: total,
       sub: `${ok} ok · ${localCount - ok} failed`,
-      accent: ok === localCount ? 'var(--success)' : ok === 0 ? 'var(--danger)' : 'var(--warning)',
+      accent: getSuccessAccent(ok, localCount),
     }
   }
 
@@ -39,7 +31,7 @@ export function getCommandsCardData(health: WebDashboardResponse, runHistory: Ru
   return {
     value: total,
     sub: `${ok} ok · ${serverCount - ok} failed`,
-    accent: ok === serverCount ? 'var(--success)' : ok === 0 ? 'var(--danger)' : 'var(--warning)',
+    accent: getSuccessAccent(ok, serverCount),
   }
 }
 

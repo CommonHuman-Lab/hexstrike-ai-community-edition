@@ -1,25 +1,4 @@
-import type { Tool } from '../../api'
 import type { RunHistoryEntry } from '../../shared/types'
-
-export function getCategories(tools: Tool[]): string[] {
-  return ['all', ...Array.from(new Set(tools.map(t => t.category))).sort()]
-}
-
-export function getFilteredTools(
-  tools: Tool[],
-  toolsStatus: Record<string, boolean>,
-  activeCat: string,
-  search: string
-): Tool[] {
-  const q = search.toLowerCase()
-  return tools
-    .filter(tool => {
-      if (toolsStatus[tool.name] !== true) return false
-      const matchCat = activeCat === 'all' || tool.category === activeCat
-      return matchCat && (!q || tool.name.includes(q) || tool.desc.toLowerCase().includes(q))
-    })
-    .sort((a, b) => a.name.localeCompare(b.name))
-}
 
 export function filterHistory(history: RunHistoryEntry[], query: string): RunHistoryEntry[] {
   const q = query.toLowerCase()
