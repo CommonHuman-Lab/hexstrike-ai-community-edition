@@ -1,163 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  RefreshCw, XCircle, Activity, Clock, CheckCircle,
+  RefreshCw, XCircle, Activity, CheckCircle,
   Layers, Target,
 } from 'lucide-react'
 import {
   api,
   type SessionsResponse,
-  type SessionSummary,
   type SessionTemplate,
 } from '../api'
 import { StatCard } from '../components/StatCard'
+import { START_MODES, type StartMode } from './sessions/constants'
+import { SessionListSection, StartSessionModal, StartSessionSection } from './sessions/SessionsSections'
 import './SessionsPage.css'
 
 interface SessionsPageProps {
   demoData?: { sessions: SessionsResponse }
   onOpenSession: (sessionId: string) => void
-}
-
-interface StartMode {
-  key: 'comprehensive' | 'reconnaissance' | 'vulnerability_hunting' | 'osint' | 'manual' | 'from_template'
-  title: string
-  description: string
-  details: string
-  modalDescription: string
-  tools: string[]
-  placeholder: string
-}
-
-const START_MODES: StartMode[] = [
-  {
-    key: 'comprehensive',
-    title: 'Comprehensive Assessment',
-    description: 'Balanced full-chain workflow from recon to vulnerability checks.',
-    details: 'Best default for unknown targets.',
-    modalDescription: 'Builds a broad, practical workflow that starts with target profiling and surface mapping, then moves into prioritized vulnerability validation. This is designed for cases where you want full context and a structured path from discovery to actionable findings.',
-    tools: ['nmap', 'httpx', 'katana', 'nuclei', 'nikto', 'ffuf'],
-    placeholder: 'Target URL/domain/IP (example.com)',
-  },
-  {
-    key: 'reconnaissance',
-    title: 'Reconnaissance',
-    description: 'Discovery-first workflow for assets, endpoints, and technologies.',
-    details: 'Use when mapping attack surface.',
-    modalDescription: 'Focuses on enumeration and intelligence gathering with minimal intrusive testing. It maps hosts, services, paths, and technologies so you can decide where deeper testing should happen next.',
-    tools: ['subfinder', 'amass', 'httpx', 'katana', 'waybackurls', 'gau'],
-    placeholder: 'Scope target (example.com or 10.0.0.0/24)',
-  },
-  {
-    key: 'vulnerability_hunting',
-    title: 'Vulnerability Hunting',
-    description: 'Vulnerability-focused chain prioritizing exploitable findings.',
-    details: 'Use when recon is already known.',
-    modalDescription: 'Runs targeted security checks against known attack surface to quickly identify high-value weaknesses. This mode biases toward validating likely vulnerabilities and producing results you can triage and act on fast.',
-    tools: ['nuclei', 'sqlmap', 'dalfox', 'jaeles', 'nikto', 'wpscan'],
-    placeholder: 'Web/API target (https://target.tld)',
-  },
-  {
-    key: 'osint',
-    title: 'OSINT Collection',
-    description: 'Intelligence and external footprint gathering for a target.',
-    details: 'Useful before active probing.',
-    modalDescription: 'Collects passive intelligence from public sources to understand exposure before active scanning. This includes historical URLs, publicly indexed assets, and reconnaissance artifacts useful for planning follow-up testing.',
-    tools: ['theharvester', 'subfinder', 'amass', 'gau', 'waybackurls'],
-    placeholder: 'Domain or org target (target.tld)',
-  },
-  {
-    key: 'manual',
-    title: 'Manual Session',
-    description: 'Start an empty session and add tools yourself.',
-    details: 'Best when you want full manual control.',
-    modalDescription: 'Creates a clean session with only target context. No predefined workflow is added, so you can build your own tool chain step-by-step from the session detail page.',
-    tools: [],
-    placeholder: 'Target URL/domain/IP (example.com)',
-  },
-  {
-    key: 'from_template',
-    title: 'From Template',
-    description: 'Start from a saved tool template.',
-    details: 'Reuse your recurring workflows.',
-    modalDescription: 'Creates a session from an existing template. You only set target and choose the saved template; all template tools are copied into the new session.',
-    tools: [],
-    placeholder: 'Target URL/domain/IP (example.com)',
-  },
-]
-
-function fmtTs(ts: number) {
-  if (!ts) return '—'
-  return new Date(ts * 1000).toLocaleString('en-GB')
-}
-
-function sessionName(s: SessionSummary): string {
-  const meta = (s.metadata ?? {}) as Record<string, unknown>
-  const explicitName = meta.session_name
-  if (typeof explicitName === 'string' && explicitName.trim()) {
-    const v = explicitName.trim()
-    return v.charAt(0).toUpperCase() + v.slice(1)
-  }
-
-  const mode = (typeof s.objective === 'string' && s.objective) || (typeof meta.mode === 'string' ? meta.mode : '')
-  if (mode) {
-    const v = mode.replace(/_/g, ' ').trim()
-    return v.charAt(0).toUpperCase() + v.slice(1)
-  }
-
-  return 'Session'
-}
-
-function SessionCard({ s, onOpen }: { s: SessionSummary; onOpen: (sessionId: string) => void }) {
-  const toolStatus = (s.metadata?.tool_status ?? {}) as Record<string, string>
-  const lastRun = ((s.metadata?.last_run ?? null) as {
-    tool?: string
-    success?: boolean
-    return_code?: number
-    execution_time?: number
-  } | null)
-
-  return (
-    <div className="session-card session-card--compact registry-card--clickable" onClick={() => onOpen(s.session_id)}>
-      <div className="session-card-header">
-        <div className="session-target">
-          <Target size={13} color="var(--blue)" />
-          <span className="mono">{s.target}</span>
-        </div>
-        {s.status && (
-          <span className={`session-status session-status--${s.status}`}>{s.status}</span>
-        )}
-      </div>
-
-      <div className="session-card-meta">
-        <span><Activity size={11} /> {s.total_findings} findings</span>
-        <span><RefreshCw size={11} /> {s.iterations} iterations</span>
-        <span><Clock size={11} /> {fmtTs(s.updated_at)}</span>
-      </div>
-
-      <div className="session-tools">
-        {s.tools_executed.slice(0, 8).map(t => (
-          <span
-            key={t}
-            className={`session-tool-chip mono session-tool-chip--${toolStatus[t] === 'success' ? 'success' : toolStatus[t] === 'failed' ? 'failed' : 'idle'}`}
-          >
-            {t}
-          </span>
-        ))}
-        {s.tools_executed.length > 8 && (
-          <span className="session-tool-chip session-tool-chip--more">+{s.tools_executed.length - 8}</span>
-        )}
-      </div>
-
-      <div className="session-card-footer">
-        <span className="session-id mono">{s.session_id}</span>
-        <span className="session-tool-chip mono">{sessionName(s)}</span>
-      </div>
-      {lastRun?.tool && (
-        <div className="session-last-run mono">
-          last: {lastRun.tool} | {lastRun.success ? 'OK' : 'FAIL'} | exit {lastRun.return_code ?? 0} | {(lastRun.execution_time ?? 0).toFixed(2)}s
-        </div>
-      )}
-    </div>
-  )
 }
 
 export default function SessionsPage({ demoData, onOpenSession }: SessionsPageProps) {
@@ -427,100 +285,35 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
         />
       </div>
 
-      <section className="section">
-        <div className="section-header">
-          <h3>Start Session</h3>
-          <span className="section-meta">Choose a workflow type, then provide target details.</span>
-        </div>
-        <div className="registry-grid registry-grid--wide start-mode-grid">
-          {START_MODES.map(mode => (
-            <div key={mode.key} className="registry-card registry-card--clickable start-mode-card" onClick={() => openStartModal(mode)}>
-              <div className="registry-card-top">
-                <span className="registry-name">{mode.title}</span>
-                <span className="registry-cat">{mode.key.replace(/_/g, ' ')}</span>
-              </div>
-              <p className="registry-desc">{mode.description}</p>
-              <p className="start-mode-detail">{mode.details}</p>
-            </div>
-          ))}
-        </div>
-        {createMsg && <p className="section-meta">{createMsg}</p>}
-      </section>
+      <StartSessionSection
+        startModes={START_MODES}
+        onOpenStartMode={openStartModal}
+        createMsg={createMsg}
+      />
 
       {startMode && (
-        <div className="modal-backdrop" onClick={e => { if (e.target === e.currentTarget) closeStartModal() }}>
-          <div className="modal">
-            <div className="modal-header">
-              <div className="modal-title-row">
-                <span className="modal-name">Start {startMode.title}</span>
-              </div>
-              <button className="modal-close" onClick={closeStartModal}><XCircle size={18} /></button>
-            </div>
-            <div className="modal-body">
-              <p className="modal-desc">{startMode.modalDescription}</p>
-              <div className="modal-section">
-                <span className="modal-label">Typical Tooling</span>
-                <div className="modal-params">
-                  {startMode.tools.length === 0 && <span className="modal-param mono">none preloaded</span>}
-                  {startMode.tools.map(tool => (
-                    <span key={tool} className="modal-param mono">{tool}</span>
-                  ))}
-                </div>
-              </div>
-              {startMode.key === 'from_template' && (
-                <div className="session-start-form">
-                  <label className="mono">Template *</label>
-                  <select
-                    className="session-objective-select"
-                    value={selectedTemplateId}
-                    onChange={e => setSelectedTemplateId(e.target.value)}
-                  >
-                    <option value="">Select template</option>
-                    {templates.map(t => (
-                      <option key={t.template_id} value={t.template_id}>{t.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              <div className="session-start-form">
-                <label className="mono" htmlFor="session-target-input">Target *</label>
-                <input
-                  id="session-target-input"
-                  className="search-input mono"
-                  value={modalTarget}
-                  onChange={e => setModalTarget(e.target.value)}
-                  placeholder={startMode.placeholder}
-                />
-                <label className="mono" htmlFor="session-note-input">Note (optional)</label>
-                <textarea
-                  id="session-note-input"
-                  className="session-step-params mono"
-                  rows={3}
-                  value={modalNote}
-                  onChange={e => setModalNote(e.target.value)}
-                  placeholder="Context for this run"
-                />
-                {modalError && <div className="run-error">{modalError}</div>}
-                <div className="session-start-actions">
-                  <button className="session-action-btn" onClick={closeStartModal}>Cancel</button>
-                  <button
-                    className="session-run-btn"
-                    onClick={() => createSessionFromTarget(startMode, modalTarget, modalNote)}
-                    disabled={creatingSession}
-                  >
-                    {creatingSession ? <RefreshCw size={13} className="spin" /> : <Target size={13} />}
-                    {creatingSession ? 'Starting…' : 'Start Session'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <StartSessionModal
+          startMode={startMode}
+          templates={templates}
+          selectedTemplateId={selectedTemplateId}
+          setSelectedTemplateId={setSelectedTemplateId}
+          modalTarget={modalTarget}
+          setModalTarget={setModalTarget}
+          modalNote={modalNote}
+          setModalNote={setModalNote}
+          modalError={modalError}
+          creatingSession={creatingSession}
+          onClose={closeStartModal}
+          onSubmit={() => createSessionFromTarget(startMode, modalTarget, modalNote)}
+        />
       )}
 
-      <section className="section">
-        <div className="section-header">
-          <h3>Active Sessions <span className="badge">{active.length}</span></h3>
+      <SessionListSection
+        title="Active Sessions"
+        sessions={active}
+        emptyText="No active sessions. Start a session from target to run tools manually."
+        onOpenSession={onOpenSession}
+        headerRight={(
           <div className="sessions-header-actions">
             <button className="session-help-btn" onClick={() => setShowHandoverHelp(v => !v)}>
               {showHandoverHelp ? 'Hide handover help' : 'Handover help'}
@@ -532,38 +325,25 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
               <RefreshCw size={14} className={loading ? 'spin' : ''} />
             </button>
           </div>
-        </div>
-        {showHandoverHelp && (
+        )}
+      />
+
+      {showHandoverHelp && (
+        <section className="section">
           <div className="session-help-box">
             <p><strong>Web handover:</strong> open a session and click <span className="mono">Handover to LLM</span>.</p>
             <p><strong>MCP handover:</strong> call <span className="mono">handover_session("&lt;session_id&gt;", "optional note")</span>.</p>
             <p><strong>Tip:</strong> update target/step parameters before handover so the LLM gets the latest context.</p>
           </div>
-        )}
-        {active.length === 0 ? (
-          <div className="tasks-empty">
-            <Layers size={28} color="var(--text-dim)" />
-            <p>No active sessions. Start a session from target to run tools manually.</p>
-          </div>
-        ) : (
-          <div className="sessions-grid">
-            {active.map(s => <SessionCard key={s.session_id} s={s} onOpen={onOpenSession} />)}
-          </div>
-        )}
-      </section>
+        </section>
+      )}
 
-      <section className="section">
-        <div className="section-header">
-          <h3>Completed Sessions <span className="badge">{completed.length}</span></h3>
-        </div>
-        {completed.length === 0 ? (
-          <p className="empty-state">No completed sessions yet.</p>
-        ) : (
-          <div className="sessions-grid">
-            {completed.map(s => <SessionCard key={s.session_id} s={s} onOpen={onOpenSession} />)}
-          </div>
-        )}
-      </section>
+      <SessionListSection
+        title="Completed Sessions"
+        sessions={completed}
+        emptyText="No completed sessions yet."
+        onOpenSession={onOpenSession}
+      />
     </div>
   )
 }
