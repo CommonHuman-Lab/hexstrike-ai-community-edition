@@ -28,6 +28,7 @@ interface MainContentProps {
   runHistory: RunHistoryEntry[]
   setRunHistory: Dispatch<SetStateAction<RunHistoryEntry[]>>
   fetchServerRunHistory: () => Promise<void>
+  clearServerRunHistory: () => Promise<void>
   openSessionDetail: (sessionId: string) => void
   activeSessionId: string | null
   setPage: (page: Page) => void
@@ -53,6 +54,7 @@ export function MainContent({
   runHistory,
   setRunHistory,
   fetchServerRunHistory,
+  clearServerRunHistory,
   openSessionDetail,
   activeSessionId,
   setPage,
@@ -79,6 +81,7 @@ export function MainContent({
           runHistory={runHistory}
           setRunHistory={setRunHistory}
           onRefresh={fetchServerRunHistory}
+          onClearHistory={clearServerRunHistory}
         />
       )}
       {page === 'tasks' && <TasksPage demoData={demo ? { processes: DEMO_PROCESSES } : undefined} />}

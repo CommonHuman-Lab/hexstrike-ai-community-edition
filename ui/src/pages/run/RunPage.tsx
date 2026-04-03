@@ -18,9 +18,10 @@ interface RunPageProps {
   runHistory: RunHistoryEntry[]
   setRunHistory: React.Dispatch<React.SetStateAction<RunHistoryEntry[]>>
   onRefresh?: () => void
+  onClearHistory?: () => Promise<void>
 }
 
-export function RunPage({ tools, toolsStatus, runHistory: history, setRunHistory: setHistory, onRefresh }: RunPageProps) {
+export function RunPage({ tools, toolsStatus, runHistory: history, setRunHistory: setHistory, onRefresh, onClearHistory }: RunPageProps) {
   const [search, setSearch] = useState('')
   const [activeCat, setActiveCat] = useState('all')
   const [selected, setSelected] = useState<Tool | null>(null)
@@ -120,6 +121,7 @@ export function RunPage({ tools, toolsStatus, runHistory: history, setRunHistory
         history={history}
         setHistory={setHistory}
         onRefresh={onRefresh}
+        onClearHistory={onClearHistory}
         histSearch={histSearch}
         setHistSearch={setHistSearch}
         viewEntry={viewEntry}

@@ -62,12 +62,7 @@ export default function App() {
   }, [demo])
   const [runHistory, setRunHistory] = useState<RunHistoryEntry[]>(() => {
     if (demo) return DEMO_RUN_HISTORY
-    try {
-      const raw = localStorage.getItem('hexstrike_run_history')
-      if (!raw) return []
-      const parsed = JSON.parse(raw) as RunHistoryEntry[]
-      return parsed.map(e => ({ ...e, ts: new Date(e.ts as unknown as string) }))
-    } catch { return [] }
+    return []
   })
   const [lastRefresh, setLastRefresh] = useState<Date | null>(demo ? new Date() : null)
   const [loading, setLoading] = useState(!demo)
@@ -182,13 +177,19 @@ export default function App() {
     } catch { /* non-critical */ }
   }, [])
 
-  // Persist run history to localStorage whenever it changes (not in demo mode)
+  const clearServerRunHistory = useCallback(async () => {
+    if (demo) {
+      setRunHistory([])
+      return
+    }
+    const r = await api.clearRunHistory()
+    if (r.success) setRunHistory([])
+  }, [demo])
+
   useEffect(() => {
-    if (demo) return
-    try {
-      localStorage.setItem('hexstrike_run_history', JSON.stringify(runHistory.slice(0, 200)))
-    } catch { /* quota exceeded — ignore */ }
-  }, [demo, runHistory])
+    if (demo || !authed) return
+    fetchServerRunHistory().catch(() => {})
+  }, [demo, authed, fetchServerRunHistory])
 
   // Try without token first (skipped in demo)
   useEffect(() => {
@@ -324,6 +325,7 @@ export default function App() {
           runHistory={runHistory}
           setRunHistory={setRunHistory}
           fetchServerRunHistory={fetchServerRunHistory}
+          clearServerRunHistory={clearServerRunHistory}
           openSessionDetail={openSessionDetail}
           activeSessionId={activeSessionId}
           setPage={setPage}

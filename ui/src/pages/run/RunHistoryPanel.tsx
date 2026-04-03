@@ -8,6 +8,7 @@ interface RunHistoryPanelProps {
   history: RunHistoryEntry[]
   setHistory: Dispatch<SetStateAction<RunHistoryEntry[]>>
   onRefresh?: () => void
+  onClearHistory?: () => Promise<void>
   histSearch: string
   setHistSearch: Dispatch<SetStateAction<string>>
   viewEntry: RunHistoryEntry | null
@@ -18,6 +19,7 @@ export function RunHistoryPanel({
   history,
   setHistory,
   onRefresh,
+  onClearHistory,
   histSearch,
   setHistSearch,
   viewEntry,
@@ -44,7 +46,14 @@ export function RunHistoryPanel({
           <button
             className="run-history-clear"
             title="Clear history"
-            onClick={() => { setHistory([]); setHistSearch('') }}
+            onClick={() => {
+              if (onClearHistory) {
+                onClearHistory().catch(() => {})
+              } else {
+                setHistory([])
+              }
+              setHistSearch('')
+            }}
           >
             <XCircle size={12} />
           </button>
