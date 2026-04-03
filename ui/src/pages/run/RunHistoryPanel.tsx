@@ -2,7 +2,9 @@ import React from 'react'
 import { RefreshCw, XCircle, Server } from 'lucide-react'
 import type { Dispatch, SetStateAction } from 'react'
 import type { RunHistoryEntry } from '../../shared/types'
+import { ConfirmActionModal } from '../../components/ConfirmActionModal'
 import { filterHistory, groupHistoryByDate } from './utils'
+import { useToast } from '../../components/ToastProvider'
 
 interface RunHistoryPanelProps {
   history: RunHistoryEntry[]
@@ -25,8 +27,27 @@ export function RunHistoryPanel({
   viewEntry,
   onOpenModalEntry,
 }: RunHistoryPanelProps) {
+  const { pushToast } = useToast()
+  const [confirmOpen, setConfirmOpen] = React.useState(false)
+  const [clearing, setClearing] = React.useState(false)
   const visible = filterHistory(history, histSearch)
   const grouped = groupHistoryByDate(visible)
+
+  async function handleConfirmClear() {
+    setClearing(true)
+    try {
+      if (onClearHistory) {
+        await onClearHistory()
+      } else {
+        setHistory([])
+      }
+      pushToast('success', 'Run history cleared')
+      setHistSearch('')
+      setConfirmOpen(false)
+    } finally {
+      setClearing(false)
+    }
+  }
 
   return (
     <div className="run-history">
@@ -46,19 +67,28 @@ export function RunHistoryPanel({
           <button
             className="run-history-clear"
             title="Clear history"
-            onClick={() => {
-              if (onClearHistory) {
-                onClearHistory().catch(() => {})
-              } else {
-                setHistory([])
-              }
-              setHistSearch('')
-            }}
+            onClick={() => setConfirmOpen(true)}
           >
             <XCircle size={12} />
           </button>
         )}
       </div>
+
+      <ConfirmActionModal
+        isOpen={confirmOpen}
+        title="Clear Run History"
+        description="This deletes all recorded runs from the dashboard history. This action is immediate and cannot be undone."
+        impactItems={[
+          'Run History will be emptied',
+          'Reports is based on run history and will lose data'
+        ]}
+        confirmLabel="Yes, clear history"
+        cancelLabel="Keep history"
+        confirmVariant="danger"
+        isConfirming={clearing}
+        onConfirm={handleConfirmClear}
+        onClose={() => setConfirmOpen(false)}
+      />
 
       {history.length > 0 && (
         <div className="run-history-search">
