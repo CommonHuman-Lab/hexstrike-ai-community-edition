@@ -114,6 +114,7 @@ export interface WordlistEntry {
   type: string;
   speed: string;
   coverage: string;
+  is_default?: boolean;
 }
 
 export interface Settings {
@@ -142,6 +143,14 @@ export interface PatchSettingsResponse {
   success: boolean;
   updated: Record<string, number>;
   settings?: Settings;
+  errors?: Record<string, string>;
+  error?: string;
+}
+
+export interface PatchWordlistsResponse {
+  success: boolean;
+  updated: Record<string, number>;
+  wordlists?: WordlistEntry[];
   errors?: Record<string, string>;
   error?: string;
 }
@@ -370,6 +379,11 @@ export const api = {
     apiFetch<PatchSettingsResponse>('/api/settings', {
       method: 'PATCH',
       body: JSON.stringify({ runtime }),
+    }),
+  patchWordlists: (wordlists: WordlistEntry[]) =>
+    apiFetch<PatchWordlistsResponse>('/api/settings/wordlists', {
+      method: 'PATCH',
+      body: JSON.stringify({ wordlists }),
     }),
   logStream: (lines = 100): EventSource => new EventSource(`/api/logs/stream?lines=${lines}`),
   runHistory: (limit?: number) =>

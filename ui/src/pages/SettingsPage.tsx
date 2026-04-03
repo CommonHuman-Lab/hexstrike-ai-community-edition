@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { RefreshCw, XCircle, Save } from 'lucide-react'
-import { api, type Settings } from '../api'
+import { RefreshCw, XCircle, Save, Plus, Trash2 } from 'lucide-react'
+import { api, type Settings, type WordlistEntry } from '../api'
 import './SettingsPage.css'
 
 function SettingsRow({ label, value, mono, accent }: {
@@ -46,16 +46,23 @@ function SettingsField({ label, unit, hint, value, onChange }: {
 
 
 export default function SettingsPage() {
+  const wordlistTypeOptions = ['password', 'directory', 'params', 'subdomain', 'username', 'general']
+  const speedOptions = ['fast', 'medium', 'slow']
+  const coverageOptions = ['focused', 'broad', 'comprehensive']
+
   const [settings, setSettings] = useState<Settings | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState<string | null>(null)
+  const [wordlistsSaving, setWordlistsSaving] = useState(false)
+  const [wordlistsMsg, setWordlistsMsg] = useState<string | null>(null)
 
   const [timeout, setTimeout_] = useState('')
   const [cacheSize, setCacheSize] = useState('')
   const [cacheTtl, setCacheTtl] = useState('')
   const [toolTtl, setToolTtl] = useState('')
+  const [wordlistsDraft, setWordlistsDraft] = useState<WordlistEntry[]>([])
 
   // --- Server Cache Stats ---
   const [cacheMsg, setCacheMsg] = useState<string|null>(null)
@@ -68,6 +75,7 @@ export default function SettingsPage() {
       setCacheSize(String(r.settings.runtime.cache_size))
       setCacheTtl(String(r.settings.runtime.cache_ttl))
       setToolTtl(String(r.settings.runtime.tool_availability_ttl))
+      setWordlistsDraft(r.settings.wordlists.map(w => ({ ...w })))
       setLoading(false)
     }).catch(e => {
       setError(String(e))
@@ -75,27 +83,68 @@ export default function SettingsPage() {
     })
   }, [])
 
+  function updateWordlist(index: number, field: keyof WordlistEntry, value: string) {
+    setWordlistsDraft(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item))
+  }
+
+  function addWordlist() {
+    setWordlistsDraft(prev => [
+      ...prev,
+      { name: '', path: '', type: 'directory', speed: 'medium', coverage: 'broad' },
+    ])
+  }
+
+  function removeWordlist(index: number) {
+    setWordlistsDraft(prev => prev.filter((_, i) => i !== index))
+  }
+
+  function withCurrentOption(options: string[], current: string) {
+    if (!current) return options
+    return options.includes(current) ? options : [current, ...options]
+  }
+
   async function save() {
     setSaving(true)
     setSaveMsg(null)
     try {
-      const res = await api.patchSettings({
+      const runtimeRes = await api.patchSettings({
         command_timeout: Number(timeout),
         cache_size: Number(cacheSize),
         cache_ttl: Number(cacheTtl),
         tool_availability_ttl: Number(toolTtl),
       })
-      if (res.success && res.settings) {
-        setSettings(res.settings)
-        setSaveMsg('Saved')
-      } else {
-        setSaveMsg('Error: ' + JSON.stringify(res.errors || res.error))
+      if (!runtimeRes.success) {
+        setSaveMsg('Error: ' + JSON.stringify(runtimeRes.errors || runtimeRes.error))
+        return
       }
+      setSaveMsg('Saved')
     } catch (e) {
       setSaveMsg('Error: ' + String(e))
     } finally {
       setSaving(false)
       setTimeout(() => setSaveMsg(null), 3000)
+    }
+  }
+
+  async function saveWordlists() {
+    setWordlistsSaving(true)
+    setWordlistsMsg(null)
+    try {
+      const wordlistsRes = await api.patchWordlists(wordlistsDraft)
+      if (!wordlistsRes.success) {
+        setWordlistsMsg('Error: ' + JSON.stringify(wordlistsRes.errors || wordlistsRes.error))
+        return
+      }
+
+      const refreshed = await api.getSettings()
+      setSettings(refreshed.settings)
+      setWordlistsDraft(refreshed.settings.wordlists.map(w => ({ ...w })))
+      setWordlistsMsg('Saved')
+    } catch (e) {
+      setWordlistsMsg('Error: ' + String(e))
+    } finally {
+      setWordlistsSaving(false)
+      setTimeout(() => setWordlistsMsg(null), 3000)
     }
   }
 
@@ -167,7 +216,7 @@ export default function SettingsPage() {
         </div>
         <div className="settings-actions">
           <button className="btn-primary" onClick={save} disabled={saving}>
-            <Save size={14} /> {saving ? 'Saving…' : 'Save Changes'}
+            <Save size={14} /> {saving ? 'Saving…' : 'Save Runtime'}
           </button>
           {saveMsg && (
             <span className={`save-msg ${saveMsg.startsWith('Error') ? 'err' : 'ok'}`}>{saveMsg}</span>
@@ -211,24 +260,80 @@ export default function SettingsPage() {
       {/* ── Wordlists ── */}
       <section className="section">
         <div className="section-header">
-          <h3>Wordlists <span className="badge">{settings.wordlists.length}</span></h3>
+          <h3>Wordlists <span className="badge">{wordlistsDraft.length}</span></h3>
+          <div className="settings-actions-inline">
+            <button className="btn-secondary" onClick={addWordlist} disabled={wordlistsSaving}>
+              <Plus size={14} /> Add Wordlist
+            </button>
+            <button className="btn-secondary" onClick={saveWordlists} disabled={wordlistsSaving}>
+              <Save size={14} /> {wordlistsSaving ? 'Saving…' : 'Save Wordlists'}
+            </button>
+          </div>
         </div>
         <div className="wordlist-table">
           <div className="wordlist-head">
-            <span>Name</span><span>Type</span><span>Speed</span><span>Coverage</span><span>Path</span>
+            <span>Name</span><span>Type</span><span>Speed</span><span>Coverage</span><span>Path</span><span>Actions</span>
           </div>
-          {settings.wordlists.map(w => (
-            <div key={w.name} className="wordlist-row">
-              <span className="mono">{w.name}</span>
-              <span className="badge-small">{w.type}</span>
-              <span>{w.speed}</span>
-              <span>{w.coverage}</span>
-              <span className="mono wl-path">{w.path}</span>
+          {wordlistsDraft.map((w, idx) => (
+            <div key={`wordlist-row-${idx}`} className="wordlist-row editable">
+              <input
+                className="settings-input mono wordlist-input"
+                value={w.name}
+                onChange={e => updateWordlist(idx, 'name', e.target.value)}
+                placeholder="rockyou"
+                disabled={!!w.is_default}
+              />
+              <select
+                className="settings-input wordlist-input"
+                value={w.type}
+                onChange={e => updateWordlist(idx, 'type', e.target.value)}
+              >
+                {withCurrentOption(wordlistTypeOptions, w.type).map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+              <select
+                className="settings-input wordlist-input"
+                value={w.speed}
+                onChange={e => updateWordlist(idx, 'speed', e.target.value)}
+              >
+                {withCurrentOption(speedOptions, w.speed).map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+              <select
+                className="settings-input wordlist-input"
+                value={w.coverage}
+                onChange={e => updateWordlist(idx, 'coverage', e.target.value)}
+              >
+                {withCurrentOption(coverageOptions, w.coverage).map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+              <input
+                className="settings-input mono wordlist-input"
+                value={w.path}
+                onChange={e => updateWordlist(idx, 'path', e.target.value)}
+                placeholder="/usr/share/wordlists/rockyou.txt"
+              />
+              <button
+                className="btn-danger-outline"
+                onClick={() => removeWordlist(idx)}
+                disabled={wordlistsSaving || !!w.is_default}
+                title={w.is_default ? 'Default wordlists cannot be deleted' : 'Remove row'}
+              >
+                <Trash2 size={14} />
+              </button>
             </div>
           ))}
         </div>
+        {wordlistsMsg && (
+          <div className={`settings-inline-msg ${wordlistsMsg.startsWith('Error') ? 'err' : 'ok'}`}>
+            {wordlistsMsg}
+          </div>
+        )}
         <p className="settings-hint">
-          Modify <code>config.py</code> and restart.
+          Changes are stored in <code>wordlists.json</code>. Entries here override defaults from <code>config.py</code>.
         </p>
       </section>
     </div>
