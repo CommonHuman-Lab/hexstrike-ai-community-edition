@@ -4,8 +4,8 @@ import {
 } from 'lucide-react'
 import type { Dispatch, SetStateAction } from 'react'
 import type { Tool } from '../../api'
-import type { RunHistoryEntry } from '../../types'
-import { exportEntry } from '../../utils'
+import type { RunHistoryEntry } from '../../shared/types'
+import { exportEntry } from '../../shared/utils'
 import { ParamField } from '../../components/tool-run/ParamField'
 
 interface RunPanelProps {

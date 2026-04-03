@@ -1,5 +1,5 @@
 import type { WebDashboardResponse } from '../../api'
-import type { RunHistoryEntry } from '../../types'
+import type { RunHistoryEntry } from '../../shared/types'
 
 export function getCatTools(
   category: string,

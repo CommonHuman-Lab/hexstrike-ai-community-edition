@@ -1,8 +1,8 @@
 import React from 'react'
 import { createPortal } from 'react-dom'
 import { CheckCircle, XCircle, Play, Download } from 'lucide-react'
-import { type RunHistoryEntry } from '../types'
-import { exportEntry } from '../utils'
+import { type RunHistoryEntry } from '../shared/types'
+import { exportEntry } from '../shared/utils'
 
 export function RunResultModal({ entry, onClose, onRerun }: {
   entry: RunHistoryEntry

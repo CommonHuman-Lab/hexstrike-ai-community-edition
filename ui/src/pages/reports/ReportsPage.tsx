@@ -4,7 +4,7 @@ import {
 } from 'lucide-react'
 import { StatCard } from '../../components/StatCard'
 import { RunResultModal } from '../../components/RunResultModal'
-import { type RunHistoryEntry } from '../../types'
+import { type RunHistoryEntry } from '../../shared/types'
 import { ReportsBreakdownSection, ReportsTimelineSection } from './ReportsSections'
 import { extractTarget, type GroupBy } from './reportUtils'
 import './ReportsPage.css'

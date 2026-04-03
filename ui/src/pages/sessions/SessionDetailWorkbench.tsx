@@ -2,8 +2,8 @@ import { ChevronDown, ChevronUp, Download, Play, RefreshCw, Trash2 } from 'lucid
 import type { Dispatch, SetStateAction } from 'react'
 import { ParamField } from '../../components/tool-run/ParamField'
 import type { AttackChainStep, Tool, ToolExecResponse } from '../../api'
-import type { RunHistoryEntry } from '../../types'
-import { exportEntry } from '../../utils'
+import type { RunHistoryEntry } from '../../shared/types'
+import { exportEntry } from '../../shared/utils'
 import type { StepState } from './sessionDetailUtils'
 
 interface SessionDetailWorkbenchProps {

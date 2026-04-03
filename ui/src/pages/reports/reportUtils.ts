@@ -1,4 +1,4 @@
-import type { RunHistoryEntry } from '../../types'
+import type { RunHistoryEntry } from '../../shared/types'
 
 export type GroupBy = 'tool' | 'target'
 

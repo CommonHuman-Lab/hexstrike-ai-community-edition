@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react'
 import { api, type Tool } from '../../api'
-import type { RunHistoryEntry } from '../../types'
+import type { RunHistoryEntry } from '../../shared/types'
 import { RunResultModal } from '../../components/RunResultModal'
 import { buildRunPayload } from '../../components/tool-run/payload'
 import { RunToolPicker } from './RunToolPicker'

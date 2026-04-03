@@ -1,7 +1,7 @@
 import React from 'react'
 import { RefreshCw, XCircle, Server } from 'lucide-react'
 import type { Dispatch, SetStateAction } from 'react'
-import type { RunHistoryEntry } from '../../types'
+import type { RunHistoryEntry } from '../../shared/types'
 import { filterHistory, groupHistoryByDate } from './utils'
 
 interface RunHistoryPanelProps {

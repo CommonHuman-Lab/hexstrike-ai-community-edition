@@ -5,7 +5,7 @@ import type {
   ToolExecResponse,
   WebDashboardResponse,
 } from '../api'
-import type { HistoryPoint, RunHistoryEntry } from '../types'
+import type { HistoryPoint, RunHistoryEntry } from '../shared/types'
 import { DashboardPage } from '../pages/dashboard/DashboardPage'
 import { RunPage } from '../pages/run/RunPage'
 import LogsPage from '../pages/logview/LogsPage'
@@ -16,7 +16,7 @@ import ToolsPage from '../pages/tools/ToolsPage'
 import ReportsPage from '../pages/reports/ReportsPage'
 import SessionsPage from '../pages/sessions/SessionsPage'
 import SessionDetailPage from '../pages/sessions/SessionDetailPage'
-import { DEMO_PROCESSES, DEMO_SESSIONS } from '../demo'
+import { DEMO_PROCESSES, DEMO_SESSIONS } from './demo'
 import type { Page } from './routing'
 
 interface MainContentProps {

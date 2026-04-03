@@ -1,8 +1,8 @@
 import { Activity, Cpu, HardDrive, HardDriveDownload, MemoryStick, Upload } from 'lucide-react'
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { WebDashboardResponse } from '../../api'
-import type { HistoryPoint } from '../../types'
-import { fmt } from '../../utils'
+import type { HistoryPoint } from '../../shared/types'
+import { fmt } from '../../shared/utils'
 import { GaugeBar } from '../../components/GaugeBar'
 import { formatBytes } from './utils'
 

@@ -2,8 +2,8 @@
 // Activated by appending ?demo=1 to the URL (hidden from normal users).
 // All data here is synthetic — never fetched from the server when active.
 
-import type { WebDashboardResponse, Tool, SessionsResponse, ProcessDashboardResponse } from './api'
-import type { RunHistoryEntry, HistoryPoint } from './types'
+import type { WebDashboardResponse, Tool, SessionsResponse, ProcessDashboardResponse } from '../api'
+import type { RunHistoryEntry, HistoryPoint } from '../shared/types'
 
 // ── Activation ────────────────────────────────────────────────────────────────
 

@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import type { RunHistoryEntry } from '../../types'
+import type { RunHistoryEntry } from '../../shared/types'
 import { getGroupStats, groupByDate, type GroupBy } from './reportUtils'
 
 export function ReportsTimelineSection({

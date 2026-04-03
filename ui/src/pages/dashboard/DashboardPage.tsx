@@ -1,6 +1,6 @@
 import { XCircle } from 'lucide-react'
 import { type WebDashboardResponse, type Tool } from '../../api'
-import type { HistoryPoint, RunHistoryEntry } from '../../types'
+import type { HistoryPoint, RunHistoryEntry } from '../../shared/types'
 import { KpiSection } from './KpiSection'
 import { ResourceSection } from './ResourceSection'
 import { ToolAvailabilitySection } from './ToolAvailabilitySection'

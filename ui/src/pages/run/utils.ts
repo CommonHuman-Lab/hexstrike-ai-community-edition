@@ -1,5 +1,5 @@
 import type { Tool } from '../../api'
-import type { RunHistoryEntry } from '../../types'
+import type { RunHistoryEntry } from '../../shared/types'
 
 export function getCategories(tools: Tool[]): string[] {
   return ['all', ...Array.from(new Set(tools.map(t => t.category))).sort()]

@@ -9,10 +9,10 @@ import {
   isDemoMode, exitDemo,
   DEMO_HEALTH, DEMO_TOOLS, DEMO_RUN_HISTORY, DEMO_LOG_LINES,
   demoCpuMemHistory,
-} from './demo'
+} from './app/demo'
 import { TokenGate } from './components/TokenGate'
 import { ToastProvider } from './components/ToastProvider'
-import type { RunHistoryEntry, HistoryPoint } from './types'
+import type { RunHistoryEntry, HistoryPoint } from './shared/types'
 import { routeFromHash, type Page } from './app/routing'
 import { getToolsStatusWithParents } from './app/tools'
 import { TopBar } from './app/TopBar'

@@ -1,8 +1,8 @@
 import { Activity, Shield, Wrench, Zap } from 'lucide-react'
 import type { Tool, WebDashboardResponse } from '../../api'
 import { StatCard } from '../../components/StatCard'
-import type { RunHistoryEntry } from '../../types'
-import { uptimeStr } from '../../utils'
+import type { RunHistoryEntry } from '../../shared/types'
+import { uptimeStr } from '../../shared/utils'
 import { getCommandsCardData } from './utils'
 
 export function KpiSection({

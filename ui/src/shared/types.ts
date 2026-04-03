@@ -1,4 +1,4 @@
-import type { ToolExecResponse } from './api'
+import type { ToolExecResponse } from '../api'
 
 export interface HistoryPoint {
   t: number
