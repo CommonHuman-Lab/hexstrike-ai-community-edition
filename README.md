@@ -29,7 +29,7 @@
 - **Global Command Palette (`Ctrl/Cmd+K`)**: Jump pages, trigger tools, and move faster with keyboard-first control.
 - **Personalized Run Workflow**: Favorite tools, recent targets, and quick compare with previous runs.
 - **Persistent Run History**: Server-side run history survives browser refresh/reset and clears safely with confirmation.
-- **Theme System Built In**: One-click theme switcher with hover preview + saved selection (Dark, Candy, Unicorn, Minimal, and more).
+- **Theme System Built In**: One-click theme switcher with hover preview (Dark, Candy, Unicorn, Minimal, and more).
 - **Performance Modes**: `--compact` for lightweight/local LLM usage and `--profile` for targeted tool loading.
 - **Core Improvements**: Refactored architecture, updated dependencies, smarter parameter handling, and upgraded MCP orchestration (FastMCP v3).
 
