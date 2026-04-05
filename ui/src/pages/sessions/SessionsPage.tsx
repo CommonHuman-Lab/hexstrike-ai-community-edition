@@ -6,12 +6,14 @@ import {
 import {
   api,
   type AttackChainStep,
+  type CreateAttackChainResponse,
   type SessionsResponse,
   type SessionTemplate,
   type Tool,
 } from '../../api'
 import { StatCard } from '../../components/StatCard'
 import { ConfirmActionModal } from '../../components/ConfirmActionModal'
+import { InformationModal } from '../../components/InformationModal'
 import { useToast } from '../../components/ToastProvider'
 import { fmtTs } from '../../shared/utils'
 import { START_MODES, type StartMode } from './constants'
@@ -38,6 +40,13 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
   const [modalNote, setModalNote] = useState('')
   const [selectedTemplateId, setSelectedTemplateId] = useState('')
   const [modalError, setModalError] = useState<string | null>(null)
+  const [pendingPreview, setPendingPreview] = useState<{
+    mode: StartMode
+    target: string
+    note: string
+    preview: CreateAttackChainResponse
+  } | null>(null)
+  const [confirmingPreview, setConfirmingPreview] = useState(false)
   const [editingTemplateId, setEditingTemplateId] = useState('')
   const [editTemplateName, setEditTemplateName] = useState('')
   const [editTemplateSteps, setEditTemplateSteps] = useState<AttackChainStep[]>([])
@@ -209,6 +218,7 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
   function closeStartModal() {
     setStartMode(null)
     setModalError(null)
+    setPendingPreview(null)
   }
 
   function openTemplateEditor(template: SessionTemplate) {
@@ -339,6 +349,12 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
           },
         })
       } else {
+        if (mode.key === 'intelligence') {
+          const preview = await api.previewAttackChain(target, mode.key)
+          setPendingPreview({ mode, target, note: noteValue, preview })
+          return
+        }
+
         const chain = await api.createAttackChain(target, mode.key)
         sessionRes = await api.createSession({
           target,
@@ -360,6 +376,42 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
       pushToast('error', `Session start failed: ${msg}`)
     } finally {
       setCreatingSession(false)
+    }
+  }
+
+  async function confirmIntelligencePreview() {
+    if (!pendingPreview) return
+    setConfirmingPreview(true)
+    setModalError(null)
+    try {
+      const { mode, target, note, preview } = pendingPreview
+      const chain = await api.createAttackChain(target, mode.key)
+      const sessionRes = await api.createSession({
+        target,
+        workflow_steps: preview.attack_chain.steps,
+        source: 'web',
+        objective: mode.key,
+        session_id: chain.session_id,
+        metadata: {
+          origin: 'ui/sessions/create',
+          mode: mode.key,
+          note,
+          preview_confirmed: true,
+          preview_step_count: preview.attack_chain.steps.length,
+        },
+      })
+      const sid = sessionRes.session.session_id
+      pushToast('success', `Session created: ${sid}`)
+      setPendingPreview(null)
+      closeStartModal()
+      refresh()
+    } catch (e) {
+      const msg = String(e)
+      setModalError(msg)
+      setCreateMsg(msg)
+      pushToast('error', `Session start failed: ${msg}`)
+    } finally {
+      setConfirmingPreview(false)
     }
   }
 
@@ -391,6 +443,10 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
         || tool.category.toLowerCase().includes(q)
     })
     .slice(0, 16)
+  const previewSteps = pendingPreview?.preview.attack_chain.steps ?? []
+  const previewRisk = pendingPreview?.preview.attack_chain.risk_level ?? 'unknown'
+  const previewEstimatedTime = pendingPreview?.preview.attack_chain.estimated_time ?? 0
+  const previewTools = Array.from(new Set(previewSteps.map(step => step.tool).filter(Boolean)))
 
   return (
     <div className="page-content">
@@ -425,7 +481,7 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
         createMsg={createMsg}
       />
 
-      {startMode && (
+      {startMode && !pendingPreview && (
         <StartSessionModal
           startMode={startMode}
           templates={templates}
@@ -436,11 +492,47 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
           modalNote={modalNote}
           setModalNote={setModalNote}
           modalError={modalError}
-          creatingSession={creatingSession}
+          creatingSession={creatingSession || confirmingPreview}
+          submitLabel={startMode.key === 'intelligence' ? 'Preview Attack Chain' : undefined}
           onClose={closeStartModal}
           onSubmit={() => createSessionFromTarget(startMode, modalTarget, modalNote)}
         />
       )}
+
+      <InformationModal
+        isOpen={!!pendingPreview}
+        title="Review Intelligence Preview"
+        description={pendingPreview
+          ? `This preview generated a session workflow for ${pendingPreview.target}. Confirm to persist the session.`
+          : ''}
+        className="modal--wide intelligence-preview-modal"
+        primaryLabel="Create Session from Preview"
+        secondaryLabel="Back"
+        isPrimaryBusy={confirmingPreview}
+        onPrimary={confirmIntelligencePreview}
+        onSecondary={() => setPendingPreview(null)}
+        onClose={() => {
+          if (!confirmingPreview) setPendingPreview(null)
+        }}
+      >
+        <div className="intelligence-preview-summary">
+          <p className="intelligence-preview-line"><span className="intelligence-preview-label">Objective:</span> <span className="mono">{pendingPreview?.mode.key ?? 'n/a'}</span></p>
+          <p className="intelligence-preview-line"><span className="intelligence-preview-label">Steps:</span> <span className="mono">{previewSteps.length}</span></p>
+          <p className="intelligence-preview-line"><span className="intelligence-preview-label">Unique tools:</span> <span className="mono">{previewTools.length}</span></p>
+          <p className="intelligence-preview-line"><span className="intelligence-preview-label">Risk:</span> <span className="mono">{previewRisk}</span></p>
+          <p className="intelligence-preview-line"><span className="intelligence-preview-label">Estimated time:</span> <span className="mono">{previewEstimatedTime}s</span></p>
+        </div>
+
+        <div className="modal-section">
+          <span className="modal-label">Tools to be added</span>
+          <div className="modal-params">
+            {previewTools.map(tool => (
+              <span key={tool} className="modal-param mono">{tool}</span>
+            ))}
+          </div>
+        </div>
+
+      </InformationModal>
 
       {showActiveSessions ? (
         <SessionListSection

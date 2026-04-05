@@ -101,6 +101,7 @@ export function StartSessionModal({
   setModalNote,
   modalError,
   creatingSession,
+  submitLabel,
   onClose,
   onSubmit,
 }: {
@@ -114,6 +115,7 @@ export function StartSessionModal({
   setModalNote: (value: string) => void
   modalError: string | null
   creatingSession: boolean
+  submitLabel?: string
   onClose: () => void
   onSubmit: () => void
 }) {
@@ -211,7 +213,7 @@ export function StartSessionModal({
                 disabled={creatingSession}
               >
                 {creatingSession ? <RefreshCw size={13} className="spin" /> : <Target size={13} />}
-                {creatingSession ? 'Starting…' : 'Start Session'}
+                {creatingSession ? 'Starting…' : (submitLabel || 'Start Session')}
               </button>
             </div>
           </div>

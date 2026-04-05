@@ -92,6 +92,8 @@ export const api = {
 
   createAttackChain: (target: string, objective = 'comprehensive') =>
     post<CreateAttackChainResponse>('/api/intelligence/create-attack-chain', { target, objective }),
+  previewAttackChain: (target: string, objective = 'comprehensive') =>
+    post<CreateAttackChainResponse>('/api/intelligence/preview-attack-chain', { target, objective }),
   classifyTask: (description: string) =>
     post<ClassifyTaskResponse>('/api/intelligence/classify-task', { description }),
 };
