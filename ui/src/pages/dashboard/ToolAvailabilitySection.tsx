@@ -107,10 +107,10 @@ export function ToolAvailabilitySection({
   const installColor = health.all_essential_tools_available ? 'var(--success)' : 'var(--warning)'
   const categoryEntries = Object.entries(health.category_stats)
     .sort(([a], [b]) => a.localeCompare(b))
+  const missingCategoryCount = categoryEntries.filter(([, stats]) => stats.available < stats.total).length
   const visibleCategoryEntries = showAll
     ? categoryEntries
     : categoryEntries.filter(([, stats]) => stats.available < stats.total)
-  const missingCategoryCount = categoryEntries.filter(([, stats]) => stats.available < stats.total).length
 
   return (
     <section className="section">
@@ -129,7 +129,9 @@ export function ToolAvailabilitySection({
       <div className="cat-list">
         {!showAll && (
           <div className="cat-list-mode-note">
-            Showing categories with missing tools ({missingCategoryCount}/{categoryEntries.length})
+            {missingCategoryCount === 0
+              ? `All categories fully installed (${categoryEntries.length}/${categoryEntries.length})`
+              : `Showing categories with missing tools (${missingCategoryCount}/${categoryEntries.length})`}
           </div>
         )}
         {visibleCategoryEntries.map(([category, stats]) => {
