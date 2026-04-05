@@ -73,14 +73,26 @@ initialize_update_status_check()
 
 @app.after_request
 def record_tool_run(response):
-  """Record every POST /api/tools/<name> execution into run_history."""
+  """Record selected POST executions into run_history."""
   if request.method != "POST":
     return response
-  path = request.path  # e.g. /api/tools/nmap
-  if not path.startswith("/api/tools/"):
+
+  path = request.path
+  is_tool_run = path.startswith("/api/tools/")
+  is_intelligence_run = path in {
+    "/api/intelligence/analyze-target",
+    "/api/intelligence/smart-scan",
+    "/api/intelligence/select-tools",
+    "/api/intelligence/technology-detection",
+  }
+  if not is_tool_run and not is_intelligence_run:
     return response
-  # Derive tool name from the last path segment
-  tool_name = path.split("/api/tools/", 1)[1].strip("/") or "unknown"
+
+  if is_tool_run:
+    tool_name = path.split("/api/tools/", 1)[1].strip("/") or "unknown"
+  else:
+    tool_name = path.rsplit("/", 1)[-1] or "unknown"
+
   try:
     params = request.json or {}
   except Exception:

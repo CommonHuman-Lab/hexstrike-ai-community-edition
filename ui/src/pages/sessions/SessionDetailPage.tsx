@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, Bot, RefreshCw, Target, Activity, Clock, Download } from 'lucide-react'
 import { api, type SessionSummary, type AttackChainStep, type Tool, type ToolExecResponse } from '../../api'
-import { buildInitialFieldValues, buildRunPayload } from '../../components/tool-run/payload'
+import { buildInitialFieldValues, buildRunPayload, inferTargetValue } from '../../components/tool-run/payload'
 import { fmtTs } from '../../shared/utils'
 import { SessionDetailWorkbench } from './SessionDetailWorkbench'
 import { TemplateModal } from './TemplateModal'
@@ -253,6 +253,41 @@ export default function SessionDetailPage({
   const selectedResult = selectedStepKey ? stepResults[selectedStepKey] : undefined
   const selectedTool = selectedStep ? toolMap[selectedStep.tool] : null
 
+  function handleTargetValueChange(nextTarget: string) {
+    setTargetValue(nextTarget)
+    if (!session) return
+
+    setStepFieldValues(prev => {
+      let anyChanged = false
+      const next = { ...prev }
+
+      for (let idx = 0; idx < steps.length; idx += 1) {
+        const step = steps[idx]
+        const tool = resolveToolForStep(step.tool, tools)
+        if (!tool) continue
+
+        const stepKey = `${session.session_id}:${idx}`
+        const current = prev[stepKey] ?? buildInitialFieldValues(tool, step, nextTarget)
+        let stepChanged = false
+        const updated = { ...current }
+
+        for (const key of [...Object.keys(tool.params), ...Object.keys(tool.optional)]) {
+          const inferred = inferTargetValue(key, nextTarget)
+          if (inferred === undefined || updated[key] === inferred) continue
+          updated[key] = inferred
+          stepChanged = true
+        }
+
+        if (stepChanged || !prev[stepKey]) {
+          next[stepKey] = updated
+          anyChanged = true
+        }
+      }
+
+      return anyChanged ? next : prev
+    })
+  }
+
   useEffect(() => {
     if (!session || !selectedStep || !selectedStepKey || !selectedTool) return
     setStepFieldValues(prev => {
@@ -471,7 +506,7 @@ export default function SessionDetailPage({
         stepState={stepState}
         runningStepKey={runningStepKey}
         targetValue={targetValue}
-        setTargetValue={setTargetValue}
+        setTargetValue={handleTargetValueChange}
         stepFieldValues={stepFieldValues}
         setStepFieldValues={setStepFieldValues}
         showOptionalByStep={showOptionalByStep}
