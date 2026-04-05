@@ -179,6 +179,16 @@
   gap: 8px;
 }
 
+.session-list-footer-tip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  width: 100%;
+  margin-top: 10px;
+}
+
 .session-help-btn {
   border: 1px solid var(--border);
   background: var(--bg-card);

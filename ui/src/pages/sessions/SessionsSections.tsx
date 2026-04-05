@@ -44,6 +44,7 @@ export function SessionListSection({
   onOpenSession,
   headerRight,
   onHeaderClick,
+  footer,
 }: {
   title: string
   sessions: SessionSummary[]
@@ -51,6 +52,7 @@ export function SessionListSection({
   onOpenSession: (sessionId: string) => void
   headerRight?: ReactNode
   onHeaderClick?: () => void
+  footer?: ReactNode
 }) {
   const interactiveHeaderProps = onHeaderClick
     ? {
@@ -83,6 +85,7 @@ export function SessionListSection({
           {sessions.map(session => <SessionCard key={session.session_id} session={session} onOpen={onOpenSession} />)}
         </div>
       )}
+      {footer && <div className="section-meta session-list-footer-tip">{footer}</div>}
     </section>
   )
 }

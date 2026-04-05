@@ -18,7 +18,6 @@ from server_core.session_flow import (
   normalize_step,
   update_session,
 )
-from server_core.session_server_templates import load_server_template, list_server_templates
 from tool_registry import classify_intent
 
 logger = logging.getLogger(__name__)
@@ -170,8 +169,6 @@ def create_session_from_template():
       return jsonify({"success": False, "error": "template_id is required"}), 400
 
     template = session_store.load_template(template_id)
-    if not template:
-      template = load_server_template(template_id)
     if not template:
       return jsonify({"success": False, "error": "Template not found"}), 404
 
@@ -360,27 +357,6 @@ def list_session_templates():
   """List saved session templates."""
   try:
     templates = session_store.list_templates()
-    normalized_templates = []
-    for template in templates:
-      if not isinstance(template, dict):
-        continue
-      normalized_templates.append({
-        **template,
-        "template_origin": template.get("template_origin", "user"),
-        "read_only": bool(template.get("read_only", False)),
-      })
-    templates = normalized_templates
-    existing_ids = {
-      t.get("template_id")
-      for t in templates
-      if isinstance(t, dict) and t.get("template_id")
-    }
-    for server_template in list_server_templates():
-      sid = server_template.get("template_id") if isinstance(server_template, dict) else ""
-      if sid and sid in existing_ids:
-        continue
-      templates.append(server_template)
-    templates.sort(key=lambda t: t.get("updated_at", 0), reverse=True)
     return jsonify({"success": True, "templates": templates, "total": len(templates)})
   except Exception as e:
     logger.error(f"Error listing session templates: {e}")
@@ -402,7 +378,7 @@ def create_session_template():
       return jsonify({"success": False, "error": "workflow_steps is required"}), 400
 
     template_id = _slugify(name)
-    if session_store.load_template(template_id) or load_server_template(template_id):
+    if session_store.load_template(template_id):
       template_id = f"{template_id}-{uuid.uuid4().hex[:4]}"
 
     cleaned_steps = []
@@ -416,8 +392,6 @@ def create_session_template():
       "name": name,
       "workflow_steps": cleaned_steps,
       "source_session_id": source_session_id,
-      "template_origin": "user",
-      "read_only": False,
       "created_at": int(time.time()),
       "updated_at": int(time.time()),
     }
@@ -436,9 +410,6 @@ def create_session_template():
 def update_session_template(template_id):
   """Update an existing session template."""
   try:
-    if load_server_template(template_id):
-      return jsonify({"success": False, "error": "Server templates are read-only"}), 403
-
     data = request.get_json(force=True) or {}
     has_name = "name" in data
     has_steps = "workflow_steps" in data
@@ -486,9 +457,6 @@ def update_session_template(template_id):
 def delete_session_template(template_id):
   """Delete a session template."""
   try:
-    if load_server_template(template_id):
-      return jsonify({"success": False, "error": "Server templates are read-only"}), 403
-
     ok = session_store.delete_template(template_id)
     if not ok:
       return jsonify({"success": False, "error": "Template not found"}), 404

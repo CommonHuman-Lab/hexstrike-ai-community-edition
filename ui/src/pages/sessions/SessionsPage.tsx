@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   RefreshCw, XCircle, Activity, CheckCircle, Pencil, Trash2, Play, Clock,
-  Layers, Target,
+  Layers, Target, Info,
 } from 'lucide-react'
 import {
   api,
@@ -46,13 +46,16 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
   const [savingTemplate, setSavingTemplate] = useState(false)
   const [loading, setLoading] = useState(!demoData)
   const [error, setError] = useState<string | null>(null)
-  const [showHandoverHelp, setShowHandoverHelp] = useState(false)
+  const [showActiveSessions, setShowActiveSessions] = useState(true)
   const [showCompletedSessions, setShowCompletedSessions] = useState(false)
+  const [showCustomTemplates, setShowCustomTemplates] = useState(true)
   const [streamStatus, setStreamStatus] = useState<'streaming' | 'polling' | 'error'>(demoData ? 'polling' : 'streaming')
   const streamRef = useRef<EventSource | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const reconnectAttemptsRef = useRef(0)
+  const sectionDefaultsSetRef = useRef(false)
+  const templateSectionTouchedRef = useRef(false)
 
   useEffect(() => {
     if (demoData) return
@@ -66,6 +69,21 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
       .catch(e => setError(String(e)))
       .finally(() => setLoading(false))
   }, [demoData])
+
+  useEffect(() => {
+    if (sectionDefaultsSetRef.current || loading || !data) return
+    const rawActive = data?.active ?? []
+    const activeCount = rawActive.filter(s => (s.status ?? 'active') !== 'completed').length
+    setShowActiveSessions(activeCount > 0)
+    setShowCustomTemplates(templates.length > 0)
+    sectionDefaultsSetRef.current = true
+  }, [loading, data, templates.length])
+
+  useEffect(() => {
+    if (loading) return
+    if (templateSectionTouchedRef.current) return
+    if (templates.length > 0) setShowCustomTemplates(true)
+  }, [loading, templates.length])
 
   async function refreshTemplates() {
     if (demoData) return
@@ -432,32 +450,47 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
         />
       )}
 
-      <SessionListSection
-        title="Active Sessions"
-        sessions={active}
-        emptyText="No active sessions. Start a session from target to run tools manually."
-        onOpenSession={onOpenSession}
-        headerRight={(
-          <div className="sessions-header-actions">
-            <button className="session-help-btn" onClick={() => setShowHandoverHelp(v => !v)}>
-              {showHandoverHelp ? 'Hide handover help' : 'Handover help'}
-            </button>
-            <span className={`sessions-stream-status sessions-stream-status--${streamStatus}`}>
-              {streamStatus === 'streaming' ? 'Live' : streamStatus === 'polling' ? 'Polling' : 'Offline'}
-            </span>
-            <button className="icon-btn" onClick={() => refresh()} title="Refresh">
-              <RefreshCw size={14} className={loading ? 'spin' : ''} />
-            </button>
-          </div>
-        )}
-      />
-
-      {showHandoverHelp && (
+      {showActiveSessions ? (
+        <SessionListSection
+          title="Active Sessions"
+          sessions={active}
+          emptyText="No active sessions. Start a session from target to run tools manually."
+          onOpenSession={onOpenSession}
+          onHeaderClick={() => setShowActiveSessions(false)}
+          footer={(
+            <>
+              <Info size={12} />
+              Call MCP tool <span className="mono">handover_session("&lt;session_id&gt;", "optional note")</span> to continue the session with AI.
+            </>
+          )}
+          headerRight={(
+            <div className="sessions-header-actions">
+              <span className={`sessions-stream-status sessions-stream-status--${streamStatus}`}>
+                {streamStatus === 'streaming' ? 'Live' : streamStatus === 'polling' ? 'Polling' : 'Offline'}
+              </span>
+              <button className="icon-btn" onClick={() => refresh()} title="Refresh">
+                <RefreshCw size={14} className={loading ? 'spin' : ''} />
+              </button>
+              <span className="session-help-btn">Hide active</span>
+            </div>
+          )}
+        />
+      ) : (
         <section className="section">
-          <div className="session-help-box">
-            <p><strong>Web handover:</strong> open a session and click <span className="mono">Handover to LLM</span>.</p>
-            <p><strong>MCP handover:</strong> call <span className="mono">handover_session("&lt;session_id&gt;", "optional note")</span>.</p>
-            <p><strong>Tip:</strong> update target/step parameters before handover so the LLM gets the latest context.</p>
+          <div
+            className="section-header sessions-collapsed-toggle"
+            role="button"
+            tabIndex={0}
+            onClick={() => setShowActiveSessions(true)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setShowActiveSessions(true)
+              }
+            }}
+          >
+            <h3>Active Sessions <span className="badge">{active.length}</span></h3>
+            <span className="session-help-btn">Show active</span>
           </div>
         </section>
       )}
@@ -495,79 +528,109 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
         </section>
       )}
 
-      <section className="section">
-        <div className="section-header">
-          <h3>Custom Templates <span className="badge">{templates.length}</span></h3>
-          <span className="section-meta">Reusable user templates for starting sessions quickly.</span>
-        </div>
-
-        {templateActionError && <div className="run-error">{templateActionError}</div>}
-
-        {templates.length === 0 ? (
-          <div className="tasks-empty">
-            <Layers size={28} color="var(--text-dim)" />
-            <p>No custom templates yet. Open a session and click Create Template.</p>
+      {showCustomTemplates ? (
+        <section className="section">
+          <div
+            className="section-header sessions-collapsed-toggle"
+            role="button"
+            tabIndex={0}
+            onClick={() => {
+              templateSectionTouchedRef.current = true
+              setShowCustomTemplates(false)
+            }}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                templateSectionTouchedRef.current = true
+                setShowCustomTemplates(false)
+              }
+            }}
+          >
+            <h3>Custom Templates <span className="badge">{templates.length}</span></h3>
+            <span className="section-meta">Reusable user templates for starting sessions quickly.</span>
+            <span className="session-help-btn">Hide templates</span>
           </div>
-        ) : (
-          <div className="sessions-grid">
-            {templates.map(template => (
-              <div key={template.template_id} className="session-card session-card--compact template-session-card">
-                <div className="session-card-header">
-                  <div className="session-target">
-                    <Layers size={13} color="var(--blue)" />
-                    <span className="mono">{template.name}</span>
+
+          {templateActionError && <div className="run-error">{templateActionError}</div>}
+
+          {templates.length === 0 ? (
+            <div className="tasks-empty">
+              <Layers size={28} color="var(--text-dim)" />
+              <p>No custom templates yet. Open a session and click Create Template.</p>
+            </div>
+          ) : (
+            <div className="sessions-grid">
+              {templates.map(template => (
+                <div key={template.template_id} className="session-card session-card--compact template-session-card">
+                  <div className="session-card-header">
+                    <div className="session-target">
+                      <Layers size={13} color="var(--blue)" />
+                      <span className="mono">{template.name}</span>
+                    </div>
+                    <span className="session-tool-chip mono">Custom Template</span>
                   </div>
-                  <span className="session-tool-chip mono">
-                    {template.template_origin === 'server' ? 'Server Template' : 'Custom Template'}
-                  </span>
-                </div>
 
-                <div className="session-card-meta">
-                  <span><Activity size={11} /> {template.workflow_steps.length} tools</span>
-                  <span><Clock size={11} /> {fmtTs(template.updated_at)}</span>
-                </div>
+                  <div className="session-card-meta">
+                    <span><Activity size={11} /> {template.workflow_steps.length} tools</span>
+                    <span><Clock size={11} /> {fmtTs(template.updated_at)}</span>
+                  </div>
 
-                <div className="session-tools">
-                  {template.workflow_steps.slice(0, 7).map((step, idx) => (
-                    <span key={`${template.template_id}:${idx}:${step.tool}`} className="session-tool-chip">
-                      {step.tool}
-                    </span>
-                  ))}
-                  {template.workflow_steps.length > 7 && (
-                    <span className="session-tool-chip">+{template.workflow_steps.length - 7}</span>
-                  )}
-                </div>
-
-                <div className="session-card-footer">
-                  <div className="template-card-actions">
-                    <button className="session-action-btn" onClick={() => useTemplate(template.template_id)}>
-                      <Play size={12} /> Use
-                    </button>
-                    {!template.read_only && (
-                      <>
-                        <button className="session-action-btn" onClick={() => openTemplateEditor(template)}>
-                          <Pencil size={12} /> Edit
-                        </button>
-                        <button
-                          className="session-delete-btn"
-                          onClick={() => setPendingDeleteTemplate(template)}
-                          disabled={templateActionBusyId === template.template_id}
-                        >
-                          <Trash2 size={12} /> {templateActionBusyId === template.template_id ? 'Deleting…' : 'Delete'}
-                        </button>
-                      </>
+                  <div className="session-tools">
+                    {template.workflow_steps.slice(0, 7).map((step, idx) => (
+                      <span key={`${template.template_id}:${idx}:${step.tool}`} className="session-tool-chip">
+                        {step.tool}
+                      </span>
+                    ))}
+                    {template.workflow_steps.length > 7 && (
+                      <span className="session-tool-chip">+{template.workflow_steps.length - 7}</span>
                     )}
                   </div>
-                </div>
 
-                <div className="session-last-run mono">
-                  {template.template_origin === 'server' ? 'built-in server template' : 'saved custom template'}
+                  <div className="session-card-footer">
+                    <div className="template-card-actions">
+                      <button className="session-action-btn" onClick={() => useTemplate(template.template_id)}>
+                        <Play size={12} /> Use
+                      </button>
+                      <button className="session-action-btn" onClick={() => openTemplateEditor(template)}>
+                        <Pencil size={12} /> Edit
+                      </button>
+                      <button
+                        className="session-delete-btn"
+                        onClick={() => setPendingDeleteTemplate(template)}
+                        disabled={templateActionBusyId === template.template_id}
+                      >
+                        <Trash2 size={12} /> {templateActionBusyId === template.template_id ? 'Deleting…' : 'Delete'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          )}
+        </section>
+      ) : (
+        <section className="section">
+          <div
+            className="section-header sessions-collapsed-toggle"
+            role="button"
+            tabIndex={0}
+            onClick={() => {
+              templateSectionTouchedRef.current = true
+              setShowCustomTemplates(true)
+            }}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                templateSectionTouchedRef.current = true
+                setShowCustomTemplates(true)
+              }
+            }}
+          >
+            <h3>Custom Templates <span className="badge">{templates.length}</span></h3>
+            <span className="session-help-btn">Show templates</span>
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
       {editingTemplate && (
         <div className="modal-backdrop" onClick={e => { if (e.target === e.currentTarget) closeTemplateEditor() }}>

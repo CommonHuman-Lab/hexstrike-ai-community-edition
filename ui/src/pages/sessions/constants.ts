@@ -1,5 +1,5 @@
 export interface StartMode {
-  key: 'comprehensive' | 'reconnaissance' | 'vulnerability_hunting' | 'osint' | 'manual' | 'from_template'
+  key: 'intelligence' | 'comprehensive' | 'reconnaissance' | 'vulnerability_hunting' | 'OSINT' | 'manual' | 'from_template'
   title: string
   description: string
   details: string
@@ -9,6 +9,15 @@ export interface StartMode {
 }
 
 export const START_MODES: StartMode[] = [
+  {
+    key: 'intelligence',
+    title: 'Intelligent Profiling',
+    description: 'Automated target profiling and attack chain generation.',
+    details: 'Best for quick, comprehensive insights on a target.',
+    modalDescription: 'Leverages AI to analyze the target and generate a customized attack chain. This mode is ideal when you want a smart, efficient workflow that adapts to the target’s unique characteristics, providing actionable insights with minimal setup.',
+    tools: ['analyze-target', 'smart-scan', 'technology-detection', 'create-attack-chain'],
+    placeholder: 'Domain or org target (target.tld)',
+  },
   {
     key: 'comprehensive',
     title: 'Comprehensive Assessment',
@@ -37,7 +46,7 @@ export const START_MODES: StartMode[] = [
     placeholder: 'Web/API target (https://target.tld)',
   },
   {
-    key: 'osint',
+    key: 'OSINT',
     title: 'OSINT Collection',
     description: 'Intelligence and external footprint gathering for a target.',
     details: 'Useful before active probing.',
