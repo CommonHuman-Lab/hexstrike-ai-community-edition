@@ -121,6 +121,7 @@
   flex-wrap: wrap;
   gap: 4px;
   flex-grow: 1;
+  align-content: flex-start;
 }
 
 .session-tool-chip {
