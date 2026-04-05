@@ -210,8 +210,8 @@ TOOLS: Dict[str, dict] = {
         "endpoint": "/api/tools/testssl",
         "method": "POST",
         "category": "web_recon",
-        "params": {},
-        "optional": {"target": "", "protocols": True, "server_defaults": True, "quiet": True, "additional_args": ""},
+        "params": {"target": {"required": True}},
+        "optional": {"protocols": True, "server_defaults": True, "quiet": True, "additional_args": ""},
         "effectiveness": 0.89,
     },
     "dirsearch": {
