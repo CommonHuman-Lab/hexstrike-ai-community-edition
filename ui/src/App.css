@@ -652,6 +652,37 @@
 .search-input:focus { border-color: var(--green); }
 .search-input::placeholder { color: var(--text-dim); }
 
+.search-input-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+}
+
+.search-input-wrap .search-input {
+  max-width: none;
+  width: 100%;
+  padding-right: 32px;
+}
+
+.search-clear-btn {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.search-clear-btn:hover {
+  color: var(--text-h);
+}
+
 .cat-tabs {
   display: flex;
   flex-wrap: wrap;

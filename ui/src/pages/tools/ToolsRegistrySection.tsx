@@ -37,12 +37,24 @@ export function ToolsRegistrySection({
       </div>
       <div className="registry-controls">
         <div className="registry-controls-top">
-          <input
-            className="search-input mono"
-            placeholder="Search tools…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
+          <div className="search-input-wrap">
+            <input
+              className="search-input mono"
+              placeholder="Search tools…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            {search.trim().length > 0 && (
+              <button
+                className="search-clear-btn"
+                onClick={() => setSearch('')}
+                title="Clear search"
+                aria-label="Clear search"
+              >
+                <XCircle size={12} />
+              </button>
+            )}
+          </div>
           <button
             className={`registry-missing-toggle${missingOnly ? ' active' : ''}`}
             onClick={() => setMissingOnly(prev => !prev)}
@@ -58,7 +70,7 @@ export function ToolsRegistrySection({
             <button
               key={category}
               className={`cat-tab ${activeCat === category ? 'active' : ''}`}
-              onClick={() => setActiveCat(category)}
+              onClick={() => setActiveCat(activeCat === category ? 'all' : category)}
             >
               {category.replace(/_/g, ' ')}
             </button>
