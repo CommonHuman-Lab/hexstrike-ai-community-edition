@@ -148,16 +148,6 @@ TOOLS: Dict[str, dict] = {
         "optional": {"additional_args": ""},
         "effectiveness": 0.85,
     },
-    "nbtscan": {
-        "desc": "NetBIOS name scanner",
-        "endpoint": "/api/tools/nbtscan",
-        "method": "POST",
-        "category": "network_recon",
-        "params": {"target": {"required": True}},
-        "optional": {"additional_args": ""},
-        "effectiveness": 0.75,
-    },
-
 
     # ---- Web Recon ----
     "gobuster": {
