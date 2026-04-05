@@ -11,6 +11,7 @@ import type {
   PatchWordlistsResponse,
   PoolStatsResponse,
   ProcessDashboardResponse,
+  ProcessListResponse,
   RunHistoryResponse,
   SessionDeleteResponse,
   SessionDetailResponse,
@@ -54,6 +55,7 @@ export const api = {
     post<ToolExecResponse>(endpoint, params),
 
   processDashboard: () => get<ProcessDashboardResponse>('/api/processes/dashboard'),
+  processList: () => get<ProcessListResponse>('/api/processes/list'),
   processDashboardStream: (): EventSource => stream('/api/processes/dashboard/stream'),
   processPoolStats: () => get<PoolStatsResponse>('/api/process/pool-stats'),
   processPoolStatsStream: (): EventSource => stream('/api/process/pool-stats/stream'),

@@ -84,6 +84,7 @@ def record_tool_run(response):
     "/api/intelligence/smart-scan",
     "/api/intelligence/select-tools",
     "/api/intelligence/technology-detection",
+    "/api/intelligence/create-attack-chain",
   }
   if not is_tool_run and not is_intelligence_run:
     return response

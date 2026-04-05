@@ -1,5 +1,5 @@
-import { ChevronDown, ChevronUp, Download, Play, RefreshCw, Trash2 } from 'lucide-react'
-import type { Dispatch, SetStateAction } from 'react'
+import { ChevronDown, ChevronUp, Download, Play, RefreshCw, Square, Trash2 } from 'lucide-react'
+import { useEffect, useRef, type Dispatch, type SetStateAction } from 'react'
 import { ParamField } from '../../components/tool-run/ParamField'
 import type { AttackChainStep, Tool, ToolExecResponse } from '../../api'
 import type { RunHistoryEntry } from '../../shared/types'
@@ -25,6 +25,8 @@ interface SessionDetailWorkbenchProps {
   setShowOptionalByStep: Dispatch<SetStateAction<Record<string, boolean>>>
   selectedResult: { result?: ToolExecResponse; error?: string } | undefined
   onRunStep: (step: AttackChainStep, index: number) => Promise<void>
+  onStopRunningStep: () => Promise<void>
+  onApplyAttackChainFromResult: () => Promise<void>
   onRemoveTool: (index: number) => Promise<void>
   showAddTool: boolean
   setShowAddTool: Dispatch<SetStateAction<boolean>>
@@ -70,6 +72,8 @@ export function SessionDetailWorkbench({
   setShowOptionalByStep,
   selectedResult,
   onRunStep,
+  onStopRunningStep,
+  onApplyAttackChainFromResult,
   onRemoveTool,
   showAddTool,
   setShowAddTool,
@@ -80,6 +84,13 @@ export function SessionDetailWorkbench({
 }: SessionDetailWorkbenchProps) {
   const selectedRunning = selectedStepKey ? runningStepKey === selectedStepKey : false
   const resultData = selectedResult?.result
+  const addToolInputRef = useRef<HTMLInputElement | null>(null)
+
+  useEffect(() => {
+    if (!showAddTool) return
+    const frame = window.requestAnimationFrame(() => addToolInputRef.current?.focus())
+    return () => window.cancelAnimationFrame(frame)
+  }, [showAddTool])
 
   return (
     <section className="section">
@@ -94,6 +105,7 @@ export function SessionDetailWorkbench({
               {showAddTool && (
                 <div className="session-add-tool-panel">
                   <input
+                    ref={addToolInputRef}
                     className="search-input mono"
                     placeholder="Search tool..."
                     value={addToolSearch}
@@ -114,26 +126,34 @@ export function SessionDetailWorkbench({
 
           {steps.map((step, idx) => {
             const stepKey = `${sessionId}:${idx}`
+            const isRunning = runningStepKey === stepKey
             return (
               <button
                 key={stepKey}
-                className={`session-workbench-tool session-workbench-tool--${stepState[stepKey] ?? 'idle'} ${selectedStepIndex === idx ? 'active' : ''}`}
+                className={`session-workbench-tool session-workbench-tool--${stepState[stepKey] ?? 'idle'} ${isRunning ? 'session-workbench-tool--running' : ''} ${selectedStepIndex === idx ? 'active' : ''}`}
                 onClick={() => setSelectedStepIndex(idx)}
               >
                 <span className="session-workbench-tool-name mono">{step.tool}</span>
-                {!isCompleted && (
-                  <button
-                    type="button"
-                    className="session-remove-tool"
-                    onClick={e => {
-                      e.stopPropagation()
-                      onRemoveTool(idx)
-                    }}
-                    title="Remove tool"
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                )}
+                <span className="session-workbench-tool-actions">
+                  {isRunning && (
+                    <span className="session-running-indicator mono" title="Tool is running">
+                      <RefreshCw size={11} className="spin" /> Running
+                    </span>
+                  )}
+                  {!isCompleted && (
+                    <button
+                      type="button"
+                      className="session-remove-tool"
+                      onClick={e => {
+                        e.stopPropagation()
+                        onRemoveTool(idx)
+                      }}
+                      title="Remove tool"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  )}
+                </span>
               </button>
             )
           })}
@@ -166,6 +186,11 @@ export function SessionDetailWorkbench({
                     {selectedRunning ? <RefreshCw size={12} className="spin" /> : <Play size={12} />}
                     {isCompleted ? 'Completed' : (selectedRunning ? 'Running…' : `Run ${selectedStep.tool}`)}
                   </button>
+                  {selectedRunning && !isCompleted && (
+                    <button className="session-stop-btn" onClick={() => { void onStopRunningStep() }}>
+                      <Square size={12} /> Stop
+                    </button>
+                  )}
                 </div>
 
                 {selectedTool.desc && <p className="session-tool-description">{selectedTool.desc}</p>}
@@ -236,6 +261,16 @@ export function SessionDetailWorkbench({
                           >
                             <Download size={11} /> JSON
                           </button>
+                          {selectedStep.tool === 'create-attack-chain' && resultData.success && (
+                            <button
+                              className="run-export-btn"
+                              onClick={() => { void onApplyAttackChainFromResult() }}
+                              title="Add attack chain tools to manual execution"
+                              disabled={isCompleted}
+                            >
+                              Use Chain
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>

@@ -376,6 +376,41 @@ export default function SessionDetailPage({
     }
   }
 
+  async function stopRunningStep() {
+    const stepKey = runningStepKey
+    if (!stepKey) return
+
+    try {
+      const payload = await api.processList()
+      const active = payload.active_processes ?? {}
+      const candidates = Object.values(active)
+        .filter(p => p && typeof p.command === 'string' && p.command.trim() !== '')
+        .map(p => p.pid)
+        .filter((pid): pid is number => typeof pid === 'number')
+
+      if (candidates.length === 0) {
+        setHandoffMsg('No active process found to terminate')
+        setRunningStepKey(null)
+        return
+      }
+
+      const pid = Math.max(...candidates)
+      await api.terminateProcess(pid)
+      setHandoffMsg(`Stopped running process ${pid}`)
+      setRunningStepKey(null)
+      setStepState(prev => ({ ...prev, [stepKey]: 'failed' }))
+      setStepResults(prev => ({
+        ...prev,
+        [stepKey]: {
+          ...(prev[stepKey] ?? {}),
+          error: `Process ${pid} terminated by user`,
+        },
+      }))
+    } catch (e) {
+      setHandoffMsg(`Stop failed: ${String(e)}`)
+    }
+  }
+
   async function addToolToSession(tool: Tool) {
     if (!session) return
     const nextSteps = [...steps, { tool: tool.name, parameters: {} }]
@@ -387,6 +422,55 @@ export default function SessionDetailPage({
       setSelectedStepIndex(Math.max(0, nextSteps.length - 1))
     } catch (e) {
       setHandoffMsg(`Add tool failed: ${String(e)}`)
+    }
+  }
+
+  async function applyAttackChainFromSelectedResult() {
+    if (!session || !selectedStepKey || !selectedResult?.result) return
+
+    const result = selectedResult.result
+    let parsed: unknown = null
+    try {
+      parsed = result.stdout ? JSON.parse(result.stdout) : null
+    } catch {
+      parsed = null
+    }
+
+    const payload = (parsed && typeof parsed === 'object') ? (parsed as Record<string, unknown>) : null
+    const attackChain = payload?.attack_chain
+    const attackStepsRaw = (attackChain && typeof attackChain === 'object')
+      ? (attackChain as Record<string, unknown>).steps
+      : null
+    const attackSteps = Array.isArray(attackStepsRaw)
+      ? attackStepsRaw.filter((step): step is AttackChainStep => !!step && typeof step === 'object' && typeof (step as AttackChainStep).tool === 'string')
+      : []
+
+    if (attackSteps.length === 0) {
+      setHandoffMsg('No attack-chain steps found in result output')
+      return
+    }
+
+    const existingKey = new Set(steps.map(step => `${step.tool}::${JSON.stringify(step.parameters ?? {})}`))
+    const toAdd = attackSteps.filter(step => {
+      const key = `${step.tool}::${JSON.stringify(step.parameters ?? {})}`
+      if (existingKey.has(key)) return false
+      existingKey.add(key)
+      return true
+    })
+
+    if (toAdd.length === 0) {
+      setHandoffMsg('All attack-chain tools are already present in manual execution')
+      return
+    }
+
+    const nextSteps = [...steps, ...toAdd]
+    try {
+      await api.updateSession(session.session_id, { workflow_steps: nextSteps })
+      await loadSession()
+      setSelectedStepIndex(Math.max(0, nextSteps.length - toAdd.length))
+      setHandoffMsg(`Added ${toAdd.length} tool(s) from attack chain`) 
+    } catch (e) {
+      setHandoffMsg(`Apply attack chain failed: ${String(e)}`)
     }
   }
 
@@ -513,6 +597,8 @@ export default function SessionDetailPage({
         setShowOptionalByStep={setShowOptionalByStep}
         selectedResult={selectedResult}
         onRunStep={runStep}
+        onStopRunningStep={stopRunningStep}
+        onApplyAttackChainFromResult={applyAttackChainFromSelectedResult}
         onRemoveTool={removeToolFromSession}
         showAddTool={showAddTool}
         setShowAddTool={setShowAddTool}
