@@ -517,7 +517,9 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
                     <Layers size={13} color="var(--blue)" />
                     <span className="mono">{template.name}</span>
                   </div>
-                  <span className="session-tool-chip mono">Custom Template</span>
+                  <span className="session-tool-chip mono">
+                    {template.template_origin === 'server' ? 'Server Template' : 'Custom Template'}
+                  </span>
                 </div>
 
                 <div className="session-card-meta">
@@ -541,17 +543,25 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
                     <button className="session-action-btn" onClick={() => useTemplate(template.template_id)}>
                       <Play size={12} /> Use
                     </button>
-                    <button className="session-action-btn" onClick={() => openTemplateEditor(template)}>
-                      <Pencil size={12} /> Edit
-                    </button>
-                    <button
-                      className="session-delete-btn"
-                      onClick={() => setPendingDeleteTemplate(template)}
-                      disabled={templateActionBusyId === template.template_id}
-                    >
-                      <Trash2 size={12} /> {templateActionBusyId === template.template_id ? 'Deleting…' : 'Delete'}
-                    </button>
+                    {!template.read_only && (
+                      <>
+                        <button className="session-action-btn" onClick={() => openTemplateEditor(template)}>
+                          <Pencil size={12} /> Edit
+                        </button>
+                        <button
+                          className="session-delete-btn"
+                          onClick={() => setPendingDeleteTemplate(template)}
+                          disabled={templateActionBusyId === template.template_id}
+                        >
+                          <Trash2 size={12} /> {templateActionBusyId === template.template_id ? 'Deleting…' : 'Delete'}
+                        </button>
+                      </>
+                    )}
                   </div>
+                </div>
+
+                <div className="session-last-run mono">
+                  {template.template_origin === 'server' ? 'built-in server template' : 'saved custom template'}
                 </div>
               </div>
             ))}

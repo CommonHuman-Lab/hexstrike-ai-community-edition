@@ -110,6 +110,8 @@ export interface SessionTemplate {
   name: string;
   workflow_steps: AttackChainStep[];
   source_session_id?: string;
+  template_origin?: 'server' | 'user';
+  read_only?: boolean;
   created_at: number;
   updated_at: number;
 }
