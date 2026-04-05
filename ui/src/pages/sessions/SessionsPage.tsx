@@ -468,9 +468,6 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
               <span className={`sessions-stream-status sessions-stream-status--${streamStatus}`}>
                 {streamStatus === 'streaming' ? 'Live' : streamStatus === 'polling' ? 'Polling' : 'Offline'}
               </span>
-              <button className="icon-btn" onClick={() => refresh()} title="Refresh">
-                <RefreshCw size={14} className={loading ? 'spin' : ''} />
-              </button>
               <span className="session-help-btn">Hide active</span>
             </div>
           )}
