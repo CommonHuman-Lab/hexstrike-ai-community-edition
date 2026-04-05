@@ -41,6 +41,7 @@ export type {
   CreateSessionFromTemplatePayload,
   CreateSessionPayload,
   CreateSessionTemplatePayload,
+  UpdateSessionTemplatePayload,
   SessionDeleteResponse,
   SessionDetailResponse,
   SessionHandoverResponse,

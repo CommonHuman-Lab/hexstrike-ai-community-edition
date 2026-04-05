@@ -169,3 +169,8 @@ export interface CreateSessionTemplatePayload {
   workflow_steps: AttackChainStep[];
   source_session_id?: string;
 }
+
+export type UpdateSessionTemplatePayload = Partial<{
+  name: string;
+  workflow_steps: AttackChainStep[];
+}>;

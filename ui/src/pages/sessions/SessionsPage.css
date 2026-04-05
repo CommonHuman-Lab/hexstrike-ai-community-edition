@@ -580,7 +580,73 @@
   flex-wrap: wrap;
 }
 
+.template-session-card {
+  transition: border-color 0.15s;
+}
+
+.template-card-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.modal--wide {
+  width: min(860px, calc(100vw - 40px));
+}
+
+.template-editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.template-editor-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.template-step-list {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-main);
+  padding: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.template-step-row {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-card);
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tasks-empty--compact {
+  min-height: 110px;
+}
+
 @media (max-width: 860px) {
+  .template-editor-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .template-card-actions {
+    width: 100%;
+  }
+
+  .template-card-actions button {
+    flex: 1;
+  }
+
   .session-start-actions {
     justify-content: stretch;
   }

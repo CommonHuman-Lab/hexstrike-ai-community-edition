@@ -6,6 +6,7 @@ import type {
   CreateSessionFromTemplatePayload,
   CreateSessionPayload,
   CreateSessionTemplatePayload,
+  UpdateSessionTemplatePayload,
   PatchSettingsResponse,
   PatchWordlistsResponse,
   PoolStatsResponse,
@@ -82,8 +83,8 @@ export const api = {
     post<SessionTemplateMutationResponse>('/api/sessions/templates', payload),
   createSessionTemplateCompat: (payload: CreateSessionTemplatePayload) =>
     post<SessionTemplateMutationResponse>('/api/session-templates', payload),
-  renameSessionTemplate: (templateId: string, name: string) =>
-    patch<SessionTemplateMutationResponse>(`/api/sessions/templates/${templateId}`, { name }),
+  updateSessionTemplate: (templateId: string, payload: UpdateSessionTemplatePayload) =>
+    patch<SessionTemplateMutationResponse>(`/api/sessions/templates/${templateId}`, payload),
   deleteSessionTemplate: (templateId: string) =>
     del<SessionTemplateDeleteResponse>(`/api/sessions/templates/${templateId}`),
 
