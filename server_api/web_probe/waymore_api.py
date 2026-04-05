@@ -43,7 +43,7 @@ def waymore():
         }
 
         result = run_waymore(input=input, mode=mode, output_urls=output_urls, output_responses=output_responses, **additional_args)
-        return jsonify(result)
+        return result
     except Exception as e:
         logger.error(f"Error in waymore endpoint: {str(e)}")
         return jsonify({"error": str(e)}), 500

@@ -1,6 +1,8 @@
-import subprocess
 import logging
 import shlex
+
+from flask import jsonify
+from server_core.command_executor import execute_command
 
 logger = logging.getLogger(__name__)
 
@@ -45,15 +47,11 @@ def run_waymore(input, mode='U', output_urls=None, output_responses=None, **kwar
 
         logger.info(f"Executing Waymore: {' '.join(shlex.quote(arg) for arg in cmd)}")
 
-        result = subprocess.run(cmd, capture_output=True, text=True)
-
-        if result.returncode == 0:
-            logger.info("Waymore executed successfully")
-            return {"success": True, "output": result.stdout}
-        else:
-            logger.error("Waymore execution failed")
-            return {"success": False, "error": result.stderr}
-
+        command = " ".join(shlex.quote(arg) for arg in cmd)
+        result = execute_command(command)
+        logger.info(f"✅ Waymore execution completed for input: {input}")
+        return jsonify(result)
+ 
     except Exception as e:
         logger.error(f"Error running Waymore: {str(e)}")
         return {"error": str(e)}
