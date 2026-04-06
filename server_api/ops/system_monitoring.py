@@ -184,6 +184,7 @@ def generic_command():
         params = request.json
         command = params.get("command", "")
         use_cache = params.get("use_cache", True)
+        timeout = params.get("timeout")
 
         if not command:
             logger.warning("Command endpoint called without command parameter")
@@ -191,7 +192,7 @@ def generic_command():
                 "error": "Command parameter is required"
             }), 400
 
-        result = execute_command(command, use_cache=use_cache)
+        result = execute_command(command, use_cache=use_cache, timeout=timeout)
         return jsonify(result)
     except Exception as e:
         logger.error(f"Error in command endpoint: {str(e)}")

@@ -1,4 +1,4 @@
-import { del, get, patch, post, stream } from './client';
+import { del, get, patch, post, postWithTimeout, stream } from './client';
 import type {
   CacheStatsResponse,
   ClassifyTaskResponse,
@@ -52,7 +52,7 @@ export const api = {
     get<RunHistoryResponse>(`/api/runs/history${limit ? `?limit=${limit}` : ''}`),
   clearRunHistory: () => post<{ success: boolean }>('/api/runs/clear'),
   runTool: (endpoint: string, params: Record<string, unknown>) =>
-    post<ToolExecResponse>(endpoint, params),
+    postWithTimeout<ToolExecResponse>(endpoint, params, 86400),
 
   processDashboard: () => get<ProcessDashboardResponse>('/api/processes/dashboard'),
   processList: () => get<ProcessListResponse>('/api/processes/list'),

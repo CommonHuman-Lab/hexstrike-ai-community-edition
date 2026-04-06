@@ -17,11 +17,17 @@ export default function SettingsPage() {
     wordlistsSaving,
     clearingCache,
     timeout,
+    requestTimeout,
+    inactivityTimeout,
+    maxRuntime,
     cacheSize,
     cacheTtl,
     toolTtl,
     wordlistsDraft,
     setTimeout_,
+    setRequestTimeout,
+    setInactivityTimeout,
+    setMaxRuntime,
     setCacheSize,
     setCacheTtl,
     setToolTtl,
@@ -57,10 +63,16 @@ export default function SettingsPage() {
 
       <RuntimeConfigSection
         timeout={timeout}
+        requestTimeout={requestTimeout}
+        inactivityTimeout={inactivityTimeout}
+        maxRuntime={maxRuntime}
         cacheSize={cacheSize}
         cacheTtl={cacheTtl}
         toolTtl={toolTtl}
         setTimeout_={setTimeout_}
+        setRequestTimeout={setRequestTimeout}
+        setInactivityTimeout={setInactivityTimeout}
+        setMaxRuntime={setMaxRuntime}
         setCacheSize={setCacheSize}
         setCacheTtl={setCacheTtl}
         setToolTtl={setToolTtl}

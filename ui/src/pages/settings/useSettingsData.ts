@@ -22,6 +22,9 @@ export function useSettingsData() {
   const [clearingCache, setClearingCache] = useState(false)
 
   const [timeout, setTimeout_] = useState('')
+  const [requestTimeout, setRequestTimeout] = useState('')
+  const [inactivityTimeout, setInactivityTimeout] = useState('')
+  const [maxRuntime, setMaxRuntime] = useState('')
   const [cacheSize, setCacheSize] = useState('')
   const [cacheTtl, setCacheTtl] = useState('')
   const [toolTtl, setToolTtl] = useState('')
@@ -31,6 +34,9 @@ export function useSettingsData() {
     api.getSettings().then(response => {
       setSettings(response.settings)
       setTimeout_(String(response.settings.runtime.command_timeout))
+      setRequestTimeout(String(response.settings.runtime.request_timeout))
+      setInactivityTimeout(String(response.settings.runtime.command_inactivity_timeout))
+      setMaxRuntime(String(response.settings.runtime.command_max_runtime))
       setCacheSize(String(response.settings.runtime.cache_size))
       setCacheTtl(String(response.settings.runtime.cache_ttl))
       setToolTtl(String(response.settings.runtime.tool_availability_ttl))
@@ -62,6 +68,9 @@ export function useSettingsData() {
     try {
       const runtimeRes = await api.patchSettings({
         command_timeout: Number(timeout),
+        request_timeout: Number(requestTimeout),
+        command_inactivity_timeout: Number(inactivityTimeout),
+        command_max_runtime: Number(maxRuntime),
         cache_size: Number(cacheSize),
         cache_ttl: Number(cacheTtl),
         tool_availability_ttl: Number(toolTtl),
@@ -122,11 +131,17 @@ export function useSettingsData() {
     wordlistsSaving,
     clearingCache,
     timeout,
+    requestTimeout,
+    inactivityTimeout,
+    maxRuntime,
     cacheSize,
     cacheTtl,
     toolTtl,
     wordlistsDraft,
     setTimeout_,
+    setRequestTimeout,
+    setInactivityTimeout,
+    setMaxRuntime,
     setCacheSize,
     setCacheTtl,
     setToolTtl,
