@@ -1,18 +1,19 @@
 # Changelog
 
 ## 1.3.0 - shellshark (next)
-- Added smarter timeout handling for long-running tools: per-tool overrides, optional no hard timeout, inactivity watchdog, and 24h max runtime safety cap.
-- Decoupled request timeout from command runtime timeout so heavy tools are less likely to fail from client-side timeout.
-- Updated Run/Sessions/manual execution paths to honor extended timeout behavior consistently.
+- Added new tools/workflows: `hurl`, `waymore`, and improved `testssl.sh` wrapper compatibility.
+- Upgraded intelligence planning with precision modes, attack-chain preview, and step-level selection reasons.
+- Improved sessions and operator UX: template/workbench polish, tool-log export, ESC-to-close modals, and update modal with copyable `git pull`.
+- Strengthened long-run reliability with per-tool timeout policy, request/runtime timeout split, inactivity watchdog, and max runtime cap.
+- Expanded quality coverage with output-cleaning tests plus updated tool-integration/planner docs.
 
 ## 1.2.0 - packetpanther (2026-04-04)
-- Introduced the `packetpanther` release line for broader platform improvements and release packaging updates.
 - Added in-app update notification groundwork (version check surfaced in UI).
-- Consolidated release stabilization for the 1.1.x tooling and dashboard foundation.
+- Stabilization release consolidating 1.1.x tooling and dashboard improvements.
 
 ## 1.1.2 - rootkitfox (2026-03-29)
-- Rootkitfox release focused on reliability and packaging consistency for the expanded 1.1.x toolset.
-- Included maintenance-level fixes and quality improvements ahead of the 1.2.0 cycle.
+- Reliability and packaging consistency release for the expanded 1.1.x toolset.
+- Maintenance fixes and quality improvements ahead of 1.2.0.
 
 ## 1.1.1 - Zerodaywolf (2026-03-26)
 - Added new security tools: `joomscan`, `parsero`, and `sublist3r`.
@@ -32,7 +33,7 @@
 
 ## 1.0.11 (2026-03-11)
 - Hardening release for production-readiness improvements.
-- Included reliability fixes and operational cleanup
+- Included reliability fixes and operational cleanup.
 
 ## 1.0.10 (2026-02-25)
 - Added service/tool check improvements including Metasploit detection correction.
@@ -40,9 +41,8 @@
 
 ## 1.0.3 - 1.0.9 (2026-02-14 - 2026-02-24)
 - Included incremental fixes and release packaging cleanup.
-- Bunch of new tools.
-- Hardening of workflows
-- Quality-of-life fixes
+- Added frequent tool updates and wrapper fixes.
+- Hardened core workflows and improved quality-of-life UX.
 
 ## 1.0.2 (2026-02-13)
 - Established the early baseline for Community Edition usability and docs.
