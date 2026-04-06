@@ -6,6 +6,7 @@ Precise summary based on GitHub release notes and current branch changes.
 - Added new tools/wrappers: `hurl`, `waymore`, and improved `testssl.sh` compatibility/fallback.
 - Upgraded intelligence workflows with precision planning, preview mode, and tool selection reasons.
 - Improved sessions and UI flows (template/workbench polish, log export, ESC-to-close modals, update modal with copyable `git pull`).
+- Streamlined UI responsiveness and topbar UX: FAB quick actions and condensed health/refresh status via tooltip.
 - Strengthened long-running execution with per-tool timeout policies, request/runtime timeout split, inactivity watchdog, and max runtime cap.
 
 ## 1.2.0 - packetpanther (2026-04-04)
