@@ -39,11 +39,13 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
   const [modalTarget, setModalTarget] = useState('')
   const [modalNote, setModalNote] = useState('')
   const [selectedTemplateId, setSelectedTemplateId] = useState('')
+  const [intelligencePrecision, setIntelligencePrecision] = useState<'quick' | 'comprehensive' | 'stealth'>('comprehensive')
   const [modalError, setModalError] = useState<string | null>(null)
   const [pendingPreview, setPendingPreview] = useState<{
     mode: StartMode
     target: string
     note: string
+    precision: 'quick' | 'comprehensive' | 'stealth'
     preview: CreateAttackChainResponse
   } | null>(null)
   const [confirmingPreview, setConfirmingPreview] = useState(false)
@@ -212,6 +214,9 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
     setModalTarget('')
     setModalNote('')
     setSelectedTemplateId(templateId)
+    if (mode.key === 'intelligence') {
+      setIntelligencePrecision('comprehensive')
+    }
     setModalError(null)
   }
 
@@ -350,8 +355,8 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
         })
       } else {
         if (mode.key === 'intelligence') {
-          const preview = await api.previewAttackChain(target, mode.key)
-          setPendingPreview({ mode, target, note: noteValue, preview })
+          const preview = await api.previewAttackChain(target, intelligencePrecision)
+          setPendingPreview({ mode, target, note: noteValue, precision: intelligencePrecision, preview })
           return
         }
 
@@ -384,17 +389,19 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
     setConfirmingPreview(true)
     setModalError(null)
     try {
-      const { mode, target, note, preview } = pendingPreview
-      const chain = await api.createAttackChain(target, mode.key)
+      const { mode, target, note, precision, preview } = pendingPreview
+      const objective = mode.key === 'intelligence' ? precision : mode.key
+      const chain = await api.createAttackChain(target, objective)
       const sessionRes = await api.createSession({
         target,
         workflow_steps: preview.attack_chain.steps,
         source: 'web',
-        objective: mode.key,
+        objective,
         session_id: chain.session_id,
         metadata: {
           origin: 'ui/sessions/create',
           mode: mode.key,
+          precision: objective,
           note,
           preview_confirmed: true,
           preview_step_count: preview.attack_chain.steps.length,
@@ -487,6 +494,8 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
           templates={templates}
           selectedTemplateId={selectedTemplateId}
           setSelectedTemplateId={setSelectedTemplateId}
+          intelligencePrecision={intelligencePrecision}
+          setIntelligencePrecision={setIntelligencePrecision}
           modalTarget={modalTarget}
           setModalTarget={setModalTarget}
           modalNote={modalNote}
@@ -516,7 +525,7 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
         }}
       >
         <div className="intelligence-preview-summary">
-          <p className="intelligence-preview-line"><span className="intelligence-preview-label">Objective:</span> <span className="mono">{pendingPreview?.mode.key ?? 'n/a'}</span></p>
+          <p className="intelligence-preview-line"><span className="intelligence-preview-label">Objective:</span> <span className="mono">{pendingPreview?.precision ?? 'n/a'}</span></p>
           <p className="intelligence-preview-line"><span className="intelligence-preview-label">Steps:</span> <span className="mono">{previewSteps.length}</span></p>
           <p className="intelligence-preview-line"><span className="intelligence-preview-label">Unique tools:</span> <span className="mono">{previewTools.length}</span></p>
           <p className="intelligence-preview-line"><span className="intelligence-preview-label">Risk:</span> <span className="mono">{previewRisk}</span></p>

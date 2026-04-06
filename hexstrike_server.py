@@ -71,6 +71,39 @@ def require_json_for_post():
 register_blueprints(app)
 initialize_update_status_check()
 
+
+def _build_tool_context_key(path: str, params: dict, body: dict) -> str:
+  """Build context key for contextual tool effectiveness tracking."""
+  try:
+    if path.startswith("/api/intelligence/"):
+      target_profile = body.get("target_profile", {}) if isinstance(body, dict) else {}
+      target_type = target_profile.get("target_type", "unknown") if isinstance(target_profile, dict) else "unknown"
+      objective = "comprehensive"
+      if isinstance(params, dict):
+        objective = str(params.get("objective", "comprehensive")).strip().lower()
+      technologies = target_profile.get("technologies", []) if isinstance(target_profile, dict) else []
+      primary_tech = "none"
+      if isinstance(technologies, list):
+        for tech in technologies:
+          if isinstance(tech, str) and tech and tech != "unknown":
+            primary_tech = tech
+            break
+      return f"{target_type}|{objective}|{primary_tech}"
+
+    if path.startswith("/api/tools/") and isinstance(params, dict):
+      target = params.get("target") or params.get("url") or params.get("domain") or ""
+      target_text = str(target).lower()
+      if target_text.startswith(("http://", "https://")):
+        target_type = "web_application"
+      elif "/api" in target_text:
+        target_type = "api_endpoint"
+      else:
+        target_type = "unknown"
+      return f"{target_type}|tool_run|none"
+  except Exception:
+    return ""
+  return ""
+
 @app.after_request
 def record_tool_run(response):
   """Record selected POST executions into run_history."""
@@ -84,6 +117,7 @@ def record_tool_run(response):
     "/api/intelligence/smart-scan",
     "/api/intelligence/select-tools",
     "/api/intelligence/technology-detection",
+    "/api/intelligence/preview-attack-chain",
     "/api/intelligence/create-attack-chain",
   }
   if not is_tool_run and not is_intelligence_run:
@@ -113,6 +147,9 @@ def record_tool_run(response):
     # A run is "successful" when the tool reported success AND produced output.
     ran_ok = bool(body.get("success", False)) and bool(str(body.get("stdout", "")).strip())
     tool_stats.record(tool=tool_name, success=ran_ok)
+    context_key = _build_tool_context_key(path, params, body)
+    if context_key:
+      tool_stats.record_contextual(tool=tool_name, success=ran_ok, context_key=context_key)
   return response
 
 @app.errorhandler(Exception)

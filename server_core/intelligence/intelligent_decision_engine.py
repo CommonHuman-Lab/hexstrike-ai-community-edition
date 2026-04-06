@@ -16,6 +16,8 @@ from .decision_engine_constants import (
     initialize_tool_effectiveness,
 )
 from .decision_engine_legacy_optimizers import LegacyParameterOptimizers
+from .tool_catalog import build_tool_catalog
+from .tool_scoring import rank_tools_precision_first
 
 parameter_optimizer = ParameterOptimizer()
 _tool_stats = ToolStatsStore()
@@ -28,6 +30,7 @@ class IntelligentDecisionEngine(LegacyParameterOptimizers):
         self.tool_effectiveness = self._initialize_tool_effectiveness()
         self.technology_signatures = self._initialize_technology_signatures()
         self.attack_patterns = self._initialize_attack_patterns()
+        self.tool_catalog = build_tool_catalog()
         self._use_advanced_optimizer = True
 
     def _initialize_tool_effectiveness(self) -> Dict[str, Dict[str, float]]:
@@ -53,6 +56,9 @@ class IntelligentDecisionEngine(LegacyParameterOptimizers):
         if profile.target_type == TargetType.WEB_APPLICATION:
             profile.technologies = self._detect_technologies(target)
             profile.cms_type = self._detect_cms(target)
+
+        if profile.target_type == TargetType.CLOUD_SERVICE:
+            profile.cloud_provider = self._detect_cloud_provider(target)
 
         profile.attack_surface_score = self._calculate_attack_surface(profile)
         profile.risk_level = self._determine_risk_level(profile)
@@ -119,6 +125,17 @@ class IntelligentDecisionEngine(LegacyParameterOptimizers):
             return "Joomla"
         return None
 
+    def _detect_cloud_provider(self, target: str) -> Optional[str]:
+        """Detect cloud provider from target string."""
+        target_lower = target.lower()
+        if "amazonaws.com" in target_lower or "aws" in target_lower:
+            return "aws"
+        if "azure" in target_lower:
+            return "azure"
+        if "googleapis.com" in target_lower or "gcp" in target_lower:
+            return "gcp"
+        return None
+
     def _calculate_attack_surface(self, profile: TargetProfile) -> float:
         """Calculate attack surface score based on profile."""
         type_scores = {
@@ -162,33 +179,43 @@ class IntelligentDecisionEngine(LegacyParameterOptimizers):
             confidence += 0.1
         return min(confidence, 1.0)
 
-    def _effective_score(self, tool: str, target_type_value: str) -> float:
+    def _build_context_key(self, profile: TargetProfile, objective: str) -> str:
+        """Build context key for contextual effectiveness scoring."""
+        primary_tech = "none"
+        for tech in profile.technologies:
+            if tech != TechnologyStack.UNKNOWN:
+                primary_tech = tech.value
+                break
+
+        objective_norm = (objective or "comprehensive").strip().lower()
+        return f"{profile.target_type.value}|{objective_norm}|{primary_tech}"
+
+    def _effective_score(self, tool: str, target_type_value: str, context_key: Optional[str] = None) -> float:
         """Return best available effectiveness score for a tool."""
         baseline = self.tool_effectiveness.get(target_type_value, {}).get(tool, 0.5)
+        if context_key:
+            return _tool_stats.blended_effectiveness_contextual(tool, baseline, context_key)
         return _tool_stats.blended_effectiveness(tool, baseline)
 
     def select_optimal_tools(self, profile: TargetProfile, objective: str = "comprehensive") -> List[str]:
-        """Select optimal tools based on target profile and objective."""
-        target_type = profile.target_type.value
-        effectiveness_map = self.tool_effectiveness.get(target_type, {})
-        base_tools = list(effectiveness_map.keys())
+        """Select optimal tools based on profile with precision-first ranking."""
+        selected_tools = rank_tools_precision_first(
+            profile=profile,
+            objective=objective,
+            tool_effectiveness=self.tool_effectiveness,
+            catalog=self.tool_catalog,
+            effective_score_fn=lambda tool, target_type_value: self._effective_score(
+                tool,
+                target_type_value,
+                self._build_context_key(profile, objective),
+            ),
+        )
 
-        if objective == "quick":
-            sorted_tools = sorted(base_tools, key=lambda t: self._effective_score(t, target_type), reverse=True)
-            selected_tools = sorted_tools[:3]
-        elif objective == "comprehensive":
-            selected_tools = [tool for tool in base_tools if self._effective_score(tool, target_type) > 0.7]
-        elif objective == "stealth":
-            stealth_tools = ["amass", "subfinder", "httpx", "nuclei"]
-            selected_tools = [tool for tool in base_tools if tool in stealth_tools]
-        else:
-            selected_tools = base_tools
-
-        for tech in profile.technologies:
-            if tech == TechnologyStack.WORDPRESS and "wpscan" not in selected_tools:
-                selected_tools.append("wpscan")
-            elif tech == TechnologyStack.PHP and "nikto" not in selected_tools:
-                selected_tools.append("nikto")
+        if not selected_tools:
+            target_type = profile.target_type.value
+            effectiveness_map = self.tool_effectiveness.get(target_type, {})
+            fallback = sorted(effectiveness_map.keys(), key=lambda t: self._effective_score(t, target_type), reverse=True)
+            selected_tools = fallback[:8]
 
         return selected_tools
 
@@ -256,9 +283,16 @@ class IntelligentDecisionEngine(LegacyParameterOptimizers):
         """Disable advanced parameter optimization and use legacy mode."""
         self._use_advanced_optimizer = False
 
-    def create_attack_chain(self, profile: TargetProfile, objective: str = "comprehensive") -> AttackChain:
+    def create_attack_chain(
+        self,
+        profile: TargetProfile,
+        objective: str = "comprehensive",
+        runtime_context: Optional[Dict[str, Any]] = None,
+    ) -> AttackChain:
         """Create an intelligent attack chain based on target profile."""
         chain = AttackChain(profile)
+        if runtime_context is None:
+            runtime_context = {}
 
         objective_overrides = {
             "api_security": "api_testing",
@@ -270,17 +304,57 @@ class IntelligentDecisionEngine(LegacyParameterOptimizers):
         else:
             pattern = self._select_attack_pattern(profile, objective)
 
-        for step_config in pattern:
-            tool = step_config["tool"]
-            optimized_params = self.optimize_parameters(tool, profile)
-            effectiveness = self._effective_score(tool, profile.target_type.value)
+        ranked_tools = self.select_optimal_tools(profile, objective)
+        ranked_set = set(ranked_tools)
+
+        pattern_tools = [step["tool"] for step in pattern]
+        if ranked_tools:
+            ordered_tools = [tool for tool in ranked_tools if tool in pattern_tools]
+            ordered_tools.extend([tool for tool in ranked_tools if tool not in ordered_tools])
+            if not ordered_tools:
+                ordered_tools = pattern_tools
+        else:
+            ordered_tools = pattern_tools
+
+        context_key = self._build_context_key(profile, objective)
+        tool_overrides = runtime_context.get("tool_overrides", {}) if isinstance(runtime_context, dict) else {}
+
+        for tool in ordered_tools:
+            if ranked_set and tool not in ranked_set and tool not in pattern_tools:
+                continue
+            step_defaults = next((step.get("params", {}) for step in pattern if step.get("tool") == tool), {})
+            if not isinstance(step_defaults, dict):
+                step_defaults = {}
+            runtime_override = tool_overrides.get(tool, {}) if isinstance(tool_overrides, dict) else {}
+            if not isinstance(runtime_override, dict):
+                runtime_override = {}
+
+            merged_context = {
+                "objective": objective,
+                "target_type": profile.target_type.value,
+                "risk_level": profile.risk_level,
+                "optimization_profile": "stealth" if objective == "stealth" else "normal",
+                "technologies": [tech.value for tech in profile.technologies if tech != TechnologyStack.UNKNOWN],
+                "cloud_provider": profile.cloud_provider,
+            }
+            merged_context.update(step_defaults)
+            merged_context.update(runtime_override)
+
+            optimizer_params = self.optimize_parameters(tool, profile, merged_context)
+
+            final_params = {}
+            final_params.update(step_defaults)
+            final_params.update(optimizer_params)
+            final_params.update(runtime_override)
+
+            effectiveness = self._effective_score(tool, profile.target_type.value, context_key)
             success_prob = effectiveness * profile.confidence_score
             exec_time = TIME_ESTIMATES.get(tool, 180)
 
             chain.add_step(
                 AttackStep(
                     tool=tool,
-                    parameters=optimized_params,
+                    parameters=final_params,
                     expected_outcome=f"Discover vulnerabilities using {tool}",
                     success_probability=success_prob,
                     execution_time_estimate=exec_time,

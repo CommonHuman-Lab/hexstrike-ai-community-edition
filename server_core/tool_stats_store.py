@@ -37,6 +37,7 @@ logger = logging.getLogger(__name__)
 MIN_RUNS_FOR_LIVE = 5
 
 STATS_FILE_NAME = "tool_stats.json"
+CONTEXT_STATS_FILE_NAME = "tool_stats_context.json"
 
 class ToolStatsStore:
     """
@@ -54,8 +55,10 @@ class ToolStatsStore:
     def __init__(self, data_dir: Optional[str] = None) -> None:
         self._data_dir = data_dir or config_core.default_data_dir()
         self._stats_path = os.path.join(self._data_dir, STATS_FILE_NAME)
+        self._context_stats_path = os.path.join(self._data_dir, CONTEXT_STATS_FILE_NAME)
         self._lock = threading.Lock()
         self._stats: Dict[str, Dict[str, int]] = {}
+        self._context_stats: Dict[str, Dict[str, int]] = {}
         self._ensure_dir()
         self._load()
 
@@ -70,6 +73,18 @@ class ToolStatsStore:
         """
         with self._lock:
             entry = self._stats.setdefault(tool, {"runs": 0, "successes": 0})
+            entry["runs"] += 1
+            if success:
+                entry["successes"] += 1
+            self._save_locked()
+
+    def record_contextual(self, tool: str, success: bool, context_key: str) -> None:
+        """Record one tool execution outcome scoped to a context key."""
+        if not context_key:
+            return
+        bucket = f"{tool}|{context_key}"
+        with self._lock:
+            entry = self._context_stats.setdefault(bucket, {"runs": 0, "successes": 0})
             entry["runs"] += 1
             if success:
                 entry["successes"] += 1
@@ -98,6 +113,17 @@ class ToolStatsStore:
             return None
         return stats["successes"] / stats["runs"]
 
+    def live_effectiveness_contextual(self, tool: str, context_key: str) -> Optional[float]:
+        """Return observed success rate for a context bucket if enough data exists."""
+        if not context_key:
+            return None
+        bucket = f"{tool}|{context_key}"
+        with self._lock:
+            stats = dict(self._context_stats.get(bucket, {"runs": 0, "successes": 0}))
+        if stats["runs"] < MIN_RUNS_FOR_LIVE:
+            return None
+        return stats["successes"] / stats["runs"]
+
     def blended_effectiveness(self, tool: str, baseline: float) -> float:
         """
         Blend the live success rate with the static baseline.
@@ -117,10 +143,25 @@ class ToolStatsStore:
             return baseline
         return live
 
+    def blended_effectiveness_contextual(self, tool: str, baseline: float, context_key: str) -> float:
+        """Blend contextual and global rates with fallback to baseline."""
+        contextual_live = self.live_effectiveness_contextual(tool, context_key)
+        if contextual_live is not None:
+            return contextual_live
+
+        global_live = self.live_effectiveness(tool)
+        if global_live is not None:
+            # Slightly favor global observed behavior when contextual data is sparse.
+            return (0.7 * global_live) + (0.3 * baseline)
+
+        return baseline
+
     def reset(self, tool: str) -> None:
         """Clear recorded stats for a single tool."""
         with self._lock:
             self._stats.pop(tool, None)
+            for key in [k for k in self._context_stats.keys() if k.startswith(f"{tool}|")]:
+                self._context_stats.pop(key, None)
             self._save_locked()
 
     # ── Internal ──────────────────────────────────────────────────────
@@ -149,12 +190,41 @@ class ToolStatsStore:
             logger.warning("tool_stats_store: could not load %s (%s) — starting fresh", self._stats_path, exc)
             self._stats = {}
 
+        if not os.path.exists(self._context_stats_path):
+            self._context_stats = {}
+            return
+
+        try:
+            with open(self._context_stats_path, "r", encoding="utf-8") as f:
+                raw_context = json.load(f)
+            cleaned_context: Dict[str, Dict[str, int]] = {}
+            for key, entry in raw_context.items():
+                if isinstance(entry, dict):
+                    cleaned_context[key] = {
+                        "runs": int(entry.get("runs", 0)),
+                        "successes": int(entry.get("successes", 0)),
+                    }
+            self._context_stats = cleaned_context
+            logger.debug(
+                "tool_stats_store: loaded %d contextual tool entries from %s",
+                len(cleaned_context),
+                self._context_stats_path,
+            )
+        except (json.JSONDecodeError, OSError, ValueError) as exc:
+            logger.warning("tool_stats_store: could not load %s (%s) — starting fresh", self._context_stats_path, exc)
+            self._context_stats = {}
+
     def _save_locked(self) -> None:
         """Write stats to disk. Must be called with self._lock held."""
         tmp = self._stats_path + ".tmp"
+        context_tmp = self._context_stats_path + ".tmp"
         try:
             with open(tmp, "w", encoding="utf-8") as f:
                 json.dump(self._stats, f, indent=2)
             os.replace(tmp, self._stats_path)
+
+            with open(context_tmp, "w", encoding="utf-8") as f:
+                json.dump(self._context_stats, f, indent=2)
+            os.replace(context_tmp, self._context_stats_path)
         except OSError as exc:
             logger.error("tool_stats_store: failed to save %s: %s", self._stats_path, exc)

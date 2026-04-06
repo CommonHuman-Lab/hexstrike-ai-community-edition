@@ -95,6 +95,8 @@ export function StartSessionModal({
   templates,
   selectedTemplateId,
   setSelectedTemplateId,
+  intelligencePrecision,
+  setIntelligencePrecision,
   modalTarget,
   setModalTarget,
   modalNote,
@@ -109,6 +111,8 @@ export function StartSessionModal({
   templates: Array<{ template_id: string; name: string; workflow_steps?: AttackChainStep[] }>
   selectedTemplateId: string
   setSelectedTemplateId: (value: string) => void
+  intelligencePrecision: 'quick' | 'comprehensive' | 'stealth'
+  setIntelligencePrecision: (value: 'quick' | 'comprehensive' | 'stealth') => void
   modalTarget: string
   setModalTarget: (value: string) => void
   modalNote: string
@@ -182,6 +186,20 @@ export function StartSessionModal({
                 {templates.map(template => (
                   <option key={template.template_id} value={template.template_id}>{template.name}</option>
                 ))}
+              </select>
+            </div>
+          )}
+          {startMode.key === 'intelligence' && (
+            <div className="session-start-form">
+              <label className="mono">Precision</label>
+              <select
+                className="session-objective-select"
+                value={intelligencePrecision}
+                onChange={e => setIntelligencePrecision(e.target.value as 'quick' | 'comprehensive' | 'stealth')}
+              >
+                <option value="quick">Quick (fewest tools)</option>
+                <option value="comprehensive">Comprehensive (safer coverage)</option>
+                <option value="stealth">Stealth (low-noise)</option>
               </select>
             </div>
           )}
