@@ -14,16 +14,24 @@ The planner is catalog-driven. Tool selection logic reads metadata from
 - technology affinities
 - noise/cost penalties (precision-first)
 
-## Add a New Tool (3 steps)
+## Add a New Tool (Required steps)
 
 1. Add a `ToolSpec` entry in `build_tool_catalog()`.
-2. Include realistic values for:
+2. Add baseline effectiveness in `initialize_tool_effectiveness()` in
+   `server_core/intelligence/decision_engine_constants.py` for relevant
+   target types.
+3. Include the tool in one or more attack pattern groups in
+   `initialize_attack_patterns()` in
+   `server_core/intelligence/decision_engine_constants.py`.
+4. Include realistic values for:
    - `capabilities`
    - `target_types`
    - `objectives`
    - `tech_affinities`
    - `noise_score` (0.0 to 1.0)
-3. Run tests:
+5. (Recommended) Add a `TIME_ESTIMATES` entry in
+   `server_core/intelligence/decision_engine_constants.py` for better ranking.
+6. Run tests:
 
 ```bash
 pytest tests/test_intelligence_precision_planner.py
@@ -55,6 +63,8 @@ The catalog validator (`validate_tool_catalog`) enforces:
 
 ## Notes
 
-- No planner code changes are needed for normal additions.
+- No planner algorithm code changes are needed for normal additions.
+- If you skip effectiveness/pattern updates, the tool may validate but will be
+  under-selected or not appear in attack chains.
 - Add optional tests for objective-specific expectations when introducing
   specialized tools.

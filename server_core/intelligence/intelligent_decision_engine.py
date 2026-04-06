@@ -22,6 +22,17 @@ from .tool_scoring import rank_tools_precision_first
 parameter_optimizer = ParameterOptimizer()
 _tool_stats = ToolStatsStore()
 
+CLOUD_DOMAIN_HINTS = (
+    "amazonaws.com",
+    "aws.amazon.com",
+    "cloudfront.net",
+    "azure.com",
+    "azurewebsites.net",
+    "windows.net",
+    "googleapis.com",
+    "gcp.",
+)
+
 
 class IntelligentDecisionEngine(LegacyParameterOptimizers):
     """AI-powered tool selection and parameter optimization engine."""
@@ -67,8 +78,20 @@ class IntelligentDecisionEngine(LegacyParameterOptimizers):
 
     def _determine_target_type(self, target: str) -> TargetType:
         """Determine the type of target for appropriate tool selection."""
-        if target.startswith(("http://", "https://")):
-            parsed = urllib.parse.urlparse(target)
+        target_lower = target.lower()
+        parsed = urllib.parse.urlparse(target) if target.startswith(("http://", "https://")) else None
+
+        domain_hint = target_lower
+        if parsed and parsed.hostname:
+            domain_hint = parsed.hostname.lower()
+
+        if any(cloud in domain_hint for cloud in CLOUD_DOMAIN_HINTS):
+            return TargetType.CLOUD_SERVICE
+
+        if target_lower.endswith((".exe", ".bin", ".elf", ".so", ".dll")):
+            return TargetType.BINARY_FILE
+
+        if parsed:
             if "/api/" in parsed.path or parsed.path.endswith("/api"):
                 return TargetType.API_ENDPOINT
             return TargetType.WEB_APPLICATION
@@ -78,12 +101,6 @@ class IntelligentDecisionEngine(LegacyParameterOptimizers):
 
         if re.match(r"^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", target):
             return TargetType.WEB_APPLICATION
-
-        if target.endswith((".exe", ".bin", ".elf", ".so", ".dll")):
-            return TargetType.BINARY_FILE
-
-        if any(cloud in target.lower() for cloud in ["amazonaws.com", "azure", "googleapis.com"]):
-            return TargetType.CLOUD_SERVICE
 
         return TargetType.UNKNOWN
 
@@ -128,11 +145,11 @@ class IntelligentDecisionEngine(LegacyParameterOptimizers):
     def _detect_cloud_provider(self, target: str) -> Optional[str]:
         """Detect cloud provider from target string."""
         target_lower = target.lower()
-        if "amazonaws.com" in target_lower or "aws" in target_lower:
+        if any(hint in target_lower for hint in ("amazonaws.com", "aws.amazon.com", "cloudfront.net", "aws")):
             return "aws"
-        if "azure" in target_lower:
+        if any(hint in target_lower for hint in ("azure.com", "azurewebsites.net", "windows.net", "azure")):
             return "azure"
-        if "googleapis.com" in target_lower or "gcp" in target_lower:
+        if any(hint in target_lower for hint in ("googleapis.com", "gcp", "google")):
             return "gcp"
         return None
 

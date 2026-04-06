@@ -28,13 +28,20 @@ def test_api_security_prefers_api_capabilities():
     tools, _profile = _tools_for("https://example.com/api", "api_security")
     lowered = set(tools)
     assert "arjun" in lowered or "x8" in lowered or "paramspider" in lowered
-    assert "httpx" in lowered or "nuclei" in lowered
+    assert "httpx" in lowered or "nuclei" in lowered or "api-schema-analyzer" in lowered
 
 
 def test_network_quick_prefers_network_scanners():
     tools, _profile = _tools_for("10.10.10.10", "quick")
     lowered = set(tools)
     assert "nmap" in lowered or "nmap_advanced" in lowered or "rustscan" in lowered
+
+
+def test_cloud_domain_classification_and_selection():
+    tools, profile = _tools_for("https://aws.amazon.com", "comprehensive")
+    assert profile.target_type.value == "cloud_service"
+    lowered = set(tools)
+    assert "checkov" in lowered or "trivy" in lowered or "scout-suite" in lowered
 
 
 def test_create_attack_chain_respects_runtime_overrides():
