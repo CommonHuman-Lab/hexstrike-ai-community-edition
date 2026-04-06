@@ -3,14 +3,14 @@
 <img src="assets/hex_logo.png" alt="HexStrike" width="220"/>
 
 # HexStrike AI - Community Edition
-### AI-Powered MCP Cybersecurity Automation Platform
+### AI-Powered Penetration Testing and Bug Bounty Automation Platform
 
 [![Python](https://img.shields.io/badge/Python-3.13%2B-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-AGPLv3-green.svg)](LICENSE)
 [![Security](https://img.shields.io/badge/Security-Penetration%20Testing-red.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
 
-**Advanced AI-powered penetration testing MCP framework, on-demand TTP knowledge, and adaptive scanning intelligence**
+**AI-powered cybersecurity platform that bridges MCP-compatible LLM agents with real-world offensive security tools for automated recon, vulnerability discovery, bug bounty workflows, and security research.**
 
 [📡 Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki)
 
