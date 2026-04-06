@@ -21,7 +21,7 @@ interface PaletteAction {
 }
 
 const PAGE_ACTIONS: Array<{ page: Page; label: string }> = [
-  { page: 'dashboard', label: 'Open Dashboard' },
+  { page: 'dashboard', label: 'Open Home' },
   { page: 'run', label: 'Open Run' },
   { page: 'reports', label: 'Open Reports' },
   { page: 'tasks', label: 'Open Tasks' },

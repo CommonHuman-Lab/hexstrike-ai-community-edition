@@ -29,7 +29,7 @@ interface TopBarProps {
 }
 
 const MOBILE_PAGE_OPTIONS: Array<{ value: Exclude<Page, 'session-detail'>; label: string }> = [
-  { value: 'dashboard', label: 'Dashboard' },
+  { value: 'dashboard', label: 'Home' },
   { value: 'run', label: 'Run' },
   { value: 'logs', label: 'Logs' },
   { value: 'settings', label: 'Settings' },
@@ -260,7 +260,7 @@ export function TopBar({
 
       <nav className="topbar-nav">
         <button className={`nav-tab ${page === 'dashboard' ? 'active' : ''}`} onClick={() => setPage('dashboard')}>
-          <LayoutDashboard size={13} /> Dashboard
+          <LayoutDashboard size={13} /> Home
         </button>
         <button className={`nav-tab ${page === 'run' ? 'active' : ''}`} onClick={() => setPage('run')}>
           <Play size={13} /> Run
