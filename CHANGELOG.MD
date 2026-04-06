@@ -40,8 +40,9 @@
 
 ## 1.0.3 - 1.0.9 (2026-02-14 - 2026-02-24)
 - Included incremental fixes and release packaging cleanup.
+- Bunch of new tools.
 - Hardening of workflows
-- Quality-Of-life fixes
+- Quality-of-life fixes
 
 ## 1.0.2 (2026-02-13)
 - Established the early baseline for Community Edition usability and docs.
