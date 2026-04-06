@@ -97,15 +97,6 @@
   letter-spacing: 0.5px;
 }
 
-.brand-version {
-  font-size: 11px;
-  color: var(--text-dim);
-  background: var(--bg-card2);
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-}
-
 .brand-update-chip {
   font-size: 11px;
   color: var(--amber);

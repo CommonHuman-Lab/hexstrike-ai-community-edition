@@ -244,8 +244,13 @@ export function TopBar({
       <header className="topbar">
         <div className="topbar-brand">
           <img src={faviconUrl} width={18} height={18} alt="" />
-          <span className="brand-text">HexStrike CE</span>
-          <span className="brand-version mono">{health?.version ?? '…'}</span>
+          <span
+            className="brand-text"
+            title={`Version: ${health?.version ?? 'unknown'}`}
+            aria-label={`HexStrike CE version ${health?.version ?? 'unknown'}`}
+          >
+            HexStrike CE
+          </span>
           {health?.update?.update_available && (
             <button
               type="button"
