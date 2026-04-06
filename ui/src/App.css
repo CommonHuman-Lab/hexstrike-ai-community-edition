@@ -130,6 +130,32 @@
   gap: 12px;
 }
 
+.topbar-mobile-nav {
+  display: none;
+  align-items: center;
+  gap: 6px;
+}
+
+.topbar-mobile-nav-label {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.topbar-mobile-nav-select {
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-h);
+  font-size: 12px;
+  padding: 5px 9px;
+  outline: none;
+  min-width: 118px;
+}
+
+.topbar-mobile-nav-select:focus {
+  border-color: var(--blue);
+}
+
 .topbar-meta {
   display: flex;
   align-items: center;
@@ -170,6 +196,10 @@
   transition: background 0.15s, color 0.15s;
 }
 .icon-btn:hover { background: var(--bg-card2); color: var(--text-h); }
+
+.topbar-link-btn {
+  text-decoration: none;
+}
 
 .theme-menu {
   position: relative;
@@ -246,6 +276,10 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.run-mobile-switcher {
+  display: none;
 }
 
 .theme-menu-popover {
@@ -988,12 +1022,158 @@
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .main { padding: 12px 12px 32px; }
+  .main {
+    padding: 10px 10px 26px;
+    gap: 12px;
+  }
+
+  .main--flush {
+    top: 110px;
+  }
+
+  .layout--demo .main--flush {
+    top: 143px;
+  }
+
+  .demo-banner {
+    padding: 6px 10px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .demo-banner button {
+    margin-left: 0;
+  }
+
+  .topbar {
+    height: auto;
+    padding: 8px 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .layout--demo .topbar {
+    top: 47px;
+  }
+
+  .topbar-brand {
+    min-width: 0;
+    flex: 1 1 auto;
+    gap: 8px;
+  }
+
+  .brand-text {
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .brand-version,
+  .brand-update-chip {
+    display: none;
+  }
+
+  .topbar-right {
+    width: 100%;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .topbar-mobile-nav {
+    display: inline-flex;
+    margin-right: auto;
+  }
+
+  .topbar-meta {
+    display: none;
+  }
+
+  .status-label {
+    font-size: 11px;
+  }
+
+  .icon-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .palette-hint-floating {
+    right: 10px;
+    bottom: 10px;
+    max-width: calc(100vw - 20px);
+  }
+
+  .palette-hint-main {
+    min-width: 0;
+  }
+
   .resources-layout { grid-template-columns: 1fr; }
   .gauges-col { border-right: none; border-bottom: 1px solid var(--border); }
   .cat-header { grid-template-columns: 20px 1fr 48px 18px; }
   .cat-header .cat-bar-bg { display: none; }
   .topbar-nav { display: none; }
+
+  .section-header {
+    padding: 12px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .section-header h3 {
+    font-size: 12px;
+  }
+
+  .section-meta {
+    font-size: 10px;
+  }
+
+  .registry-controls,
+  .cat-list-mode-note {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .cat-header {
+    padding-left: 12px;
+    padding-right: 12px;
+    gap: 8px;
+  }
+
+  .cat-tools-grid {
+    padding: 8px 12px 12px 34px;
+  }
+
+  .registry-grid,
+  .registry-grid--wide,
+  .registry-grid--wider {
+    grid-template-columns: 1fr;
+  }
+
+  .registry-card {
+    padding: 12px;
+  }
+
+  .search-input-wrap,
+  .search-input {
+    max-width: none;
+  }
+
+  .modal-backdrop {
+    padding: 10px;
+  }
+
+  .modal {
+    max-height: calc(100vh - 20px);
+  }
+
+  .modal-header,
+  .modal-body {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
 }
 
 /* ── Registry card clickable ────────────────────────────────────────────── */

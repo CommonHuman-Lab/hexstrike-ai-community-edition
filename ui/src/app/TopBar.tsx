@@ -28,6 +28,18 @@ interface TopBarProps {
   onSignOut: () => void
 }
 
+const MOBILE_PAGE_OPTIONS: Array<{ value: Exclude<Page, 'session-detail'>; label: string }> = [
+  { value: 'dashboard', label: 'Dashboard' },
+  { value: 'run', label: 'Run' },
+  { value: 'logs', label: 'Logs' },
+  { value: 'settings', label: 'Settings' },
+  { value: 'help', label: 'Help' },
+  { value: 'tasks', label: 'Tasks' },
+  { value: 'tools', label: 'Tools' },
+  { value: 'reports', label: 'Reports' },
+  { value: 'sessions', label: 'Sessions' },
+]
+
 function DiscordIcon({ size = 14 }: { size?: number }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 245 240" width={size} height={size}>
@@ -81,6 +93,8 @@ export function TopBar({
     }
   }, [themeMenuOpen, themeId])
 
+  const mobilePage = page === 'session-detail' ? 'sessions' : page
+
   return (
     <>
       <InformationModal
@@ -117,7 +131,7 @@ export function TopBar({
       <header className="topbar">
         <div className="topbar-brand">
           <img src={faviconUrl} width={18} height={18} alt="" />
-          <span className="brand-text">HexStrike Community Edition</span>
+          <span className="brand-text">HexStrike CE</span>
           <span className="brand-version mono">{health?.version ?? '…'}</span>
           {health?.update?.update_available && (
             <button
@@ -162,6 +176,18 @@ export function TopBar({
       </nav>
 
       <div className="topbar-right">
+        <label className="topbar-mobile-nav" aria-label="Navigate page">
+          <span className="topbar-mobile-nav-label">Page</span>
+          <select
+            className="topbar-mobile-nav-select"
+            value={mobilePage}
+            onChange={e => setPage(e.target.value as Exclude<Page, 'session-detail'>)}
+          >
+            {MOBILE_PAGE_OPTIONS.map(option => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </label>
         {lastRefresh && (
           <span className="topbar-meta">
             <Clock size={12} /> {lastRefresh.toLocaleTimeString('en-GB')}
@@ -187,7 +213,7 @@ export function TopBar({
           </button>
         )}
         <a
-          className="icon-btn"
+          className="icon-btn topbar-link-btn"
           href="https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition"
           target="_blank"
           rel="noreferrer"
@@ -196,7 +222,7 @@ export function TopBar({
           <Github size={14} />
         </a>
         <a
-          className="icon-btn"
+          className="icon-btn topbar-link-btn"
           href="https://discord.gg/aC8Q2xJFgp"
           target="_blank"
           rel="noreferrer"
