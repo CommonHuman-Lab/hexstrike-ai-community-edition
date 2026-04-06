@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import faviconUrl from '../favicon-16x16.png'
 import {
-  Clock, RefreshCw, Lock, Github,
+  Clock, RefreshCw, Lock, Github, Copy, Check,
   LayoutDashboard, Terminal, Play,
   Settings as SettingsIcon, HelpCircle,
   ListTodo, Wrench, FileText, Layers, Palette,
@@ -9,6 +9,7 @@ import {
 import { clearToken, hasToken, type WebDashboardResponse } from '../api'
 import type { Page } from './routing'
 import { THEME_OPTIONS, type ThemeId } from './themes'
+import { InformationModal } from '../components/InformationModal'
 
 interface TopBarProps {
   page: Page
@@ -54,7 +55,16 @@ export function TopBar({
   onSignOut,
 }: TopBarProps) {
   const [themeMenuOpen, setThemeMenuOpen] = useState(false)
+  const [updateModalOpen, setUpdateModalOpen] = useState(false)
+  const [updateCmdCopied, setUpdateCmdCopied] = useState(false)
   const themeMenuRef = useRef<HTMLDivElement | null>(null)
+
+  function copyUpdateCommand() {
+    navigator.clipboard.writeText('git pull').then(() => {
+      setUpdateCmdCopied(true)
+      window.setTimeout(() => setUpdateCmdCopied(false), 2000)
+    }).catch(() => {})
+  }
 
   useEffect(() => {
     function onPointerDown(e: MouseEvent) {
@@ -72,23 +82,54 @@ export function TopBar({
   }, [themeMenuOpen, themeId])
 
   return (
-    <header className="topbar">
-      <div className="topbar-brand">
-        <img src={faviconUrl} width={18} height={18} alt="" />
-        <span className="brand-text">HexStrike Community Edition</span>
-        <span className="brand-version mono">{health?.version ?? '…'}</span>
-        {health?.update?.update_available && (
-          <a
-            className="brand-update-chip mono"
-            href="https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition"
-            target="_blank"
-            rel="noreferrer"
-            title={`New version available: ${health.update.latest_version}`}
-          >
-            Update available
-          </a>
-        )}
-      </div>
+    <>
+      <InformationModal
+        isOpen={updateModalOpen}
+        title="Update Available"
+        description={health?.update?.latest_version
+          ? `A newer release (${health.update.latest_version}) is available.`
+          : 'A newer release is available.'}
+        primaryLabel="Open GitHub"
+        secondaryLabel="Close"
+        onPrimary={() => {
+          window.open('https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition', '_blank', 'noopener,noreferrer')
+        }}
+        onSecondary={() => setUpdateModalOpen(false)}
+        onClose={() => setUpdateModalOpen(false)}
+      >
+        <div className="modal-section">
+          <span className="modal-label">Update command</span>
+          <div className="modal-code-wrap">
+            <div className="modal-code mono">git pull</div>
+            <button
+              className="modal-copy-btn"
+              onClick={copyUpdateCommand}
+              title="Copy update command"
+            >
+              {updateCmdCopied ? <Check size={13} /> : <Copy size={13} />}
+              {updateCmdCopied ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+        </div>
+        <p className="modal-desc">Run <span className="mono">git pull</span> in your project folder, then restart HexStrike.</p>
+      </InformationModal>
+
+      <header className="topbar">
+        <div className="topbar-brand">
+          <img src={faviconUrl} width={18} height={18} alt="" />
+          <span className="brand-text">HexStrike Community Edition</span>
+          <span className="brand-version mono">{health?.version ?? '…'}</span>
+          {health?.update?.update_available && (
+            <button
+              type="button"
+              className="brand-update-chip mono"
+              onClick={() => setUpdateModalOpen(true)}
+              title={`New version available: ${health.update.latest_version}`}
+            >
+              Update available
+            </button>
+          )}
+        </div>
 
       <nav className="topbar-nav">
         <button className={`nav-tab ${page === 'dashboard' ? 'active' : ''}`} onClick={() => setPage('dashboard')}>
@@ -204,5 +245,6 @@ export function TopBar({
         )}
       </div>
     </header>
+    </>
   )
 }
