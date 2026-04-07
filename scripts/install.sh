@@ -9,6 +9,7 @@ set -euo pipefail
 #   bash scripts/install.sh -t -b
 #   bash scripts/install.sh -u
 #   bash scripts/install.sh -r
+#   bash scripts/install.sh -a
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VENV_DIR="${ROOT_DIR}/hexstrike-env"
@@ -264,10 +265,17 @@ while [[ $# -gt 0 ]]; do
       RUN_AFTER_INSTALL=true
       shift
       ;;
+    -a|--all)
+      UPDATE_SELF=true
+      INSTALL_TOOLS=true
+      RUN_AFTER_INSTALL=true
+      shift
+      ;;
     -h|--help)
       echo "HexStrike install"
       echo ""
       echo "Options:"
+      echo "  -a, --all               Shortcut for -s -t -r"
       echo "  -t, --install-tools     Install external apt/go/cargo tools and clone git_tools repos"
       echo "  -b, --install-big-packages  Install heavy optional Python extras (implies -t)"
       echo "  -u, --update-git-tools  Pull latest for already-cloned repos (implies -t)"

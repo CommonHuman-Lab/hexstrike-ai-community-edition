@@ -114,7 +114,10 @@ git clone https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition.git
 cd hexstrike-ai-community-edition
 
 # Recommended default: update + install tools + start server
-./scripts/install.sh -s -t -r
+./scripts/install.sh -a
+
+# Equivalent long form
+# ./scripts/install.sh -s -t -r
 ```
 
 > See [Installation Guide](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Installation) for other options.
