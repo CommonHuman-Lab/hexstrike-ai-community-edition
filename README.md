@@ -117,7 +117,7 @@ cd hexstrike-ai-community-edition
 ./scripts/install.sh -t -r
 ```
 
-> [Installation Guide](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Installation)
+> See [Installation Guide](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Installation) for other options.
 
 ### Verify Setup
 
