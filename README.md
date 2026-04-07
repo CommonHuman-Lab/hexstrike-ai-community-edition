@@ -113,8 +113,8 @@ Get the server and MCP client running in minutes for AI-powered penetration test
 git clone https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition.git
 cd hexstrike-ai-community-edition
 
-# Recommended default: install tools + start server
-./scripts/install.sh -t -r
+# Recommended default: update + install tools + start server
+./scripts/install.sh -s -t -r
 ```
 
 > See [Installation Guide](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Installation) for other options.

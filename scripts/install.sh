@@ -4,6 +4,7 @@ set -euo pipefail
 # Usage:
 #   bash scripts/install.sh
 #   bash scripts/install.sh -p python3
+#   bash scripts/install.sh -s
 #   bash scripts/install.sh -t
 #   bash scripts/install.sh -t -b
 #   bash scripts/install.sh -u
@@ -17,6 +18,7 @@ INSTALL_TOOLS=false
 INSTALL_BIG_PACKAGES=false
 UPDATE_GIT_TOOLS=false
 RUN_AFTER_INSTALL=false
+UPDATE_SELF=false
 
 # External tools to install
 # Format: "apt_package:expected_binary"
@@ -44,6 +46,32 @@ GIT_REPOS=(
 is_apt_package_installed() {
   local package_name="$1"
   dpkg -s "${package_name}" >/dev/null 2>&1
+}
+
+update_self_repo() {
+  if [[ "${UPDATE_SELF}" != true ]]; then
+    return
+  fi
+
+  if ! command -v git >/dev/null 2>&1; then
+    echo "Skipping self update: git is not installed."
+    return
+  fi
+
+  if [[ ! -d "${ROOT_DIR}/.git" ]]; then
+    echo "Skipping self update: repository metadata not found."
+    return
+  fi
+
+  if ! git -C "${ROOT_DIR}" diff --quiet || ! git -C "${ROOT_DIR}" diff --cached --quiet || [[ -n "$(git -C "${ROOT_DIR}" ls-files --others --exclude-standard)" ]]; then
+    echo "Skipping self update: local changes detected in project repo."
+    return
+  fi
+
+  echo "Updating project repository..."
+  if ! git -C "${ROOT_DIR}" pull --ff-only --quiet; then
+    echo "Self update failed (non-fast-forward or remote issue). Continuing without blocking install."
+  fi
 }
 
 install_external_tools() {
@@ -214,6 +242,10 @@ while [[ $# -gt 0 ]]; do
       PYTHON_BIN="$2"
       shift 2
       ;;
+    -s|--update-self)
+      UPDATE_SELF=true
+      shift
+      ;;
     -t|--install-tools)
       INSTALL_TOOLS=true
       shift
@@ -240,6 +272,7 @@ while [[ $# -gt 0 ]]; do
       echo "  -b, --install-big-packages  Install heavy optional Python extras (implies -t)"
       echo "  -u, --update-git-tools  Pull latest for already-cloned repos (implies -t)"
       echo "  -p, --python <bin>      Python binary (default: python3)"
+      echo "  -s, --update-self       git pull --ff-only this project repo (skips if local changes)"
       echo "  -r, --run               Start server after install (runs ./scripts/run.sh --server)"
       exit 0
       ;;
@@ -250,6 +283,8 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+update_self_repo
 
 echo "[1/4] Preparing virtual environment..."
 if [[ ! -d "${VENV_DIR}" ]]; then
