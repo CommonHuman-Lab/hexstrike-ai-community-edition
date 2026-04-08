@@ -6,7 +6,9 @@ import { fmtTs } from '../../shared/utils'
 import { SessionDetailWorkbench } from './SessionDetailWorkbench'
 import { TemplateModal } from './TemplateModal'
 import { ConfirmActionModal } from '../../components/ConfirmActionModal'
+import { useToast } from '../../components/ToastProvider'
 import {
+  buildStepChainSuggestion,
   normalizeStepsFromSession,
   resolveToolForStep,
   type PersistedStepResult,
@@ -26,6 +28,7 @@ export default function SessionDetailPage({
   onBack: () => void
   onToolRun?: (tool: string, params: Record<string, unknown>, result: ToolExecResponse) => void
 }) {
+  const { pushToast } = useToast()
   const [session, setSession] = useState<SessionSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -268,6 +271,32 @@ export default function SessionDetailPage({
   const selectedStepKey = selectedStep && session ? `${session.session_id}:${selectedStepIndex}` : null
   const selectedResult = selectedStepKey ? stepResults[selectedStepKey] : undefined
   const selectedTool = selectedStep ? toolMap[selectedStep.tool] : null
+  const selectedFieldValues = selectedStepKey ? (stepFieldValues[selectedStepKey] ?? {}) : {}
+
+  const chainSuggestion = (() => {
+    if (!session || !selectedTool || !selectedStepKey || !selectedStep) return null
+    return buildStepChainSuggestion({
+      steps,
+      selectedStepIndex,
+      selectedTool,
+      sessionId: session.session_id,
+      target: targetValue.trim() || session.target,
+      stepResults,
+      currentValues: selectedFieldValues,
+    })
+  })()
+
+  function applyChainSuggestion() {
+    if (!selectedStepKey || !chainSuggestion) return
+    setStepFieldValues(prev => ({
+      ...prev,
+      [selectedStepKey]: {
+        ...(prev[selectedStepKey] ?? {}),
+        ...chainSuggestion.updates,
+      },
+    }))
+    pushToast('success', `Applied chain suggestion from ${chainSuggestion.sourceTool}`)
+  }
 
   function handleTargetValueChange(nextTarget: string) {
     setTargetValue(nextTarget)
@@ -659,6 +688,8 @@ export default function SessionDetailPage({
         showOptionalByStep={showOptionalByStep}
         setShowOptionalByStep={setShowOptionalByStep}
         selectedResult={selectedResult}
+        chainSuggestion={chainSuggestion}
+        onApplyChainSuggestion={applyChainSuggestion}
         onRunStep={runStep}
         onStopRunningStep={stopRunningStep}
         onApplyAttackChainFromResult={applyAttackChainFromSelectedResult}

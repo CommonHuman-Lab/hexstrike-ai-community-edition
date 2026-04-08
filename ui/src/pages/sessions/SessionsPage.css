@@ -726,6 +726,30 @@
   line-height: 1.45;
 }
 
+.session-chain-suggestion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px dashed color-mix(in srgb, var(--blue) 35%, var(--border));
+  background: color-mix(in srgb, var(--blue) 10%, var(--bg-main));
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.session-chain-suggestion__text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.session-chain-suggestion__text strong {
+  color: var(--text-h);
+  font-size: 11px;
+}
+
 .session-result-pre {
   margin: 0;
   white-space: pre-wrap;
@@ -840,6 +864,11 @@
 
   .session-workbench {
     grid-template-columns: 1fr;
+  }
+
+  .session-chain-suggestion {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .session-workbench-tools {
