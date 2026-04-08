@@ -21,7 +21,23 @@ from .tool_catalog import build_tool_catalog, objective_alias, objective_setting
 from .tool_scoring import explain_selection_reason, rank_tools_precision_first
 
 parameter_optimizer = ParameterOptimizer()
-_tool_stats = ToolStatsStore()
+_tool_stats_fallback = ToolStatsStore()
+
+
+def _get_tool_stats_store() -> ToolStatsStore:
+    """Return shared tool stats store when available.
+
+    Falls back to a local instance during bootstrap to avoid circular-import
+    issues while singletons are initializing.
+    """
+    try:
+        from server_core.singletons import tool_stats
+
+        if isinstance(tool_stats, ToolStatsStore):
+            return tool_stats
+    except Exception:
+        pass
+    return _tool_stats_fallback
 
 CLOUD_DOMAIN_HINTS = (
     "amazonaws.com",
@@ -248,9 +264,10 @@ class IntelligentDecisionEngine(LegacyParameterOptimizers):
     def _effective_score(self, tool: str, target_type_value: str, context_key: Optional[str] = None) -> float:
         """Return best available effectiveness score for a tool."""
         baseline = self.tool_effectiveness.get(target_type_value, {}).get(tool, 0.5)
+        stats_store = _get_tool_stats_store()
         if context_key:
-            return _tool_stats.blended_effectiveness_contextual(tool, baseline, context_key)
-        return _tool_stats.blended_effectiveness(tool, baseline)
+            return stats_store.blended_effectiveness_contextual(tool, baseline, context_key)
+        return stats_store.blended_effectiveness(tool, baseline)
 
     def select_optimal_tools(
         self,
