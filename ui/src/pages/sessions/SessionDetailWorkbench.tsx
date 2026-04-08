@@ -27,6 +27,9 @@ interface SessionDetailWorkbenchProps {
   setShowOptionalByStep: Dispatch<SetStateAction<Record<string, boolean>>>
   selectedResult: { result?: ToolExecResponse; error?: string } | undefined
   chainSuggestion: ChainSuggestion | null
+  selectedChainFields: Record<string, boolean>
+  onSetChainFieldSelected: (param: string, enabled: boolean) => void
+  onPinChainField: (param: string) => void
   onApplyChainSuggestion: () => void
   onRunStep: (step: AttackChainStep, index: number) => Promise<void>
   onStopRunningStep: () => Promise<void>
@@ -76,6 +79,9 @@ export function SessionDetailWorkbench({
   setShowOptionalByStep,
   selectedResult,
   chainSuggestion,
+  selectedChainFields,
+  onSetChainFieldSelected,
+  onPinChainField,
   onApplyChainSuggestion,
   onRunStep,
   onStopRunningStep,
@@ -201,7 +207,31 @@ export function SessionDetailWorkbench({
                   <div className="session-chain-suggestion">
                     <div className="session-chain-suggestion__text">
                       <strong className="mono">Chain hint from {chainSuggestion.sourceTool}</strong>
-                      <span>{chainSuggestion.summary}</span>
+                      <span>
+                        {chainSuggestion.summary} Confidence {(chainSuggestion.confidence * 100).toFixed(0)}%
+                      </span>
+                      <div className="session-chain-fields">
+                        {chainSuggestion.fields.map(field => (
+                          <label key={field.param} className="session-chain-field-row">
+                            <input
+                              type="checkbox"
+                              checked={selectedChainFields[field.param] !== false}
+                              onChange={e => onSetChainFieldSelected(field.param, e.target.checked)}
+                            />
+                            <span className="mono">{field.param}</span>
+                            <span className="mono">{field.value}</span>
+                            <span className="section-meta">{Math.round(field.confidence * 100)}% {field.reason}</span>
+                            <button
+                              type="button"
+                              className="session-chain-pin-btn"
+                              onClick={() => onPinChainField(field.param)}
+                              disabled={isCompleted || selectedRunning}
+                            >
+                              Pin
+                            </button>
+                          </label>
+                        ))}
+                      </div>
                     </div>
                     <ActionButton variant="success" disabled={isCompleted || selectedRunning} onClick={onApplyChainSuggestion}>
                       Use Prior Output
