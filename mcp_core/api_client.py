@@ -6,12 +6,12 @@ from typing import Dict, Any, Optional
 
 import server_core.config_core as config_core
 
-DEFAULT_HEXSTRIKE_SERVER = config_core.get("DEFAULT_HEXSTRIKE_SERVER", "http://127.0.0.1:8888")
+DEFAULT_API_SERVER_URL = config_core.get("DEFAULT_API_SERVER_URL", "http://127.0.0.1:8888")
 DEFAULT_REQUEST_TIMEOUT = config_core.get("REQUEST_TIMEOUT", 0)
 MAX_RETRIES = config_core.get("MAX_RETRIES", 3)
 
-class HexStrikeClient:
-    """Enhanced client for communicating with the HexStrike AI API Server"""
+class ApiClient:
+    """Enhanced client for communicating with the API server."""
 
     def __init__(self, server_url: str, auth_token: str = "", timeout: int = DEFAULT_REQUEST_TIMEOUT, verify_ssl: bool = True):
         self.server_url = server_url.rstrip("/")
@@ -40,7 +40,7 @@ class HexStrikeClient:
                 test_response.raise_for_status()
                 with self._connect_lock:
                     self._connected = True
-                logging.info(f"✅ Connected to HexStrike server at {self.server_url}")
+                logging.info(f"✅ Connected to API server at {self.server_url}")
                 return
             except requests.exceptions.ConnectionError:
                 logging.debug(f"Connection refused on attempt {i+1} to {self.server_url}")
@@ -49,7 +49,7 @@ class HexStrikeClient:
             if i < MAX_RETRIES - 1:
                 time.sleep(2)
 
-        logging.critical(f"HexStrike server offline - tool execution will fail until it's reachable.")
+        logging.critical("API server offline - tool execution will fail until it's reachable.")
 
     def safe_get(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         if params is None:

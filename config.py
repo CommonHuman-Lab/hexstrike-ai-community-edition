@@ -28,7 +28,7 @@ _config = {
     "CACHE_SIZE": 1000,
     "CACHE_TTL": 3600,  # 1 hour
     "TOOL_AVAILABILITY_TTL": 3600,  # 1 hour
-    "DEFAULT_HEXSTRIKE_SERVER": "http://127.0.0.1:8888",
+    "DEFAULT_API_SERVER_URL": "http://127.0.0.1:8888",
     "MAX_RETRIES": 3,
     "WORD_LISTS": {
 
