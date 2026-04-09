@@ -112,7 +112,7 @@ export function RuntimeConfigSection({
     <section className="section">
       <div className="section-header">
         <h3>Runtime Config</h3>
-        <span className="section-meta">changes apply immediately, reset on server restart</span>
+        <span className="section-meta">changes apply immediately</span>
       </div>
       <div className="settings-grid">
         <SettingsField

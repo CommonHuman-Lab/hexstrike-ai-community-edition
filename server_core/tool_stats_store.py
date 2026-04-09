@@ -28,6 +28,7 @@ import json
 import logging
 import math
 import os
+import shutil
 import threading
 import time
 from typing import Dict, Optional, Tuple, Union
@@ -45,6 +46,7 @@ UNCERTAINTY_EXPLORATION_WEIGHT = 0.06
 
 STATS_FILE_NAME = "tool_stats.json"
 CONTEXT_STATS_FILE_NAME = "tool_stats_context.json"
+STATS_DIR_NAME = "stats"
 StatsValue = Union[int, float]
 
 class ToolStatsStore:
@@ -62,8 +64,11 @@ class ToolStatsStore:
 
     def __init__(self, data_dir: Optional[str] = None) -> None:
         self._data_dir = data_dir or config_core.default_data_dir()
-        self._stats_path = os.path.join(self._data_dir, STATS_FILE_NAME)
-        self._context_stats_path = os.path.join(self._data_dir, CONTEXT_STATS_FILE_NAME)
+        self._stats_dir = os.path.join(self._data_dir, STATS_DIR_NAME)
+        self._stats_path = os.path.join(self._stats_dir, STATS_FILE_NAME)
+        self._context_stats_path = os.path.join(self._stats_dir, CONTEXT_STATS_FILE_NAME)
+        self._legacy_stats_path = os.path.join(self._data_dir, STATS_FILE_NAME)
+        self._legacy_context_stats_path = os.path.join(self._data_dir, CONTEXT_STATS_FILE_NAME)
         self._lock = threading.Lock()
         self._stats: Dict[str, Dict[str, StatsValue]] = {}
         self._context_stats: Dict[str, Dict[str, StatsValue]] = {}
@@ -220,7 +225,21 @@ class ToolStatsStore:
     # ── Internal ──────────────────────────────────────────────────────
 
     def _ensure_dir(self) -> None:
-        os.makedirs(self._data_dir, exist_ok=True)
+        os.makedirs(self._stats_dir, exist_ok=True)
+        self._migrate_legacy_file(self._legacy_stats_path, self._stats_path)
+        self._migrate_legacy_file(self._legacy_context_stats_path, self._context_stats_path)
+
+    def _migrate_legacy_file(self, old_path: str, new_path: str) -> None:
+        if not os.path.exists(old_path) or os.path.exists(new_path):
+            return
+        try:
+            shutil.move(old_path, new_path)
+        except OSError:
+            shutil.copy2(old_path, new_path)
+            try:
+                os.remove(old_path)
+            except OSError:
+                pass
 
     def _load(self) -> None:
         if not os.path.exists(self._stats_path):

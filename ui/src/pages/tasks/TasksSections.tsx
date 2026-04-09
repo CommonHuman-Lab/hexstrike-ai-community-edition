@@ -79,6 +79,7 @@ export function WorkerPoolSection({
 export function ProcessesSection({
   processes,
   actionMsg,
+  streamStatus,
   onRefresh,
   onPause,
   onResume,
@@ -86,6 +87,7 @@ export function ProcessesSection({
 }: {
   processes: ProcessDashboardResponse['processes']
   actionMsg: string | null
+  streamStatus: StreamStatus
   onRefresh: () => Promise<void>
   onPause: (pid: number) => Promise<void>
   onResume: (pid: number) => Promise<void>
@@ -97,7 +99,9 @@ export function ProcessesSection({
         <h3>Active Processes <span className="badge">{processes.length}</span></h3>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {actionMsg && <span className="section-meta" style={{ color: 'var(--amber)' }}>{actionMsg}</span>}
-          <button className="icon-btn" onClick={onRefresh} title="Refresh"><RefreshCw size={14} /></button>
+          {streamStatus !== 'streaming' && (
+            <button className="icon-btn" onClick={onRefresh} title="Refresh"><RefreshCw size={14} /></button>
+          )}
         </div>
       </div>
 

@@ -770,6 +770,18 @@
   margin: 0;
 }
 
+.session-chain-field-row.is-disabled {
+  opacity: 0.55;
+}
+
+.session-chain-field-row.is-disabled .mono {
+  text-decoration: line-through;
+}
+
+.session-chain-field-row.is-disabled .section-meta {
+  opacity: 0.75;
+}
+
 .session-chain-pin-btn {
   border: 1px solid var(--border);
   background: var(--bg-card);

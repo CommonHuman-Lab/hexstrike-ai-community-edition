@@ -10,6 +10,7 @@ set -euo pipefail
 #   bash scripts/install.sh -u
 #   bash scripts/install.sh -r
 #   bash scripts/install.sh -a
+#   bash scripts/install.sh -y
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VENV_DIR="${ROOT_DIR}/hexstrike-env"
@@ -20,6 +21,8 @@ INSTALL_BIG_PACKAGES=false
 UPDATE_GIT_TOOLS=false
 RUN_AFTER_INSTALL=false
 UPDATE_SELF=false
+UPDATE_PYTHON_PACKAGES=false
+PIP_BOOTSTRAPPED=false
 
 # External tools to install
 # Format: "apt_package:expected_binary"
@@ -196,6 +199,33 @@ setup_git_repo() {
   touch "${stamp_file}"
 }
 
+ensure_pip_ready() {
+  if [[ "${PIP_BOOTSTRAPPED}" == true ]]; then
+    return
+  fi
+
+  "${VENV_DIR}/bin/python3" -m pip --disable-pip-version-check install --quiet --upgrade pip
+  PIP_BOOTSTRAPPED=true
+}
+
+install_requirements_file() {
+  local requirements_file="$1"
+  local requirements_name=""
+  local stamp_file=""
+
+  requirements_name="$(basename "${requirements_file}")"
+  stamp_file="${VENV_DIR}/.hexstrike_python_deps_${requirements_name}.stamp"
+
+  if [[ "${UPDATE_PYTHON_PACKAGES}" != true && -f "${stamp_file}" && "${stamp_file}" -nt "${requirements_file}" ]]; then
+    return
+  fi
+
+  ensure_pip_ready
+  echo "Installing Python deps from: ${requirements_name}"
+  "${VENV_DIR}/bin/python3" -m pip --disable-pip-version-check install --quiet --progress-bar off -r "${requirements_file}"
+  touch "${stamp_file}"
+}
+
 clone_or_update_git_tools() {
   if [[ ${#GIT_REPOS[@]} -eq 0 ]]; then
     return
@@ -265,6 +295,10 @@ while [[ $# -gt 0 ]]; do
       RUN_AFTER_INSTALL=true
       shift
       ;;
+    -y|--update-python-packages)
+      UPDATE_PYTHON_PACKAGES=true
+      shift
+      ;;
     -a|--all)
       UPDATE_SELF=true
       INSTALL_TOOLS=true
@@ -279,6 +313,7 @@ while [[ $# -gt 0 ]]; do
       echo "  -t, --install-tools     Install external apt/go/cargo tools and clone git_tools repos"
       echo "  -b, --install-big-packages  Install heavy optional Python extras (implies -t)"
       echo "  -u, --update-git-tools  Pull latest for already-cloned repos (implies -t)"
+      echo "  -y, --update-python-packages  Force reinstall of Python requirements"
       echo "  -p, --python <bin>      Python binary (default: python3)"
       echo "  -s, --update-self       git pull --ff-only this project repo (skips if local changes)"
       echo "  -r, --run               Start server after install (runs ./scripts/run.sh --server)"
@@ -299,17 +334,16 @@ if [[ ! -d "${VENV_DIR}" ]]; then
   "${PYTHON_BIN}" -m venv "${VENV_DIR}"
 fi
 
-echo "[2/4] Installing Python dependencies...(will take a while on first run)"
-"${VENV_DIR}/bin/python3" -m pip --disable-pip-version-check install --quiet --upgrade pip
-"${VENV_DIR}/bin/python3" -m pip --disable-pip-version-check install --quiet --progress-bar off -r "${ROOT_DIR}/requirements.txt"
+echo "[2/4] Syncing Python dependencies...(will take a while on first run)"
+install_requirements_file "${ROOT_DIR}/requirements.txt"
 
 if [[ "${INSTALL_TOOLS}" == true && -f "${ROOT_DIR}/requirements-extra.txt" ]]; then
-  "${VENV_DIR}/bin/python3" -m pip --disable-pip-version-check install --quiet --progress-bar off -r "${ROOT_DIR}/requirements-extra.txt"
+  install_requirements_file "${ROOT_DIR}/requirements-extra.txt"
 fi
 
 if [[ "${INSTALL_TOOLS}" == true && "${INSTALL_BIG_PACKAGES}" == true && -f "${ROOT_DIR}/requirements-big.txt" ]]; then
   echo "Installing big optional Python packages..."
-  "${VENV_DIR}/bin/python3" -m pip --disable-pip-version-check install --quiet --progress-bar off -r "${ROOT_DIR}/requirements-big.txt"
+  install_requirements_file "${ROOT_DIR}/requirements-big.txt"
 fi
 
 if [[ "${INSTALL_TOOLS}" == true ]]; then

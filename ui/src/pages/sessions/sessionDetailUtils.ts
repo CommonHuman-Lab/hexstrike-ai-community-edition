@@ -94,6 +94,53 @@ const URL_RE = /https?:\/\/[^\s"'<>]+/gi
 const IPV4_RE = /\b(?:\d{1,3}\.){3}\d{1,3}\b/g
 const DOMAIN_RE = /\b(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}\b/gi
 const HOST_PORT_RE = /\b(?:[a-z0-9.-]+|(?:\d{1,3}\.){3}\d{1,3}):(\d{1,5})\b/gi
+const PORT_PROTO_RE = /\b(\d{1,5})\/(?:tcp|udp)\b/gi
+const NMAP_REPORT_RE = /Nmap\s+scan\s+report\s+for\s+(.+)$/gim
+
+const IGNORE_CHAIN_HOSTS = new Set([
+  'nmap.org',
+  'github.com',
+  'raw.githubusercontent.com',
+  'localhost',
+  'localdomain',
+])
+
+const FILELIKE_TLDS = new Set([
+  'toml',
+  'json',
+  'yaml',
+  'yml',
+  'ini',
+  'conf',
+  'cfg',
+  'txt',
+  'log',
+  'md',
+  'xml',
+  'csv',
+])
+
+const NEVER_CHAIN_PARAMS = new Set([
+  'additional_args',
+  'args',
+  'flags',
+  'flag',
+  'password',
+  'pass',
+  'passwd',
+  'pwd',
+  'token',
+  'api_key',
+  'apikey',
+  'secret',
+  'auth',
+  'authorization',
+  'cookie',
+  'headers',
+  'header',
+  'body',
+  'data',
+])
 
 function emptyArtifacts(): StepArtifacts {
   return {
@@ -121,6 +168,44 @@ function isLikelyIp(value: string): boolean {
     const n = Number(p)
     return n >= 0 && n <= 255
   })
+}
+
+function parseValidPort(raw: string): string | null {
+  const value = raw.trim()
+  if (!/^\d{1,5}$/.test(value)) return null
+  if (value.length > 1 && value.startsWith('0')) return null
+  const n = Number(value)
+  if (!Number.isInteger(n) || n < 1 || n > 65535) return null
+  return String(n)
+}
+
+function shouldIgnoreHostForChaining(host: string): boolean {
+  const clean = host.trim().toLowerCase()
+  if (!clean) return true
+  if (IGNORE_CHAIN_HOSTS.has(clean)) return true
+  if (clean.endsWith('.localdomain')) return true
+  const parts = clean.split('.').filter(Boolean)
+  if (parts.length >= 2) {
+    const tld = parts[parts.length - 1]
+    if (FILELIKE_TLDS.has(tld)) return true
+  }
+  return false
+}
+
+function isLikelyHostToken(value: string): boolean {
+  const v = value.trim().toLowerCase()
+  if (!v) return false
+  if (v.includes(' ')) return false
+  if (v.includes('[') || v.includes(']') || v.includes('(') || v.includes(')')) return false
+  if (isLikelyIp(v)) return true
+  if (!/^[a-z0-9.-]+$/.test(v)) return false
+  if (!v.includes('.')) return false
+  return true
+}
+
+function cleanPotentialHostToken(value: string): string {
+  const trimmed = value.trim().toLowerCase()
+  return trimmed.replace(/^['"\[\(]+/, '').replace(/[\]'"\),;:]+$/, '')
 }
 
 function hostFromUrl(url: string): string | null {
@@ -181,6 +266,62 @@ function targetToUrl(value: string): string {
   return `https://${clean}`
 }
 
+function looksLikeCredentialParam(param: string): boolean {
+  const p = param.toLowerCase()
+  return (
+    p.includes('password')
+    || p.includes('passwd')
+    || p.includes('token')
+    || p.includes('secret')
+    || p.includes('apikey')
+    || p.includes('api_key')
+    || p.includes('auth')
+    || p === 'username'
+    || p === 'user'
+  )
+}
+
+function isPortParam(param: string): boolean {
+  const p = param.toLowerCase()
+  return p === 'port' || p === 'ports' || p.endsWith('_port') || p.endsWith('_ports')
+}
+
+function isDomainParam(param: string): boolean {
+  const p = param.toLowerCase()
+  return p === 'domain' || p === 'dns_name' || p === 'root_domain'
+}
+
+function isUrlParam(param: string): boolean {
+  const p = param.toLowerCase()
+  return p === 'url' || p === 'endpoint' || p.endsWith('_url') || p.endsWith('_endpoint')
+}
+
+function isHostParam(param: string): boolean {
+  const p = param.toLowerCase()
+  return p === 'target' || p === 'host' || p === 'hostname' || p === 'query' || p === 'rhost' || p === 'lhost'
+}
+
+function shouldSuggestParam(param: string): boolean {
+  const p = param.toLowerCase()
+  if (NEVER_CHAIN_PARAMS.has(p)) return false
+  if (looksLikeCredentialParam(p)) return false
+  return isDomainParam(p) || isUrlParam(p) || isHostParam(p) || isPortParam(p) || p === 'list_file'
+}
+
+function normalizeComparableValue(param: string, value: string): string {
+  const p = param.toLowerCase()
+  const v = value.trim()
+  if (!v) return ''
+  if (isHostParam(p) || isDomainParam(p)) return v.toLowerCase()
+  if (isUrlParam(p)) return v.replace(/\/+$/, '').toLowerCase()
+  if (isPortParam(p)) return v.replace(/\s+/g, '')
+  return v
+}
+
+function isSameFieldValue(param: string, a: string, b: string): boolean {
+  return normalizeComparableValue(param, a) === normalizeComparableValue(param, b)
+}
+
 export function extractStepArtifacts({
   step,
   result,
@@ -208,6 +349,7 @@ export function extractStepArtifacts({
     pushUnique(artifacts.urls, m)
     const host = hostFromUrl(m)
     if (host) {
+      if (shouldIgnoreHostForChaining(host)) continue
       pushUnique(artifacts.domains, host)
       pushUnique(artifacts.live_hosts, host)
       pushUnique(artifacts.endpoints, m)
@@ -215,7 +357,8 @@ export function extractStepArtifacts({
   }
 
   for (const m of corpus.match(DOMAIN_RE) ?? []) {
-    const d = m.toLowerCase()
+    const d = cleanPotentialHostToken(m)
+    if (!isLikelyHostToken(d) || shouldIgnoreHostForChaining(d)) continue
     if (!isLikelyIp(d)) {
       pushUnique(artifacts.domains, d)
       pushUnique(artifacts.live_hosts, d)
@@ -226,6 +369,31 @@ export function extractStepArtifacts({
     if (isLikelyIp(m)) {
       pushUnique(artifacts.ips, m)
       pushUnique(artifacts.live_hosts, m)
+    }
+  }
+
+  // Prefer explicit scan target evidence from Nmap output.
+  for (const line of corpus.match(NMAP_REPORT_RE) ?? []) {
+    const report = line.replace(/^Nmap\s+scan\s+report\s+for\s+/i, '').trim()
+    const ipInParens = report.match(/\((\d{1,3}(?:\.\d{1,3}){3})\)/)
+    if (ipInParens?.[1] && isLikelyIp(ipInParens[1])) {
+      pushUnique(artifacts.ips, ipInParens[1])
+      pushUnique(artifacts.live_hosts, ipInParens[1])
+    }
+
+    // Handle both forms:
+    // - Nmap scan report for host.name (1.2.3.4)
+    // - Nmap scan report for 1.2.3.4 [host down, ...]
+    const firstToken = report.match(/^([^\s\[(]+)/)?.[1]?.trim().toLowerCase() ?? ''
+    if (isLikelyIp(firstToken)) {
+      pushUnique(artifacts.ips, firstToken)
+      pushUnique(artifacts.live_hosts, firstToken)
+      continue
+    }
+
+    if (isLikelyHostToken(firstToken) && !shouldIgnoreHostForChaining(firstToken)) {
+      pushUnique(artifacts.domains, firstToken)
+      pushUnique(artifacts.live_hosts, firstToken)
     }
   }
 
@@ -248,7 +416,21 @@ export function extractStepArtifacts({
   }
 
   for (const m of corpus.match(HOST_PORT_RE) ?? []) {
-    const port = m.split(':').pop()
+    const parts = m.split(':')
+    if (parts.length < 2) continue
+    const hostPart = parts.slice(0, -1).join(':').trim()
+    const portPart = parts[parts.length - 1]?.trim() ?? ''
+
+    // Guard against timestamps like 12:09 or 2026-04-06T12:09
+    if (/^\d+$/.test(hostPart)) continue
+
+    const port = parseValidPort(portPart)
+    if (port) pushUnique(artifacts.open_ports, port)
+  }
+
+  for (const match of corpus.match(PORT_PROTO_RE) ?? []) {
+    const rawPort = match.split('/')[0]
+    const port = parseValidPort(rawPort)
     if (port) pushUnique(artifacts.open_ports, port)
   }
 
@@ -266,9 +448,14 @@ function preferredSourceOrder(toolName: string, param: string): Array<keyof Step
   const t = toolName.toLowerCase()
   const p = param.toLowerCase()
 
-  if (p === 'list_file') return ['subdomains', 'domains', 'live_hosts', 'urls']
+  if (p === 'list_file') return ['subdomains', 'domains', 'live_hosts', 'ips', 'urls']
+  if (isPortParam(p)) return ['open_ports', 'params']
   if (['domain', 'dns_name'].includes(p)) return ['subdomains', 'domains', 'params']
   if (['url', 'endpoint'].includes(p)) return ['endpoints', 'urls', 'domains', 'params']
+
+  if (['target', 'host', 'query', 'hostname', 'rhost', 'lhost'].includes(p) && (t.includes('nmap') || t.includes('enum4linux') || t.includes('netexec') || t.includes('smb') || t.includes('rpc'))) {
+    return ['ips', 'live_hosts', 'domains', 'params']
+  }
   if (['target', 'host', 'query', 'hostname'].includes(p)) return ['live_hosts', 'domains', 'ips', 'urls', 'params']
 
   if (t.includes('httpx') || t.includes('gospider') || t.includes('hakrawler')) {
@@ -277,34 +464,71 @@ function preferredSourceOrder(toolName: string, param: string): Array<keyof Step
   if (t.includes('shuffledns') || t.includes('dns')) {
     return ['subdomains', 'domains', 'params']
   }
-  return ['live_hosts', 'domains', 'urls', 'ips', 'params']
+  return ['params']
 }
 
 function candidateValueFor(source: keyof StepArtifacts | 'params', ctx: PriorStepContext, param: string, fallbackTarget: string): string | null {
   const p = param.toLowerCase()
+
+  if (!shouldSuggestParam(p)) return null
+
   if (source === 'params') {
-    return firstParam(ctx.params, [p, 'target', 'host', 'url', 'domain']) ?? null
+    if (isPortParam(p)) {
+      const raw = firstParam(ctx.params, [p, 'ports', 'port'])
+      if (!raw) return null
+      const tokens = raw.split(',').map(v => parseValidPort(v)).filter((v): v is string => !!v)
+      if (tokens.length === 0) return null
+      return p === 'port' ? tokens[0] : tokens.slice(0, 10).join(',')
+    }
+    if (isDomainParam(p)) {
+      const raw = firstParam(ctx.params, ['domain', 'dns_name', 'target', 'host'])
+      if (!raw || isLikelyIp(raw)) return null
+      return rootDomain(raw)
+    }
+    if (isUrlParam(p)) {
+      const raw = firstParam(ctx.params, ['url', 'endpoint', 'target'])
+      if (!raw) return null
+      if (raw.startsWith('http://') || raw.startsWith('https://')) return raw
+      if (isLikelyIp(raw)) return null
+      return targetToUrl(raw)
+    }
+    if (isHostParam(p)) {
+      const raw = firstParam(ctx.params, [p, 'target', 'host', 'domain'])
+      if (!raw) return null
+      return raw
+    }
+    return null
   }
+
   const values = ctx.artifacts[source]
   if (!values || values.length === 0) return null
 
-  if (p === 'domain') {
-    const picked = values.find(v => !isLikelyIp(v)) ?? values[0]
-    return picked ? rootDomain(picked) : null
+  if (isPortParam(p)) {
+    const numeric = values.map(v => parseValidPort(v)).filter((v): v is string => !!v)
+    if (numeric.length === 0) return null
+    return p === 'port' ? numeric[0] : numeric.slice(0, 10).join(',')
   }
-  if (['url', 'endpoint'].includes(p)) {
+
+  if (isDomainParam(p)) {
+    const picked = values.find(v => !isLikelyIp(v)) ?? values[0]
+    if (!picked || isLikelyIp(picked)) return null
+    if (!isLikelyHostToken(cleanPotentialHostToken(picked))) return null
+    return rootDomain(picked)
+  }
+  if (isUrlParam(p)) {
     const picked = values.find(v => v.startsWith('http://') || v.startsWith('https://'))
       ?? values.find(v => !isLikelyIp(v))
       ?? values[0]
     if (!picked) return null
+    if (isLikelyIp(picked)) return null
     if (picked.startsWith('http://') || picked.startsWith('https://')) return picked
     return targetToUrl(picked)
   }
-  if (['target', 'host', 'query', 'hostname'].includes(p)) {
+  if (isHostParam(p)) {
     const picked = values[0] ?? fallbackTarget
     return picked || null
   }
-  return values[0] ?? null
+  return null
 }
 
 function confidenceFor({
@@ -341,6 +565,7 @@ export function buildStepChainSuggestion({
   stepResults,
   stepArtifacts,
   currentValues,
+  baselineValues,
   preferences,
 }: {
   steps: AttackChainStep[]
@@ -351,10 +576,20 @@ export function buildStepChainSuggestion({
   stepResults: Record<string, { result?: ToolExecResponse; error?: string }>
   stepArtifacts: Record<string, StepArtifacts>
   currentValues: Record<string, string>
+  baselineValues?: Record<string, string>
   preferences?: ChainMappingPreference[]
 }): ChainSuggestion | null {
   const paramNames = [...Object.keys(selectedTool.params), ...Object.keys(selectedTool.optional)]
-  const missingParams = paramNames.filter(name => !currentValues[name]?.trim())
+  const baseline = baselineValues ?? {}
+  const missingParams = paramNames
+    .filter(name => {
+      const current = currentValues[name]?.trim() ?? ''
+      if (!current) return true
+      const defaultValue = baseline[name]?.trim() ?? ''
+      // Keep chain hints visible when the field only has a generic auto-filled value.
+      return !!defaultValue && current === defaultValue
+    })
+    .filter(name => shouldSuggestParam(name))
   if (missingParams.length === 0) return null
 
   const prior: PriorStepContext[] = []
@@ -405,16 +640,23 @@ export function buildStepChainSuggestion({
       }
     }
 
-    if (chosen) fields.push(chosen)
+    if (chosen) {
+      const current = currentValues[param]?.trim() ?? ''
+      if (current && isSameFieldValue(param, current, chosen.value)) continue
+      fields.push(chosen)
+    }
   }
 
   if (fields.length === 0) return null
 
-  const top = prior[0]
+  const bestField = fields.reduce((best, field) => (field.confidence > best.confidence ? field : best), fields[0])
+  const uniqueSources = new Set(fields.map(field => field.sourceTool))
   const confidence = fields.reduce((sum, f) => sum + f.confidence, 0) / fields.length
   return {
-    sourceTool: top.step.tool,
-    summary: `Prepared ${fields.length} mapped value${fields.length === 1 ? '' : 's'} from previous successful tool outputs.`,
+    sourceTool: bestField.sourceTool,
+    summary: uniqueSources.size > 1
+      ? `Prepared ${fields.length} mapped value${fields.length === 1 ? '' : 's'} from ${uniqueSources.size} prior tools.`
+      : `Prepared ${fields.length} mapped value${fields.length === 1 ? '' : 's'} from ${bestField.sourceTool} output.`,
     confidence,
     fields,
   }

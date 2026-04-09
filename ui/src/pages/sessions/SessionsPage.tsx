@@ -26,12 +26,22 @@ interface SessionsPageProps {
   onOpenSession: (sessionId: string) => void
 }
 
+let sessionsBootstrapped = false
+let sessionsCacheData: SessionsResponse | null = null
+let sessionsCacheTools: Tool[] = []
+let sessionsCacheTemplates: SessionTemplate[] = []
+let sessionsCacheSections: {
+  showActive: boolean
+  showCompleted: boolean
+  showTemplates: boolean
+} | null = null
+
 export default function SessionsPage({ demoData, onOpenSession }: SessionsPageProps) {
   const { pushToast } = useToast()
-  const [data, setData] = useState<SessionsResponse | null>(demoData?.sessions ?? null)
+  const [data, setData] = useState<SessionsResponse | null>(demoData?.sessions ?? sessionsCacheData)
   const [creatingSession, setCreatingSession] = useState(false)
-  const [tools, setTools] = useState<Tool[]>([])
-  const [templates, setTemplates] = useState<SessionTemplate[]>([])
+  const [tools, setTools] = useState<Tool[]>(sessionsCacheTools)
+  const [templates, setTemplates] = useState<SessionTemplate[]>(sessionsCacheTemplates)
   const [createMsg, setCreateMsg] = useState<string | null>(null)
   const [templateActionError, setTemplateActionError] = useState<string | null>(null)
   const [templateActionBusyId, setTemplateActionBusyId] = useState<string | null>(null)
@@ -56,11 +66,11 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
   const [editToolSearch, setEditToolSearch] = useState('')
   const [editTemplateError, setEditTemplateError] = useState<string | null>(null)
   const [savingTemplate, setSavingTemplate] = useState(false)
-  const [loading, setLoading] = useState(!demoData)
+  const [loading, setLoading] = useState(!demoData && !sessionsBootstrapped)
   const [error, setError] = useState<string | null>(null)
-  const [showActiveSessions, setShowActiveSessions] = useState(true)
-  const [showCompletedSessions, setShowCompletedSessions] = useState(false)
-  const [showCustomTemplates, setShowCustomTemplates] = useState(true)
+  const [showActiveSessions, setShowActiveSessions] = useState(sessionsCacheSections?.showActive ?? true)
+  const [showCompletedSessions, setShowCompletedSessions] = useState(sessionsCacheSections?.showCompleted ?? false)
+  const [showCustomTemplates, setShowCustomTemplates] = useState(sessionsCacheSections?.showTemplates ?? true)
   const [streamStatus, setStreamStatus] = useState<'streaming' | 'polling' | 'error'>(demoData ? 'polling' : 'streaming')
   const streamRef = useRef<EventSource | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -72,12 +82,24 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
   useEscapeClose(Boolean(editingTemplateId), closeTemplateEditor)
 
   useEffect(() => {
+    sessionsCacheSections = {
+      showActive: showActiveSessions,
+      showCompleted: showCompletedSessions,
+      showTemplates: showCustomTemplates,
+    }
+  }, [showActiveSessions, showCompletedSessions, showCustomTemplates])
+
+  useEffect(() => {
     if (demoData) return
     Promise.all([api.sessions(), api.tools(), api.sessionTemplates()])
       .then(([sessionsData, toolsData, templatesData]) => {
         setData(sessionsData)
         setTools(toolsData.tools ?? [])
         setTemplates(templatesData.templates ?? [])
+        sessionsCacheData = sessionsData
+        sessionsCacheTools = toolsData.tools ?? []
+        sessionsCacheTemplates = templatesData.templates ?? []
+        sessionsBootstrapped = true
         setError(null)
       })
       .catch(e => setError(String(e)))
@@ -102,7 +124,9 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
   async function refreshTemplates() {
     if (demoData) return
     const templatesData = await api.sessionTemplates()
-    setTemplates(templatesData.templates ?? [])
+    const next = templatesData.templates ?? []
+    setTemplates(next)
+    sessionsCacheTemplates = next
   }
 
   function fetchSessions(silent = false) {
@@ -111,6 +135,7 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
     api.sessions()
       .then(sessionsData => {
         setData(sessionsData)
+        sessionsCacheData = sessionsData
         setError(null)
       })
       .catch(e => setError(String(e)))

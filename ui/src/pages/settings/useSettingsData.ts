@@ -6,6 +6,20 @@ const WORDLIST_TYPE_OPTIONS = ['password', 'directory', 'params', 'subdomain', '
 const SPEED_OPTIONS = ['fast', 'medium', 'slow']
 const COVERAGE_OPTIONS = ['focused', 'broad', 'comprehensive']
 
+type SettingsCache = {
+  settings: Settings
+  timeout: string
+  requestTimeout: string
+  inactivityTimeout: string
+  maxRuntime: string
+  cacheSize: string
+  cacheTtl: string
+  toolTtl: string
+  wordlistsDraft: WordlistEntry[]
+}
+
+let settingsCache: SettingsCache | null = null
+
 function withCurrentOption(options: string[], current: string) {
   if (!current) return options
   return options.includes(current) ? options : [current, ...options]
@@ -13,37 +27,54 @@ function withCurrentOption(options: string[], current: string) {
 
 export function useSettingsData() {
   const { pushToast } = useToast()
+  const hasCache = settingsCache !== null
 
-  const [settings, setSettings] = useState<Settings | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [settings, setSettings] = useState<Settings | null>(settingsCache?.settings ?? null)
+  const [loading, setLoading] = useState(!hasCache)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [wordlistsSaving, setWordlistsSaving] = useState(false)
   const [clearingCache, setClearingCache] = useState(false)
 
-  const [timeout, setTimeout_] = useState('')
-  const [requestTimeout, setRequestTimeout] = useState('')
-  const [inactivityTimeout, setInactivityTimeout] = useState('')
-  const [maxRuntime, setMaxRuntime] = useState('')
-  const [cacheSize, setCacheSize] = useState('')
-  const [cacheTtl, setCacheTtl] = useState('')
-  const [toolTtl, setToolTtl] = useState('')
-  const [wordlistsDraft, setWordlistsDraft] = useState<WordlistEntry[]>([])
+  const [timeout, setTimeout_] = useState(settingsCache?.timeout ?? '')
+  const [requestTimeout, setRequestTimeout] = useState(settingsCache?.requestTimeout ?? '')
+  const [inactivityTimeout, setInactivityTimeout] = useState(settingsCache?.inactivityTimeout ?? '')
+  const [maxRuntime, setMaxRuntime] = useState(settingsCache?.maxRuntime ?? '')
+  const [cacheSize, setCacheSize] = useState(settingsCache?.cacheSize ?? '')
+  const [cacheTtl, setCacheTtl] = useState(settingsCache?.cacheTtl ?? '')
+  const [toolTtl, setToolTtl] = useState(settingsCache?.toolTtl ?? '')
+  const [wordlistsDraft, setWordlistsDraft] = useState<WordlistEntry[]>(settingsCache?.wordlistsDraft ?? [])
+
+  function applySettings(response: Settings) {
+    const nextCache: SettingsCache = {
+      settings: response,
+      timeout: String(response.runtime.command_timeout),
+      requestTimeout: String(response.runtime.request_timeout),
+      inactivityTimeout: String(response.runtime.command_inactivity_timeout),
+      maxRuntime: String(response.runtime.command_max_runtime),
+      cacheSize: String(response.runtime.cache_size),
+      cacheTtl: String(response.runtime.cache_ttl),
+      toolTtl: String(response.runtime.tool_availability_ttl),
+      wordlistsDraft: response.wordlists.map(w => ({ ...w })),
+    }
+    settingsCache = nextCache
+    setSettings(nextCache.settings)
+    setTimeout_(nextCache.timeout)
+    setRequestTimeout(nextCache.requestTimeout)
+    setInactivityTimeout(nextCache.inactivityTimeout)
+    setMaxRuntime(nextCache.maxRuntime)
+    setCacheSize(nextCache.cacheSize)
+    setCacheTtl(nextCache.cacheTtl)
+    setToolTtl(nextCache.toolTtl)
+    setWordlistsDraft(nextCache.wordlistsDraft)
+  }
 
   useEffect(() => {
     api.getSettings().then(response => {
-      setSettings(response.settings)
-      setTimeout_(String(response.settings.runtime.command_timeout))
-      setRequestTimeout(String(response.settings.runtime.request_timeout))
-      setInactivityTimeout(String(response.settings.runtime.command_inactivity_timeout))
-      setMaxRuntime(String(response.settings.runtime.command_max_runtime))
-      setCacheSize(String(response.settings.runtime.cache_size))
-      setCacheTtl(String(response.settings.runtime.cache_ttl))
-      setToolTtl(String(response.settings.runtime.tool_availability_ttl))
-      setWordlistsDraft(response.settings.wordlists.map(w => ({ ...w })))
+      applySettings(response.settings)
       setLoading(false)
     }).catch(e => {
-      setError(String(e))
+      if (!settingsCache) setError(String(e))
       setLoading(false)
     })
   }, [])
@@ -79,6 +110,7 @@ export function useSettingsData() {
         pushToast('error', 'Failed to save runtime settings')
         return
       }
+      if (runtimeRes.settings) applySettings(runtimeRes.settings)
       pushToast('success', 'Runtime settings saved')
     } catch {
       pushToast('error', 'Failed to save runtime settings')
@@ -97,8 +129,7 @@ export function useSettingsData() {
       }
 
       const refreshed = await api.getSettings()
-      setSettings(refreshed.settings)
-      setWordlistsDraft(refreshed.settings.wordlists.map(w => ({ ...w })))
+      applySettings(refreshed.settings)
       pushToast('success', 'Wordlists saved')
     } catch {
       pushToast('error', 'Failed to save wordlists')

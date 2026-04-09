@@ -45,6 +45,7 @@ export default function TasksPage({ demoData }: TasksPageProps) {
       <ProcessesSection
         processes={processes}
         actionMsg={actionMsg}
+        streamStatus={streamStatus}
         onRefresh={fetchData}
         onPause={pauseProcess}
         onResume={resumeProcess}

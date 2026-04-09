@@ -96,6 +96,9 @@ export function SessionDetailWorkbench({
 }: SessionDetailWorkbenchProps) {
   const selectedRunning = selectedStepKey ? runningStepKey === selectedStepKey : false
   const resultData = selectedResult?.result
+  const selectedChainCount = chainSuggestion
+    ? chainSuggestion.fields.filter(field => selectedChainFields[field.param] !== false).length
+    : 0
   const addToolInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -211,11 +214,13 @@ export function SessionDetailWorkbench({
                         {chainSuggestion.summary} Confidence {(chainSuggestion.confidence * 100).toFixed(0)}%
                       </span>
                       <div className="session-chain-fields">
-                        {chainSuggestion.fields.map(field => (
-                          <label key={field.param} className="session-chain-field-row">
+                        {chainSuggestion.fields.map(field => {
+                          const enabled = selectedChainFields[field.param] !== false
+                          return (
+                          <label key={field.param} className={`session-chain-field-row ${enabled ? '' : 'is-disabled'}`}>
                             <input
                               type="checkbox"
-                              checked={selectedChainFields[field.param] !== false}
+                              checked={enabled}
                               onChange={e => onSetChainFieldSelected(field.param, e.target.checked)}
                             />
                             <span className="mono">{field.param}</span>
@@ -230,11 +235,15 @@ export function SessionDetailWorkbench({
                               Pin
                             </button>
                           </label>
-                        ))}
+                        )})}
                       </div>
                     </div>
-                    <ActionButton variant="success" disabled={isCompleted || selectedRunning} onClick={onApplyChainSuggestion}>
-                      Use Prior Output
+                    <ActionButton
+                      variant="success"
+                      disabled={isCompleted || selectedRunning || selectedChainCount === 0}
+                      onClick={onApplyChainSuggestion}
+                    >
+                      Use Prior Output ({selectedChainCount})
                     </ActionButton>
                   </div>
                 )}

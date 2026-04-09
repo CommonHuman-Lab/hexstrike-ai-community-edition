@@ -9,6 +9,10 @@
   overflow: hidden;
 }
 
+.run-page > * {
+  min-height: 0;
+}
+
 @media (max-width: 1280px) {
   .run-page {
     grid-template-columns: 230px 1fr 210px;
@@ -365,11 +369,37 @@
   text-align: center;
 }
 
+.run-history-date-toggle {
+  width: 100%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 8px 4px;
+  cursor: pointer;
+}
+
+.run-history-date-toggle:hover {
+  color: var(--text-h);
+}
+
+.run-history-date-count {
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-size: 10px;
+  line-height: 1.1;
+}
+
 .run-history {
   border-left: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0;
 }
 
 .run-history-header {
@@ -455,6 +485,7 @@
 .run-history-list {
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .run-history-item {

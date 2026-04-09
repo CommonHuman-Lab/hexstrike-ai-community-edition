@@ -31,7 +31,7 @@ def _current_settings() -> dict:
             "working_dir": os.getcwd(),
             "data_dir": os.environ.get(
                 "HEXSTRIKE_DATA_DIR",
-                os.path.join(os.getcwd(), ".hexstrike_data"),
+                config_core.default_data_dir(),
             ),
         },
         "runtime": {

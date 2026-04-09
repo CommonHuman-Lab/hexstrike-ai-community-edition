@@ -308,10 +308,15 @@ export default function SessionDetailPage({
   const selectedStepKey = selectedStep && session ? `${session.session_id}:${selectedStepIndex}` : null
   const selectedResult = selectedStepKey ? stepResults[selectedStepKey] : undefined
   const selectedTool = selectedStep ? toolMap[selectedStep.tool] : null
+  const selectedStepValuesReady = !!(selectedStepKey && stepFieldValues[selectedStepKey])
+  const selectedDefaultValues = useMemo(() => {
+    if (!session || !selectedStep || !selectedTool) return {}
+    return buildInitialFieldValues(selectedTool, selectedStep, targetValue.trim() || session.target)
+  }, [session, selectedStep, selectedTool, targetValue])
   const selectedFieldValues = selectedStepKey ? (stepFieldValues[selectedStepKey] ?? {}) : {}
 
   const chainSuggestion = (() => {
-    if (!session || !selectedTool || !selectedStepKey || !selectedStep) return null
+    if (!session || !selectedTool || !selectedStepKey || !selectedStep || !selectedStepValuesReady) return null
     return buildStepChainSuggestion({
       steps,
       selectedStepIndex,
@@ -321,6 +326,7 @@ export default function SessionDetailPage({
       stepResults,
       stepArtifacts,
       currentValues: selectedFieldValues,
+      baselineValues: selectedDefaultValues,
       preferences: chainPreferences,
     })
   })()
@@ -330,9 +336,13 @@ export default function SessionDetailPage({
       setSelectedChainFields({})
       return
     }
-    const next: Record<string, boolean> = {}
-    for (const field of chainSuggestion.fields) next[field.param] = true
-    setSelectedChainFields(next)
+    setSelectedChainFields(prev => {
+      const next: Record<string, boolean> = {}
+      for (const field of chainSuggestion.fields) {
+        next[field.param] = prev[field.param] ?? true
+      }
+      return next
+    })
   }, [chainSuggestion, selectedStepKey])
 
   function applyChainSuggestion() {

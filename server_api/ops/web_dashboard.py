@@ -158,7 +158,7 @@ def build_dashboard_data():
 
       # System resources
       "resources": current_usage,
-      "resources_timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+      "resources_timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
 
       # Cache stats
       "cache_stats": cache.get_stats(),

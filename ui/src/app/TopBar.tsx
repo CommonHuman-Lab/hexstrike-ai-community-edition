@@ -24,6 +24,8 @@ interface TopBarProps {
   fetchAll: () => Promise<void>
   themeId: ThemeId
   setThemeId: (theme: ThemeId) => void
+  reduceTextureEffects: boolean
+  setReduceTextureEffects: (value: boolean) => void
   onOpenCommandPalette: () => void
   onSignOut: () => void
 }
@@ -63,6 +65,8 @@ export function TopBar({
   fetchAll,
   themeId,
   setThemeId,
+  reduceTextureEffects,
+  setReduceTextureEffects,
   onOpenCommandPalette,
   onSignOut,
 }: TopBarProps) {
@@ -74,8 +78,10 @@ export function TopBar({
   const [updateCmdCopied, setUpdateCmdCopied] = useState(false)
   const [quickActionsOpen, setQuickActionsOpen] = useState(false)
   const [showRefreshButton, setShowRefreshButton] = useState(false)
+  const [statusPulse, setStatusPulse] = useState(false)
   const quickActionsRef = useRef<HTMLDivElement | null>(null)
   const firstRefreshIsoRef = useRef<string | null>(null)
+  const statusPulseIsoRef = useRef<string | null>(null)
   const [showRefreshInTooltip, setShowRefreshInTooltip] = useState(demo)
 
   function copyUpdateCommand() {
@@ -110,6 +116,21 @@ export function TopBar({
       firstRefreshIsoRef.current = iso
     }
   }, [demo, lastRefresh])
+
+  useEffect(() => {
+    if (!lastRefresh || health?.status !== 'healthy') return
+    const iso = lastRefresh.toISOString()
+    if (!statusPulseIsoRef.current) {
+      statusPulseIsoRef.current = iso
+      return
+    }
+    if (statusPulseIsoRef.current === iso) return
+
+    statusPulseIsoRef.current = iso
+    setStatusPulse(true)
+    const timerId = window.setTimeout(() => setStatusPulse(false), 700)
+    return () => window.clearTimeout(timerId)
+  }, [lastRefresh, health?.status])
 
   useEffect(() => {
     function onPointerDown(e: MouseEvent) {
@@ -218,11 +239,20 @@ export function TopBar({
         description="Preview themes live, then apply your selection."
         className="theme-picker-modal"
         primaryLabel="Apply Theme"
+        primaryVariant="success"
         secondaryLabel="Cancel"
         onPrimary={applyThemeSelection}
         onSecondary={closeThemeModal}
         onClose={closeThemeModal}
       >
+        <label className="theme-picker-toggle-row">
+          <input
+            type="checkbox"
+            checked={reduceTextureEffects}
+            onChange={e => setReduceTextureEffects(e.target.checked)}
+          />
+          <span className="theme-picker-toggle-text">Reduce background texture effects</span>
+        </label>
         <div className="theme-picker-grid">
           {THEME_OPTIONS.map(option => (
             <button
@@ -307,7 +337,7 @@ export function TopBar({
           </select>
         </label>
         <div
-          className={`status-dot ${health?.status === 'healthy' ? 'online' : error ? 'error' : 'loading'}`}
+          className={`status-dot ${health?.status === 'healthy' ? 'online' : error ? 'error' : 'loading'}${statusPulse ? ' status-dot--pulse' : ''}`}
           title={statusTooltip}
           aria-label={statusTooltip}
         />
