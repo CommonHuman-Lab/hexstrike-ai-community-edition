@@ -4,7 +4,7 @@ from typing import Dict, Any
 from datetime import datetime
 import asyncio
 
-def register_intelligent_decision_engine_tools(mcp, hexstrike_client, logger, HexStrikeColors):
+def register_intelligent_decision_engine_tools(mcp, hexstrike_client, logger, CliColors):
     @mcp.tool()
     async def analyze_target_intelligence(target: str) -> Dict[str, Any]:
         """
@@ -186,7 +186,7 @@ def register_intelligent_decision_engine_tools(mcp, hexstrike_client, logger, He
         Returns:
             Results from AI-optimized scanning with tool execution summary
         """
-        logger.info(f"{HexStrikeColors.FIRE_RED}🚀 Starting intelligent smart scan for {target}{HexStrikeColors.RESET}")
+        logger.info(f"{CliColors.FIRE_RED}🚀 Starting intelligent smart scan for {target}{CliColors.RESET}")
 
         data = {
             "target": target,
@@ -204,8 +204,8 @@ def register_intelligent_decision_engine_tools(mcp, hexstrike_client, logger, He
             execution_summary = scan_results.get("execution_summary", {})
 
             # Enhanced logging with detailed results
-            logger.info(f"{HexStrikeColors.SUCCESS}✅ Intelligent scan completed for {target}{HexStrikeColors.RESET}")
-            logger.info(f"{HexStrikeColors.CYBER_ORANGE}📊 Execution Summary:{HexStrikeColors.RESET}")
+            logger.info(f"{CliColors.SUCCESS}✅ Intelligent scan completed for {target}{CliColors.RESET}")
+            logger.info(f"{CliColors.CYBER_ORANGE}📊 Execution Summary:{CliColors.RESET}")
             logger.info(f"   • Tools executed: {execution_summary.get('successful_tools', 0)}/{execution_summary.get('total_tools', 0)}")
             logger.info(f"   • Success rate: {execution_summary.get('success_rate', 0):.1f}%")
             logger.info(f"   • Total vulnerabilities: {scan_results.get('total_vulnerabilities', 0)}")
@@ -214,18 +214,18 @@ def register_intelligent_decision_engine_tools(mcp, hexstrike_client, logger, He
             # Log successful tools
             successful_tools = [t['tool'] for t in tools_executed if t.get('success')]
             if successful_tools:
-                logger.info(f"{HexStrikeColors.HIGHLIGHT_GREEN} Successful tools: {', '.join(successful_tools)} {HexStrikeColors.RESET}")
+                logger.info(f"{CliColors.HIGHLIGHT_GREEN} Successful tools: {', '.join(successful_tools)} {CliColors.RESET}")
 
             # Log failed tools
             failed_tools = [t['tool'] for t in tools_executed if not t.get('success')]
             if failed_tools:
-                logger.warning(f"{HexStrikeColors.HIGHLIGHT_RED} Failed tools: {', '.join(failed_tools)} {HexStrikeColors.RESET}")
+                logger.warning(f"{CliColors.HIGHLIGHT_RED} Failed tools: {', '.join(failed_tools)} {CliColors.RESET}")
 
             # Log vulnerabilities found
             if scan_results.get('total_vulnerabilities', 0) > 0:
-                logger.warning(f"{HexStrikeColors.VULN_HIGH}🚨 {scan_results['total_vulnerabilities']} vulnerabilities detected!{HexStrikeColors.RESET}")
+                logger.warning(f"{CliColors.VULN_HIGH}🚨 {scan_results['total_vulnerabilities']} vulnerabilities detected!{CliColors.RESET}")
         else:
-            logger.error(f"{HexStrikeColors.ERROR}❌ Intelligent scan failed for {target}: {result.get('error', 'Unknown error')}{HexStrikeColors.RESET}")
+            logger.error(f"{CliColors.ERROR}❌ Intelligent scan failed for {target}: {result.get('error', 'Unknown error')}{CliColors.RESET}")
 
         return result
 

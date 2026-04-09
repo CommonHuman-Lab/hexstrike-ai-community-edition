@@ -1,6 +1,6 @@
-# core/hexstrikecolors.py
+# core/cli_colors.py
 
-class HexStrikeColors:
+class CliColors:
     """Enhanced color palette matching the server's ModernVisualEngine.COLORS"""
 
     # Basic colors (for backward compatibility)
