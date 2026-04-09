@@ -9,6 +9,9 @@ Precise summary based on GitHub release notes and current branch changes.
 - Streamlined UI responsiveness and topbar UX: FAB quick actions and condensed health/refresh status via tooltip.
 - Strengthened long-running execution with per-tool timeout policies, request/runtime timeout split, inactivity watchdog, and max runtime cap.
 - Added streamlined installer workflow: split `install.sh`/`run.sh`.
+- Manual Tool Execution: deep chaining prior-step artifact chaining with operator approval, confidence hints, and mapping pinning.
+- Durable session workflow evolution: stronger end-to-end session handoff model between AI planning and manual dashboard execution.
+- Theme system major upgrade: new premium themes (Unicorn + Forest), plus richer per-theme visual identity.
 
 ## 1.2.0 - packetpanther (2026-04-04)
 - Added global command palette (`Ctrl/Cmd+K`) and plug-and-play theme system.
