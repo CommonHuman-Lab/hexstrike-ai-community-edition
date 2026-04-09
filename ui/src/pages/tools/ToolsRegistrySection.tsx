@@ -14,6 +14,8 @@ interface ToolsRegistrySectionProps {
   missingCount: number
   toolsStatus: Record<string, boolean>
   onSelectTool: (tool: Tool) => void
+  onRefreshAvailability?: () => Promise<void>
+  refreshingAvailability?: boolean
 }
 
 export function ToolsRegistrySection({
@@ -29,11 +31,23 @@ export function ToolsRegistrySection({
   missingCount,
   toolsStatus,
   onSelectTool,
+  onRefreshAvailability,
+  refreshingAvailability = false,
 }: ToolsRegistrySectionProps) {
   return (
     <section className="section">
       <div className="section-header">
         <h3>Tool Registry <span className="badge">{filtered.length} / {tools.length}</span></h3>
+        {onRefreshAvailability && (
+          <button
+            className="btn-secondary"
+            onClick={() => void onRefreshAvailability()}
+            disabled={refreshingAvailability}
+            title="Force immediate tool availability re-check"
+          >
+            {refreshingAvailability ? 'Refreshing…' : 'Refresh Availability'}
+          </button>
+        )}
       </div>
       <div className="registry-controls">
         <div className="registry-controls-top">

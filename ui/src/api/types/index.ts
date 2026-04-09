@@ -7,6 +7,7 @@ export type {
 export type {
   Tool,
   ToolCategoriesResponse,
+  RefreshToolAvailabilityResponse,
   ToolsCatalogResponse,
 } from './tools';
 

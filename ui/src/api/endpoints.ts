@@ -23,6 +23,7 @@ import type {
   SessionsResponse,
   Settings,
   SettingsResponse,
+  RefreshToolAvailabilityResponse,
   ToolCategoriesResponse,
   ToolExecResponse,
   ToolsCatalogResponse,
@@ -39,6 +40,7 @@ export const api = {
 
   tools: () => get<ToolsCatalogResponse>('/api/tools'),
   getToolCategories: () => get<ToolCategoriesResponse>('/api/tools/categories'),
+  refreshToolAvailability: () => post<RefreshToolAvailabilityResponse>('/api/tools/availability/refresh'),
 
   getSettings: () => get<SettingsResponse>('/api/settings'),
   patchSettings: (runtime: Partial<Settings['runtime']>) =>

@@ -227,3 +227,29 @@ def get_tool_categories():
     return jsonify({
         "categories": HEALTH_TOOL_CATEGORIES
     })
+
+
+@api_system_monitoring_bp.route("/api/tools/availability/refresh", methods=["POST"])
+def refresh_tool_availability_now():
+    """Force immediate tool availability refresh and return current status."""
+    try:
+        _refresh_tool_availability()
+        with _tool_availability_lock:
+            tools_status = dict(_tool_availability_cache)
+            last_refresh = _tool_availability_last_refresh
+
+        for tool in BUILT_IN_TOOLS:
+            tools_status[tool] = True
+
+        return jsonify({
+            "success": True,
+            "message": "Tool availability refreshed",
+            "total_tools_available": sum(1 for available in tools_status.values() if available),
+            "total_tools_count": len(tools_status),
+            "tool_availability_age_seconds": round(time.time() - last_refresh, 1) if last_refresh > 0 else 0,
+            "tools_status": tools_status,
+            "timestamp": datetime.now().isoformat(),
+        })
+    except Exception as e:
+        logger.error("Error refreshing tool availability: %s", str(e))
+        return jsonify({"success": False, "error": str(e)}), 500
