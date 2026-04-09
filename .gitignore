@@ -11,3 +11,5 @@ ui/node_modules/
 # Claude worktrees
 .claude/worktrees/
 
+#Pycharm 
+.idea/
