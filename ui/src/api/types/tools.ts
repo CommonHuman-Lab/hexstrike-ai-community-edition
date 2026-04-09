@@ -20,3 +20,10 @@ export interface ToolsCatalogResponse {
 export interface ToolCategoriesResponse {
   categories: Record<string, string[]>;
 }
+
+export interface ToolRefreshAvailabilityResponse {
+  success: boolean;
+  tools_status: Record<string, boolean>;
+  message: string;
+  refreshed_at: number;
+}

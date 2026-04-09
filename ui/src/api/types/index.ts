@@ -8,6 +8,7 @@ export type {
   Tool,
   ToolCategoriesResponse,
   ToolsCatalogResponse,
+  ToolRefreshAvailabilityResponse,
 } from './tools';
 
 export type {

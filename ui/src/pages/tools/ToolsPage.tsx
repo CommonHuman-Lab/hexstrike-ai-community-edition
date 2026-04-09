@@ -11,9 +11,10 @@ interface ToolsPageProps {
   health: WebDashboardResponse
   tools: Tool[]
   toolsStatus: Record<string, boolean>
+  refreshToolAvailability?: () => Promise<void>
 }
 
-export default function ToolsPage({ health, tools, toolsStatus }: ToolsPageProps) {
+export default function ToolsPage({ health, tools, toolsStatus, refreshToolAvailability }: ToolsPageProps) {
   const [search, setSearch] = useState('')
   const [activeCat, setActiveCat] = useState<string>('all')
   const [selectedTool, setSelectedTool] = useState<Tool | null>(null)
@@ -78,6 +79,7 @@ export default function ToolsPage({ health, tools, toolsStatus }: ToolsPageProps
         missingCount={missingCount}
         toolsStatus={toolsStatus}
         onSelectTool={setSelectedTool}
+        refreshToolAvailability={refreshToolAvailability}
       />
     </div>
   )

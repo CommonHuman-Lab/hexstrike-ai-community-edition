@@ -1,4 +1,6 @@
-import { CheckCircle, XCircle } from 'lucide-react'
+import { useState } from 'react'
+import { CheckCircle, XCircle, RefreshCw } from 'lucide-react'
+import { useToast } from '../../components/ToastProvider'
 import type { Tool } from '../../api'
 
 interface ToolsRegistrySectionProps {
@@ -14,6 +16,7 @@ interface ToolsRegistrySectionProps {
   missingCount: number
   toolsStatus: Record<string, boolean>
   onSelectTool: (tool: Tool) => void
+  refreshToolAvailability?: () => Promise<void>
 }
 
 export function ToolsRegistrySection({
@@ -29,7 +32,24 @@ export function ToolsRegistrySection({
   missingCount,
   toolsStatus,
   onSelectTool,
+  refreshToolAvailability,
 }: ToolsRegistrySectionProps) {
+  const { pushToast } = useToast();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (!refreshToolAvailability) return;
+    setRefreshing(true);
+    try {
+      await refreshToolAvailability();
+      pushToast('success', 'Tool availability refreshed');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Refresh failed';
+      pushToast('error', message);
+    } finally {
+      setRefreshing(false);
+    }
+  };
   return (
     <section className="section">
       <div className="section-header">
@@ -64,6 +84,17 @@ export function ToolsRegistrySection({
             Not installed
             {missingCount > 0 && <span className="badge">{missingCount}</span>}
           </button>
+          {refreshToolAvailability && (
+            <button
+              className="registry-refresh-btn"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              title="Refresh tool availability"
+            >
+              <RefreshCw size={12} className={refreshing ? 'spin' : ''} />
+              Refresh
+            </button>
+          )}
         </div>
         <div className="cat-tabs">
           {categories.map(category => (

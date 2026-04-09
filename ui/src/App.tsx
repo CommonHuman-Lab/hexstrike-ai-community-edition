@@ -176,6 +176,17 @@ export default function App() {
     }
   }, [])
 
+  const refreshToolAvailability = useCallback(async () => {
+    if (demo) return;
+    try {
+      await api.refreshToolAvailability();
+      // Refresh health to get updated status
+      await fetchAll();
+    } catch (_) {
+      // Ignore errors
+    }
+  }, [demo, fetchAll]);
+
   useEffect(() => {
     if (demo || !authed) return;
     (async () => {
@@ -398,6 +409,7 @@ export default function App() {
           tools={tools}
           health={health}
           toolsStatusWithParents={toolsStatusWithParents}
+          refreshToolAvailability={refreshToolAvailability}
           runHistory={runHistory}
           setRunHistory={setRunHistory}
           fetchServerRunHistory={fetchServerRunHistory}

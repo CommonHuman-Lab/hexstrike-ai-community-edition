@@ -25,6 +25,7 @@ interface MainContentProps {
   tools: Tool[]
   health: WebDashboardResponse | null
   toolsStatusWithParents: Record<string, boolean>
+  refreshToolAvailability?: () => Promise<void>
   runHistory: RunHistoryEntry[]
   setRunHistory: Dispatch<SetStateAction<RunHistoryEntry[]>>
   fetchServerRunHistory: () => Promise<void>
@@ -53,6 +54,7 @@ export function MainContent({
   tools,
   health,
   toolsStatusWithParents,
+  refreshToolAvailability,
   runHistory,
   setRunHistory,
   fetchServerRunHistory,
@@ -92,7 +94,7 @@ export function MainContent({
       )}
       {page === 'tasks' && <TasksPage demoData={demo ? { processes: DEMO_PROCESSES } : undefined} />}
       {page === 'tools' && health && (
-        <ToolsPage health={health} tools={tools} toolsStatus={toolsStatusWithParents} />
+        <ToolsPage health={health} tools={tools} toolsStatus={toolsStatusWithParents} refreshToolAvailability={refreshToolAvailability} />
       )}
       {page === 'reports' && <ReportsPage runHistory={runHistory} />}
       {page === 'sessions' && <SessionsPage demoData={demo ? { sessions: DEMO_SESSIONS } : undefined} onOpenSession={openSessionDetail} />}

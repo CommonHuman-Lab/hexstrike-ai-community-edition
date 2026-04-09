@@ -15,9 +15,13 @@ from server_core.modern_visual_engine import ModernVisualEngine
 from server_core.singletons import cache, telemetry
 
 from server_core.tool_constants import (
-    BUILT_IN_TOOLS, REQUIRE_DPKG_CHECK, REQUIRE_PIP_CHECK,
-    REQUIRE_GEM_CHECK, REQUIRE_CARGO_CHECK, BINARY_NAME_OVERRIDES,
-    HEALTH_TOOL_CATEGORIES
+    BUILT_IN_TOOLS,
+    REQUIRE_DPKG_CHECK,
+    REQUIRE_PIP_CHECK,
+    REQUIRE_GEM_CHECK,
+    REQUIRE_CARGO_CHECK,
+    BINARY_NAME_OVERRIDES,
+    HEALTH_TOOL_CATEGORIES,
 )
 
 logger = logging.getLogger(__name__)
@@ -30,13 +34,16 @@ api_system_monitoring_bp = Blueprint("api_system_monitoring", __name__)
 _tool_availability_cache: Dict[str, bool] = {}
 _tool_availability_lock = threading.Lock()
 _tool_availability_last_refresh: float = 0.0
+_last_refresh_request: float = 0.0  # Timestamp of last manual refresh request
+_refresh_request_lock = (
+    threading.Lock()
+)  # Protect concurrent access to _last_refresh_request
 
 # Precompute the flat list of all tools at module load
-ALL_TOOLS_FLAT = list({
-    tool
-    for tools in HEALTH_TOOL_CATEGORIES.values()
-    for tool in tools
-})
+ALL_TOOLS_FLAT = list(
+    {tool for tools in HEALTH_TOOL_CATEGORIES.values() for tool in tools}
+)
+
 
 def _refresh_tool_availability() -> None:
     """Probe all tools with `which` in parallel and update the module-level cache."""
@@ -105,10 +112,12 @@ def _refresh_tool_availability() -> None:
 
     installed = sorted(t for t, ok in results.items() if ok)
     missing = sorted(t for t, ok in results.items() if not ok)
-    GREEN = ModernVisualEngine.COLORS['MATRIX_GREEN']
-    RED = ModernVisualEngine.COLORS['HACKER_RED']
-    RESET = ModernVisualEngine.COLORS['RESET']
-    lines = ["Tool availability refreshed: %d/%d available" % (len(installed), len(results))]
+    GREEN = ModernVisualEngine.COLORS["MATRIX_GREEN"]
+    RED = ModernVisualEngine.COLORS["HACKER_RED"]
+    RESET = ModernVisualEngine.COLORS["RESET"]
+    lines = [
+        "Tool availability refreshed: %d/%d available" % (len(installed), len(results))
+    ]
     for tool in installed:
         lines.append("%s  %-30s installed%s" % (GREEN, tool, RESET))
     for tool in missing:
@@ -120,7 +129,9 @@ def _get_tool_availability() -> Dict[str, bool]:
     """Return cached tool availability, refreshing in a background thread if stale."""
     now = time.time()
     with _tool_availability_lock:
-        stale = (now - _tool_availability_last_refresh) > config_core.get("TOOL_AVAILABILITY_TTL", 3600)
+        stale = (now - _tool_availability_last_refresh) > config_core.get(
+            "TOOL_AVAILABILITY_TTL", 3600
+        )
         empty = not _tool_availability_cache
 
     if empty:
@@ -135,13 +146,16 @@ def _get_tool_availability() -> Dict[str, bool]:
         output_status[tool] = True
     return output_status
 
+
 @api_system_monitoring_bp.route("/health", methods=["GET"])
 def health_check():
     """Health check endpoint with comprehensive tool detection"""
     tools_status = _get_tool_availability()
 
     essential_tools = HEALTH_TOOL_CATEGORIES["essential"]
-    all_essential_tools_available = all(tools_status.get(t, False) for t in essential_tools)
+    all_essential_tools_available = all(
+        tools_status.get(t, False) for t in essential_tools
+    )
 
     category_stats = {
         cat: {
@@ -153,29 +167,37 @@ def health_check():
 
     all_tools_count = len(tools_status)
 
-    return jsonify({
-        "status": "healthy",
-        "message": "HexStrike AI Tools API Server is operational",
-        "version": config_core.get("VERSION", "unknown"),
-        "tools_status": tools_status,
-        "all_essential_tools_available": all_essential_tools_available,
-        "total_tools_available": sum(1 for available in tools_status.values() if available),
-        "total_tools_count": all_tools_count,
-        "category_stats": category_stats,
-        "cache_stats": cache.get_stats(),
-        "telemetry": telemetry.get_stats(),
-        "uptime": time.time() - telemetry.stats["start_time"],
-        "tool_availability_age_seconds": round(time.time() - _tool_availability_last_refresh, 1),
-    })
+    return jsonify(
+        {
+            "status": "healthy",
+            "message": "HexStrike AI Tools API Server is operational",
+            "version": config_core.get("VERSION", "unknown"),
+            "tools_status": tools_status,
+            "all_essential_tools_available": all_essential_tools_available,
+            "total_tools_available": sum(
+                1 for available in tools_status.values() if available
+            ),
+            "total_tools_count": all_tools_count,
+            "category_stats": category_stats,
+            "cache_stats": cache.get_stats(),
+            "telemetry": telemetry.get_stats(),
+            "uptime": time.time() - telemetry.stats["start_time"],
+            "tool_availability_age_seconds": round(
+                time.time() - _tool_availability_last_refresh, 1
+            ),
+        }
+    )
 
 
 @api_system_monitoring_bp.route("/ping", methods=["GET"])
 def ping():
-    return jsonify({
-        "success": True,
-        "message": "Pong! HexStrike AI Tools API Server is responsive",
-        "timestamp": datetime.now().isoformat()
-    })
+    return jsonify(
+        {
+            "success": True,
+            "message": "Pong! HexStrike AI Tools API Server is responsive",
+            "timestamp": datetime.now().isoformat(),
+        }
+    )
 
 
 @api_system_monitoring_bp.route("/api/command", methods=["POST"])
@@ -189,18 +211,14 @@ def generic_command():
 
         if not command:
             logger.warning("Command endpoint called without command parameter")
-            return jsonify({
-                "error": "Command parameter is required"
-            }), 400
+            return jsonify({"error": "Command parameter is required"}), 400
 
         result = execute_command(command, use_cache=use_cache, timeout=timeout)
         return jsonify(result)
     except Exception as e:
         logger.error(f"Error in command endpoint: {str(e)}")
         logger.error(traceback.format_exc())
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 
 @api_system_monitoring_bp.route("/api/cache/stats", methods=["GET"])
@@ -222,9 +240,60 @@ def get_telemetry():
     """Get system telemetry"""
     return jsonify(telemetry.get_stats())
 
+
 @api_system_monitoring_bp.route("/api/tools/categories", methods=["GET"])
 def get_tool_categories():
     """Get the list of tool categories and their tools"""
-    return jsonify({
-        "categories": HEALTH_TOOL_CATEGORIES
-    })
+    return jsonify({"categories": HEALTH_TOOL_CATEGORIES})
+
+
+@api_system_monitoring_bp.route("/api/tools/refresh-availability", methods=["POST"])
+def refresh_tool_availability():
+    """Manually trigger tool availability refresh and return updated status"""
+    global _last_refresh_request
+
+    cooldown = config_core.get("TOOL_REFRESH_COOLDOWN", 30)
+    now = time.time()
+
+    # Protect against concurrent refresh requests bypassing cooldown
+    with _refresh_request_lock:
+        if now - _last_refresh_request < cooldown:
+            remaining = cooldown - (now - _last_refresh_request)
+            return jsonify(
+                {
+                    "success": False,
+                    "error": f"Too many refresh requests. Please wait {remaining:.0f} seconds.",
+                    "cooldown_remaining": remaining,
+                }
+            ), 429
+        _last_refresh_request = now
+    _refresh_tool_availability()
+
+    with _tool_availability_lock:
+        tools_status = dict(_tool_availability_cache)
+    for tool in BUILT_IN_TOOLS:
+        tools_status[tool] = True
+
+    # Compute category statistics
+    category_stats = {
+        cat: {
+            "total": len(tools),
+            "available": sum(1 for t in tools if tools_status.get(t, False)),
+        }
+        for cat, tools in HEALTH_TOOL_CATEGORIES.items()
+    }
+
+    total_tools_count = len(tools_status)
+    total_tools_available = sum(1 for available in tools_status.values() if available)
+
+    return jsonify(
+        {
+            "success": True,
+            "tools_status": tools_status,
+            "category_stats": category_stats,
+            "total_tools_available": total_tools_available,
+            "total_tools_count": total_tools_count,
+            "message": "Tool availability refreshed",
+            "refreshed_at": now,
+        }
+    )

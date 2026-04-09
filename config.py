@@ -28,10 +28,10 @@ _config = {
     "CACHE_SIZE": 1000,
     "CACHE_TTL": 3600,  # 1 hour
     "TOOL_AVAILABILITY_TTL": 3600,  # 1 hour
+    "TOOL_REFRESH_COOLDOWN": 30,  # seconds
     "DEFAULT_HEXSTRIKE_SERVER": "http://127.0.0.1:8888",
     "MAX_RETRIES": 3,
     "WORD_LISTS": {
-
         # --- Password Lists ---
         "rockyou": {
             "path": "/usr/share/wordlists/rockyou.txt",
@@ -43,7 +43,7 @@ _config = {
             "speed": "slow",
             "language": "en",
             "coverage": "broad",
-            "format": "txt"
+            "format": "txt",
         },
         "john": {
             "path": "/usr/share/wordlists/john.lst",
@@ -55,9 +55,8 @@ _config = {
             "speed": "fast",
             "language": "en",
             "coverage": "focused",
-            "format": "lst"
+            "format": "lst",
         },
-
         # --- Directory Lists ---
         "common_dirb": {
             "path": "/usr/share/wordlists/dirb/common.txt",
@@ -69,7 +68,7 @@ _config = {
             "speed": "medium",
             "language": "en",
             "coverage": "broad",
-            "format": "txt"
+            "format": "txt",
         },
         "big_dirb": {
             "path": "/usr/share/wordlists/dirb/big.txt",
@@ -81,7 +80,7 @@ _config = {
             "speed": "slow",
             "language": "en",
             "coverage": "broad",
-            "format": "txt"
+            "format": "txt",
         },
         "small_dirb": {
             "path": "/usr/share/wordlists/dirb/small.txt",
@@ -93,7 +92,7 @@ _config = {
             "speed": "fast",
             "language": "en",
             "coverage": "focused",
-            "format": "txt"
+            "format": "txt",
         },
         "common_dirsearch": {
             "path": "/usr/share/wordlists/dirsearch/common.txt",
@@ -105,7 +104,7 @@ _config = {
             "speed": "medium",
             "language": "en",
             "coverage": "focused",
-            "format": "txt"
-        }
-    }
+            "format": "txt",
+        },
+    },
 }

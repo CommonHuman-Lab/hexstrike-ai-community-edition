@@ -26,6 +26,7 @@ import type {
   ToolCategoriesResponse,
   ToolExecResponse,
   ToolsCatalogResponse,
+  ToolRefreshAvailabilityResponse,
   UpdateSessionPayload,
   WebDashboardResponse,
   WordlistEntry,
@@ -39,6 +40,7 @@ export const api = {
 
   tools: () => get<ToolsCatalogResponse>('/api/tools'),
   getToolCategories: () => get<ToolCategoriesResponse>('/api/tools/categories'),
+  refreshToolAvailability: () => post<ToolRefreshAvailabilityResponse>('/api/tools/refresh-availability', {}),
 
   getSettings: () => get<SettingsResponse>('/api/settings'),
   patchSettings: (runtime: Partial<Settings['runtime']>) =>

@@ -817,6 +817,32 @@
   color: var(--red);
 }
 
+.registry-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  margin-left: 8px;
+}
+
+.registry-refresh-btn:hover:not(:disabled) {
+  color: var(--text-h);
+  border-color: var(--text-dim);
+}
+
+.registry-refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .search-input {
   background: var(--bg-card2);
   border: 1px solid var(--border);
