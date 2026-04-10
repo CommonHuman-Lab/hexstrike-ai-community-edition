@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-HexStrike AI MCP Client - Enhanced AI Agent Communication Interface
+NyxStrike MCP Client - Enhanced AI Agent Communication Interface
 
 Enhanced with AI-Powered Intelligence & Automation
 🚀 Bug Bounty | CTF | Red Team | Security Research
 
-Architecture: MCP Client for AI agent communication with HexStrike server
+Architecture: MCP Client for AI agent communication with NyxStrike server
 Framework: FastMCP integration for tool orchestration
 """
 

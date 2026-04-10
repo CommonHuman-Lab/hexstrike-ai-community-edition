@@ -1,13 +1,13 @@
 import pytest
 
 from server_core.singletons import decision_engine
-from hexstrike_server import app
+from nyxstrike_server import app
 
 
 @pytest.fixture(scope="module")
 def client():
     app.config["TESTING"] = True
-    app.config["HEXSTRIKE_API_TOKEN"] = None
+    app.config["NYXSTRIKE_API_TOKEN"] = None
     with app.test_client() as c:
         yield c
 

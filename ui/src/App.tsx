@@ -22,7 +22,7 @@ import { CommandPalette } from './components/CommandPalette'
 import './App.css'
 
 const POLL_MS = 10_000
-const PALETTE_HINT_SEEN_KEY = 'hexstrike_palette_hint_seen'
+const PALETTE_HINT_SEEN_KEY = 'nyxstrike_palette_hint_seen'
 
 export default function App() {
   const [demo] = useState(isDemoMode)
@@ -100,7 +100,7 @@ export default function App() {
   })
   const [reduceTextureEffects, setReduceTextureEffects] = useState<boolean>(() => {
     try {
-      return localStorage.getItem('hexstrike_reduce_texture_effects') === '1'
+      return localStorage.getItem('nyxstrike_reduce_texture_effects') === '1'
     } catch {
       return false
     }
@@ -115,7 +115,7 @@ export default function App() {
     }
     try {
       localStorage.setItem(THEME_STORAGE_KEY, themeId)
-      localStorage.setItem('hexstrike_reduce_texture_effects', reduceTextureEffects ? '1' : '0')
+      localStorage.setItem('nyxstrike_reduce_texture_effects', reduceTextureEffects ? '1' : '0')
     } catch { /* ignored */ }
   }, [themeId, reduceTextureEffects])
 

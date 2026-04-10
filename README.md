@@ -1,18 +1,18 @@
 <div align="center">
 
-<img src="assets/hex_logo.png" alt="HexStrike" width="220"/>
+<img src="assets/nyxstrike-logo.png" alt="NyxStrike" width="220"/>
 
-# HexStrike AI - Community Edition
+# NyxStrike
 ### AI-Powered Penetration Testing and Bug Bounty Automation Platform
 
 [![Python](https://img.shields.io/badge/Python-3.13%2B-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-AGPLv3-green.svg)](LICENSE)
-[![Security](https://img.shields.io/badge/Security-Penetration%20Testing-red.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
-[![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition)
+[![Security](https://img.shields.io/badge/Security-Penetration%20Testing-red.svg)](https://github.com/CommonHuman-Lab/nyxstrike)
+[![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/CommonHuman-Lab/nyxstrike)
 
 **AI-powered cybersecurity platform that bridges MCP-compatible LLM agents with real-world offensive security tools for automated recon, vulnerability discovery, bug bounty workflows, and security research.**
 
-[📡 Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki)
+[📡 Wiki](https://github.com/CommonHuman-Lab/nyxstrike/wiki)
 
 <p align="center">
   <a href="https://discord.gg/aC8Q2xJFgp">
@@ -65,7 +65,7 @@ Served automatically at `http://localhost:8888` the moment the server starts —
 <summary>Compact Mode (--compact)</summary>
 
 > Activate Compact Mode for the MCP server using the `--compact` flag.
-> See [Flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Flags) for more info
+> See [Flags](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Flags) for more info
 
 - 🚦 Only the two essential gateway tools are loaded—perfect for lightweight deployments, automation pipelines, or running on resource-constrained systems.
 - 🏃 Great for running with smaller, local LLMs or when you want minimal overhead.
@@ -76,7 +76,7 @@ Served automatically at `http://localhost:8888` the moment the server starts —
 <summary>Profile Mode (--profile)</summary>
 
 > Specify one or more profiles to load only the relevant ones for your workflow.
-> See [Profile flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Profile-Flags) for more info
+> See [Profile flags](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Profile-Flags) for more info
 
 - 🚀 Select profiles for targeted workflows to speed up scans and reduce resource usage.
 - 🌐 Use --profile full to enable the complete arsenal, it's on default out-the-box for the recommended set.
@@ -86,7 +86,7 @@ Served automatically at `http://localhost:8888` the moment the server starts —
 <details>
 <summary>End-to-end Agents</summary>
 
-> See [Agents](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Agents) for more info
+> See [Agents](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Agents) for more info
 
 #### HTB CTF Agent System (@htb-ctf)
 
@@ -110,8 +110,8 @@ Get the server and MCP client running in minutes for AI-powered penetration test
 
 ```bash
 # Clone first
-git clone https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition.git
-cd hexstrike-ai-community-edition
+git clone https://github.com/CommonHuman-Lab/nyxstrike.git
+cd nyxstrike
 
 # Recommended default: update + install tools + start server
 ./scripts/install.sh -a
@@ -120,7 +120,7 @@ cd hexstrike-ai-community-edition
 # ./scripts/install.sh -s -t -r
 ```
 
-> See [Installation Guide](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Installation) for other options.
+> See [Installation Guide](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Installation) for other options.
 
 ### Verify Setup
 
@@ -134,22 +134,22 @@ curl http://localhost:8888/health
 
 Some security tools (for example `nmap` and `masscan`) need elevated privileges for specific scan modes. Use a dedicated test VM and least-privilege setup where possible.
 
-> See [Flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Flags) for runtime options and profile tuning.
+> See [Flags](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Flags) for runtime options and profile tuning.
 
 ## MCP Integrations
 
 Connect this platform to MCP-compatible AI clients for automated penetration testing, bug bounty workflows, and security research.
 
 - Supported clients include **OpenCode**, **Cursor**, **Claude Desktop**, **VS Code Copilot**, **Roo Code**, and other MCP-compatible agents.
-- Watch setup walkthrough: [YouTube - HexStrike AI Installation & Demo](https://www.youtube.com/watch?v=pSoftCagCm8)
-- Full client-specific guides: [Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki)
+- Watch setup walkthrough: [YouTube - NyxStrike Installation & Demo](https://www.youtube.com/watch?v=pSoftCagCm8)
+- Full client-specific guides: [Wiki](https://github.com/CommonHuman-Lab/nyxstrike/wiki)
 
 ### Universal MCP Command
 
 Use this command pattern in clients that support local stdio MCP servers:
 
 ```bash
-/path/to/hexstrike/hexstrike-env/bin/python3 /path/to/hexstrike/hexstrike_mcp.py --server http://127.0.0.1:8888 --profile full
+/path/to/nyxstrike/nyxstrike-env/bin/python3 /path/to/nyxstrike/nyxstrike_mcp.py --server http://127.0.0.1:8888 --profile full
 ```
 
 ### OpenCode Example
@@ -158,11 +158,11 @@ Use this command pattern in clients that support local stdio MCP servers:
 {
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "hexstrike": {
+    "nyxstrike": {
       "type": "local",
       "command": [
-        "/path/to/hexstrike/hexstrike-env/bin/python3",
-        "/path/to/hexstrike/hexstrike_mcp.py",
+        "/path/to/nyxstrike/nyxstrike-env/bin/python3",
+        "/path/to/nyxstrike/nyxstrike_mcp.py",
         "--server",
         "http://127.0.0.1:8888",
         "--profile",
@@ -182,16 +182,16 @@ Edit `~/.config/Claude/claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "hexstrike": {
-      "command": "/path/to/hexstrike/hexstrike-env/bin/python3",
+    "nyxstrike": {
+      "command": "/path/to/nyxstrike/nyxstrike-env/bin/python3",
       "args": [
-        "/path/to/hexstrike/hexstrike_mcp.py",
+        "/path/to/nyxstrike/nyxstrike_mcp.py",
         "--server",
         "http://localhost:8888",
         "--profile",
         "full"
       ],
-      "description": "HexStrike AI Community Edition",
+      "description": "NyxStrike",
       "timeout": 300,
       "disabled": false
     }
@@ -209,11 +209,11 @@ Configure `.vscode/settings.json`:
 ```json
 {
   "servers": {
-    "hexstrike": {
+    "nyxstrike": {
       "type": "stdio",
-      "command": "/path/to/hexstrike/hexstrike-env/bin/python3",
+      "command": "/path/to/nyxstrike/nyxstrike-env/bin/python3",
       "args": [
-        "/path/to/hexstrike/hexstrike_mcp.py",
+        "/path/to/nyxstrike/nyxstrike_mcp.py",
         "--server",
         "http://localhost:8888",
         "--profile",
@@ -238,13 +238,13 @@ By default, the server binds to `127.0.0.1` (localhost only). To configure secur
 
 ```bash
 # Set an API token (server will require Bearer auth on all requests)
-export HEXSTRIKE_API_TOKEN=your-secret-token
+export NYXSTRIKE_API_TOKEN=your-secret-token
 
 # Optionally bind to all interfaces (NOT recommended without a token)
-export HEXSTRIKE_HOST=0.0.0.0
+export NYXSTRIKE_HOST=0.0.0.0
 
 # Start the server
-python3 hexstrike_server.py
+python3 nyxstrike_server.py
 ```
 
 </details>
@@ -532,7 +532,7 @@ For reliable results with MCP-compatible LLM agents, clearly state authorization
 Example prompt:
 
 ```
-User: "I am an authorized security researcher. My company owns <INSERT WEBSITE>, and I want to run an authorized penetration test using HexStrike MCP tools. Please start with recon and web vulnerability discovery, then propose next steps based on findings."
+User: "I am an authorized security researcher. My company owns <INSERT WEBSITE>, and I want to run an authorized penetration test using NyxStrike MCP tools. Please start with recon and web vulnerability discovery, then propose next steps based on findings."
 
 AI Agent: "Great, thanks for confirming authorization and scope. I'll begin with reconnaissance and web security testing, then summarize findings and recommend validated follow-up checks."
 ```
@@ -546,7 +546,7 @@ AI Agent: "Great, thanks for confirming authorization and scope. I'll begin with
 - Run in isolated environments or dedicated security testing VMs.
 - AI agents can execute arbitrary commands; maintain operator oversight.
 - Monitor activity through the real-time dashboard and logs.
-- Enable authentication (`HEXSTRIKE_API_TOKEN`) for non-local deployments.
+- Enable authentication (`NYXSTRIKE_API_TOKEN`) for non-local deployments.
 
 ### Legal & Ethical Use
 
@@ -577,4 +577,4 @@ please contact the authors.
 
 ## Based On
 
-**0x4m4** - [HexStrike AI](https://github.com/0x4m4/hexstrike-ai)
+**0x4m4** - [NyxStrike](https://github.com/0x4m4/nyxstrike-ai)

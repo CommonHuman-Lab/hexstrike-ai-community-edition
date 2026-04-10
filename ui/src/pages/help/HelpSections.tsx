@@ -3,10 +3,10 @@ import { CodeBlock } from '../../components/CodeBlock'
 import type { IdeConfig } from './ideConfigs'
 
 const MCP_FLAGS: Array<[string, string, string]> = [
-  ['--server URL', 'HexStrike server URL', 'http://127.0.0.1:8888'],
+  ['--server URL', 'NyxStrike server URL', 'http://127.0.0.1:8888'],
   ['--profile PROFILE', 'Tool profile(s) to load', 'full  |  web_recon  |  exploit_framework  |  …'],
   ['--compact', 'Load only classify_task + run_tool — ideal for small/local LLMs', '—'],
-  ['--auth-token TOKEN', 'Bearer token if HEXSTRIKE_API_TOKEN is set on the server', '—'],
+  ['--auth-token TOKEN', 'Bearer token if NYXSTRIKE_API_TOKEN is set on the server', '—'],
   ['--timeout SECS', 'Request timeout in seconds', '300'],
   ['--debug', 'Enable verbose debug logging', '—'],
   ['--disable-ssl-verify', 'Skip SSL verification (reverse proxy setups)', '—'],
@@ -39,7 +39,7 @@ export function IdeConfigSection({
           className="search-input mono help-path-input"
           value={installPath}
           onChange={e => setInstallPath(e.target.value)}
-          placeholder="/path/to/hexstrike-ai-community-edition"
+          placeholder="/path/to/nyxstrike"
         />
         {pathDetected && <span className="help-path-detected">Detected from server</span>}
       </div>
@@ -90,11 +90,11 @@ export function AuthenticationSection() {
     <section className="section">
       <div className="section-header"><h3>Authentication</h3></div>
       <p className="help-body">
-        If you set <code>HEXSTRIKE_API_TOKEN</code> on the server, every request must carry a Bearer token.
+        If you set <code>NYXSTRIKE_API_TOKEN</code> on the server, every request must carry a Bearer token.
         Pass it to the MCP client with <code>--auth-token</code>, or set it in the IDE config under <code>args</code>.
         The dashboard will prompt for it automatically when the server returns 401.
       </p>
-      <CodeBlock language="bash" code={`# Server side\nexport HEXSTRIKE_API_TOKEN=your-secret-token\npython3 hexstrike_server.py\n\n# MCP client side\nhexstrike-env/bin/python3 hexstrike_mcp.py \\\n+  --server http://localhost:8888 \\\n+  --auth-token your-secret-token \\\n+  --profile full`} />
+      <CodeBlock language="bash" code={`# Server side\nexport NYXSTRIKE_API_TOKEN=your-secret-token\npython3 nyxstrike_server.py\n\n# MCP client side\nnyxstrike-env/bin/python3 nyxstrike_mcp.py \\\n+  --server http://localhost:8888 \\\n+  --auth-token your-secret-token \\\n+  --profile full`} />
     </section>
   )
 }

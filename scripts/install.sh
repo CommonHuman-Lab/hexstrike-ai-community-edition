@@ -13,7 +13,7 @@ set -euo pipefail
 #   bash scripts/install.sh -y
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VENV_DIR="${ROOT_DIR}/hexstrike-env"
+VENV_DIR="${ROOT_DIR}/nyxstrike-env"
 PYTHON_BIN="python3"
 GIT_TOOLS_DIR="${ROOT_DIR}/git_tools"
 INSTALL_TOOLS=false
@@ -176,7 +176,7 @@ setup_git_repo() {
     return
   fi
 
-  stamp_file="${repo_dir}/.hexstrike_setup_$(basename "${requirements_rel}").stamp"
+  stamp_file="${repo_dir}/.app_setup_$(basename "${requirements_rel}").stamp"
   if [[ -f "${stamp_file}" && "${stamp_file}" -nt "${requirements_file}" ]]; then
     echo "Repo already prepared, skipping: ${repo_name}"
     return
@@ -214,7 +214,7 @@ install_requirements_file() {
   local stamp_file=""
 
   requirements_name="$(basename "${requirements_file}")"
-  stamp_file="${VENV_DIR}/.hexstrike_python_deps_${requirements_name}.stamp"
+  stamp_file="${VENV_DIR}/.app_python_deps_${requirements_name}.stamp"
 
   if [[ "${UPDATE_PYTHON_PACKAGES}" != true && -f "${stamp_file}" && "${stamp_file}" -nt "${requirements_file}" ]]; then
     return
@@ -306,7 +306,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     -h|--help)
-      echo "HexStrike install"
+      echo "NyxStrike install"
       echo ""
       echo "Options:"
       echo "  -a, --all               Shortcut for -s -t -r"

@@ -1,8 +1,8 @@
 __pycache__
 *.pyc
-hexstrike.log
+nyxstrike.log
 app.log
-.hexstrike_data/
+.nyxstrike_data/
 node_modules/
 git_tools/
 

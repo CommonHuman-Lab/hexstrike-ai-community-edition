@@ -1,9 +1,9 @@
-# Global configuration for HexStrike AI Community Edition
+# Global configuration for NyxStrike
 
 _config = {
-    "APP_NAME": "HexStrike AI Community Edition",
+    "APP_NAME": "NyxStrike",
     "VERSION": "1.4.0",
-    "DATA_DIR_NAME": ".hexstrike_data",  # Root data directory name (relative to cwd, override with HEXSTRIKE_DATA_DIR env var)
+    "DATA_DIR_NAME": ".nyxstrike_data",  # Root data directory name (relative to cwd, override with NYXSTRIKE_DATA_DIR env var)
     "COMMAND_TIMEOUT": 500,
     "REQUEST_TIMEOUT": 0,
     "COMMAND_INACTIVITY_TIMEOUT": 900,

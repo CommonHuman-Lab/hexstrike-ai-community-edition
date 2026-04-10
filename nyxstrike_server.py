@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-HexStrike AI - Advanced Penetration Testing Framework Server
+NyxStrike - Advanced Penetration Testing Framework Server
 
 Enhanced with AI-Powered Intelligence & Automation
 🚀 Bug Bounty | CTF | Red Team | Security Research
@@ -33,9 +33,9 @@ app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
 
 # API Configuration
-API_PORT = int(os.environ.get('HEXSTRIKE_PORT', 8888))
-API_HOST = os.environ.get('HEXSTRIKE_HOST', '127.0.0.1')  # e.g. export HEXSTRIKE_HOST=0.0.0.0
-API_TOKEN = os.environ.get("HEXSTRIKE_API_TOKEN", None)  # e.g. export API_TOKEN=secret-token
+API_PORT = int(os.environ.get('NYXSTRIKE_PORT', 8888))
+API_HOST = os.environ.get('NYXSTRIKE_HOST', '127.0.0.1')  # e.g. export NYXSTRIKE_HOST=0.0.0.0
+API_TOKEN = os.environ.get("NYXSTRIKE_API_TOKEN", None)  # e.g. export API_TOKEN=secret-token
 
 # Configuration
 DEBUG_MODE = os.environ.get("DEBUG_MODE", "0").lower() in ("1", "true", "yes", "y")
@@ -162,10 +162,10 @@ if __name__ == "__main__":
         BANNER = ModernVisualEngine.create_banner()
         print(BANNER)
 
-    parser = argparse.ArgumentParser(description="Run the HexStrike AI API Server")
+    parser = argparse.ArgumentParser(description="Run the NyxStrike API Server")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
-    parser.add_argument("--port", type=int, default=API_PORT, help=f"Port for the API server (default: {API_PORT}) i.e export HEXSTRIKE_PORT=8888")
-    parser.add_argument("--host", type=str, default=API_HOST, help=f"Host for the API server (default: {API_HOST}) i.e export HEXSTRIKE_HOST=0.0.0.0")
+    parser.add_argument("--port", type=int, default=API_PORT, help=f"Port for the API server (default: {API_PORT}) i.e export NYXSTRIKE_PORT=8888")
+    parser.add_argument("--host", type=str, default=API_HOST, help=f"Host for the API server (default: {API_HOST}) i.e export NYXSTRIKE_HOST=0.0.0.0")
 
     args = parser.parse_args()
 

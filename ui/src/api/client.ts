@@ -1,4 +1,4 @@
-let token: string | null = sessionStorage.getItem('hexstrike_token');
+let token: string | null = sessionStorage.getItem('nyxstrike_token');
 
 function withAuthHeaders(headers: HeadersInit = {}): Headers {
   const merged = new Headers(headers);
@@ -53,12 +53,12 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 
 export function setToken(value: string) {
   token = value;
-  sessionStorage.setItem('hexstrike_token', value);
+  sessionStorage.setItem('nyxstrike_token', value);
 }
 
 export function clearToken() {
   token = null;
-  sessionStorage.removeItem('hexstrike_token');
+  sessionStorage.removeItem('nyxstrike_token');
 }
 
 export function hasToken(): boolean {

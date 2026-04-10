@@ -54,7 +54,7 @@ export function ServerEnvironmentSection({ settings }: { settings: Settings }) {
         <SettingsRow label="Port" value={String(settings.server.port)} mono />
         <SettingsRow
           label="Auth Enabled"
-          value={settings.server.auth_enabled ? 'Yes (HEXSTRIKE_API_TOKEN set)' : 'No'}
+          value={settings.server.auth_enabled ? 'Yes (NYXSTRIKE_API_TOKEN set)' : 'No'}
           accent={settings.server.auth_enabled ? 'var(--green)' : 'var(--amber)'}
         />
         <SettingsRow
@@ -66,8 +66,8 @@ export function ServerEnvironmentSection({ settings }: { settings: Settings }) {
       </div>
       <p className="settings-hint">
         Change these by setting environment variables before starting the server:
-        <code> HEXSTRIKE_HOST</code>, <code>HEXSTRIKE_PORT</code>, <code>HEXSTRIKE_API_TOKEN</code>,
-        <code> DEBUG_MODE</code>, <code>HEXSTRIKE_DATA_DIR</code>.
+        <code> NYXSTRIKE_HOST</code>, <code>NYXSTRIKE_PORT</code>, <code>NYXSTRIKE_API_TOKEN</code>,
+        <code> DEBUG_MODE</code>, <code>NYXSTRIKE_DATA_DIR</code>.
       </p>
     </section>
   )

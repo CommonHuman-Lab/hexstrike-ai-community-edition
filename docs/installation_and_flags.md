@@ -1,6 +1,6 @@
 # Installation and Install Script Flags
 
-Quick guide for setting up HexStrike AI Community Edition and using all installer flags.
+Quick guide for setting up NyxStrike and using all installer flags.
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ bash scripts/install.sh
 
 This will:
 
-1. Create `hexstrike-env` if missing
+1. Create `nyxstrike-env` if missing
 2. Install Python dependencies from `requirements.txt`
 3. Skip external tool installation by default
 4. Skip git tool repository sync by default
@@ -34,7 +34,7 @@ Python requirement installs are stamp-based for speed:
 
 Stamp files are stored in the venv, e.g.:
 
-- `hexstrike-env/.hexstrike_python_deps_requirements.txt.stamp`
+- `nyxstrike-env/.nyxstrike_python_deps_requirements.txt.stamp`
 
 ## Flags (All Options)
 

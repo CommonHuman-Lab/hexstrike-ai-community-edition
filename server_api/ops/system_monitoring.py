@@ -154,7 +154,7 @@ def health_check():
 
     return jsonify({
         "status": "healthy",
-        "message": "HexStrike AI Tools API Server is operational",
+        "message": "NyxStrike Tools API Server is operational",
         "version": config_core.get("VERSION", "unknown"),
         "tools_status": tools_status,
         "all_essential_tools_available": all_essential_tools_available,
@@ -172,7 +172,7 @@ def health_check():
 def ping():
     return jsonify({
         "success": True,
-        "message": "Pong! HexStrike AI Tools API Server is responsive",
+        "message": "Pong! NyxStrike Tools API Server is responsive",
         "timestamp": datetime.now().isoformat()
     })
 

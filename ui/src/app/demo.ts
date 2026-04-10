@@ -9,14 +9,14 @@ import type { RunHistoryEntry, HistoryPoint } from '../shared/types'
 
 export function isDemoMode(): boolean {
   if (new URLSearchParams(window.location.search).get('demo') === '1') {
-    sessionStorage.setItem('hexstrike_demo', '1')
+    sessionStorage.setItem('nyxstrike_demo', '1')
     return true
   }
-  return sessionStorage.getItem('hexstrike_demo') === '1'
+  return sessionStorage.getItem('nyxstrike_demo') === '1'
 }
 
 export function exitDemo() {
-  sessionStorage.removeItem('hexstrike_demo')
+  sessionStorage.removeItem('nyxstrike_demo')
 }
 
 // ── Tools catalog — mirrors tool_registry.py exactly ─────────────────────────
@@ -118,13 +118,13 @@ export const DEMO_TOOLS: Tool[] = [
   { name: 'radare2',       desc: 'Binary analysis and disassembly',                                       category: 'binary', endpoint: '/api/tools/radare2',       method: 'POST', params: { file: r() },       optional: { commands: '', additional_args: '' },                                                                                              effectiveness: 0.88 },
   { name: 'gdb',           desc: 'GNU debugger — dynamic binary analysis and exploit dev',                category: 'binary', endpoint: '/api/tools/gdb',           method: 'POST', params: { binary: r() },     optional: { commands: '', script_file: '', additional_args: '' },                                                                             effectiveness: 0.88 },
   { name: 'angr',          desc: 'Binary analysis framework — symbolic execution, CFG, static analysis', category: 'binary', endpoint: '/api/tools/angr',          method: 'POST', params: { binary: r() },     optional: { script_content: '', find_address: '', avoid_addresses: '', analysis_type: 'symbolic', additional_args: '' },                     effectiveness: 0.85 },
-  { name: 'ghidra',        desc: 'NSA reverse engineering suite — decompile and analyse binaries',        category: 'binary', endpoint: '/api/tools/ghidra',        method: 'POST', params: { binary: r() },     optional: { project_name: 'hexstrike_analysis', script_file: '', analysis_timeout: 300, output_format: 'xml', additional_args: '' },         effectiveness: 0.90 },
+  { name: 'ghidra',        desc: 'NSA reverse engineering suite — decompile and analyse binaries',        category: 'binary', endpoint: '/api/tools/ghidra',        method: 'POST', params: { binary: r() },     optional: { project_name: 'nyxstrike_analysis', script_file: '', analysis_timeout: 300, output_format: 'xml', additional_args: '' },         effectiveness: 0.90 },
   { name: 'objdump',       desc: 'Disassemble and inspect object files and binaries',                     category: 'binary', endpoint: '/api/tools/objdump',       method: 'POST', params: { binary: r() },     optional: { disassemble: true, additional_args: '' },                                                                                         effectiveness: 0.78 },
   { name: 'one-gadget',    desc: 'Find one-gadget RCE offsets in libc',                                   category: 'binary', endpoint: '/api/tools/one-gadget',    method: 'POST', params: { libc_path: r() }, optional: { level: 1, additional_args: '' },                                                                                                  effectiveness: 0.87 },
   { name: 'ropper',        desc: 'ROP/JOP gadget finder with quality filtering',                          category: 'binary', endpoint: '/api/tools/ropper',        method: 'POST', params: { binary: r() },     optional: { gadget_type: 'rop', quality: 1, arch: '', search_string: '', additional_args: '' },                                              effectiveness: 0.84 },
   { name: 'libc-database', desc: 'Look up libc version by symbol offsets',                                category: 'binary', endpoint: '/api/tools/libc-database', method: 'POST', params: { symbols: r() },   optional: { action: 'find', libc_id: '', additional_args: '' },                                                                              effectiveness: 0.80 },
   { name: 'xxd',           desc: 'Hex dump a file with optional offset and length',                       category: 'binary', endpoint: '/api/tools/xxd',           method: 'POST', params: { file_path: r() }, optional: { offset: '0', length: '', additional_args: '' },                                                                                  effectiveness: 0.70 },
-  { name: 'autopsy',       desc: 'Digital forensics platform — disk image analysis',                      category: 'binary', endpoint: '/api/tools/binary_analysis/autopsy', method: 'POST', params: { image_path: r() }, optional: { case_name: 'hexstrike_case', additional_args: '' },                                                               effectiveness: 0.82 },
+  { name: 'autopsy',       desc: 'Digital forensics platform — disk image analysis',                      category: 'binary', endpoint: '/api/tools/binary_analysis/autopsy', method: 'POST', params: { image_path: r() }, optional: { case_name: 'nyxstrike_case', additional_args: '' },                                                               effectiveness: 0.82 },
 
   // ── Cloud ──
   { name: 'prowler',              desc: 'AWS/Azure/GCP security audit',                                                  category: 'cloud', endpoint: '/api/tools/prowler',              method: 'POST', params: {},             optional: { provider: 'aws', profile: 'default', region: '', checks: '', additional_args: '' },                                                                    effectiveness: 0.90 },
@@ -308,7 +308,7 @@ export const DEMO_RUN_HISTORY: RunHistoryEntry[] = [
 // ── Log lines ─────────────────────────────────────────────────────────────────
 
 export const DEMO_LOG_LINES: string[] = [
-  '2026-03-21 09:01:02 INFO  [server] HexStrike v1.4.2 starting on 127.0.0.1:8888',
+  '2026-03-21 09:01:02 INFO  [server] NyxStrike v1.4.2 starting on 127.0.0.1:8888',
   `2026-03-21 09:01:03 INFO  [tools] Tool availability scan complete: ${DEMO_TOOLS.length}/${DEMO_TOOLS.length} available`,
   '2026-03-21 09:01:03 INFO  [cache] LRU cache initialised (size=512, ttl=300s)',
   '2026-03-21 09:03:11 INFO  [run] nmap target=10.0.0.1 → success (3.21s)',

@@ -1,8 +1,10 @@
 import os
 from typing import Dict, Any
 
-API_PORT = int(os.environ.get('HEXSTRIKE_PORT', 8888))
-API_HOST = os.environ.get('HEXSTRIKE_HOST', '127.0.0.1')
+from termcolor import RESET
+
+API_PORT = int(os.environ.get('NYXSTRIKE_PORT', 8888))
+API_HOST = os.environ.get('NYXSTRIKE_HOST', '127.0.0.1')
 
 class ModernVisualEngine:
     """Beautiful, modern output formatting with animations and colors"""
@@ -82,12 +84,12 @@ class ModernVisualEngine:
         MATRIX_GREEN = ModernVisualEngine.COLORS['MATRIX_GREEN']
         title_block = f"{accent}{MATRIX_GREEN}"
         banner = f"""{title_block}
-██╗  ██╗███████╗██╗  ██╗███████╗████████╗██████╗ ██╗██╗  ██╗███████╗
-██║  ██║██╔════╝╚██╗██╔╝██╔════╝╚══██╔══╝██╔══██╗██║██║ ██╔╝██╔════╝
-███████║█████╗   ╚███╔╝ ███████╗   ██║   ██████╔╝██║█████╔╝ █████╗
-██╔══██║██╔══╝   ██╔██╗ ╚════██║   ██║   ██╔══██╗██║██╔═██╗ ██╔══╝
-██║  ██║███████╗██╔╝ ██╗███████║   ██║   ██║  ██║██║██║  ██╗███████╗
-╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚══════╝{RESET}"""
+███╗   ██╗██╗   ██╗██╗  ██╗███████╗████████╗██████╗ ██╗██╗  ██╗███████╗
+████╗  ██║╚██╗ ██╔╝╚██╗██╔╝██╔════╝╚══██╔══╝██╔══██╗██║██║ ██╔╝██╔════╝
+██╔██╗ ██║ ╚████╔╝  ╚███╔╝ ███████╗   ██║   ██████╔╝██║█████╔╝ █████╗
+██║╚██╗██║  ╚██╔╝   ██╔██╗ ╚════██║   ██║   ██╔══██╗██║██╔═██╗ ██╔══╝
+██║ ╚████║   ██║   ██╔╝ ██╗███████║   ██║   ██║  ██║██║██║  ██╗███████╗
+╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚══════╝{RESET}"""
         return banner
 
     @staticmethod
@@ -169,7 +171,7 @@ class ModernVisualEngine:
         if not processes:
             return f"""
 {ModernVisualEngine.COLORS['PRIMARY_BORDER']}╭─────────────────────────────────────────────────────────────────────────────╮
-│ {ModernVisualEngine.COLORS['ACCENT_LINE']}📊 HEXSTRIKE LIVE DASHBOARD{ModernVisualEngine.COLORS['PRIMARY_BORDER']}                                           │
+│ {ModernVisualEngine.COLORS['ACCENT_LINE']}📊 NYXSTRIKE LIVE DASHBOARD{ModernVisualEngine.COLORS['PRIMARY_BORDER']}                                           │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ {ModernVisualEngine.COLORS['TERMINAL_GRAY']}No active processes currently running{ModernVisualEngine.COLORS['PRIMARY_BORDER']}                                    │
 ╰─────────────────────────────────────────────────────────────────────────────╯{ModernVisualEngine.COLORS['RESET']}
@@ -177,7 +179,7 @@ class ModernVisualEngine:
 
         dashboard_lines = [
             f"{ModernVisualEngine.COLORS['PRIMARY_BORDER']}╭─────────────────────────────────────────────────────────────────────────────╮",
-            f"│ {ModernVisualEngine.COLORS['ACCENT_LINE']}📊 HEXSTRIKE LIVE DASHBOARD{ModernVisualEngine.COLORS['PRIMARY_BORDER']}                                           │",
+            f"│ {ModernVisualEngine.COLORS['ACCENT_LINE']}📊 NYXSTRIKE LIVE DASHBOARD{ModernVisualEngine.COLORS['PRIMARY_BORDER']}                                           │",
             f"├─────────────────────────────────────────────────────────────────────────────┤"
         ]
 

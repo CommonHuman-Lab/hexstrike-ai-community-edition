@@ -7,7 +7,7 @@ set -euo pipefail
 #   bash scripts/run.sh --server --mcp
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VENV_DIR="${ROOT_DIR}/hexstrike-env"
+VENV_DIR="${ROOT_DIR}/nyxstrike-env"
 RUN_SERVER=false
 RUN_MCP=false
 SERVER_URL="http://127.0.0.1:8888"
@@ -32,11 +32,11 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     -h|--help)
-      echo "HexStrike run"
+      echo "NyxStrike run"
       echo ""
       echo "Options:"
-      echo "  --server             Start hexstrike_server.py"
-      echo "  --mcp                Start hexstrike_mcp.py"
+      echo "  --server             Start nyxstrike_server.py"
+      echo "  --mcp                Start nyxstrike_mcp.py"
       echo "  --server-url <url>   MCP target server URL (default: ${SERVER_URL})"
       echo "  --profile <name>     MCP profile (default: ${PROFILE})"
       exit 0
@@ -66,7 +66,7 @@ fi
 
 if [[ "${RUN_SERVER}" == true && "${RUN_MCP}" == true ]]; then
   echo "Starting API server in background..."
-  "${VENV_DIR}/bin/python3" "${ROOT_DIR}/hexstrike_server.py" &
+  "${VENV_DIR}/bin/python3" "${ROOT_DIR}/nyxstrike_server.py" &
   server_pid=$!
 
   cleanup() {
@@ -75,12 +75,12 @@ if [[ "${RUN_SERVER}" == true && "${RUN_MCP}" == true ]]; then
   trap cleanup EXIT
 
   echo "Starting MCP client..."
-  "${VENV_DIR}/bin/python3" "${ROOT_DIR}/hexstrike_mcp.py" --server "${SERVER_URL}" --profile "${PROFILE}"
+  "${VENV_DIR}/bin/python3" "${ROOT_DIR}/nyxstrike_mcp.py" --server "${SERVER_URL}" --profile "${PROFILE}"
   exit 0
 fi
 
 if [[ "${RUN_SERVER}" == true ]]; then
-  exec "${VENV_DIR}/bin/python3" "${ROOT_DIR}/hexstrike_server.py"
+  exec "${VENV_DIR}/bin/python3" "${ROOT_DIR}/nyxstrike_server.py"
 fi
 
-exec "${VENV_DIR}/bin/python3" "${ROOT_DIR}/hexstrike_mcp.py" --server "${SERVER_URL}" --profile "${PROFILE}"
+exec "${VENV_DIR}/bin/python3" "${ROOT_DIR}/nyxstrike_mcp.py" --server "${SERVER_URL}" --profile "${PROFILE}"

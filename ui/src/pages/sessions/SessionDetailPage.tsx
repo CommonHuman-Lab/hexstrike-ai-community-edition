@@ -61,7 +61,7 @@ export default function SessionDetailPage({
 
   const toolMap = useMemo(() => Object.fromEntries(tools.map(t => [t.name, t])), [tools])
   const steps = session ? normalizeStepsFromSession(session) : []
-  const prefStorageKey = `hexstrike:chain-prefs:${sessionId}`
+  const prefStorageKey = `nyxstrike:chain-prefs:${sessionId}`
 
   useEffect(() => {
     try {

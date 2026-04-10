@@ -211,7 +211,7 @@ export function TopBar({
         primaryLabel="Open GitHub"
         secondaryLabel="Close"
         onPrimary={() => {
-          window.open('https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition', '_blank', 'noopener,noreferrer')
+          window.open('https://github.com/CommonHuman-Lab/nyxstrike', '_blank', 'noopener,noreferrer')
         }}
         onSecondary={() => setUpdateModalOpen(false)}
         onClose={() => setUpdateModalOpen(false)}
@@ -230,7 +230,7 @@ export function TopBar({
             </button>
           </div>
         </div>
-        <p className="modal-desc">Run <span className="mono">git pull</span> in your project folder, then restart HexStrike.</p>
+        <p className="modal-desc">Run <span className="mono">git pull</span> in your project folder, then restart NyxStrike.</p>
       </InformationModal>
 
       <InformationModal
@@ -277,9 +277,9 @@ export function TopBar({
           <span
             className="brand-text"
             title={`Version: ${health?.version ?? 'unknown'}`}
-            aria-label={`HexStrike CE version ${health?.version ?? 'unknown'}`}
+            aria-label={`NyxStrike version ${health?.version ?? 'unknown'}`}
           >
-            HexStrike CE
+            NyxStrike
           </span>
           {health?.update?.update_available && (
             <button
@@ -348,7 +348,7 @@ export function TopBar({
         )}
         <a
           className="icon-btn topbar-link-btn topbar-action-desktop"
-          href="https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition"
+          href="https://github.com/CommonHuman-Lab/nyxstrike"
           target="_blank"
           rel="noreferrer"
           title="View on GitHub"
@@ -415,7 +415,7 @@ export function TopBar({
           <button
             className="quick-actions-item"
             onClick={() => {
-              window.open('https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition', '_blank', 'noopener,noreferrer')
+              window.open('https://github.com/CommonHuman-Lab/nyxstrike', '_blank', 'noopener,noreferrer')
               setQuickActionsOpen(false)
             }}
             title="Open GitHub"
