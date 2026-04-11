@@ -34,7 +34,7 @@ export default function App() {
 
   function setPage(p: Page) {
     if (p === 'session-detail') return
-    window.location.hash = p === 'dashboard' ? '' : `/${p}`
+    window.location.hash = `/${p === 'dashboard' ? '' : p}`
     setPageState(p)
     setActiveSessionId(null)
   }
