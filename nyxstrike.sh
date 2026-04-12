@@ -52,6 +52,62 @@ DO_SETUP=false
 # External tools to install
 # Format: "apt_package:expected_binary"
 APT_PACKAGES=(
+  "aircrack-ng:aircrack-ng",
+  "amass:amass",
+  "arjun:arjun",
+  "arp-scan:arp-scan",
+  "autopsy:autopsy",
+  "binutils:binutils",
+  "binwalk:binwalk",
+  "bulk-extractor:bulk-extractor",
+  "bettercap:bettercap",
+  "checksec:checksec",
+  "dirb:dirb",
+  "dirsearch:dirsearch",
+  "enum4linux:enum4linux",
+  "enum4linux-ng:enum4linux-ng",
+  "eaphammer:eaphammer",
+  "feroxbuster:feroxbuster",
+  "ffuf:ffuf",
+  "file:file",
+  "foremost:foremost",
+  "gdb:gdb",
+  "gobuster:gobuster",
+  "hashcat:hashcat",
+  "hashcat-utils:hashcat-utils",
+  "hashid:hashid",
+  "hydra:hydra",
+  "john:john",
+  "kismet:kismet",
+  "masscan:masscan",
+  "mdk4:mdk4",
+  "medusa:medusa",
+  "nbtscan:nbtscan",
+  "nikto:nikto",
+  "nmap:nmap",
+  "ophcrack:ophcrack",
+  "paramspider:paramspider",
+  "patator:patator",
+  "radare2:radare2",
+  "responder:responder",
+  "scalpel:scalpel",
+  "sleuthkit:sleuthkit",
+  "smbmap:smbmap",
+  "sqlmap:sqlmap",
+  "steghide:steghide",
+  "subfinder:subfinder",
+  "tcpdump:tcpdump",
+  "testdisk:testdisk",
+  "tshark:tshark",
+  "wireshark:wireshark",
+  "wpscan:wpscan",
+  "xxd:xxd",
+  "python3-ldapdomaindump:python3-ldapdomaindump",
+  "commix:commix",
+  "theharvester:theharvester",
+  "sublist3r:sublist3r",
+  "parsero:parsero",
+  "joomscan:joomscan"
 )
 
 # Format: "go_module@version:expected_binary"
@@ -133,8 +189,6 @@ install_external_tools() {
       if [[ ${#apt_to_install[@]} -gt 0 ]]; then
         echo "Installing apt packages: ${apt_to_install[*]}"
         sudo apt install -y -qq "${apt_to_install[@]}"
-      else
-        echo "No missing apt packages to install."
       fi
     fi
   fi
