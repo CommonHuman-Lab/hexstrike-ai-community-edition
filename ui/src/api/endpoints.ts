@@ -16,6 +16,7 @@ import type {
   ProcessDashboardResponse,
   ProcessListResponse,
   RunHistoryResponse,
+  RunHistorySummaryResponse,
   SessionDeleteResponse,
   SessionDetailResponse,
   SessionHandoverResponse,
@@ -57,6 +58,9 @@ export const api = {
 
   runHistory: (limit?: number) =>
     get<RunHistoryResponse>(`/api/runs/history${limit ? `?limit=${limit}` : ''}`),
+  /** Lightweight fetch — id, tool, timestamp, success, execution_time only (no stdout/stderr/params). */
+  runHistorySummary: (limit?: number) =>
+    get<RunHistorySummaryResponse>(`/api/runs/history/summary${limit ? `?limit=${limit}` : ''}`),
   clearRunHistory: () => post<{ success: boolean }>('/api/runs/clear'),
   runTool: (endpoint: string, params: Record<string, unknown>) =>
     postWithTimeout<ToolExecResponse>(endpoint, params, 86400),

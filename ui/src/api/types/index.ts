@@ -24,6 +24,8 @@ export type {
 export type {
   RunHistoryEntry,
   RunHistoryResponse,
+  RunHistorySummaryEntry,
+  RunHistorySummaryResponse,
   ToolExecResponse,
 } from './runs';
 

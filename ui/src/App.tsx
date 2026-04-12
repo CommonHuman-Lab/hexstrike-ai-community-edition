@@ -4,6 +4,7 @@ import {
   api, hasToken,
   type WebDashboardResponse, type Tool, type ToolExecResponse,
   type RunHistoryEntry as ApiRunHistoryEntry,
+  type RunHistorySummaryEntry,
 } from './api'
 import {
   isDemoMode, exitDemo,
@@ -201,19 +202,57 @@ export default function App() {
   }, [demo, authed]);
 
 
+  /** Lightweight: fetches only id/tool/timestamp/success — used on mount and periodic refresh.
+   * Keeps the dashboard KPI count accurate without pulling stdout/stderr/params.
+   */
+  const fetchRunHistorySummary = useCallback(async () => {
+    if (demo) return
+    try {
+      const r = await api.runHistorySummary()
+      if (!r.success) return
+      setRunHistory(prev => {
+        const existingServerIds = new Set(prev.filter(e => e.source === 'server').map(e => e.serverId))
+        const newEntries: RunHistoryEntry[] = (r.runs as RunHistorySummaryEntry[])
+          .filter(e => !existingServerIds.has(e.id))
+          .map(e => ({
+            id: -(e.id),
+            serverId: e.id,
+            source: 'server' as const,
+            tool: e.tool,
+            params: {},
+            ts: e.timestamp ? new Date(e.timestamp) : new Date(),
+            result: {
+              stdout: '',
+              stderr: '',
+              return_code: 0,
+              success: e.success,
+              timed_out: false,
+              partial_results: false,
+              execution_time: e.execution_time,
+              timestamp: e.timestamp,
+            },
+          }))
+        if (newEntries.length === 0) return prev
+        const merged = [...prev, ...newEntries].sort((a, b) => b.ts.getTime() - a.ts.getTime())
+        return merged
+      })
+    } catch { /* non-critical */ }
+  }, [demo])
+
+  /** Full fetch: includes stdout/stderr/params — called explicitly from the RunPage refresh button. */
   const fetchServerRunHistory = useCallback(async () => {
     if (demo) return
     try {
       const r = await api.runHistory()
       if (!r.success) return
       setRunHistory(prev => {
-        const existingServerIds = new Set(prev.filter(e => e.source === 'server').map(e => e.serverId))
-        const newEntries: RunHistoryEntry[] = r.runs
+        // Replace all server entries with the full payload.
+        const browserEntries = prev.filter(e => e.source !== 'server')
+        const fullEntries: RunHistoryEntry[] = r.runs
           .filter((e: ApiRunHistoryEntry) => {
-            if (existingServerIds.has(e.id)) return false
             // Skip server entries that match a local browser run (same tool, within 10s)
             const serverTs = e.timestamp ? new Date(e.timestamp).getTime() : 0
-            return !prev.some(local =>
+            return !browserEntries.some(local =>
               local.source === 'browser' &&
               local.tool === e.tool &&
               serverTs > 0 &&
@@ -238,12 +277,11 @@ export default function App() {
               timestamp: e.timestamp,
             },
           }))
-        if (newEntries.length === 0) return prev
-        const merged = [...prev, ...newEntries].sort((a, b) => b.ts.getTime() - a.ts.getTime())
+        const merged = [...browserEntries, ...fullEntries].sort((a, b) => b.ts.getTime() - a.ts.getTime())
         return merged
       })
     } catch { /* non-critical */ }
-  }, [])
+  }, [demo])
 
   const clearServerRunHistory = useCallback(async () => {
     if (demo) {
@@ -256,9 +294,10 @@ export default function App() {
 
   useEffect(() => {
     if (demo || !authed) return
-    fetchServerRunHistory().catch(() => {})
-  }, [demo, authed, fetchServerRunHistory])
-
+    // Use the lightweight summary endpoint on mount — no stdout/stderr/params payload.
+    // The full fetch is triggered explicitly from the RunPage refresh button.
+    fetchRunHistorySummary().catch(() => {})
+  }, [demo, authed, fetchRunHistorySummary])
   // Try without token first (skipped in demo)
   useEffect(() => {
     if (demo || hasToken()) return
