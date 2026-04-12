@@ -187,20 +187,50 @@ def web_dashboard():
 # ── Streaming dashboard SSE endpoint ─────────────
 @api_web_dashboard_bp.route("/web-dashboard/stream", methods=["GET"])
 def stream_dashboard():
-    """SSE endpoint — streams the latest dashboard state every 2 seconds"""
+    """SSE endpoint — streams the latest dashboard state every 2 seconds.
+
+    Change detection ignores fields that are volatile every tick (uptime,
+    resources_timestamp) so keepalive comments are sent when nothing meaningful
+    has changed instead of emitting a duplicate data event on every cycle.
+    """
+    # Top-level keys that change every tick regardless of real state changes.
+    # telemetry includes uptime_seconds + system_metrics (network I/O counters,
+    # cpu%, memory%) which are always different; exclude the whole subtree.
+    _VOLATILE_KEYS = {"uptime", "resources_timestamp", "tool_availability_age_seconds", "telemetry"}
+    # Network I/O counters and live CPU/memory metrics inside resources change
+    # every tick; strip them so only disk usage and stable fields drive the diff.
+    _VOLATILE_RESOURCE_KEYS = {
+        "network_bytes_sent", "network_bytes_recv", "timestamp",
+        "cpu_percent", "memory_percent", "memory_available_gb", "memory_used_gb",
+    }
+
+    def _stable_json(d: dict) -> str:
+        """Serialise the dashboard dict without volatile keys for diffing."""
+        stable = {k: v for k, v in d.items() if k not in _VOLATILE_KEYS}
+        if "resources" in stable and isinstance(stable["resources"], dict):
+            stable["resources"] = {
+                k: v for k, v in stable["resources"].items()
+                if k not in _VOLATILE_RESOURCE_KEYS
+            }
+        return json.dumps(stable, separators=(",", ":"), sort_keys=True)
+
     def generate():
-        last_json = None
+        last_stable = None
         while True:
             try:
                 dashboard = build_dashboard_data()
-                js = json.dumps(dashboard, separators=(",", ":"))
-                if js != last_json:
-                    yield f"data: {js}\n\n"
-                    last_json = js
+                stable = _stable_json(dashboard)
+                if stable != last_stable:
+                    yield f"data: {json.dumps(dashboard, separators=(',', ':'))}\n\n"
+                    last_stable = stable
                 else:
-                    # Keepalive if nothing new
                     yield ": keepalive\n\n"
             except Exception as e:
                 yield f"data: {{\"error\": \"{str(e)}\"}}\n\n"
             time.sleep(2)
-    return Response(stream_with_context(generate()), mimetype="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )

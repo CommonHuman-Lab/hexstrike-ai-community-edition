@@ -259,15 +259,24 @@ def stream_process_dashboard():
     """
     SSE endpoint — streams the latest process dashboard state every 2 seconds.
     """
+    _VOLATILE_DASHBOARD_KEYS = {"timestamp", "system_load"}
+
     def generate():
-        last_json = None
+        last_stable = None
         while True:
             try:
                 dashboard = _build_dashboard_payload()
-                js = json.dumps(dashboard, separators=(",", ":"))
-                if js != last_json:
-                    yield f"data: {js}\n\n"
-                    last_json = js
+                # Exclude timestamp and system_load (cpu/mem/connections change
+                # every tick) so a keepalive is sent when process state is
+                # unchanged rather than emitting a duplicate data event.
+                stable = json.dumps(
+                    {k: v for k, v in dashboard.items() if k not in _VOLATILE_DASHBOARD_KEYS},
+                    separators=(",", ":"),
+                    sort_keys=True,
+                )
+                if stable != last_stable:
+                    yield f"data: {json.dumps(dashboard, separators=(',', ':'))}\n\n"
+                    last_stable = stable
                 else:
                     yield ": keepalive\n\n"
             except Exception as e:
@@ -334,15 +343,21 @@ def stream_processes():
     Replaces the dual /api/processes/dashboard/stream +
     /api/process/pool-stats/stream pattern used by the Tasks UI.
     """
+    _VOLATILE_STREAM_KEYS = {"timestamp", "system_load"}
+
     def generate():
-        last_json = None
+        last_stable = None
         while True:
             try:
                 payload = _build_processes_stream_payload()
-                js = json.dumps(payload, separators=(",", ":"))
-                if js != last_json:
-                    yield f"data: {js}\n\n"
-                    last_json = js
+                stable = json.dumps(
+                    {k: v for k, v in payload.items() if k not in _VOLATILE_STREAM_KEYS},
+                    separators=(",", ":"),
+                    sort_keys=True,
+                )
+                if stable != last_stable:
+                    yield f"data: {json.dumps(payload, separators=(',', ':'))}\n\n"
+                    last_stable = stable
                 else:
                     yield ": keepalive\n\n"
             except Exception as e:
