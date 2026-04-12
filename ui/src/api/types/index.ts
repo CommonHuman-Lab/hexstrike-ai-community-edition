@@ -29,7 +29,9 @@ export type {
   PoolStatsResponse,
   ProcessDashboardResponse,
   ProcessEntry,
+  ProcessListEntry,
   ProcessListResponse,
+  ProcessesStreamResponse,
   ProcessSystemLoad,
 } from './processes';
 

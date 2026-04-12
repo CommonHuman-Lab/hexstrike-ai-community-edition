@@ -396,6 +396,52 @@ export default function SessionsPage({ demoData, onOpenSession }: SessionsPagePr
             session_name: recon.session_name,
           },
         })
+      } else if (mode.key === 'ai_profiling') {
+        const profiling = await api.aiProfilingSession(target)
+        if (!profiling.success) throw new Error(profiling.error ?? 'AI Profiling session creation failed')
+        sessionRes = await api.createSession({
+          target,
+          workflow_steps: profiling.steps,
+          source: 'web',
+          objective: 'ai_profiling',
+          metadata: {
+            origin: 'ui/sessions/create',
+            mode: 'ai_profiling',
+            note: noteValue,
+            session_name: profiling.session_name,
+            target_type: profiling.target_type,
+          },
+        })
+      } else if (mode.key === 'ai_vuln') {
+        const vuln = await api.aiVulnSession(target)
+        if (!vuln.success) throw new Error(vuln.error ?? 'AI Vuln Scan session creation failed')
+        sessionRes = await api.createSession({
+          target,
+          workflow_steps: vuln.steps,
+          source: 'web',
+          objective: 'ai_vuln',
+          metadata: {
+            origin: 'ui/sessions/create',
+            mode: 'ai_vuln',
+            note: noteValue,
+            session_name: vuln.session_name,
+          },
+        })
+      } else if (mode.key === 'ai_osint') {
+        const osint = await api.aiOsintSession(target)
+        if (!osint.success) throw new Error(osint.error ?? 'AI OSINT session creation failed')
+        sessionRes = await api.createSession({
+          target,
+          workflow_steps: osint.steps,
+          source: 'web',
+          objective: 'ai_osint',
+          metadata: {
+            origin: 'ui/sessions/create',
+            mode: 'ai_osint',
+            note: noteValue,
+            session_name: osint.session_name,
+          },
+        })
       } else {
         if (mode.key === 'intelligence') {
           const preview = await api.previewAttackChain(target, intelligencePrecision)

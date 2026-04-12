@@ -146,11 +146,13 @@ def record_tool_run(response):
     body = {}
   # Only record responses that look like tool execution results
   if "stdout" in body or "stderr" in body or "return_code" in body:
+    session_id = (params.get("session_id") or "") if isinstance(params, dict) else ""
     run_history.record(
       tool=tool_name,
       endpoint=path,
       params=params,
       result=body,
+      session_id=session_id,
     )
     # A run is "successful" when the tool reported success AND produced output.
     ran_ok = bool(body.get("success", False)) and bool(str(body.get("stdout", "")).strip())

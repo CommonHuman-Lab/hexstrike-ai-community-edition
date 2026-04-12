@@ -64,6 +64,8 @@ export const api = {
   processDashboardStream: (): EventSource => stream('/api/processes/dashboard/stream'),
   processPoolStats: () => get<PoolStatsResponse>('/api/process/pool-stats'),
   processPoolStatsStream: (): EventSource => stream('/api/process/pool-stats/stream'),
+  /** Unified SSE stream: process list + pool stats + system load in one connection. */
+  processesStream: (): EventSource => stream('/api/processes/stream'),
   terminateProcess: (pid: number) => post<ProcessActionResponse>(`/api/processes/terminate/${pid}`),
   pauseProcess: (pid: number) => post<ProcessActionResponse>(`/api/processes/pause/${pid}`),
   resumeProcess: (pid: number) => post<ProcessActionResponse>(`/api/processes/resume/${pid}`),
@@ -103,6 +105,21 @@ export const api = {
   aiReconSession: (target: string) =>
     post<{ success: boolean; steps: AttackChainStep[]; session_name: string; error?: string }>(
       '/api/intelligence/ai-recon-session',
+      { target },
+    ),
+  aiProfilingSession: (target: string) =>
+    post<{ success: boolean; steps: AttackChainStep[]; session_name: string; target_type: string; error?: string }>(
+      '/api/intelligence/ai-profiling-session',
+      { target },
+    ),
+  aiVulnSession: (target: string) =>
+    post<{ success: boolean; steps: AttackChainStep[]; session_name: string; error?: string }>(
+      '/api/intelligence/ai-vuln-session',
+      { target },
+    ),
+  aiOsintSession: (target: string) =>
+    post<{ success: boolean; steps: AttackChainStep[]; session_name: string; error?: string }>(
+      '/api/intelligence/ai-osint-session',
       { target },
     ),
   classifyTask: (description: string) =>

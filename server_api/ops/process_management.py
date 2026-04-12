@@ -9,6 +9,7 @@ from datetime import datetime
 import psutil
 from server_core.process_manager import ProcessManager, AITaskManager
 from server_core.modern_visual_engine import ModernVisualEngine
+from server_core.singletons import enhanced_process_manager
 import logging
 import json
 logger = logging.getLogger(__name__)
@@ -273,3 +274,84 @@ def stream_process_dashboard():
                 yield f"data: {{\"error\": \"{str(e)}\"}}\n\n"
             time.sleep(2)
     return Response(stream_with_context(generate()), mimetype="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+def _build_processes_stream_payload() -> dict:
+    """Build a clean, structured payload combining process list and pool stats.
+
+    Unlike _build_dashboard_payload(), this omits the ASCII visual_dashboard
+    and emits structured data suitable for direct UI consumption.
+    """
+    processes = ProcessManager.list_active_processes()
+    current_time = time.time()
+
+    safe_processes: dict = {}
+    for pid, info in processes.items():
+        _annotate_process(info, now=current_time)
+        safe_processes[str(pid)] = _json_safe_process(info)
+
+    for task_id, info in AITaskManager.list_active_tasks().items():
+        safe_processes[f"ai:{task_id}"] = {
+            "pid": None,
+            "task_id": task_id,
+            "command": info.get("label", "ai_task"),
+            "status": info.get("status", "running"),
+            "start_time": info.get("start_time", current_time),
+            "progress": 0.0,
+            "last_output": "",
+            "bytes_processed": 0,
+            "session_id": info.get("session_id", ""),
+            "ai_task": True,
+        }
+
+    try:
+        pool_stats = enhanced_process_manager.get_comprehensive_stats()
+    except Exception:
+        pool_stats = {}
+
+    return {
+        "success": True,
+        "timestamp": datetime.now().isoformat(),
+        "processes": safe_processes,
+        "total_count": len(safe_processes),
+        "system_load": {
+            "cpu_percent": psutil.cpu_percent(interval=None),
+            "memory_percent": psutil.virtual_memory().percent,
+            "active_connections": len(psutil.net_connections()),
+        },
+        "pool_stats": pool_stats,
+    }
+
+
+@api_process_management_bp.route("/api/processes/stream", methods=["GET"])
+def stream_processes():
+    """SSE endpoint — unified process list + pool stats stream.
+
+    Emits a structured JSON payload every 2 seconds.  Only sends a data event
+    when the payload changes; keepalive comments are sent otherwise so the
+    connection stays open through proxies.
+
+    Replaces the dual /api/processes/dashboard/stream +
+    /api/process/pool-stats/stream pattern used by the Tasks UI.
+    """
+    def generate():
+        last_json = None
+        while True:
+            try:
+                payload = _build_processes_stream_payload()
+                js = json.dumps(payload, separators=(",", ":"))
+                if js != last_json:
+                    yield f"data: {js}\n\n"
+                    last_json = js
+                else:
+                    yield ": keepalive\n\n"
+            except Exception as e:
+                logger.error(f"💥 Error in /api/processes/stream: {e}")
+                yield f"data: {{\"error\": \"{str(e)}\"}}\n\n"
+            time.sleep(2)
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )

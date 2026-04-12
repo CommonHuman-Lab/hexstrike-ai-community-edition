@@ -313,6 +313,10 @@ def register_blueprints(app):
   app.register_blueprint(api_ai_assist_advanced_payload_generation_bp)
   app.register_blueprint(api_ai_assist_llm_agent_bp)
   app.register_blueprint(api_ai_assist_ai_recon_session_bp)
+  app.register_blueprint(api_ai_assist_ai_profiling_session_bp)
+  app.register_blueprint(api_ai_assist_ai_vuln_session_bp)
+  app.register_blueprint(api_ai_assist_ai_osint_session_bp)
+  app.register_blueprint(api_ai_assist_ai_followup_session_bp)
 
   # Tools Catalog
   app.register_blueprint(api_tools_catalog_bp)

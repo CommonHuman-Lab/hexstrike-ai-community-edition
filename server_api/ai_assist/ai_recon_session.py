@@ -16,6 +16,7 @@ Recon tools included:
 
 import logging
 from flask import Blueprint, jsonify, request
+from server_core.session_flow import create_session
 
 logger = logging.getLogger(__name__)
 
@@ -31,10 +32,9 @@ def _build_ai_recon_steps(target: str) -> list:
             "tool": "nmap",
             "parameters": {
                 "target": target,
-                "scan_type": "service",
-                "additional_args": "-sV -sC -T4 --open",
+                "additional_args": "-sV -sC -T4",
             },
-            "expected_outcome": "Open ports, service versions, and basic script results",
+            "expected_outcome": "Service versions, and basic script results",
             "success_probability": 0.95,
             "execution_time_estimate": 60,
             "dependencies": [],
@@ -113,18 +113,19 @@ def ai_recon_session():
     """
     Build a standard AI Recon session for the given target.
 
-    Expects JSON: { "target": "example.com" }
+    Expects JSON: { "target": "example.com", "create_session": false }
 
-    Returns the ordered workflow_steps for the five recon tools
-    (nmap, whois, whatweb, http-headers, dig).
-    The caller is responsible for creating the session via POST /api/sessions.
+    When create_session is true, also persists the session via SessionStore
+    and returns the session_id in the response. The ai_analyze_session step's
+    session_id parameter is back-filled with the real session ID.
 
     Returns:
         {
             "success": true,
             "target": "example.com",
             "session_name": "AI Recon",
-            "steps": [ ... ]
+            "steps": [ ... ],
+            "session_id": "sess_abc123"   # only when create_session=true
         }
     """
     data = request.get_json(force=True, silent=True) or {}
@@ -132,13 +133,35 @@ def ai_recon_session():
     if not target:
         return jsonify({"success": False, "error": "target is required"}), 400
 
-    logger.info("ai_recon_session: building recon pipeline for target=%r", target)
+    want_session = bool(data.get("create_session", False))
+
+    logger.info(
+        "ai_recon_session: building recon pipeline for target=%r create_session=%s",
+        target, want_session,
+    )
 
     steps = _build_ai_recon_steps(target)
 
-    return jsonify({
+    response: dict = {
         "success": True,
         "target": target,
         "session_name": "AI Recon",
         "steps": steps,
-    })
+    }
+
+    if want_session:
+        session_dict = create_session(
+            target=target,
+            steps=steps,
+            source="api",
+            objective="ai-recon",
+        )
+        sid = session_dict["session_id"]
+        # Back-fill the ai_analyze_session step's session_id parameter.
+        for step in steps:
+            if step.get("tool") == "ai_analyze_session":
+                step["parameters"]["session_id"] = sid
+        response["session_id"] = sid
+        response["steps"] = steps
+
+    return jsonify(response)

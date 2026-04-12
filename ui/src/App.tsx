@@ -346,15 +346,40 @@ export default function App() {
   // SSE log stream — only active in logs tab
   useEffect(() => {
     if (demo || page !== 'logs') return
-    const es = api.logStream(150)
-    sseRef.current = es
-    es.onmessage = (e) => {
-      setLogLines(prev => {
-        const next = [...prev, e.data]
-        return next.length > 500 ? next.slice(-500) : next
-      })
+
+    let es: EventSource | null = null
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+    let unmounted = false
+
+    function connect() {
+      if (unmounted) return
+      es = api.logStream(150)
+      sseRef.current = es
+
+      es.onmessage = (e) => {
+        setLogLines(prev => {
+          const next = [...prev, e.data]
+          return next.length > 500 ? next.slice(-500) : next
+        })
+      }
+
+      es.onerror = () => {
+        es?.close()
+        es = null
+        if (!unmounted) {
+          // simple fixed 3 s reconnect — log stream is low-stakes and lazy
+          reconnectTimer = setTimeout(connect, 3_000)
+        }
+      }
     }
-    return () => { es.close() }
+
+    connect()
+
+    return () => {
+      unmounted = true
+      if (reconnectTimer) clearTimeout(reconnectTimer)
+      es?.close()
+    }
   }, [demo, page])
 
   // Auto-scroll log to bottom

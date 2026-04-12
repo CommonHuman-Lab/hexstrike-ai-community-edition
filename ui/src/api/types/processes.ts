@@ -50,3 +50,13 @@ export interface ProcessListResponse {
   active_processes: Record<string, ProcessListEntry>;
   total_count: number;
  }
+
+/** Payload emitted by the unified /api/processes/stream SSE endpoint. */
+export interface ProcessesStreamResponse {
+  success: boolean;
+  timestamp: string;
+  processes: Record<string, ProcessListEntry>;
+  total_count: number;
+  system_load: ProcessSystemLoad;
+  pool_stats: Record<string, unknown>;
+}

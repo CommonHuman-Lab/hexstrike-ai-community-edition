@@ -37,10 +37,11 @@ _VULN_RE = re.compile(
 )
 _RISK_RE = re.compile(r'RISK_LEVEL:\s*(?P<risk>CRITICAL|HIGH|MEDIUM|LOW)', re.IGNORECASE)
 _SUMMARY_RE = re.compile(r'SUMMARY:\s*(?P<text>.+)', re.IGNORECASE | re.DOTALL)
+_NEXT_RE = re.compile(r'NEXT:\s*(?P<tool>[^|\n]+)\s*\|\s*REASON:\s*(?P<reason>[^\n]+)', re.IGNORECASE)
 
 
-def _parse_findings(transcript: str) -> Tuple[List[Dict], str, str]:
-  """Extract vulnerabilities, risk_level, and summary from the LLM response."""
+def _parse_findings(transcript: str) -> Tuple[List[Dict], str, str, List[Dict]]:
+  """Extract vulnerabilities, risk_level, summary, and next_steps from the LLM response."""
   vulns = []
   for m in _VULN_RE.finditer(transcript):
     vulns.append({
@@ -55,10 +56,23 @@ def _parse_findings(transcript: str) -> Tuple[List[Dict], str, str]:
   risk_match = _RISK_RE.search(transcript)
   risk_level = risk_match.group("risk").upper() if risk_match else "UNKNOWN"
 
+  # SUMMARY: must stop before any NEXT: lines — take only the first line of the match
   summary_match = _SUMMARY_RE.search(transcript)
-  summary = summary_match.group("text").strip() if summary_match else ""
+  summary = ""
+  if summary_match:
+    raw = summary_match.group("text").strip()
+    # Trim at the first NEXT: occurrence so it doesn't bleed into next_steps text
+    next_pos = _NEXT_RE.search(raw)
+    summary = raw[:next_pos.start()].strip() if next_pos else raw
 
-  return vulns, risk_level, summary
+  next_steps = []
+  for m in _NEXT_RE.finditer(transcript):
+    next_steps.append({
+      "tool": m.group("tool").strip(),
+      "reason": m.group("reason").strip(),
+    })
+
+  return vulns, risk_level, summary, next_steps
 
 
 # ── Passive session analysis ───────────────────────────────────────────────────
@@ -76,11 +90,14 @@ Output format (emit each applicable line):
   VULN: <name> | SEVERITY: CRITICAL|HIGH|MEDIUM|LOW|INFO | PORT: <port_or_N/A> | SERVICE: <svc_or_N/A> | DESC: <description> | FIX: <remediation>
   RISK_LEVEL: CRITICAL|HIGH|MEDIUM|LOW
   SUMMARY: <one paragraph executive summary>
+  NEXT: <tool_name> | REASON: <short rationale for why this tool should run next>
 
 Rules:
   - Do NOT call any tools.  Only analyse the data provided.
   - Be concise in DESC and FIX fields (max ~200 chars each).
   - Emit RISK_LEVEL and SUMMARY exactly once.
+  - Emit 0–5 NEXT: lines ordered by priority (most important first).
+  - NEXT: tool names must be exact lowercase tool identifiers (e.g. nuclei, sqlmap, dalfox, gobuster, subfinder).
   - If no vulnerabilities are found, emit RISK_LEVEL: LOW and a brief SUMMARY.
 """
 
@@ -115,11 +132,15 @@ def _filter_run_logs(
   tools_executed: List[str],
   target: str,
   created_at_ts: int,
+  session_id: str = "",
 ) -> List[Dict[str, Any]]:
   """
   Return log entries that likely belong to this session.
 
-  Matching criteria (any of the below):
+  Primary strategy (when session_id is known):
+    - Match entries whose stored session_id equals the workflow session_id.
+
+  Fallback heuristic (for old log entries that pre-date session_id tagging):
     - entry timestamp (epoch or ISO) >= session created_at
       AND tool name appears in the session's tools_executed list
     - OR entry params contain the session target string
@@ -128,10 +149,19 @@ def _filter_run_logs(
 
   tools_set = {t.lower() for t in (tools_executed or [])}
   target_lower = (target or "").lower()
+  session_id_clean = (session_id or "").strip()
   matched: List[Dict[str, Any]] = []
 
   for entry in all_logs:
-    # Parse timestamp
+    # Primary match: session_id tag set at record time
+    entry_session_id = (entry.get("session_id") or "").strip()
+    if session_id_clean and entry_session_id:
+      if entry_session_id == session_id_clean:
+        matched.append(entry)
+      # Skip heuristic when both sides have a session_id but they don't match
+      continue
+
+    # Fallback heuristic for entries without session_id tagging
     ts_raw = entry.get("timestamp", "")
     entry_ts: Optional[int] = None
     if ts_raw:
@@ -210,13 +240,16 @@ def analyze_session(
 
   # ── Fetch and filter run logs ─────────────────────────────────────────────────
   all_logs: List[Dict[str, Any]] = run_history.get_all() if run_history else []
-  relevant_logs = _filter_run_logs(all_logs, tools_executed, target, created_at_ts)
+  relevant_logs = _filter_run_logs(
+    all_logs, tools_executed, target, created_at_ts, session_id=session_id
+  )
 
   # ── Build analysis prompt ─────────────────────────────────────────────────────
   llm_session_id = f"llm_{uuid.uuid4().hex[:10]}"
 
   if not relevant_logs:
     tool_data_section = (
+
       "No tool run logs were found for this session. "
       "The tools may not have been executed yet, or the logs may have expired."
     )
@@ -272,7 +305,7 @@ def analyze_session(
     }
 
   # ── Parse findings ────────────────────────────────────────────────────────────
-  vulnerabilities, risk_level, summary = _parse_findings(response)
+  vulnerabilities, risk_level, summary, next_steps = _parse_findings(response)
 
   # ── Persist completion ────────────────────────────────────────────────────────
   if db:
@@ -295,6 +328,7 @@ def analyze_session(
     update_session(session_id, {
       "risk_level": risk_level,
       "total_findings": len(vulnerabilities),
+      "next_steps": next_steps,
     })
   except Exception as _wb_exc:
     logger.warning("analyze_session: failed to write back to session JSON: %s", _wb_exc)
@@ -312,6 +346,11 @@ def analyze_session(
       vuln_lines.append(f"       {desc}")
   vuln_block = "\n".join(vuln_lines) if vuln_lines else "  (none)"
 
+  next_lines = []
+  for i, ns in enumerate(next_steps, 1):
+    next_lines.append(f"  [{i}] {ns.get('tool', '')} — {ns.get('reason', '')}")
+  next_block = "\n".join(next_lines) if next_lines else "  (none)"
+
   stdout = (
     f"Session:       {session_id}\n"
     f"Date:          {completed_at_iso}\n"
@@ -320,6 +359,7 @@ def analyze_session(
     f"Risk level:    {risk_level}\n"
     f"\nSummary:\n  {summary}\n"
     f"\nFindings ({len(vulnerabilities)}):\n{vuln_block}\n"
+    f"\nRecommended next steps ({len(next_steps)}):\n{next_block}\n"
   )
 
   return {
@@ -338,6 +378,7 @@ def analyze_session(
     "risk_level": risk_level,
     "summary": summary,
     "vulnerabilities": vulnerabilities,
+    "next_steps": next_steps,
     "logs_analysed": len(relevant_logs),
     "full_response": response,
   }
