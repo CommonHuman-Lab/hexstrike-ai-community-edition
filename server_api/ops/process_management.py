@@ -226,6 +226,7 @@ def _build_dashboard_payload() -> dict:
             "bytes_processed": 0,
             "last_output": "",
             "ai_task": True,
+            "session_id": info.get("session_id", ""),
         })
 
     total = len(processes) + len(AITaskManager.list_active_tasks())

@@ -129,9 +129,6 @@ export default function SessionDetailPage({
       try {
         const processList = await api.processList()
         const activeEntries = Object.values(processList.active_processes ?? {})
-        // Only restore the running state if there is an active process that belongs
-        // to this session. Checking any-active-process caused false positives when
-        // an unrelated tool was running concurrently.
         const hasSessionProcess = storedRunningStepKey && activeEntries.some(
           p => p.session_id === sessionId
         )
@@ -158,6 +155,78 @@ export default function SessionDetailPage({
     loadSession()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId])
+
+  useEffect(() => {
+    if (!runningStepKey) return
+
+    const clearRunning = (key: string) => {
+      setRunningStepKey(null)
+      setStepState(prev => {
+        if (prev[key] !== 'running') return prev
+        const next = { ...prev }
+        delete next[key]
+        return next
+      })
+    }
+
+    const checkProcesses = (processes: Record<string, { session_id?: string }>) => {
+      const stillRunning = Object.values(processes).some(p => p.session_id === sessionId)
+      if (!stillRunning) clearRunning(runningStepKey)
+    }
+
+    let sseOk = false
+    let pollInterval: ReturnType<typeof setInterval> | null = null
+    let source: EventSource | null = null
+
+    const startPolling = () => {
+      if (pollInterval) return
+      pollInterval = setInterval(async () => {
+        try {
+          const res = await api.processList()
+          checkProcesses(res.active_processes ?? {})
+        } catch {
+          // non-fatal
+        }
+      }, 3000)
+    }
+
+    try {
+      source = api.processDashboardStream()
+
+      // If no message arrives within 4 s, assume SSE is broken and fall back
+      const sseTimeout = setTimeout(() => {
+        if (!sseOk) startPolling()
+      }, 4000)
+
+      source.onmessage = (ev) => {
+        sseOk = true
+        clearTimeout(sseTimeout)
+        try {
+          const data = JSON.parse(ev.data) as { processes?: Array<{ session_id?: string }> }
+          if (!data.processes) return
+          const map: Record<string, { session_id?: string }> = {}
+          data.processes.forEach((p, i) => { map[String(i)] = p })
+          checkProcesses(map)
+        } catch {
+          // malformed frame — ignore
+        }
+      }
+
+      source.onerror = () => {
+        clearTimeout(sseTimeout)
+        source?.close()
+        source = null
+        startPolling()
+      }
+    } catch {
+      startPolling()
+    }
+
+    return () => {
+      source?.close()
+      if (pollInterval) clearInterval(pollInterval)
+    }
+  }, [runningStepKey, sessionId])
 
   async function handoverToLlm() {
     if (!session) return
