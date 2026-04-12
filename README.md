@@ -4,7 +4,7 @@
 
 # NyxStrike
 Formerly known as Hexstrike AI Community Edition
-## AI-Powered Penetration Testing and Bug Bounty Automation Platform
+### AI-Powered Penetration Testing and Bug Bounty Automation Platform
 
 [![Python](https://img.shields.io/badge/Python-3.13%2B-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-AGPLv3-green.svg)](LICENSE)
