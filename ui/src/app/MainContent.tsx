@@ -5,7 +5,7 @@ import type {
   ToolExecResponse,
   WebDashboardResponse,
 } from '../api'
-import type { HistoryPoint, RunHistoryEntry } from '../shared/types'
+import type { RunHistoryEntry } from '../shared/types'
 import type { ThemeId } from './themes'
 import { DashboardPage } from '../pages/dashboard/DashboardPage'
 import { RunPage } from '../pages/run/RunPage'
@@ -44,7 +44,6 @@ interface MainContentProps {
   logEndRef: RefObject<HTMLDivElement | null>
   loading: boolean
   error: string | null
-  history: HistoryPoint[]
   toolCategories: Record<string, string[]>
   themeId: ThemeId
   setThemeId: (theme: ThemeId) => void
@@ -76,7 +75,6 @@ export function MainContent({
   logEndRef,
   loading,
   error,
-  history,
   toolCategories,
   themeId,
   setThemeId,
@@ -147,7 +145,6 @@ export function MainContent({
             <DashboardPage
               health={health}
               tools={tools}
-              history={history}
               runHistory={runHistory}
               loading={loading}
               error={error}

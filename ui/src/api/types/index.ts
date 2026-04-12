@@ -1,6 +1,8 @@
 export type {
   HealthResponse,
+  ResourceUsage,
   ResourceUsageResponse,
+  SystemResourcesResponse,
   WebDashboardResponse,
 } from './dashboard';
 

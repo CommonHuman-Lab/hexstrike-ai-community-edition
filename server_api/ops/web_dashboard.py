@@ -175,6 +175,53 @@ def build_dashboard_data():
       "llm_status": _get_llm_status(),
   }
 
+# ── Dedicated system-resources SSE stream ────────────────────────────────────
+@api_web_dashboard_bp.route("/api/system/resources/stream", methods=["GET"])
+def stream_system_resources():
+    """SSE endpoint — streams current system resource usage every 3 seconds.
+
+    Emits a keepalive comment when stable metrics (disk, memory total) haven't
+    changed so the connection stays open through proxies without wasting bandwidth.
+    The always-changing fields (cpu_percent, memory_percent, network counters) are
+    included in every emitted data event but excluded from change detection so that
+    true disk/tool changes still trigger a real event.
+    """
+    # Fields that fluctuate every sample — exclude from diff, include in payload.
+    _VOLATILE = {"cpu_percent", "memory_percent", "memory_available_gb",
+                 "memory_used_gb", "network_bytes_sent", "network_bytes_recv",
+                 "timestamp"}
+
+    def _stable_key(usage: dict) -> str:
+        return json.dumps(
+            {k: v for k, v in usage.items() if k not in _VOLATILE},
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+
+    def generate():
+        last_stable = None
+        while True:
+            try:
+                usage = enhanced_process_manager.resource_monitor.get_current_usage()
+                ts = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+                payload = {"resources": usage, "resources_timestamp": ts}
+                stable = _stable_key(usage)
+                if stable != last_stable:
+                    yield f"data: {json.dumps(payload, separators=(',', ':'))}\n\n"
+                    last_stable = stable
+                else:
+                    yield ": keepalive\n\n"
+            except Exception as e:
+                yield f"data: {{\"error\": \"{str(e)}\"}}\n\n"
+            time.sleep(3)
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
 @api_web_dashboard_bp.route("/web-dashboard", methods=["GET"])
 def web_dashboard():
   """Combined endpoint for the web dashboard UI — merges health and resource usage data."""
@@ -194,34 +241,40 @@ def stream_dashboard():
     has changed instead of emitting a duplicate data event on every cycle.
     """
     # Top-level keys that change every tick regardless of real state changes.
-    # telemetry includes uptime_seconds + system_metrics (network I/O counters,
-    # cpu%, memory%) which are always different; exclude the whole subtree.
-    _VOLATILE_KEYS = {"uptime", "resources_timestamp", "tool_availability_age_seconds", "telemetry"}
-    # Network I/O counters and live CPU/memory metrics inside resources change
-    # every tick; strip them so only disk usage and stable fields drive the diff.
-    _VOLATILE_RESOURCE_KEYS = {
-        "network_bytes_sent", "network_bytes_recv", "timestamp",
-        "cpu_percent", "memory_percent", "memory_available_gb", "memory_used_gb",
-    }
+    # - uptime: monotonically increasing float
+    # - tool_availability_age_seconds: monotonically increasing float
+    # - telemetry: includes uptime_seconds + system_metrics (network I/O
+    #   counters, cpu%, memory%) which are always different
+    # resources and resources_timestamp are stripped from the stream payload
+    # entirely (served by /api/system/resources/stream instead), so they don't
+    # appear here.
+    _VOLATILE_KEYS = {"uptime", "tool_availability_age_seconds", "telemetry"}
 
     def _stable_json(d: dict) -> str:
-        """Serialise the dashboard dict without volatile keys for diffing."""
+        """Serialise the stream payload without volatile keys for diffing."""
         stable = {k: v for k, v in d.items() if k not in _VOLATILE_KEYS}
-        if "resources" in stable and isinstance(stable["resources"], dict):
-            stable["resources"] = {
-                k: v for k, v in stable["resources"].items()
-                if k not in _VOLATILE_RESOURCE_KEYS
-            }
         return json.dumps(stable, separators=(",", ":"), sort_keys=True)
+
+    def _build_stream_payload(dashboard: dict) -> dict:
+        """Return the dashboard dict with resources fields stripped out.
+
+        resources and resources_timestamp are now served by the dedicated
+        /api/system/resources/stream endpoint.  Removing them here means the
+        /web-dashboard/stream payload is genuinely stable between ticks when
+        nothing tool-related or version-related has changed.
+        """
+        return {k: v for k, v in dashboard.items()
+                if k not in ("resources", "resources_timestamp")}
 
     def generate():
         last_stable = None
         while True:
             try:
                 dashboard = build_dashboard_data()
-                stable = _stable_json(dashboard)
+                payload = _build_stream_payload(dashboard)
+                stable = _stable_json(payload)
                 if stable != last_stable:
-                    yield f"data: {json.dumps(dashboard, separators=(',', ':'))}\n\n"
+                    yield f"data: {json.dumps(payload, separators=(',', ':'))}\n\n"
                     last_stable = stable
                 else:
                     yield ": keepalive\n\n"

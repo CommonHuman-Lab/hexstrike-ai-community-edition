@@ -8,11 +8,10 @@ import {
 import {
   isDemoMode, exitDemo,
   DEMO_HEALTH, DEMO_TOOLS, DEMO_RUN_HISTORY, DEMO_LOG_LINES,
-  demoCpuMemHistory,
 } from './app/demo'
 import { TokenGate } from './components/TokenGate'
 import { ToastProvider } from './components/ToastProvider'
-import type { RunHistoryEntry, HistoryPoint } from './shared/types'
+import type { RunHistoryEntry } from './shared/types'
 
 /** Extract the `Date: <ISO>` line written by analyze-session into stdout. */
 function parseDateFromStdout(stdout: string): Date | null {
@@ -66,7 +65,6 @@ export default function App() {
 
   const [health, setHealth] = useState<WebDashboardResponse | null>(demo ? DEMO_HEALTH : null)
   const [tools, setTools] = useState<Tool[]>(demo ? DEMO_TOOLS : [])
-  const [history, setHistory] = useState<HistoryPoint[]>(demo ? demoCpuMemHistory() : [])
   useEffect(() => {
     if (demo) return
     api.tools().then(r => setTools(r.tools)).catch(() => {})
@@ -176,13 +174,6 @@ export default function App() {
     try {
       const h = await api.dashboard()
       setHealth(h)
-      setHistory(prev => {
-        const next = [
-          ...prev.slice(-29),
-          { t: Date.now(), cpu: h.resources.cpu_percent, mem: h.resources.memory_percent, network_bytes_sent: h.resources.network_bytes_sent, network_bytes_recv: h.resources.network_bytes_recv },
-        ]
-        return next
-      })
       setLastRefresh(new Date())
       setError(null)
     } catch (e: unknown) {
@@ -311,13 +302,6 @@ export default function App() {
       try {
         const h = JSON.parse(e.data)
         setHealth(h)
-        setHistory(prev => {
-          const next = [
-            ...prev.slice(-29),
-            { t: Date.now(), cpu: h.resources.cpu_percent, mem: h.resources.memory_percent, network_bytes_sent: h.resources.network_bytes_sent, network_bytes_recv: h.resources.network_bytes_recv },
-          ]
-          return next
-        })
         setLastRefresh(new Date())
         setLoading(false)
         setError(null)
@@ -464,7 +448,6 @@ export default function App() {
           logEndRef={logEndRef}
           loading={loading}
           error={error}
-          history={history}
           toolCategories={toolCategories}
           themeId={themeId}
           setThemeId={setThemeId}

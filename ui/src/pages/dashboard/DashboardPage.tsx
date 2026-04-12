@@ -1,6 +1,6 @@
 import { XCircle } from 'lucide-react'
 import { type WebDashboardResponse, type Tool } from '../../api'
-import type { HistoryPoint, RunHistoryEntry } from '../../shared/types'
+import type { RunHistoryEntry } from '../../shared/types'
 import { KpiSection } from './KpiSection'
 import { ResourceSection } from './ResourceSection'
 import { ToolAvailabilitySection } from './ToolAvailabilitySection'
@@ -11,14 +11,13 @@ import './DashboardPage.css'
 interface DashboardPageProps {
   health: WebDashboardResponse
   tools: Tool[]
-  history: HistoryPoint[]
   runHistory: RunHistoryEntry[]
   loading: boolean
   error: string | null
   toolCategories: Record<string, string[]>;
 }
 
-export function DashboardPage({ health, tools, history, runHistory, loading, error, toolCategories }: DashboardPageProps) {
+export function DashboardPage({ health, tools, runHistory, loading, error, toolCategories }: DashboardPageProps) {
   return (
     <>
       {loading && !health && (
@@ -35,7 +34,7 @@ export function DashboardPage({ health, tools, history, runHistory, loading, err
       )}
 
       <KpiSection health={health} tools={tools} runHistory={runHistory} />
-      <ResourceSection health={health} history={history} />
+      <ResourceSection />
       <ToolAvailabilitySection health={health} tools={tools} toolCategories={toolCategories} />
 
       <div className="dashboard-signature-wrap">

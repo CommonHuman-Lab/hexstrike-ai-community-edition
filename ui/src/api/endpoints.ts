@@ -40,6 +40,8 @@ type ProcessActionResponse = { success: boolean; message?: string; error?: strin
 export const api = {
   dashboard: () => get<WebDashboardResponse>('/web-dashboard'),
   dashboardStream: (): EventSource => stream('/web-dashboard/stream'),
+  /** Dedicated resource-only SSE stream — connect only on pages that display System Resources. */
+  resourcesStream: (): EventSource => stream('/api/system/resources/stream'),
 
   tools: () => get<ToolsCatalogResponse>('/api/tools'),
   getToolCategories: () => get<ToolCategoriesResponse>('/api/tools/categories'),
