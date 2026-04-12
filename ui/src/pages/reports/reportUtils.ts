@@ -30,7 +30,7 @@ export function groupByDate(entries: RunHistoryEntry[]): Array<{ label: string; 
 
 export function getGroupStats(entries: RunHistoryEntry[]) {
   const ok = entries.filter(e => e.result.success).length
-  const avgTime = entries.reduce((sum, e) => sum + e.result.execution_time, 0) / entries.length
+  const avgTime = entries.reduce((sum, e) => sum + (e.result.execution_time ?? 0), 0) / entries.length
   const last = entries.reduce((a, b) => (a.ts > b.ts ? a : b))
   return { total: entries.length, ok, failed: entries.length - ok, avgTime, last }
 }

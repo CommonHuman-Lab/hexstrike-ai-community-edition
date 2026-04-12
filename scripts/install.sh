@@ -26,6 +26,8 @@ UPDATE_SELF=false
 UPDATE_PYTHON_PACKAGES=false
 PIP_BOOTSTRAPPED=false
 INSTALL_AI_MODEL=false
+AI_SMALL_MODE=false
+AI_LARGE_MODE=false
 
 OLLAMA_MODEL_BASE="huihui_ai/qwen3.5-abliterated:9b"
 OLLAMA_MODEL_NAME="nyxstrike-qwen"
@@ -232,6 +234,40 @@ install_requirements_file() {
   touch "${stamp_file}"
 }
 
+write_model_to_config_local() {
+  local model="$1"
+  local data_dir="${NYXSTRIKE_DATA_DIR:-${ROOT_DIR}/.nyxstrike_data}"
+  local config_file="${NYXSTRIKE_CONFIG_FILE:-${data_dir}/config/config_local.json}"
+  local config_dir
+  config_dir="$(dirname "${config_file}")"
+
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "Warning: python3 not found; could not update config_local.json with model '${model}'."
+    echo "Set NYXSTRIKE_LLM_MODEL=${model} manually in ${config_file}."
+    return
+  fi
+
+  local existing="{}"
+  if [[ -f "${config_file}" ]]; then
+    existing="$(cat "${config_file}")"
+  else
+    mkdir -p "${config_dir}"
+  fi
+
+  # Merge NYXSTRIKE_LLM_MODEL into the existing JSON using python3
+  python3 - "${config_file}" "${model}" "${existing}" <<'PYEOF'
+import sys, json
+config_file, model, existing_json = sys.argv[1], sys.argv[2], sys.argv[3]
+try:
+    data = json.loads(existing_json)
+except Exception:
+    data = {}
+data["NYXSTRIKE_LLM_MODEL"] = model
+with open(config_file, "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2)
+PYEOF
+}
+
 install_ollama_model() {
   if [[ "${INSTALL_AI_MODEL}" != true ]]; then
     return
@@ -255,6 +291,11 @@ install_ollama_model() {
       echo "Failed to pull base model. Skipping AI model creation."
       return
     fi
+  fi
+
+  # If -ai or -ai-small was used, update config_local.json to point at the chosen model
+  if [[ "${AI_SMALL_MODE}" == true || "${AI_LARGE_MODE}" == true ]]; then
+    write_model_to_config_local "${OLLAMA_MODEL_BASE}"
   fi
 
   # # Step 3: check Modelfile exists
@@ -358,12 +399,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     -ai)
       INSTALL_AI_MODEL=true
+      AI_LARGE_MODE=true
       OLLAMA_MODEL_BASE="huihui_ai/qwen3.5-abliterated:9b"
       OLLAMA_MODEL_NAME="nyxstrike-qwen"
       shift
       ;;
     -ai-small)
       INSTALL_AI_MODEL=true
+      AI_SMALL_MODE=true
       OLLAMA_MODEL_BASE="huihui_ai/qwen3.5-abliterated:4b"
       OLLAMA_MODEL_NAME="nyxstrike-qwen"
       shift

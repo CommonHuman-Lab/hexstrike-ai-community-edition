@@ -208,11 +208,6 @@ def analyze_session(
   tools_executed: List[str] = session_dict.get("tools_executed", [])
   created_at_ts: int = int(session_dict.get("created_at", 0) or 0)
 
-  logger.info(
-    "analyze_session: session=%s target=%r tools=%s",
-    session_id, target, tools_executed,
-  )
-
   # ── Fetch and filter run logs ─────────────────────────────────────────────────
   all_logs: List[Dict[str, Any]] = run_history.get_all() if run_history else []
   relevant_logs = _filter_run_logs(all_logs, tools_executed, target, created_at_ts)

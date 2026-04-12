@@ -148,7 +148,7 @@ class AITaskManager:
                 "start_time": time.time(),
                 "status": "running",
             }
-            logger.info("🤖 AI TASK START: %s — %s", task_id, label)
+            logger.info("🤖 AI Task: %s — %s", task_id, label)
 
     @staticmethod
     def unregister_task(task_id: str) -> None:

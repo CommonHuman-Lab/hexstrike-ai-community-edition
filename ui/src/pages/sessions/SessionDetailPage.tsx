@@ -128,8 +128,14 @@ export default function SessionDetailPage({
 
       try {
         const processList = await api.processList()
-        const hasActive = Object.keys(processList.active_processes ?? {}).length > 0
-        if (hasActive && storedRunningStepKey) {
+        const activeEntries = Object.values(processList.active_processes ?? {})
+        // Only restore the running state if there is an active process that belongs
+        // to this session. Checking any-active-process caused false positives when
+        // an unrelated tool was running concurrently.
+        const hasSessionProcess = storedRunningStepKey && activeEntries.some(
+          p => p.session_id === sessionId
+        )
+        if (hasSessionProcess && storedRunningStepKey) {
           hydratedState[storedRunningStepKey] = 'running'
           setRunningStepKey(storedRunningStepKey)
           setStepState({ ...hydratedState })

@@ -8,6 +8,7 @@ import { type RunHistoryEntry } from '../../shared/types'
 import { ReportsBreakdownSection, ReportsTimelineSection } from './ReportsSections'
 import { AiAnalysisSection } from './AiAnalysisSection'
 import { extractTarget, type GroupBy } from './reportUtils'
+import { safeFixed } from '../../shared/utils'
 import './ReportsPage.css'
 
 interface ReportsPageProps {
@@ -64,14 +65,14 @@ export default function ReportsPage({ runHistory }: ReportsPageProps) {
         <StatCard
           icon={<CheckCircle size={20} />}
           label="Success Rate"
-          value={`${((runHistory.filter(e => e.result.success).length / runHistory.length) * 100).toFixed(0)}%`}
+          value={runHistory.length > 0 ? `${((runHistory.filter(e => e.result.success).length / runHistory.length) * 100).toFixed(0)}%` : '—'}
           sub={`${runHistory.filter(e => e.result.success).length} ok · ${runHistory.filter(e => !e.result.success).length} failed`}
           accent="var(--green)"
         />
         <StatCard
           icon={<Clock size={20} />}
           label="Avg Time"
-          value={`${(runHistory.reduce((s, e) => s + e.result.execution_time, 0) / runHistory.length).toFixed(1)}s`}
+          value={`${safeFixed(runHistory.length > 0 ? runHistory.reduce((s, e) => s + (e.result.execution_time ?? 0), 0) / runHistory.length : undefined, 1)}s`}
           sub="per run"
           accent="var(--purple)"
         />

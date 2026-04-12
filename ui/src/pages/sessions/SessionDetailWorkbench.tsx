@@ -3,7 +3,7 @@ import { useEffect, useRef, type Dispatch, type SetStateAction } from 'react'
 import { ParamField } from '../../components/tool-run/ParamField'
 import type { AttackChainStep, Tool, ToolExecResponse } from '../../api'
 import type { RunHistoryEntry } from '../../shared/types'
-import { exportEntry } from '../../shared/utils'
+import { exportEntry, safeFixed } from '../../shared/utils'
 import type { StepState } from './sessionDetailUtils'
 import type { ChainSuggestion } from './sessionDetailUtils'
 import { ActionButton } from '../../components/ActionButton'
@@ -211,7 +211,7 @@ export function SessionDetailWorkbench({
                     <div className="session-chain-suggestion__text">
                       <strong className="mono">Chain hint from {chainSuggestion.sourceTool}</strong>
                       <span>
-                        {chainSuggestion.summary} Confidence {(chainSuggestion.confidence * 100).toFixed(0)}%
+                        {chainSuggestion.summary} Confidence {safeFixed((chainSuggestion.confidence ?? 0) * 100, 0)}%
                       </span>
                       <div className="session-chain-fields">
                         {chainSuggestion.fields.map(field => {
@@ -296,7 +296,7 @@ export function SessionDetailWorkbench({
                   <>
                     <div className="session-result-head">
                       <div className="session-step-result mono">
-                        {resultData.success ? 'OK' : 'FAIL'} | exit {resultData.return_code} | {resultData.execution_time.toFixed(2)}s
+                        {resultData.success ? 'OK' : 'FAIL'} | exit {resultData.return_code} | {safeFixed(resultData.execution_time, 2)}s
                       </div>
                       {selectedStepKey && resultData && (
                         <div className="session-result-actions">

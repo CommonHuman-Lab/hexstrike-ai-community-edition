@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { RunHistoryEntry } from '../../shared/types'
 import { getGroupStats, groupByDate, type GroupBy } from './reportUtils'
+import { safeFixed } from '../../shared/utils'
 
 export function ReportsTimelineSection({
   runHistory,
@@ -27,7 +28,7 @@ export function ReportsTimelineSection({
                 <button
                   key={index}
                   className={`reports-timeline-dot ${entry.result.success ? 'ok' : 'fail'}`}
-                  title={`${entry.tool} — ${entry.ts.toLocaleTimeString('en-GB')} — ${entry.result.success ? 'ok' : 'failed'} (${entry.result.execution_time.toFixed(1)}s)`}
+                  title={`${entry.tool} — ${entry.ts.toLocaleTimeString('en-GB')} — ${entry.result.success ? 'ok' : 'failed'} (${safeFixed(entry.result.execution_time, 1)}s)`}
                   onClick={() => onOpenEntry(entry)}
                 />
               ))}
@@ -114,7 +115,7 @@ export function ReportsBreakdownSection({
                   <span className="mono">{stats.total}</span>
                   <span className="mono" style={{ color: 'var(--green)' }}>{stats.ok}</span>
                   <span className="mono" style={{ color: stats.failed > 0 ? 'var(--red)' : 'var(--text-dim)' }}>{stats.failed}</span>
-                  <span className="mono">{stats.avgTime.toFixed(1)}s</span>
+                  <span className="mono">{safeFixed(stats.avgTime, 1)}s</span>
                   <div className="reports-last-cell">
                     <span className="reports-pct-bar-bg">
                       <span className="reports-pct-bar-fill" style={{ width: `${pct}%`, background: color }} />
@@ -134,7 +135,7 @@ export function ReportsBreakdownSection({
                         <span className="mono reports-run-time">
                           {entry.ts.toLocaleDateString('en-GB')} {entry.ts.toLocaleTimeString('en-GB')}
                         </span>
-                        <span className="mono reports-run-duration">{entry.result.execution_time.toFixed(1)}s</span>
+                        <span className="mono reports-run-duration">{safeFixed(entry.result.execution_time, 1)}s</span>
                         {Object.entries(entry.params).map(([paramKey, paramValue]) => (
                           <span key={paramKey} className="mono reports-run-param">{paramKey}=<em>{String(paramValue)}</em></span>
                         ))}
