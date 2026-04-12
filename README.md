@@ -113,14 +113,14 @@ Get the server and MCP client running in minutes for AI-powered penetration test
 git clone https://github.com/CommonHuman-Lab/nyxstrike.git
 cd nyxstrike
 
-# Base install: update repo + install tools + start server
-./scripts/install.sh -a
+# Start here
+./nyxstrike.sh -a
 
-# Full install with AI model (~8.4 GB RAM required)
-./scripts/install.sh -a -ai
+# With AI model (~8.4 GB RAM required)
+./nyxstrike.sh -a -ai
 
-# Full install with smaller AI model (~2.5 GB RAM, low-spec machines)
-./scripts/install.sh -a -ai-small
+# With smaller AI model (~2.5 GB RAM, low-spec machines)
+./nyxstrike.sh -a -ai-small
 
 ```
 
