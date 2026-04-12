@@ -10,9 +10,9 @@ Framework: FastMCP integration for AI agent communication
 
 import argparse
 import hmac
-import json
 import logging
 import os
+import threading
 from flask import Flask, request, abort, jsonify
 import server_core.config_core as config_core
 from server_core.modern_visual_engine import ModernVisualEngine
@@ -70,6 +70,13 @@ def require_json_for_post():
 
 register_blueprints(app)
 initialize_update_status_check()
+
+# Pre-load the Ollama model in the background so it's ready before the first request.
+def _warm_up_llm() -> None:
+  from server_core.singletons import llm_client
+  llm_client.warm_up()
+
+threading.Thread(target=_warm_up_llm, daemon=True, name="llm-warmup").start()
 
 
 def _build_tool_context_key(path: str, params: dict, body: dict) -> str:

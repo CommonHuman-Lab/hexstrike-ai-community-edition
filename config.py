@@ -33,10 +33,10 @@ _config = {
 
     # ── LLM client ────────────────────────────────────────────────────────────
     "NYXSTRIKE_LLM_PROVIDER": "ollama",                         # ollama | openai | anthropic
-    "NYXSTRIKE_LLM_MODEL":    "huihui_ai/qwen3.5-abliterated:4b",
+    "NYXSTRIKE_LLM_MODEL":    "nyxstrike-qwen",
     "NYXSTRIKE_LLM_URL":      "http://localhost:11434",         # Ollama base URL (ignored for openai/anthropic)
     "NYXSTRIKE_LLM_API_KEY":  "",                               # Required for openai / anthropic
-    "NYXSTRIKE_LLM_TIMEOUT":  300,                              # seconds
+    "NYXSTRIKE_LLM_TIMEOUT":  600,                              # seconds
     "NYXSTRIKE_LLM_MAX_LOOPS": 9,
 
     "WORD_LISTS": {

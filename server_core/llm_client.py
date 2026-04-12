@@ -69,8 +69,6 @@ class OllamaBackend:
       "prompt": prompt,
       "stream": False,
       "options": {
-        "temperature": 0.7,
-        "top_p": 0.9,
         "num_predict": 4096,
       },
     }
@@ -88,7 +86,11 @@ class OllamaBackend:
         "Is the server running? Try: ollama serve"
       )
     except requests.exceptions.Timeout:
-      raise RuntimeError("Ollama request timed out. Model may still be loading.")
+      raise RuntimeError(
+        f"Ollama request timed out after {self._timeout}s. "
+        "The model may still be loading — try again in a moment, or run "
+        "'ollama run nyxstrike-qwen' first to pre-warm it."
+      )
     except requests.exceptions.HTTPError as exc:
       raise RuntimeError(f"Ollama HTTP error: {exc}")
 
@@ -104,6 +106,26 @@ class OllamaBackend:
       return any(m.startswith(self._model) for m in models)
     except Exception:
       return False
+
+  def warm_up(self) -> None:
+    """Send a minimal prompt to pre-load the model into memory.
+
+    Called once at server startup in a background thread so the first real
+    request does not stall waiting for the model to cold-load.
+    """
+    if not self.is_available():
+      logger.warning("Ollama warm-up skipped: model '%s' not available.", self._model)
+      return
+    try:
+      logger.info("Warming up Ollama model '%s'...", self._model)
+      requests.post(
+        self._generate_url,
+        json={"model": self._model, "prompt": "hi", "stream": False, "options": {"num_predict": 1}},
+        timeout=self._timeout,
+      )
+      logger.info("Ollama model '%s' warm-up complete.", self._model)
+    except Exception as exc:
+      logger.warning("Ollama warm-up failed (non-fatal): %s", exc)
 
   @property
   def provider(self) -> str:
@@ -293,6 +315,13 @@ class LLMClient:
       return self._backend.is_available()
     except Exception:
       return False
+
+  def warm_up(self) -> None:
+    """Pre-load the model into memory. No-op for non-Ollama backends."""
+    if self._backend is None:
+      return
+    if hasattr(self._backend, "warm_up"):
+      self._backend.warm_up()
 
   def chat(self, messages: List[Dict[str, Any]], stop: List[str] = []) -> str:
     """Send messages and return the model's response string.

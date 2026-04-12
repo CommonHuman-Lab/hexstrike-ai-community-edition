@@ -11,6 +11,8 @@ set -euo pipefail
 #   bash scripts/install.sh -r
 #   bash scripts/install.sh -a
 #   bash scripts/install.sh -y
+#   bash scripts/install.sh -ai
+#   bash scripts/install.sh -ai-small
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VENV_DIR="${ROOT_DIR}/nyxstrike-env"
@@ -23,6 +25,10 @@ RUN_AFTER_INSTALL=false
 UPDATE_SELF=false
 UPDATE_PYTHON_PACKAGES=false
 PIP_BOOTSTRAPPED=false
+INSTALL_AI_MODEL=false
+
+OLLAMA_MODEL_BASE="huihui_ai/qwen3.5-abliterated:9b"
+OLLAMA_MODEL_NAME="nyxstrike-qwen"
 
 # External tools to install
 # Format: "apt_package:expected_binary"
@@ -226,6 +232,57 @@ install_requirements_file() {
   touch "${stamp_file}"
 }
 
+install_ollama_model() {
+  if [[ "${INSTALL_AI_MODEL}" != true ]]; then
+    return
+  fi
+
+  local modelfile="${ROOT_DIR}/Modelfile"
+
+  # Step 1: ensure ollama is installed
+  if ! command -v ollama >/dev/null 2>&1; then
+    echo "Ollama not found. Installing via official install script..."
+    if ! curl -fsSL https://ollama.com/install.sh | sh; then
+      echo "Ollama install failed. Skipping AI model setup."
+      return
+    fi
+  else
+    echo "Ollama already installed: $(ollama --version 2>/dev/null || true)"
+  fi
+
+  # Step 2: ensure the base model is pulled
+  if ollama list 2>/dev/null | grep -qF "${OLLAMA_MODEL_BASE}"; then
+    echo "Base model already present: ${OLLAMA_MODEL_BASE}"
+  else
+    echo "Pulling base model: ${OLLAMA_MODEL_BASE} (this may take a while)..."
+    if ! ollama pull "${OLLAMA_MODEL_BASE}"; then
+      echo "Failed to pull base model. Skipping AI model creation."
+      return
+    fi
+  fi
+
+  # Step 3: check Modelfile exists
+  if [[ ! -f "${modelfile}" ]]; then
+    echo "Modelfile not found at ${modelfile}. Skipping model creation."
+    return
+  fi
+
+  # Step 4: create (or re-create) the named model
+  if ollama list 2>/dev/null | grep -qF "${OLLAMA_MODEL_NAME}"; then
+    echo "Model '${OLLAMA_MODEL_NAME}' already exists. Recreating from Modelfile..."
+  else
+    echo "Creating model '${OLLAMA_MODEL_NAME}' from Modelfile..."
+  fi
+
+  if ! ollama create "${OLLAMA_MODEL_NAME}" -f "${modelfile}"; then
+    echo "Model creation failed. You can retry manually:"
+    echo "  ollama create ${OLLAMA_MODEL_NAME} -f ${modelfile}"
+    return
+  fi
+
+  echo "AI model ready. Run it with: ollama run ${OLLAMA_MODEL_NAME}"
+}
+
 clone_or_update_git_tools() {
   if [[ ${#GIT_REPOS[@]} -eq 0 ]]; then
     return
@@ -305,6 +362,18 @@ while [[ $# -gt 0 ]]; do
       RUN_AFTER_INSTALL=true
       shift
       ;;
+    -ai)
+      INSTALL_AI_MODEL=true
+      OLLAMA_MODEL_BASE="huihui_ai/qwen3.5-abliterated:9b"
+      OLLAMA_MODEL_NAME="nyxstrike-qwen"
+      shift
+      ;;
+    -ai-small)
+      INSTALL_AI_MODEL=true
+      OLLAMA_MODEL_BASE="huihui_ai/qwen3.5-abliterated:4b"
+      OLLAMA_MODEL_NAME="nyxstrike-qwen"
+      shift
+      ;;
     -h|--help)
       echo "NyxStrike install"
       echo ""
@@ -317,6 +386,8 @@ while [[ $# -gt 0 ]]; do
       echo "  -p, --python <bin>      Python binary (default: python3)"
       echo "  -s, --update-self       git pull --ff-only this project repo (skips if local changes)"
       echo "  -r, --run               Start server after install (runs ./scripts/run.sh --server)"
+      echo "  -ai                     Install Ollama + pull base model + create nyxstrike-qwen model (9b)"
+      echo "  -ai-small               Install Ollama + pull base model + create nyxstrike-qwen-small model (4b)"
       exit 0
       ;;
     *)
@@ -329,12 +400,17 @@ done
 
 update_self_repo
 
-echo "[1/4] Preparing virtual environment..."
+TOTAL_STEPS=4
+if [[ "${INSTALL_AI_MODEL}" == true ]]; then
+  TOTAL_STEPS=5
+fi
+
+echo "[1/${TOTAL_STEPS}] Preparing virtual environment..."
 if [[ ! -d "${VENV_DIR}" ]]; then
   "${PYTHON_BIN}" -m venv "${VENV_DIR}"
 fi
 
-echo "[2/4] Syncing Python dependencies...(will take a while on first run)"
+echo "[2/${TOTAL_STEPS}] Syncing Python dependencies...(will take a while on first run)"
 install_requirements_file "${ROOT_DIR}/requirements.txt"
 
 if [[ "${INSTALL_TOOLS}" == true && -f "${ROOT_DIR}/requirements-extra.txt" ]]; then
@@ -347,17 +423,22 @@ if [[ "${INSTALL_TOOLS}" == true && "${INSTALL_BIG_PACKAGES}" == true && -f "${R
 fi
 
 if [[ "${INSTALL_TOOLS}" == true ]]; then
-  echo "[3/4] Installing external tools..."
+  echo "[3/${TOTAL_STEPS}] Installing external tools..."
   install_external_tools
 else
-  echo "[3/4] Skipping external tools (use --install-tools to enable)."
+  echo "[3/${TOTAL_STEPS}] Skipping external tools (use --install-tools to enable)."
 fi
 
 if [[ "${INSTALL_TOOLS}" == true ]]; then
-  echo "[4/4] Syncing git tool repositories..."
+  echo "[4/${TOTAL_STEPS}] Syncing git tool repositories..."
   clone_or_update_git_tools
 else
-  echo "[4/4] Skipping git tool repositories (use --install-tools to enable)."
+  echo "[4/${TOTAL_STEPS}] Skipping git tool repositories (use --install-tools to enable)."
+fi
+
+if [[ "${INSTALL_AI_MODEL}" == true ]]; then
+  echo "[5/${TOTAL_STEPS}] Setting up AI model (Ollama + ${OLLAMA_MODEL_NAME})..."
+  install_ollama_model
 fi
 
 echo "Install complete."

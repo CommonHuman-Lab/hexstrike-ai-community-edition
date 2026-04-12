@@ -49,6 +49,8 @@ Stamp files are stored in the venv, e.g.:
 | `-s` | `--update-self` | Run `git pull --ff-only` on this repo (skips when local changes exist) |
 | `-r` | `--run` | Start server after install (`./scripts/run.sh --server`) |
 | `-h` | `--help` | Show install script help |
+| `-ai` | *(none)* | Install Ollama (if missing), pull `huihui_ai/qwen3.5-abliterated:9b`, and create the `nyxstrike-qwen` custom model. Requires ~8 GB RAM. |
+| `-ai-small` | *(none)* | Install Ollama (if missing), pull `huihui_ai/qwen3.5-abliterated:4b`, and create the `nyxstrike-qwen-small` custom model. Requires ~4 GB RAM. |
 
 ## Common Command Examples
 
@@ -86,6 +88,31 @@ bash scripts/install.sh -u -r
 
 ```bash
 bash scripts/install.sh --all
+```
+
+### Install with local AI model (9b, ~8 GB RAM)
+
+Sets up Ollama, pulls the base model, and builds the `nyxstrike-qwen` custom model
+from the `Modelfile` in the repo root. The `-ai` flag is **not** included in `-a/--all`
+and must be passed explicitly.
+
+```bash
+bash scripts/install.sh -ai
+```
+
+### Install with local AI model, smaller variant (4b, ~4 GB RAM)
+
+Same as above but uses the 4b base model and creates `nyxstrike-qwen-small` instead.
+Choose this if you have less than ~8 GB of free RAM.
+
+```bash
+bash scripts/install.sh -ai-small
+```
+
+### Full install + local AI model
+
+```bash
+bash scripts/install.sh --all -ai
 ```
 
 ## After Install
