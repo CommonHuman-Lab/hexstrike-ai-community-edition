@@ -26,6 +26,7 @@ import { TopBar } from './app/TopBar'
 import { THEME_STORAGE_KEY, isThemeId, type ThemeId } from './app/themes'
 import { MainContent } from './app/MainContent'
 import { CommandPalette } from './components/CommandPalette'
+import { ReportGenerationBubble } from './components/ReportGenerationBubble'
 import './App.css'
 
 const POLL_MS = 10_000
@@ -438,6 +439,7 @@ export default function App() {
           tools={tools}
           onSelectTool={handleCommandSelectTool}
         />
+        <ReportGenerationBubble />
         {demo && (
           <div className="demo-banner">
             <FlaskConical size={13} />

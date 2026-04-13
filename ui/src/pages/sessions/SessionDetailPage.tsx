@@ -1,14 +1,18 @@
-import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, Bot, RefreshCw, Target, Activity, Clock, Download, FileText } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ArrowLeft, Bot, RefreshCw, Target, Activity, Clock, Download, FileText, Shield, List } from 'lucide-react'
 import { api, type SessionSummary, type AttackChainStep, type Tool, type ToolExecResponse } from '../../api'
 import { buildInitialFieldValues, buildRunPayload, inferTargetValue } from '../../components/tool-run/payload'
 import { fmtTs } from '../../shared/utils'
 import { SessionDetailWorkbench } from './SessionDetailWorkbench'
 import { SessionNotes } from './SessionNotes'
+import { SessionFindings } from './SessionFindings'
+import { SessionTimeline } from './SessionTimeline'
+import { SessionReportModal } from './SessionReportModal'
 import { TemplateModal } from './TemplateModal'
 import { ConfirmActionModal } from '../../components/ConfirmActionModal'
 import { InformationModal } from '../../components/InformationModal'
 import { useToast } from '../../components/ToastProvider'
+import { registerReportNavigation } from '../../app/reportGeneration'
 import {
   buildStepChainSuggestion,
   type ChainMappingPreference,
@@ -59,11 +63,31 @@ export default function SessionDetailPage({
   const [selectedChainFields, setSelectedChainFields] = useState<Record<string, boolean>>({})
   const [chainPreferences, setChainPreferences] = useState<ChainMappingPreference[]>([])
   const [showChainPrefModal, setShowChainPrefModal] = useState(false)
-  const [activeTab, setActiveTab] = useState<'workflow' | 'notes'>('workflow')
+  const [activeTab, setActiveTab] = useState<'workflow' | 'notes' | 'findings' | 'timeline'>('workflow')
+  const [showReportModal, setShowReportModal] = useState(false)
+  const [notesInitialOpenPath, setNotesInitialOpenPath] = useState<string | undefined>(undefined)
 
   const toolMap = useMemo(() => Object.fromEntries(tools.map(t => [t.name, t])), [tools])
   const steps = session ? normalizeStepsFromSession(session) : []
   const prefStorageKey = `nyxstrike:chain-prefs:${sessionId}`
+
+  // Register the report-bubble navigation callback for this session page.
+  // When the bubble's done state is clicked, it navigates to the saved note.
+  const handleReportNav = useCallback((savedPath: string) => {
+    // savedPath: "notes/reports/report-ai-2026-04-13.md"
+    // Strip leading "notes/" prefix if present, then split into folder/filename
+    const relativePath = savedPath.startsWith('notes/') ? savedPath.slice('notes/'.length) : savedPath
+    const withoutExt = relativePath.replace(/\.md$/i, '')
+    const slashIdx = withoutExt.indexOf('/')
+    const folder = slashIdx !== -1 ? withoutExt.slice(0, slashIdx) : ''
+    const filename = slashIdx !== -1 ? withoutExt.slice(slashIdx + 1) : withoutExt
+    setNotesInitialOpenPath(`${folder}/${filename}`)
+    setActiveTab('notes')
+  }, [])
+
+  useEffect(() => {
+    return registerReportNavigation(handleReportNav)
+  }, [handleReportNav])
 
   useEffect(() => {
     try {
@@ -176,57 +200,39 @@ export default function SessionDetailPage({
       if (!stillRunning) clearRunning(runningStepKey)
     }
 
-    let sseOk = false
-    let pollInterval: ReturnType<typeof setInterval> | null = null
+    // Use the structured SSE stream — no polling fallback needed.
+    // /api/processes/stream emits { processes: { [pid]: { session_id, ... } } }
+    // and sends a keepalive comment when nothing changes, so the connection
+    // stays alive through proxies without any extra polling.
     let source: EventSource | null = null
-
-    const startPolling = () => {
-      if (pollInterval) return
-      pollInterval = setInterval(async () => {
-        try {
-          const res = await api.processList()
-          checkProcesses(res.active_processes ?? {})
-        } catch {
-          // non-fatal
-        }
-      }, 3000)
-    }
-
     try {
-      source = api.processDashboardStream()
-
-      // If no message arrives within 4 s, assume SSE is broken and fall back
-      const sseTimeout = setTimeout(() => {
-        if (!sseOk) startPolling()
-      }, 4000)
+      source = api.processesStream()
 
       source.onmessage = (ev) => {
-        sseOk = true
-        clearTimeout(sseTimeout)
         try {
-          const data = JSON.parse(ev.data) as { processes?: Array<{ session_id?: string }> }
-          if (!data.processes) return
-          const map: Record<string, { session_id?: string }> = {}
-          data.processes.forEach((p, i) => { map[String(i)] = p })
-          checkProcesses(map)
+          const data = JSON.parse(ev.data) as { processes?: Record<string, { session_id?: string }> }
+          if (data.processes && typeof data.processes === 'object') {
+            checkProcesses(data.processes)
+          }
         } catch {
           // malformed frame — ignore
         }
       }
 
       source.onerror = () => {
-        clearTimeout(sseTimeout)
+        // SSE connection dropped — close and let the effect re-run if
+        // runningStepKey is still set (React will re-execute the effect
+        // on the next render that touches its deps).
         source?.close()
         source = null
-        startPolling()
       }
     } catch {
-      startPolling()
+      // EventSource not supported — nothing we can do without polling,
+      // but this environment always has it.
     }
 
     return () => {
       source?.close()
-      if (pollInterval) clearInterval(pollInterval)
     }
   }, [runningStepKey, sessionId])
 
@@ -809,6 +815,9 @@ export default function SessionDetailPage({
           )}
         </div>
         <div className="session-detail-actions">
+          <button className="session-action-btn" onClick={() => setShowReportModal(true)}>
+            <><FileText size={12} /> Generate Report</>
+          </button>
           <button className="session-action-btn" onClick={() => setShowTemplateModal(true)}>
             Create Template
           </button>
@@ -906,14 +915,34 @@ export default function SessionDetailPage({
           Workflow
         </button>
         <button
+          className={`session-tab-btn${activeTab === 'findings' ? ' session-tab-btn--active' : ''}`}
+          onClick={() => setActiveTab('findings')}
+        >
+          <Shield size={12} /> Findings ({session.findings?.length ?? session.total_findings})
+        </button>
+        <button
           className={`session-tab-btn${activeTab === 'notes' ? ' session-tab-btn--active' : ''}`}
           onClick={() => setActiveTab('notes')}
         >
           <FileText size={12} /> Notes
         </button>
+        <button
+          className={`session-tab-btn${activeTab === 'timeline' ? ' session-tab-btn--active' : ''}`}
+          onClick={() => setActiveTab('timeline')}
+        >
+          <List size={12} /> Timeline
+        </button>
       </div>
 
-      {activeTab === 'notes' && <SessionNotes sessionId={session.session_id} />}
+      {activeTab === 'notes' && <SessionNotes sessionId={session.session_id} initialOpenPath={notesInitialOpenPath} onInitialOpenConsumed={() => setNotesInitialOpenPath(undefined)} />}
+      {activeTab === 'findings' && <SessionFindings session={session} onUpdate={loadSession} />}
+      {activeTab === 'timeline' && <SessionTimeline session={session} />}
+
+      <SessionReportModal
+        isOpen={showReportModal}
+        session={session}
+        onClose={() => setShowReportModal(false)}
+      />
 
       {activeTab === 'workflow' && <SessionDetailWorkbench
         isCompleted={isCompleted}

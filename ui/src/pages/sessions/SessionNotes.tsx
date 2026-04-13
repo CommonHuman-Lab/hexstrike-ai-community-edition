@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown'
 import {
   FileText, Folder, FolderOpen, FolderPlus, Plus, Upload,
   Edit2, Eye, Trash2, Download, X, Save, AlertTriangle,
-  ChevronRight, ChevronDown, Search, Pencil, Check,
+  ChevronRight, ChevronDown, Search, Pencil, Check, RefreshCw,
 } from 'lucide-react'
 import { api } from '../../api'
 import type { SessionNote, SessionNoteSearchResult } from '../../api/types'
@@ -77,6 +77,7 @@ function NoteModal({
   const [loading, setLoading] = useState(!isNew)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [editorReady, setEditorReady] = useState(false)
 
   // folder select: starts as note's current folder
   const [selectedFolder, setSelectedFolder] = useState(note.folder ?? '')
@@ -173,7 +174,7 @@ function NoteModal({
             {mode === 'view' && (
               <button
                 className="session-action-btn"
-                onClick={() => setMode('edit')}
+                onClick={() => { setEditorReady(false); setMode('edit') }}
                 title="Edit"
               >
                 <Edit2 size={12} /> Edit
@@ -252,23 +253,32 @@ function NoteModal({
             </div>
           ) : (
             <div className="note-modal-editor-wrap">
-              <SimpleMDE
-                value={content}
-                onChange={setContent}
-                options={{
-                  spellChecker: false,
-                  autofocus: true,
-                  placeholder: 'Write your notes in markdown…',
-                  status: ['lines', 'words'],
-                  toolbar: [
-                    'bold', 'italic', 'heading', '|',
-                    'quote', 'unordered-list', 'ordered-list', '|',
-                    'link', 'code', 'table', '|',
-                    'preview', 'side-by-side', 'fullscreen', '|',
-                    'guide',
-                  ],
-                }}
-              />
+              {!editorReady && (
+                <div className="editor-loading" aria-label="Loading editor…">
+                  <RefreshCw size={22} className="spin" color="var(--green)" />
+                </div>
+              )}
+              <div className={editorReady ? 'editor-ready' : undefined}
+                   style={editorReady ? undefined : { position: 'absolute', visibility: 'hidden', pointerEvents: 'none', width: '100%' }}>
+                <SimpleMDE
+                  value={content}
+                  onChange={setContent}
+                  getMdeInstance={() => setEditorReady(true)}
+                  options={{
+                    spellChecker: false,
+                    autofocus: true,
+                    placeholder: 'Write your notes in markdown…',
+                    status: ['lines', 'words'],
+                    toolbar: [
+                      'bold', 'italic', 'heading', '|',
+                      'quote', 'unordered-list', 'ordered-list', '|',
+                      'link', 'code', 'table', '|',
+                      'preview', 'side-by-side', 'fullscreen', '|',
+                      'guide',
+                    ],
+                  }}
+                />
+              </div>
             </div>
           )}
         </div>
@@ -504,7 +514,7 @@ interface DeleteFolderTarget {
   noteCount: number
 }
 
-export function SessionNotes({ sessionId }: { sessionId: string }) {
+export function SessionNotes({ sessionId, initialOpenPath, onInitialOpenConsumed }: { sessionId: string; initialOpenPath?: string; onInitialOpenConsumed?: () => void }) {
   const { pushToast } = useToast()
 
   const [notes, setNotes] = useState<SessionNote[]>([])
@@ -575,6 +585,22 @@ export function SessionNotes({ sessionId }: { sessionId: string }) {
   }, [sessionId, pushToast])
 
   useEffect(() => { loadNotes() }, [loadNotes])
+
+  // When a saved report path is passed from outside (via bubble click), wait
+  // until notes have loaded then open that note automatically.
+  useEffect(() => {
+    if (!initialOpenPath || loading || notes.length === 0) return
+    // initialOpenPath: "reports/report-ai-2026-04-13" (folder/filename, no ext)
+    const slashIdx = initialOpenPath.indexOf('/')
+    const folder = slashIdx !== -1 ? initialOpenPath.slice(0, slashIdx) : ''
+    const filename = slashIdx !== -1 ? initialOpenPath.slice(slashIdx + 1) : initialOpenPath
+    const found = notes.find(n => n.filename === filename && (n.folder ?? '') === folder)
+    if (found) {
+      setOpenModal({ note: found, isNew: false, mode: 'view' })
+      if (folder) setExpandedFolders(prev => new Set([...prev, folder]))
+      onInitialOpenConsumed?.()
+    }
+  }, [initialOpenPath, loading, notes, onInitialOpenConsumed])
 
   useEffect(() => {
     if (showNewInput) setTimeout(() => newNoteInputRef.current?.focus(), 50)

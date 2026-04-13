@@ -239,7 +239,7 @@ export function SessionDetailWorkbench({
               <div className="session-step-row">
                 <div className="session-step-head">
                   <span className={`session-tool-chip mono session-tool-chip--${stepState[selectedStepKey] ?? 'idle'}`}>{selectedStep.tool}</span>
-                  <ActionButton variant="default" disabled={isCompleted || selectedRunning} onClick={() => onRunStep(selectedStep, selectedStepIndex)}>
+                  <ActionButton variant={selectedRunning ? 'running' : 'default'} disabled={isCompleted || (selectedRunning ? false : false)} onClick={selectedRunning || isCompleted ? undefined : () => onRunStep(selectedStep, selectedStepIndex)}>
                     {selectedRunning ? <RefreshCw size={12} className="spin" /> : <Play size={12} />}
                     {isCompleted ? 'Completed' : (selectedRunning ? 'Running…' : `Run ${selectedStep.tool}`)}
                   </ActionButton>

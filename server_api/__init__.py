@@ -64,6 +64,8 @@ def register_blueprints(app):
   app.register_blueprint(api_runs_bp)
   app.register_blueprint(api_sessions_bp)
   app.register_blueprint(api_session_notes_bp)
+  app.register_blueprint(api_session_findings_bp)
+  app.register_blueprint(api_session_reports_bp)
 
   #OSINT
   app.register_blueprint(api_osint_sherlock_bp)

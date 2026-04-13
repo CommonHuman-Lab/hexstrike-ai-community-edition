@@ -4,9 +4,13 @@ import type {
   CacheStatsResponse,
   ClassifyTaskResponse,
   CreateAttackChainResponse,
+  CreateFindingPayload,
   CreateSessionFromTemplatePayload,
   CreateSessionPayload,
   CreateSessionTemplatePayload,
+  GenerateAiReportPayload,
+  GenerateReportPayload,
+  UpdateFindingPayload,
   UpdateSessionTemplatePayload,
   LlmSessionsResponse,
   LlmSessionDetailResponse,
@@ -17,8 +21,12 @@ import type {
   ProcessListResponse,
   RunHistoryResponse,
   RunHistorySummaryResponse,
+  SessionAiReportResponse,
   SessionDeleteResponse,
   SessionDetailResponse,
+  SessionFindingDeleteResponse,
+  SessionFindingMutationResponse,
+  SessionFindingsResponse,
   SessionHandoverResponse,
   SessionMutationResponse,
   SessionNoteConflictResponse,
@@ -28,6 +36,7 @@ import type {
   SessionNoteMutationResponse,
   SessionNoteSearchResponse,
   SessionNotesResponse,
+  SessionReportResponse,
   SessionTemplateDeleteResponse,
   SessionTemplateMutationResponse,
   SessionTemplatesResponse,
@@ -184,4 +193,22 @@ export const api = {
     get<LlmSessionsResponse>(`/api/intelligence/llm-agent-sessions?limit=${limit}`),
   llmSessionDetail: (llmSessionId: string) =>
     get<LlmSessionDetailResponse>(`/api/intelligence/llm-agent-scan/${llmSessionId}`),
+
+  // ── Session Findings ─────────────────────────────────────────────────────
+  sessionFindings: (sessionId: string) =>
+    get<SessionFindingsResponse>(`/api/sessions/${sessionId}/findings`),
+  addSessionFinding: (sessionId: string, payload: CreateFindingPayload) =>
+    post<SessionFindingMutationResponse>(`/api/sessions/${sessionId}/findings`, payload),
+  updateSessionFinding: (sessionId: string, findingId: string, payload: UpdateFindingPayload) =>
+    patch<SessionFindingMutationResponse>(`/api/sessions/${sessionId}/findings/${findingId}`, payload),
+  deleteSessionFinding: (sessionId: string, findingId: string) =>
+    del<SessionFindingDeleteResponse>(`/api/sessions/${sessionId}/findings/${findingId}`),
+
+  // ── Session Reports ──────────────────────────────────────────────────────
+  generateSessionReport: (sessionId: string, options: GenerateReportPayload = {}) =>
+    post<SessionReportResponse>(`/api/sessions/${sessionId}/report`, options),
+  generateSessionAiReport: (sessionId: string, options: GenerateAiReportPayload = {}) =>
+    post<SessionAiReportResponse>(`/api/sessions/${sessionId}/report/ai`, options),
+  /** Returns the URL to trigger a notes zip download in the browser */
+  exportSessionNotesUrl: (sessionId: string) => `/api/sessions/${sessionId}/notes/export`,
 };
