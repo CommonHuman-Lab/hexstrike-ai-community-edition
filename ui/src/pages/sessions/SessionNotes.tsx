@@ -1153,9 +1153,11 @@ export function SessionNotes({ sessionId, initialOpenPath, onInitialOpenConsumed
                       ) : (
                         <>
                           <span className="session-note-folder-name">{folder}</span>
-                          <span className="session-note-folder-count">
-                            {folderNotes.length} note{folderNotes.length !== 1 ? 's' : ''}
-                          </span>
+                          {folderNotes.length > 0 && (
+                            <span className="session-note-folder-count" title={`${folderNotes.length} note${folderNotes.length !== 1 ? 's' : ''}`}>
+                              {folderNotes.length}
+                            </span>
+                          )}
                           <div
                             className="session-note-folder-actions"
                             onClick={e => e.stopPropagation()}

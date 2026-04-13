@@ -1614,7 +1614,19 @@ a.session-action-btn {
 }
 
 .session-note-folder-count {
-  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
   color: var(--text-dim);
   flex-shrink: 0;
 }
@@ -1914,6 +1926,57 @@ a.session-action-btn {
 .findings-filter-btn--info { border-color: color-mix(in srgb, #61afef 35%, transparent); color: #61afef; }
 .findings-filter-btn--info.findings-filter-btn--active { background: color-mix(in srgb, #61afef 12%, transparent); border-color: #61afef; }
 
+.findings-search-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  margin-bottom: 4px;
+}
+
+.findings-search-icon {
+  color: var(--text-dim);
+  flex-shrink: 0;
+  opacity: 0.55;
+}
+
+.findings-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 12px;
+  color: var(--text);
+  font-family: inherit;
+}
+
+.findings-search-input::placeholder {
+  color: var(--text-dim);
+  opacity: 0.55;
+}
+
+.findings-search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 3px;
+  color: var(--text-dim);
+  opacity: 0.55;
+  flex-shrink: 0;
+}
+
+.findings-search-clear:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--text-dim) 10%, transparent);
+}
+
 .findings-group {
   display: flex;
   flex-direction: column;
@@ -2037,6 +2100,19 @@ a.session-action-btn {
   padding: 1px 5px;
   border-radius: 4px;
   opacity: 1 !important;
+}
+
+.finding-tag-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  color: var(--accent);
+  white-space: nowrap;
 }
 
 .finding-evidence-details {

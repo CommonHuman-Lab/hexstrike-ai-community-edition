@@ -164,6 +164,18 @@ def record_tool_run(response):
     context_key = _build_tool_context_key(path, params, body)
     if context_key:
       tool_stats.record_contextual(tool=tool_name, success=ran_ok, context_key=context_key)
+    # Emit a tool_run event on the associated session when a session_id is present
+    if session_id:
+      try:
+        from server_core.session_flow import append_event as _append_event
+        status_label = "succeeded" if ran_ok else "completed"
+        _append_event(session_id, "tool_run", f"Tool {tool_name} {status_label}", {
+          "tool": tool_name,
+          "success": ran_ok,
+          "return_code": body.get("return_code"),
+        })
+      except Exception:
+        pass
   return response
 
 @app.errorhandler(Exception)

@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Plus, Trash2, Edit2, Check, X, Shield } from 'lucide-react'
+import { Plus, Trash2, Edit2, Shield, Search, X } from 'lucide-react'
 import { api } from '../../api'
 import type { SessionSummary, SessionFinding, CreateFindingPayload } from '../../api'
 
@@ -28,6 +28,138 @@ const emptyForm = (): CreateFindingPayload => ({
   tags: [],
 })
 
+// ── Edit Finding Modal ─────────────────────────────────────────────────────────
+
+interface EditFindingModalProps {
+  finding: SessionFinding
+  saving: boolean
+  error: string | null
+  onSave: (findingId: string, form: Partial<SessionFinding>) => void
+  onClose: () => void
+}
+
+function EditFindingModal({ finding, saving, error, onSave, onClose }: EditFindingModalProps) {
+  const [form, setForm] = useState<Partial<SessionFinding>>({
+    title: finding.title,
+    severity: finding.severity,
+    description: finding.description ?? '',
+    tool: finding.tool ?? '',
+    evidence: finding.evidence ?? '',
+    recommendation: finding.recommendation ?? '',
+    cve: finding.cve ?? '',
+    tags: finding.tags ?? [],
+    status: finding.status ?? 'open',
+  })
+  const [tagsInput, setTagsInput] = useState((finding.tags ?? []).join(', '))
+
+  function handleSave() {
+    const payload = {
+      ...form,
+      tags: tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(Boolean) : [],
+    }
+    onSave(finding.finding_id, payload)
+  }
+
+  return createPortal(
+    <div
+      className="modal-backdrop finding-modal-backdrop"
+      onClick={e => { if (e.target === e.currentTarget && !saving) onClose() }}
+    >
+      <div className="modal finding-modal" role="dialog" aria-modal="true" aria-label="Edit Finding">
+        <div className="modal-header finding-modal-header">
+          <div className="modal-title-row">
+            <Shield size={13} />
+            <span className="modal-name">Edit Finding</span>
+          </div>
+          <button className="modal-close" onClick={onClose} disabled={saving}>×</button>
+        </div>
+        <div className="finding-modal-body">
+          <div className="findings-form-row">
+            <input
+              className="findings-form-input"
+              placeholder="Title *"
+              value={form.title ?? ''}
+              onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
+              autoFocus
+            />
+            <select
+              className="findings-form-select"
+              value={form.severity ?? 'info'}
+              onChange={e => setForm(p => ({ ...p, severity: e.target.value as Severity }))}
+            >
+              {SEVERITIES.map(s => <option key={s} value={s}>{SEVERITY_LABEL[s]}</option>)}
+            </select>
+            <select
+              className="findings-form-select"
+              value={form.status ?? 'open'}
+              onChange={e => setForm(p => ({ ...p, status: e.target.value as typeof FINDING_STATUSES[number] }))}
+            >
+              {FINDING_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <textarea
+            className="findings-form-textarea"
+            placeholder="Description"
+            rows={3}
+            value={form.description ?? ''}
+            onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
+          />
+          <div className="findings-form-row">
+            <input
+              className="findings-form-input"
+              placeholder="Tool (e.g. nmap)"
+              value={form.tool ?? ''}
+              onChange={e => setForm(p => ({ ...p, tool: e.target.value }))}
+            />
+            <input
+              className="findings-form-input"
+              placeholder="CVE (e.g. CVE-2021-44228)"
+              value={form.cve ?? ''}
+              onChange={e => setForm(p => ({ ...p, cve: e.target.value }))}
+            />
+          </div>
+          <textarea
+            className="findings-form-textarea"
+            placeholder="Evidence / PoC"
+            rows={3}
+            value={form.evidence ?? ''}
+            onChange={e => setForm(p => ({ ...p, evidence: e.target.value }))}
+          />
+          <textarea
+            className="findings-form-textarea"
+            placeholder="Recommendation"
+            rows={2}
+            value={form.recommendation ?? ''}
+            onChange={e => setForm(p => ({ ...p, recommendation: e.target.value }))}
+          />
+          <input
+            className="findings-form-input"
+            placeholder="Tags (comma separated)"
+            value={tagsInput}
+            onChange={e => setTagsInput(e.target.value)}
+          />
+          {error && <div className="findings-error">{error}</div>}
+          <div className="findings-form-actions">
+            <button
+              className="session-action-btn session-action-btn--primary"
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? 'Saving…' : 'Save Finding'}
+            </button>
+            <button className="session-action-btn" onClick={onClose} disabled={saving}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  )
+}
+
+// ── Main component ─────────────────────────────────────────────────────────────
+
 export function SessionFindings({
   session,
   onUpdate,
@@ -37,18 +169,30 @@ export function SessionFindings({
 }) {
   const findings: SessionFinding[] = session.findings ?? []
   const [filterSev, setFilterSev] = useState<Severity | 'all'>('all')
+  const [searchQuery, setSearchQuery] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<CreateFindingPayload>(emptyForm())
   const [tagsInput, setTagsInput] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editForm, setEditForm] = useState<Partial<SessionFinding>>({})
+  const [editingFinding, setEditingFinding] = useState<SessionFinding | null>(null)
+  const [editError, setEditError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  const visible = filterSev === 'all'
-    ? findings
-    : findings.filter(f => f.severity === filterSev)
+  const visible = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    let base = filterSev === 'all' ? findings : findings.filter(f => f.severity === filterSev)
+    if (q) {
+      base = base.filter(f =>
+        f.title.toLowerCase().includes(q) ||
+        (f.description ?? '').toLowerCase().includes(q) ||
+        (f.tool ?? '').toLowerCase().includes(q) ||
+        (f.cve ?? '').toLowerCase().includes(q) ||
+        (f.tags ?? []).some(t => t.toLowerCase().includes(q))
+      )
+    }
+    return base
+  }, [findings, filterSev, searchQuery])
 
   const bySeverity = SEVERITIES.reduce((acc, sev) => {
     acc[sev] = visible.filter(f => f.severity === sev)
@@ -80,16 +224,15 @@ export function SessionFindings({
     }
   }
 
-  async function saveFindingEdit(findingId: string) {
+  async function saveFindingEdit(findingId: string, editForm: Partial<SessionFinding>) {
     setSaving(true)
-    setError(null)
+    setEditError(null)
     try {
       await api.updateSessionFinding(session.session_id, findingId, editForm)
-      setEditingId(null)
-      setEditForm({})
+      setEditingFinding(null)
       onUpdate?.()
     } catch (e) {
-      setError(String(e))
+      setEditError(String(e))
     } finally {
       setSaving(false)
     }
@@ -107,23 +250,19 @@ export function SessionFindings({
     }
   }
 
-  function startEdit(f: SessionFinding) {
-    setEditingId(f.finding_id)
-    setEditForm({
-      title: f.title,
-      severity: f.severity,
-      description: f.description ?? '',
-      tool: f.tool ?? '',
-      evidence: f.evidence ?? '',
-      recommendation: f.recommendation ?? '',
-      cve: f.cve ?? '',
-      tags: f.tags ?? [],
-      status: f.status ?? 'open',
-    })
-  }
-
   return (
     <div className="session-findings">
+      {/* Edit finding modal */}
+      {editingFinding && (
+        <EditFindingModal
+          finding={editingFinding}
+          saving={saving}
+          error={editError}
+          onSave={saveFindingEdit}
+          onClose={() => { setEditingFinding(null); setEditError(null) }}
+        />
+      )}
+
       <div className="session-findings-header">
         <div className="session-findings-filters">
           <button
@@ -149,6 +288,22 @@ export function SessionFindings({
         <button className="session-action-btn" onClick={() => { setShowForm(true); setError(null) }}>
           <Plus size={12} /> Add Finding
         </button>
+      </div>
+
+      <div className="findings-search-row">
+        <Search size={12} className="findings-search-icon" />
+        <input
+          className="findings-search-input"
+          type="text"
+          placeholder="Search findings…"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+        />
+        {searchQuery && (
+          <button className="findings-search-clear" onClick={() => setSearchQuery('')} title="Clear search">
+            <X size={12} />
+          </button>
+        )}
       </div>
 
       {showForm && createPortal(
@@ -256,99 +411,45 @@ export function SessionFindings({
             </div>
             {group.map(f => (
               <div key={f.finding_id} className="finding-card">
-                {editingId === f.finding_id ? (
-                  <div className="finding-edit-form">
-                    <div className="findings-form-row">
-                      <input
-                        className="findings-form-input"
-                        value={editForm.title ?? ''}
-                        onChange={e => setEditForm(p => ({ ...p, title: e.target.value }))}
-                        placeholder="Title"
-                      />
-                      <select
-                        className="findings-form-select"
-                        value={editForm.severity ?? 'info'}
-                        onChange={e => setEditForm(p => ({ ...p, severity: e.target.value as Severity }))}
-                      >
-                        {SEVERITIES.map(s => <option key={s} value={s}>{SEVERITY_LABEL[s]}</option>)}
-                      </select>
-                      <select
-                        className="findings-form-select"
-                        value={editForm.status ?? 'open'}
-                        onChange={e => setEditForm(p => ({ ...p, status: e.target.value as 'open' | 'confirmed' | 'false_positive' | 'resolved' }))}
-                      >
-                        {FINDING_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                    </div>
-                    <textarea
-                      className="findings-form-textarea"
-                      placeholder="Description"
-                      rows={2}
-                      value={editForm.description ?? ''}
-                      onChange={e => setEditForm(p => ({ ...p, description: e.target.value }))}
-                    />
-                    <textarea
-                      className="findings-form-textarea"
-                      placeholder="Evidence"
-                      rows={2}
-                      value={editForm.evidence ?? ''}
-                      onChange={e => setEditForm(p => ({ ...p, evidence: e.target.value }))}
-                    />
-                    <input
-                      className="findings-form-input"
-                      placeholder="Recommendation"
-                      value={editForm.recommendation ?? ''}
-                      onChange={e => setEditForm(p => ({ ...p, recommendation: e.target.value }))}
-                    />
-                    {error && editingId === f.finding_id && <div className="findings-error">{error}</div>}
-                    <div className="findings-form-actions">
-                      <button className="session-action-btn" onClick={() => saveFindingEdit(f.finding_id)} disabled={saving}>
-                        <Check size={12} /> Save
-                      </button>
-                      <button className="session-action-btn" onClick={() => { setEditingId(null); setEditForm({}) }}>
-                        <X size={12} /> Cancel
-                      </button>
-                    </div>
+                <div className="finding-card-header">
+                  <span className="finding-title">{f.title}</span>
+                  <span className={`finding-status finding-status--${f.status ?? 'open'}`}>{f.status ?? 'open'}</span>
+                  <div className="finding-card-actions">
+                    <button
+                      className="finding-icon-btn"
+                      title="Edit"
+                      onClick={() => { setEditingFinding(f); setEditError(null) }}
+                    >
+                      <Edit2 size={12} />
+                    </button>
+                    <button
+                      className="finding-icon-btn finding-icon-btn--danger"
+                      title="Delete"
+                      disabled={deletingId === f.finding_id}
+                      onClick={() => deleteFinding(f.finding_id)}
+                    >
+                      <Trash2 size={12} />
+                    </button>
                   </div>
-                ) : (
-                  <>
-                    <div className="finding-card-header">
-                      <span className="finding-title">{f.title}</span>
-                      <span className={`finding-status finding-status--${f.status ?? 'open'}`}>{f.status ?? 'open'}</span>
-                      <div className="finding-card-actions">
-                        <button className="finding-icon-btn" title="Edit" onClick={() => startEdit(f)}>
-                          <Edit2 size={12} />
-                        </button>
-                        <button
-                          className="finding-icon-btn finding-icon-btn--danger"
-                          title="Delete"
-                          disabled={deletingId === f.finding_id}
-                          onClick={() => deleteFinding(f.finding_id)}
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      </div>
-                    </div>
-                    {f.description && <p className="finding-description">{f.description}</p>}
-                    <div className="finding-meta">
-                      {f.tool && <span className="mono finding-meta-item">tool: {f.tool}</span>}
-                      {f.cve && <span className="finding-meta-item finding-cve">{f.cve}</span>}
-                      {f.tags && f.tags.length > 0 && (
-                        <span className="finding-meta-item">{f.tags.join(', ')}</span>
-                      )}
-                    </div>
-                    {f.evidence && (
-                      <details className="finding-evidence-details">
-                        <summary className="finding-evidence-summary">Evidence</summary>
-                        <pre className="finding-evidence-pre">{f.evidence}</pre>
-                      </details>
-                    )}
-                    {f.recommendation && (
-                      <div className="finding-recommendation">
-                        <strong>Recommendation:</strong> {f.recommendation}
-                      </div>
-                    )}
-                  </>
+                </div>
+                {f.description && <p className="finding-description">{f.description}</p>}
+                <div className="finding-meta">
+                  {f.tool && <span className="mono finding-meta-item">tool: {f.tool}</span>}
+                  {f.cve && <span className="finding-meta-item finding-cve">{f.cve}</span>}
+                  {f.tags && f.tags.length > 0 && f.tags.map(tag => (
+                    <span key={tag} className="finding-tag-badge">{tag}</span>
+                  ))}
+                </div>
+                {f.evidence && (
+                  <details className="finding-evidence-details">
+                    <summary className="finding-evidence-summary">Evidence</summary>
+                    <pre className="finding-evidence-pre">{f.evidence}</pre>
+                  </details>
+                )}
+                {f.recommendation && (
+                  <div className="finding-recommendation">
+                    <strong>Recommendation:</strong> {f.recommendation}
+                  </div>
                 )}
               </div>
             ))}

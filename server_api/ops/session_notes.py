@@ -21,6 +21,7 @@ from flask import Blueprint, jsonify, request, Response
 
 from server_core.singletons import session_store
 from server_core.session_store import _VALID_NOTE_NAME, _VALID_FOLDER_NAME, NOTE_MAX_BYTES
+from server_core.session_flow import append_event
 
 logger = logging.getLogger(__name__)
 
@@ -254,6 +255,12 @@ def create_note(session_id: str):
   if not ok:
     return _bad("Failed to save note", 500)
 
+  path_label = f"{folder_clean}/{clean}.md" if folder_clean else f"{clean}.md"
+  append_event(session_id, "note_added", f"Note created: {path_label}", {
+    "filename": clean,
+    "folder": folder_clean,
+  })
+
   return jsonify({"success": True, "filename": clean, "folder": folder_clean}), 201
 
 
@@ -287,6 +294,12 @@ def update_note(session_id: str, name: str):
   ok = session_store.save_note(session_id, clean, content, folder_clean)
   if not ok:
     return _bad("Failed to save note", 500)
+
+  path_label = f"{folder_clean}/{clean}.md" if folder_clean else f"{clean}.md"
+  append_event(session_id, "note_added", f"Note updated: {path_label}", {
+    "filename": clean,
+    "folder": folder_clean,
+  })
 
   return jsonify({"success": True, "filename": clean, "folder": folder_clean})
 
@@ -365,5 +378,11 @@ def upload_note(session_id: str, name: str):
   ok = session_store.save_note(session_id, clean, content, folder_clean)
   if not ok:
     return _bad("Failed to save uploaded note", 500)
+
+  path_label = f"{folder_clean}/{clean}.md" if folder_clean else f"{clean}.md"
+  append_event(session_id, "note_added", f"Note uploaded: {path_label}", {
+    "filename": clean,
+    "folder": folder_clean,
+  })
 
   return jsonify({"success": True, "filename": clean, "folder": folder_clean}), 201
