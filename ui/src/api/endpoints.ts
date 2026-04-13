@@ -1,4 +1,4 @@
-import { del, get, patch, post, postWithTimeout, stream } from './client';
+import { del, get, patch, post, postFormData, postWithTimeout, put, stream } from './client';
 import type {
   AttackChainStep,
   CacheStatsResponse,
@@ -21,6 +21,13 @@ import type {
   SessionDetailResponse,
   SessionHandoverResponse,
   SessionMutationResponse,
+  SessionNoteConflictResponse,
+  SessionNoteContentResponse,
+  SessionNoteFolderMutationResponse,
+  SessionNoteFoldersResponse,
+  SessionNoteMutationResponse,
+  SessionNoteSearchResponse,
+  SessionNotesResponse,
   SessionTemplateDeleteResponse,
   SessionTemplateMutationResponse,
   SessionTemplatesResponse,
@@ -103,6 +110,49 @@ export const api = {
     patch<SessionTemplateMutationResponse>(`/api/sessions/templates/${templateId}`, payload),
   deleteSessionTemplate: (templateId: string) =>
     del<SessionTemplateDeleteResponse>(`/api/sessions/templates/${templateId}`),
+
+  // ── Session Notes ────────────────────────────────────────────────────────
+  sessionNotes: (sessionId: string) =>
+    get<SessionNotesResponse>(`/api/sessions/${sessionId}/notes`),
+  sessionNote: (sessionId: string, name: string, folder = '') =>
+    get<SessionNoteContentResponse>(
+      `/api/sessions/${sessionId}/notes/${name}${folder ? `?folder=${encodeURIComponent(folder)}` : ''}`
+    ),
+  createSessionNote: (sessionId: string, filename: string, content: string, folder = '') =>
+    post<SessionNoteMutationResponse>(`/api/sessions/${sessionId}/notes`, { filename, content, folder }),
+  updateSessionNote: (sessionId: string, name: string, content: string, folder = '') =>
+    put<SessionNoteMutationResponse>(
+      `/api/sessions/${sessionId}/notes/${name}${folder ? `?folder=${encodeURIComponent(folder)}` : ''}`,
+      { content }
+    ),
+  deleteSessionNote: (sessionId: string, name: string, folder = '') =>
+    del<SessionNoteMutationResponse>(
+      `/api/sessions/${sessionId}/notes/${name}${folder ? `?folder=${encodeURIComponent(folder)}` : ''}`
+    ),
+  uploadSessionNote: (sessionId: string, name: string, file: File, overwrite = false, folder = '') => {
+    const form = new FormData();
+    form.append('file', file);
+    const params = new URLSearchParams();
+    if (overwrite) params.set('overwrite', '1');
+    if (folder) params.set('folder', folder);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return postFormData<SessionNoteMutationResponse | SessionNoteConflictResponse>(
+      `/api/sessions/${sessionId}/notes/${name}/upload${qs}`,
+      form,
+    );
+  },
+
+  // ── Session Note Folders ─────────────────────────────────────────────────
+  sessionNoteFolders: (sessionId: string) =>
+    get<SessionNoteFoldersResponse>(`/api/sessions/${sessionId}/notes/folders`),
+  createSessionNoteFolder: (sessionId: string, name: string) =>
+    post<SessionNoteFolderMutationResponse>(`/api/sessions/${sessionId}/notes/folders`, { name }),
+  deleteSessionNoteFolder: (sessionId: string, folder: string) =>
+    del<SessionNoteFolderMutationResponse>(`/api/sessions/${sessionId}/notes/folders/${encodeURIComponent(folder)}`),
+  renameSessionNoteFolder: (sessionId: string, folder: string, newName: string) =>
+    patch<SessionNoteFolderMutationResponse>(`/api/sessions/${sessionId}/notes/folders/${encodeURIComponent(folder)}`, { new_name: newName }),
+  searchSessionNotes: (sessionId: string, q: string) =>
+    get<SessionNoteSearchResponse>(`/api/sessions/${sessionId}/notes/search?q=${encodeURIComponent(q)}`),
 
   createAttackChain: (target: string, objective = 'comprehensive') =>
     post<CreateAttackChainResponse>('/api/intelligence/create-attack-chain', { target, objective }),

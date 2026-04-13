@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, Bot, RefreshCw, Target, Activity, Clock, Download } from 'lucide-react'
+import { ArrowLeft, Bot, RefreshCw, Target, Activity, Clock, Download, FileText } from 'lucide-react'
 import { api, type SessionSummary, type AttackChainStep, type Tool, type ToolExecResponse } from '../../api'
 import { buildInitialFieldValues, buildRunPayload, inferTargetValue } from '../../components/tool-run/payload'
 import { fmtTs } from '../../shared/utils'
 import { SessionDetailWorkbench } from './SessionDetailWorkbench'
+import { SessionNotes } from './SessionNotes'
 import { TemplateModal } from './TemplateModal'
 import { ConfirmActionModal } from '../../components/ConfirmActionModal'
 import { InformationModal } from '../../components/InformationModal'
@@ -58,6 +59,7 @@ export default function SessionDetailPage({
   const [selectedChainFields, setSelectedChainFields] = useState<Record<string, boolean>>({})
   const [chainPreferences, setChainPreferences] = useState<ChainMappingPreference[]>([])
   const [showChainPrefModal, setShowChainPrefModal] = useState(false)
+  const [activeTab, setActiveTab] = useState<'workflow' | 'notes'>('workflow')
 
   const toolMap = useMemo(() => Object.fromEntries(tools.map(t => [t.name, t])), [tools])
   const steps = session ? normalizeStepsFromSession(session) : []
@@ -896,7 +898,24 @@ export default function SessionDetailPage({
         </InformationModal>
       </section>
 
-      <SessionDetailWorkbench
+      <div className="session-detail-tabs">
+        <button
+          className={`session-tab-btn${activeTab === 'workflow' ? ' session-tab-btn--active' : ''}`}
+          onClick={() => setActiveTab('workflow')}
+        >
+          Workflow
+        </button>
+        <button
+          className={`session-tab-btn${activeTab === 'notes' ? ' session-tab-btn--active' : ''}`}
+          onClick={() => setActiveTab('notes')}
+        >
+          <FileText size={12} /> Notes
+        </button>
+      </div>
+
+      {activeTab === 'notes' && <SessionNotes sessionId={session.session_id} />}
+
+      {activeTab === 'workflow' && <SessionDetailWorkbench
         isCompleted={isCompleted}
         sessionId={session.session_id}
         steps={steps}
@@ -929,7 +948,7 @@ export default function SessionDetailPage({
         setAddToolSearch={setAddToolSearch}
         addCandidates={addCandidates}
         onAddTool={addToolToSession}
-      />
+      />}
     </div>
   )
 }

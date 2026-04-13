@@ -6,10 +6,9 @@ import {
   type RunHistoryEntry as ApiRunHistoryEntry,
   type RunHistorySummaryEntry,
 } from './api'
-import {
-  isDemoMode, exitDemo,
-  DEMO_HEALTH, DEMO_TOOLS, DEMO_RUN_HISTORY, DEMO_LOG_LINES,
-} from './app/demo'
+
+// isDemoMode/exitDemo are tiny helpers — import eagerly (no data payload).
+import { isDemoMode, exitDemo } from './app/demoUtils'
 import { TokenGate } from './components/TokenGate'
 import { ToastProvider } from './components/ToastProvider'
 import type { RunHistoryEntry } from './shared/types'
@@ -64,20 +63,33 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHashChange)
   }, [])
 
-  const [health, setHealth] = useState<WebDashboardResponse | null>(demo ? DEMO_HEALTH : null)
-  const [tools, setTools] = useState<Tool[]>(demo ? DEMO_TOOLS : [])
+  const [health, setHealth] = useState<WebDashboardResponse | null>(null)
+  const [tools, setTools] = useState<Tool[]>([])
+  // Lazy-load large demo data only when in demo mode; otherwise fetch from server.
   useEffect(() => {
-    if (demo) return
-    api.tools().then(r => setTools(r.tools)).catch(() => {})
+    if (demo) {
+      import('./app/demo').then(m => {
+        setHealth(m.DEMO_HEALTH)
+        setTools(m.DEMO_TOOLS)
+        setRunHistory(m.DEMO_RUN_HISTORY)
+        setLogLines(m.DEMO_LOG_LINES)
+        setDemoProcesses(m.DEMO_PROCESSES)
+        setDemoSessions(m.DEMO_SESSIONS)
+        setLastRefresh(new Date())
+        setLoading(false)
+      })
+    } else {
+      api.tools().then(r => setTools(r.tools)).catch(() => {})
+    }
   }, [demo])
-  const [runHistory, setRunHistory] = useState<RunHistoryEntry[]>(() => {
-    if (demo) return DEMO_RUN_HISTORY
-    return []
-  })
-  const [lastRefresh, setLastRefresh] = useState<Date | null>(demo ? new Date() : null)
-  const [loading, setLoading] = useState(!demo)
+  const [runHistory, setRunHistory] = useState<RunHistoryEntry[]>([])
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [logLines, setLogLines] = useState<string[]>(demo ? DEMO_LOG_LINES : [])
+  const [logLines, setLogLines] = useState<string[]>([])
+  // Demo-mode data (null until the lazy demo chunk loads)
+  const [demoProcesses, setDemoProcesses] = useState<unknown>(null)
+  const [demoSessions, setDemoSessions] = useState<unknown>(null)
   const [logAutoScroll, setLogAutoScroll] = useState(true)
   const [logLimit, setLogLimit] = useState(500)
   const logEndRef = useRef<HTMLDivElement>(null)
@@ -492,6 +504,8 @@ export default function App() {
           setThemeId={setThemeId}
           reduceTextureEffects={reduceTextureEffects}
           setReduceTextureEffects={setReduceTextureEffects}
+          demoProcesses={demoProcesses}
+          demoSessions={demoSessions}
         />
       </div>
     </ToastProvider>

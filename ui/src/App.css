@@ -1456,7 +1456,7 @@
 
 .modal {
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--accent) 6%, transparent), transparent 26%),
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 6%, var(--bg-card)), var(--bg-card) 26%),
     var(--bg-card);
   border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
   border-radius: 10px;

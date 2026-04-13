@@ -62,7 +62,11 @@ def optional_bearer_auth():
 @app.before_request
 def require_json_for_post():
     """Return 400 instead of a 500 AttributeError when a POST body is missing or not JSON."""
-    if request.method == "POST" and request.content_length != 0 and request.json is None:
+    if request.method != "POST":
+        return
+    if not request.content_type or not request.content_type.startswith("application/json"):
+        return  # multipart uploads and other non-JSON POSTs are handled by their own routes
+    if request.content_length != 0 and request.json is None:
         return jsonify({
             "error": "Request body must be valid JSON with Content-Type: application/json",
             "success": False,

@@ -1,23 +1,15 @@
 // ─── Demo / Screenshot mode ───────────────────────────────────────────────────
 // Activated by appending ?demo=1 to the URL (hidden from normal users).
 // All data here is synthetic — never fetched from the server when active.
+//
+// Activation helpers (isDemoMode / exitDemo) live in demoUtils.ts so that
+// App.tsx can import them without pulling in the large DEMO_* constants.
 
 import type { WebDashboardResponse, Tool, SessionsResponse, ProcessDashboardResponse } from '../api'
 import type { RunHistoryEntry, HistoryPoint } from '../shared/types'
 
-// ── Activation ────────────────────────────────────────────────────────────────
-
-export function isDemoMode(): boolean {
-  if (new URLSearchParams(window.location.search).get('demo') === '1') {
-    sessionStorage.setItem('nyxstrike_demo', '1')
-    return true
-  }
-  return sessionStorage.getItem('nyxstrike_demo') === '1'
-}
-
-export function exitDemo() {
-  sessionStorage.removeItem('nyxstrike_demo')
-}
+// Re-export activation helpers for convenience (kept in demoUtils.ts)
+export { isDemoMode, exitDemo } from './demoUtils'
 
 // ── Tools catalog — mirrors tool_registry.py exactly ─────────────────────────
 

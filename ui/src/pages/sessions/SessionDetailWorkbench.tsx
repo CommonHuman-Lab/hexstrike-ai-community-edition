@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Download, Play, RefreshCw, Square, Trash2 } from 'lucide-react'
+import { ChevronDown, ChevronUp, Download, FileText, Play, RefreshCw, Square, Trash2 } from 'lucide-react'
 import { useEffect, useRef, type Dispatch, type SetStateAction } from 'react'
 import { ParamField } from '../../components/tool-run/ParamField'
 import type { AttackChainStep, Tool, ToolExecResponse } from '../../api'
@@ -7,6 +7,8 @@ import { exportEntry, safeFixed } from '../../shared/utils'
 import type { StepState } from './sessionDetailUtils'
 import type { ChainSuggestion } from './sessionDetailUtils'
 import { ActionButton } from '../../components/ActionButton'
+import { api } from '../../api'
+import { useToast } from '../../components/ToastProvider'
 
 interface SessionDetailWorkbenchProps {
   isCompleted: boolean
@@ -60,6 +62,35 @@ function exportResultEntry(
   exportEntry(entry, format)
 }
 
+function buildNoteContent(
+  tool: string,
+  params: Record<string, string>,
+  result: ToolExecResponse
+): string {
+  const date = new Date(result.timestamp).toISOString()
+  const lines: string[] = [
+    `# ${tool}`,
+    '',
+    `**Date:** ${date}`,
+    `**Status:** ${result.success ? 'Success' : 'Failed'} | exit ${result.return_code} | ${result.execution_time.toFixed(2)}s`,
+    '',
+  ]
+  if (Object.keys(params).length > 0) {
+    lines.push('## Parameters', '')
+    for (const [k, v] of Object.entries(params)) {
+      lines.push(`- **${k}:** \`${v}\``)
+    }
+    lines.push('')
+  }
+  if (result.stdout) {
+    lines.push('## Output', '', '```', result.stdout, '```', '')
+  }
+  if (result.stderr) {
+    lines.push('## Stderr', '', '```', result.stderr, '```', '')
+  }
+  return lines.join('\n')
+}
+
 export function SessionDetailWorkbench({
   isCompleted,
   sessionId,
@@ -94,6 +125,7 @@ export function SessionDetailWorkbench({
   addCandidates,
   onAddTool,
 }: SessionDetailWorkbenchProps) {
+  const { pushToast } = useToast()
   const selectedRunning = selectedStepKey ? runningStepKey === selectedStepKey : false
   const resultData = selectedResult?.result
   const selectedChainCount = chainSuggestion
@@ -106,6 +138,20 @@ export function SessionDetailWorkbench({
     const frame = window.requestAnimationFrame(() => addToolInputRef.current?.focus())
     return () => window.cancelAnimationFrame(frame)
   }, [showAddTool])
+
+  async function exportToNotes(tool: string, params: Record<string, string>, result: ToolExecResponse) {
+    const date = new Date(result.timestamp)
+    const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '')
+    const toolSlug = tool.replace(/[^a-zA-Z0-9_]/g, '_').slice(0, 40)
+    const filename = `${toolSlug}_${dateStr}`
+    const content = buildNoteContent(tool, params, result)
+    try {
+      await api.createSessionNote(sessionId, filename, content, 'outputs')
+      pushToast('success', `Exported to notes/outputs/${filename}.md`)
+    } catch {
+      pushToast('error', 'Failed to export to notes')
+    }
+  }
 
   return (
     <section className="section">
@@ -305,6 +351,9 @@ export function SessionDetailWorkbench({
                           </ActionButton>
                           <ActionButton variant="default" onClick={() => exportResultEntry('json', selectedStep.tool, stepFieldValues[selectedStepKey] ?? {}, resultData)}>
                             <Download size={11} /> JSON
+                          </ActionButton>
+                          <ActionButton variant="default" onClick={() => void exportToNotes(selectedStep.tool, stepFieldValues[selectedStepKey] ?? {}, resultData)}>
+                            <FileText size={11} /> Notes
                           </ActionButton>
                           {selectedStep.tool === 'create-attack-chain' && resultData.success && (
                             <ActionButton disabled={isCompleted} variant="success" onClick={() => { void onApplyAttackChainFromResult() }}>

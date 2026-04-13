@@ -187,3 +187,66 @@ export type UpdateSessionTemplatePayload = Partial<{
   name: string;
   workflow_steps: AttackChainStep[];
 }>;
+
+// ── Session Notes ──────────────────────────────────────────────────────────
+
+export interface SessionNote {
+  /** Note title without .md extension */
+  filename: string;
+  /** Sub-folder name (empty string = root) */
+  folder: string;
+  /** File size in bytes */
+  size: number;
+  /** Unix timestamp (seconds) of last modification */
+  updated_at: number;
+}
+
+export interface SessionNotesResponse {
+  success: boolean;
+  notes: SessionNote[];
+}
+
+export interface SessionNoteContentResponse {
+  success: boolean;
+  filename: string;
+  folder: string;
+  content: string;
+}
+
+export interface SessionNoteMutationResponse {
+  success: boolean;
+  filename?: string;
+  folder?: string;
+  error?: string;
+}
+
+export interface SessionNoteConflictResponse {
+  success: false;
+  conflict: true;
+  filename: string;
+  folder: string;
+}
+
+export interface SessionNoteFoldersResponse {
+  success: boolean;
+  folders: string[];
+}
+
+export interface SessionNoteFolderMutationResponse {
+  success: boolean;
+  folder?: string;
+  error?: string;
+}
+
+export interface SessionNoteSearchResult extends SessionNote {
+  /** Context snippet around the first match (empty if match was on filename only) */
+  snippet: string;
+  /** True when the query matched the note filename */
+  name_match: boolean;
+}
+
+export interface SessionNoteSearchResponse {
+  success: boolean;
+  query: string;
+  results: SessionNoteSearchResult[];
+}
