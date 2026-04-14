@@ -304,7 +304,7 @@ TOOLS: Dict[str, dict] = {
         "method": "POST",
         "category": "web_recon",
         "params": {"url": {"required": True}},
-        "optional": {"additional_args": ""},
+        "optional": {"additional_args": "--disable-tls-checks --enumerate u,vp,vt"},
         "effectiveness": 0.95,
     },
     "joomscan": {
