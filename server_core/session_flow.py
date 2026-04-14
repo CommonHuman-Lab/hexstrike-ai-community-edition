@@ -139,6 +139,7 @@ def create_session(
         "source": source,
         "objective": objective,
         "handover_history": [],
+        "run_log": [],
         "event_log": [
             {
                 "type": "session_created",
@@ -173,6 +174,24 @@ def append_event(session_id: str, event_type: str, message: str, data: Optional[
         "data": data or {},
     })
     session_dict["event_log"] = event_log
+    session_dict["updated_at"] = now_ts()
+    if str(session_dict.get("status", "")).lower() == "completed" or _state == "completed":
+        session_store.archive(session_id, session_dict)
+    else:
+        session_store.save(session_id, session_dict)
+
+
+def append_run_log(session_id: str, entry: Dict[str, Any]) -> None:
+    """Append a tool run entry to the session's run_log. Non-fatal — fails silently."""
+    loaded = load_session_any(session_id)
+    if not loaded:
+        return
+    session_dict, _state = loaded
+    run_log = session_dict.get("run_log", [])
+    if not isinstance(run_log, list):
+        run_log = []
+    run_log.append(entry)
+    session_dict["run_log"] = run_log
     session_dict["updated_at"] = now_ts()
     if str(session_dict.get("status", "")).lower() == "completed" or _state == "completed":
         session_store.archive(session_id, session_dict)

@@ -140,6 +140,7 @@ def _filter_run_logs(
   target: str,
   created_at_ts: int,
   session_id: str = "",
+  session_run_log: Optional[List[Dict[str, Any]]] = None,
 ) -> List[Dict[str, Any]]:
   """
   Return log entries that likely belong to this session.
@@ -151,6 +152,9 @@ def _filter_run_logs(
     - entry timestamp (epoch or ISO) >= session created_at
       AND tool name appears in the session's tools_executed list
     - OR entry params contain the session target string
+
+  session_run_log: per-session run log stored directly on the session document.
+    These are merged in and take precedence.
   """
   from datetime import timezone
 
@@ -190,6 +194,16 @@ def _filter_run_logs(
 
     if after_session and (tool_match or target_match):
       matched.append(entry)
+
+  # Merge per-session run_log entries, deduplicating against what we already have
+  # from the global ring buffer (matched by tool+timestamp pair).
+  if session_run_log:
+    seen = {(e.get("tool", ""), e.get("timestamp", "")) for e in matched}
+    for entry in session_run_log:
+      key = (entry.get("tool", ""), entry.get("timestamp", ""))
+      if key not in seen:
+        matched.append(entry)
+        seen.add(key)
 
   # Return chronologically (oldest first for the prompt)
   return list(reversed(matched))
@@ -244,11 +258,13 @@ def analyze_session(
   objective = session_dict.get("objective", "")
   tools_executed: List[str] = session_dict.get("tools_executed", [])
   created_at_ts: int = int(session_dict.get("created_at", 0) or 0)
+  session_run_log: List[Dict[str, Any]] = list(session_dict.get("run_log", []) or [])
 
   # ── Fetch and filter run logs ─────────────────────────────────────────────────
   all_logs: List[Dict[str, Any]] = run_history.get_all() if run_history else []
   relevant_logs = _filter_run_logs(
-    all_logs, tools_executed, target, created_at_ts, session_id=session_id
+    all_logs, tools_executed, target, created_at_ts,
+    session_id=session_id, session_run_log=session_run_log,
   )
 
   # ── Build analysis prompt ─────────────────────────────────────────────────────
@@ -676,8 +692,10 @@ def follow_up_session(
 
   # ── Fetch and filter run logs ─────────────────────────────────────────────────
   all_logs: List[Dict[str, Any]] = run_history.get_all() if run_history else []
+  session_run_log: List[Dict[str, Any]] = list(session_dict.get("run_log", []) or [])
   relevant_logs = _filter_run_logs(
-    all_logs, tools_executed, target, created_at_ts, session_id=session_id
+    all_logs, tools_executed, target, created_at_ts,
+    session_id=session_id, session_run_log=session_run_log,
   )
 
   # ── Build follow-up prompt ────────────────────────────────────────────────────

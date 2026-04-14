@@ -167,12 +167,26 @@ def record_tool_run(response):
     # Emit a tool_run event on the associated session when a session_id is present
     if session_id:
       try:
-        from server_core.session_flow import append_event as _append_event
+        from server_core.session_flow import append_event as _append_event, append_run_log as _append_run_log
         status_label = "succeeded" if ran_ok else "completed"
         _append_event(session_id, "tool_run", f"Tool {tool_name} {status_label}", {
           "tool": tool_name,
           "success": ran_ok,
           "return_code": body.get("return_code"),
+        })
+        _append_run_log(session_id, {
+          "tool": tool_name,
+          "endpoint": path,
+          "params": params if isinstance(params, dict) else {},
+          "session_id": session_id,
+          "stdout": body.get("stdout", ""),
+          "stderr": body.get("stderr", ""),
+          "return_code": body.get("return_code", -1),
+          "success": bool(body.get("success", False)),
+          "timed_out": bool(body.get("timed_out", False)),
+          "partial_results": bool(body.get("partial_results", False)),
+          "execution_time": body.get("execution_time", 0),
+          "timestamp": body.get("timestamp", ""),
         })
       except Exception:
         pass
