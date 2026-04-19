@@ -52,7 +52,7 @@ NyxStrike is the only open-source platform that combines an AI-driven attack-cha
 
 | Feature | Description |
 |---|---|
-| **Built-in AI Assistant** | Chat widget available on every page — start a conversation without leaving your workflow. Auto-creates a session on first open. Powered by Ollama, OpenAI, or Anthropic |
+| **Built-in AI Assistant** | Chat widget available on every page — start a conversation without leaving your workflow. Powered by Ollama, OpenAI, or Anthropic |
 | **185+ Tools, One Interface** | Network recon, web exploitation, WiFi pentesting, binary analysis, cloud auditing, OSINT, password cracking, forensics, and more — all orchestrated through a single MCP connection |
 | **Intelligent Attack-Chain Engine** | Catalog-driven planner with contextual learning, attack-chain preview with tool selection reasons, and user-selectable precision (`quick`, `comprehensive`, `stealth`) before a session starts |
 | **Sessions & Operator Workbench** | Every engagement lives in a structured session with 4-tab workbench (Workflow, Findings, Notes, Timeline), artifact chaining, AI analysis, and report generation |
@@ -76,7 +76,7 @@ cd nyxstrike
 ./nyxstrike.sh -a -t -ai-small     # + smaller AI model (~2.5 GB RAM)
 ```
 
-> Full flag reference: [Wiki — Installation & Flags](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Installation-and-Flags)
+> Full flag reference: [Wiki — Installation & Flags](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Installation-and-Flags)
 
 ### Verify Setup
 
@@ -141,7 +141,7 @@ Connect NyxStrike to any MCP-compatible AI client — OpenCode, Cursor, Claude D
 
 Every engagement lives in a structured session with a 4-tab workbench (Workflow, Findings, Notes, Timeline), artifact chaining, AI analysis, and report generation. Choose from 7 session creation modes — including intelligence-planned, manual, and 4 AI-driven variants. After each step, the chain engine maps tool output to the next logical action for operator review and approval.
 
-> [Full session & workbench docs →](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Dashboard-and-Sessions)
+> [Full session & workbench docs](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Dashboard-and-Sessions)
 
 ---
 
