@@ -62,13 +62,13 @@ class OllamaBackend:
     self._chat_url = f"{self._base_url}/api/chat"
     self._tags_url = f"{self._base_url}/api/tags"
 
-  def chat(self, messages: List[Dict[str, Any]], stop: List[str] = []) -> str:
+  def chat(self, messages: List[Dict[str, Any]], stop: List[str] = [], think: Optional[bool] = None) -> str:
     """Send messages to Ollama /api/chat and return the response string."""
     payload: Dict[str, Any] = {
       "model": self._model,
       "messages": messages,
       "stream": False,
-      "think": self._think,
+      "think": think if think is not None else self._think,
       "options": {},
     }
     if stop:
@@ -202,7 +202,7 @@ class OpenAIBackend:
         "openai SDK not installed. Run: pip install openai"
       )
 
-  def chat(self, messages: List[Dict[str, Any]], stop: List[str] = []) -> str:
+  def chat(self, messages: List[Dict[str, Any]], stop: List[str] = [], think: Optional[bool] = None) -> str:
     kwargs: Dict[str, Any] = {
       "model": self._model,
       "messages": messages,
@@ -273,7 +273,7 @@ class AnthropicBackend:
         "anthropic SDK not installed. Run: pip install anthropic"
       )
 
-  def chat(self, messages: List[Dict[str, Any]], stop: List[str] = []) -> str:
+  def chat(self, messages: List[Dict[str, Any]], stop: List[str] = [], think: Optional[bool] = None) -> str:
     # Anthropic separates system from human/assistant messages
     system_parts = [m["content"] for m in messages if m["role"] == "system"]
     user_messages = [m for m in messages if m["role"] != "system"]
@@ -418,12 +418,13 @@ class LLMClient:
     if hasattr(self._backend, "warm_up"):
       self._backend.warm_up()
 
-  def chat(self, messages: List[Dict[str, Any]], stop: List[str] = []) -> str:
+  def chat(self, messages: List[Dict[str, Any]], stop: List[str] = [], think: Optional[bool] = None) -> str:
     """Send messages and return the model's response string.
 
     Args:
       messages: List of {"role": "system"|"user"|"assistant", "content": str}
       stop:     Optional stop sequences.
+      think:    Override thinking mode for this call (None = use default).
 
     Raises:
       RuntimeError: If the backend is not initialized or the call fails.
@@ -432,7 +433,7 @@ class LLMClient:
       raise RuntimeError(
         f"LLM client not initialized: {self._init_error or 'unknown error'}"
       )
-    return self._backend.chat(messages, stop)
+    return self._backend.chat(messages, stop, think=think)
 
   def stream_chat(self, messages: List[Dict[str, Any]]) -> Generator[str, None, None]:
     """Stream the model's response token-by-token.
