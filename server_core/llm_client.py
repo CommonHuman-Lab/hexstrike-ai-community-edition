@@ -130,10 +130,12 @@ class OllamaBackend:
   def stream_chat(self, messages: List[Dict[str, Any]]) -> Generator[str, None, None]:
     """Stream tokens from Ollama one chunk at a time via NDJSON."""
     prompt = _messages_to_prompt(messages)
+    keep_alive = int(os.environ.get("NYXSTRIKE_LLM_KEEP_ALIVE") or 300)
     payload: Dict[str, Any] = {
       "model": self._model,
       "prompt": prompt,
       "stream": True,
+      "keep_alive": keep_alive,
       "options": {},
     }
     try:

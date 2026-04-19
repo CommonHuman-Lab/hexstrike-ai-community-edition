@@ -26,6 +26,7 @@ _config = {
     },
     "CLEAN_TOOL_OUTPUT": True,
     "CPU_NICE_THRESHOLD": 85,  # CPU% above which tool commands are niced down (nice -n 10)
+    "LLM_KEEP_ALIVE": 300,    # Seconds to keep the Ollama model in VRAM after each inference (default 5 min)
     "CACHE_SIZE": 1000,
     "CACHE_TTL": 3600,  # 1 hour
     "TOOL_AVAILABILITY_TTL": 3600,  # 1 hour

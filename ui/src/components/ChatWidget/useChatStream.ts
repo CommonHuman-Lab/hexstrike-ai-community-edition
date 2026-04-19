@@ -43,11 +43,11 @@ export function useChatStream(chatSessionId: string | null) {
     if (!chatSessionId || streaming) return
 
     // Add user message
-    const userMsgId = `user-${Date.now()}`
+    const userMsgId = `user-${Date.now()}-${Math.random().toString(36).slice(2)}`
     setMessages(prev => [...prev, { id: userMsgId, role: 'user', content: message }])
 
     // Add placeholder assistant message (typing indicator)
-    const assistantMsgId = `assistant-${Date.now()}`
+    const assistantMsgId = `assistant-${Date.now()}-${Math.random().toString(36).slice(2)}`
     setMessages(prev => [...prev, { id: assistantMsgId, role: 'assistant', content: '', streaming: true }])
     setStreaming(true)
 
