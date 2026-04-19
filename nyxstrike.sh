@@ -37,8 +37,9 @@ INSTALL_AI_MODEL=false
 AI_SMALL_MODE=false
 AI_LARGE_MODE=false
 
-OLLAMA_MODEL_BASE="huihui_ai/qwen3.5-abliterated:4b"
-OLLAMA_MODEL_NAME="nyxstrike-qwen"
+OLLAMA_MODEL_BASE="huihui_ai/gemma-4-abliterated:e4b"
+OLLAMA_MODEL_NAME="nyxstrike-ai"
+OLLAMA_MODELFILE=""
 
 # --- run flags ---
 RUN_SERVER=false
@@ -349,7 +350,15 @@ install_ollama_model() {
     fi
   fi
 
-  if [[ "${AI_SMALL_MODE}" == true || "${AI_LARGE_MODE}" == true ]]; then
+  if [[ -n "${OLLAMA_MODELFILE}" && -f "${OLLAMA_MODELFILE}" ]]; then
+    echo "Creating custom model '${OLLAMA_MODEL_NAME}' from ${OLLAMA_MODELFILE}..."
+    if ! ollama create "${OLLAMA_MODEL_NAME}" -f "${OLLAMA_MODELFILE}"; then
+      echo "Failed to create custom model. Falling back to base model."
+      write_model_to_config_local "${OLLAMA_MODEL_BASE}"
+      return
+    fi
+    write_model_to_config_local "${OLLAMA_MODEL_NAME}"
+  elif [[ "${AI_SMALL_MODE}" == true || "${AI_LARGE_MODE}" == true ]]; then
     write_model_to_config_local "${OLLAMA_MODEL_BASE}"
   fi
 }
@@ -480,7 +489,7 @@ while [[ $# -gt 0 ]]; do
       INSTALL_AI_MODEL=true
       AI_LARGE_MODE=true
       OLLAMA_MODEL_BASE="huihui_ai/gemma-4-abliterated:e4b"
-      OLLAMA_MODEL_NAME="nyxstrike-qwen"
+      OLLAMA_MODELFILE="${ROOT_DIR}/Modelfiles/Modelfile.gemma4-e4b"
       export NYXSTRIKE_LLM_WARMUP=1
       DO_SETUP=true
       shift
@@ -488,8 +497,8 @@ while [[ $# -gt 0 ]]; do
     -ai-small)
       INSTALL_AI_MODEL=true
       AI_SMALL_MODE=true
-      OLLAMA_MODEL_BASE="huihui_ai/qwen3.5-abliterated:4b"
-      OLLAMA_MODEL_NAME="nyxstrike-qwen"
+      OLLAMA_MODEL_BASE="huihui_ai/qwen3.5-abliterated:2B"
+      OLLAMA_MODELFILE="${ROOT_DIR}/Modelfiles/Modelfile.qwen3-2b"
       export NYXSTRIKE_LLM_WARMUP=1
       DO_SETUP=true
       shift

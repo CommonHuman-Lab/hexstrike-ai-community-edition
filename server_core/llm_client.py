@@ -71,11 +71,7 @@ class OllamaBackend:
       "model": self._model,
       "prompt": prompt,
       "stream": False,
-      "options": {
-        "temperature": 0.7,
-        "top_p": 0.9,
-        "num_predict": 4096,
-      },
+      "options": {},
     }
     if stop:
       payload["options"]["stop"] = stop
@@ -138,7 +134,7 @@ class OllamaBackend:
       "model": self._model,
       "prompt": prompt,
       "stream": True,
-      "options": {"temperature": 0.7, "top_p": 0.9, "num_predict": 4096},
+      "options": {},
     }
     try:
       with requests.post(self._generate_url, json=payload, timeout=self._timeout, stream=True) as resp:
