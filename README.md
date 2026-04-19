@@ -58,7 +58,7 @@ NyxStrike is the only open-source platform that combines an AI-driven attack-cha
 | **Sessions & Operator Workbench** | Every engagement lives in a structured session with 4-tab workbench (Workflow, Findings, Notes, Timeline), artifact chaining, AI analysis, and report generation |
 | **Purpose-Built AI Agents** | Standalone agents for bug bounty, CTF, CVE intelligence, exploit generation, OSINT, and more — with intelligent failure recovery |
 
-> [Full feature breakdown →](https://github.com/CommonHuman-Lab/nyxstrike/wiki/What-Makes-NyxStrike-Stand-Out)
+> [Full feature breakdown](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Features)
 
 ---
 
@@ -92,9 +92,7 @@ Then open [http://localhost:8888](http://localhost:8888) to access the dashboard
 
 ## MCP Integrations
 
-Connect NyxStrike to any MCP-compatible AI client.
-
-**Supported clients:** OpenCode, Cursor, Claude Desktop, VS Code Copilot, Roo Code, and any MCP-compatible agent.
+Connect NyxStrike to any MCP-compatible AI client — OpenCode, Cursor, Claude Desktop, VS Code Copilot, Roo Code, and more.
 
 ### Universal MCP Command
 
@@ -127,182 +125,39 @@ Connect NyxStrike to any MCP-compatible AI client.
 }
 ```
 
-<details>
-<summary>Claude Desktop / Cursor</summary>
-
-Edit `~/.config/Claude/claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "nyxstrike": {
-      "command": "/path/to/nyxstrike/nyxstrike-env/bin/python3",
-      "args": [
-        "/path/to/nyxstrike/nyxstrike_mcp.py",
-        "--server",
-        "http://localhost:8888",
-        "--profile",
-        "full"
-      ],
-      "description": "NyxStrike",
-      "timeout": 300,
-      "disabled": false
-    }
-  }
-}
-```
-
-</details>
-
-<details>
-<summary>VS Code Copilot</summary>
-
-Configure `.vscode/settings.json`:
-
-```json
-{
-  "servers": {
-    "nyxstrike": {
-      "type": "stdio",
-      "command": "/path/to/nyxstrike/nyxstrike-env/bin/python3",
-      "args": [
-        "/path/to/nyxstrike/nyxstrike_mcp.py",
-        "--server",
-        "http://localhost:8888",
-        "--profile",
-        "full"
-      ]
-    }
-  },
-  "inputs": []
-}
-```
-
-</details>
-
-<details>
-<summary>Security Configuration</summary>
-
-By default the server binds to `127.0.0.1` (localhost only).
-
-```bash
-# Require Bearer auth on all requests
-export NYXSTRIKE_API_TOKEN=your-secret-token
-
-# Optionally expose to the network (NOT recommended without a token)
-export NYXSTRIKE_HOST=0.0.0.0
-
-python3 nyxstrike_server.py
-```
-
-> Full reference: [Wiki — Security Configuration](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Security-Configuration)
-
-</details>
+> Config snippets for Claude Desktop, Cursor, VS Code Copilot, and security options: [Wiki — MCP Setup](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/MCP-Setup)
 
 ---
 
 ## Tool Arsenal
 
-185+ tools across 12 categories, all accessible via MCP or the dashboard.
+185+ tools across 12 categories — network recon, web exploitation, WiFi pentesting, binary analysis, cloud auditing, SMB/AD, OSINT, password cracking, CTF forensics, API security, exploitation, and more.
 
-| Category | Example Tools | Count |
-|---|---|---|
-| Network Recon & Scanning | nmap, rustscan, masscan, amass, subfinder, assetfinder, shuffledns, massdns, autorecon, theHarvester, fierce, dnsenum, arp-scan, whois, dig, http-headers | 16 |
-| Web Application Security | gobuster, ffuf, feroxbuster, dirsearch, dirb, wfuzz, httpx, testssl, katana, hakrawler, gospider, nuclei, nikto, sqlmap, dalfox, wpscan, jaeles, xsser, dotdotpwn, arjun, paramspider, x8, wafw00f, whatweb, burpsuite, zap, waymore, gau, waybackurls, anew, hurl, qsreplace, uro, commix | 34 |
-| WiFi Penetration Testing | aircrack-ng, airmon-ng, airodump-ng, aireplay-ng, airbase-ng, airdecap-ng, hcxdumptool, hcxpcapngtool, eaphammer, wifite2, bettercap, mdk4 | 12 |
-| Authentication & Passwords | hydra, john, hashcat, medusa, patator, hashid, ophcrack | 7 |
-| SMB & Active Directory | enum4linux, enum4linux-ng, netexec, smbmap, nbtscan, rpcclient, ldapdomaindump, impacket suite | 10 |
-| Binary Analysis & RE | gdb, radare2, ghidra, binwalk, checksec, strings, objdump, xxd, ropgadget, one-gadget, ropper, angr, pwntools, pwninit, libc-database, autopsy | 16 |
-| Exploitation | metasploit, msfvenom, searchsploit, pwntools, pwninit, commix | 6 |
-| Cloud & Container Security | prowler, scout-suite, cloudmapper, pacu, trivy, clair, docker-bench, kube-hunter, kube-bench, checkov, terrascan, falco | 12 |
-| OSINT & Bug Bounty | sherlock, spiderfoot, sublist3r, parsero, joomscan, recon-ng, trufflehog | 7 |
-| CTF & Forensics | volatility, volatility3, foremost, steghide, exiftool, hashpump, photorec, testdisk, scalpel, bulk_extractor, stegsolve, zsteg, outguess, sleuthkit | 14 |
-| API Security | graphql-scanner, jwt-analyzer, api-fuzzer, api-schema-analyzer | 4 |
-| Database Interaction | mysql, sqlite | 2 |
-
-> Full per-tool details: [Wiki — Tool Arsenal](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Tool-Arsenal)
+> [Full tool list by category](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Tool-Arsenal)
 
 ---
 
 ## Sessions & Operator Workbench
 
-Sessions are the core unit of work in NyxStrike. Every scan, recon run, exploit chain, or bug bounty engagement lives inside a session — with full state, findings, notes, timeline, and AI analysis attached.
+Every engagement lives in a structured session with a 4-tab workbench (Workflow, Findings, Notes, Timeline), artifact chaining, AI analysis, and report generation. Choose from 7 session creation modes — including intelligence-planned, manual, and 4 AI-driven variants. After each step, the chain engine maps tool output to the next logical action for operator review and approval.
 
-### Session Creation Modes
-
-| Mode | What It Does |
-|---|---|
-| `intelligence` | Intelligent Decision Engine builds the full workflow from your target + objective |
-| `manual` | You pick every tool and step yourself |
-| `from_template` | Start from a saved session template |
-| `ai_recon` | LLM-driven recon pipeline: subdomains → live hosts → ports → web surface |
-| `ai_profiling` | Deep technology and service profiling on a known target |
-| `ai_vuln` | Vulnerability hunting mode: high-impact CVEs, injection, logic flaws |
-| `ai_osint` | OSINT collection: emails, employees, JS secrets, leaked credentials |
-
-### Attack-Chain Preview
-
-Before you start a session, the planner shows the full proposed workflow: step count, estimated time, risk level, and a per-tool breakdown — including objective match %, noise score, and what new capabilities each step unlocks. You can accept, tweak, or regenerate before a single packet is sent.
-
-### Session Workbench (Tab Layout)
-
-Once a session is running, the workbench gives you full operator control:
-
-- **Workflow tab** — live step runner with stop-process, chain suggestions based on prior output, apply/remove tools, and per-tool timeout enforcement
-- **Findings tab** — per-session vulnerability records (title, severity, CVE, evidence, recommendation, tags, status), with auto-recalculated risk level
-- **Notes tab** — full CRUD notes with folders, full-text search, Markdown editor (SimpleMDE), `.md` file upload/download
-- **Timeline tab** — chronological audit trail of every action taken in the session
-
-### Artifact Chaining
-
-After each step, the chain suggestion engine parses tool output for artifacts (URLs, IPs, domains, ports) and automatically maps them to the parameters of logical next steps — with confidence scoring. Sensitive parameters are blocked from auto-chaining. You review and approve before the next step runs.
-
-### AI-Powered Session Features
-
-| Feature | What It Does |
-|---|---|
-| **AI Session Analysis** | LLM reads the full run log and produces structured findings stored in the DB |
-| **AI Follow-up Session** | LLM reviews prior findings and generates a prioritised follow-up workflow with tool, params, and reason for each step |
-| **AI Session Report** | LLM writes an executive summary + structured report, saved to session notes. A floating `ReportGenerationBubble` tracks progress across page navigation |
-| **Standard Report** | Structured Markdown report without LLM, instant |
-
-> Deep dive: [Wiki — Dashboard and Sessions](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Dashboard-and-Sessions)
+> [Full session & workbench docs →](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Dashboard-and-Sessions)
 
 ---
 
 ## Workflow Skills & Playbooks
 
-9 workflow playbooks mounted as MCP resources — the agent follows these automatically:
+9 pre-built playbooks (web recon, web vuln, nmap recon, subdomain enum, SMB enum, binary analysis, exploitation, password cracking, cloud audit) mounted as MCP resources — the agent follows these automatically.
 
-| Skill | Description |
-|---|---|
-| `web-recon` | WAF detection → httpx probing → directory fuzzing → crawling → tech fingerprinting |
-| `web-vuln` | SQLi, XSS, SSTI, and generic CVE scanning workflow |
-| `nmap-recon` | Network scanning with rustscan + nmap + masscan pipeline |
-| `subdomain-enum` | Passive + active subdomain discovery and DNS validation |
-| `smb-enum` | Windows/SMB enumeration, share discovery, and user enumeration |
-| `binary-analysis` | checksec → strings → binwalk → radare2 → gdb workflow |
-| `exploitation` | Metasploit, msfvenom, and Exploit-DB exploit development |
-| `password-cracking` | Hash identification → john/hashcat cracking → brute-force escalation |
-| `cloud-audit` | AWS/GCP/Azure assessment with prowler, trivy, and kube-hunter |
+> [Full playbook details](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Skills)
 
 ---
 
 ## Usage Examples
 
-Here's what a typical NyxStrike session looks like when driven by an LLM agent. Always state authorization, ownership, and scope explicitly when prompting:
+Always state authorization, ownership, and scope explicitly when prompting. See the wiki for full prompt examples across recon, exploitation, bug bounty, and CTF workflows.
 
-```
-You: I am an authorized security researcher. My company owns example.com and I want
-     to run an authorized penetration test using NyxStrike. Start with recon and web
-     vulnerability discovery, then propose next steps based on findings.
-
-AI:  Confirmed. Starting with passive subdomain enumeration via subfinder and amass,
-     followed by httpx probing, directory fuzzing with ffuf, and nuclei vulnerability
-     scanning. I will summarize findings and recommend validated follow-up actions.
-```
-
-> More examples: [Wiki — Usage Examples](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Usage-Examples)
+> [Usage examples](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Usage-Examples)
 
 ---
 
