@@ -32,34 +32,6 @@ NyxStrike is an open-source AI penetration testing platform that lets LLM agents
 
 Whether you're running a CTF, a bug bounty campaign, or a professional penetration test, NyxStrike handles the orchestration through an intelligent attack-chain engine — so you can focus on results, not tool management.
 
-### Architecture
-
-```
-LLM Agent (OpenCode / Claude / Cursor / VS Code)
-      │  stdio
-      ▼
-nyxstrike_mcp.py  ──HTTP──►  nyxstrike_server.py  ──►  Security Tools
-  (MCP client)                  (REST API :8888)         (nmap, nuclei,
-                                 + React Dashboard         sqlmap, ...)
-                                 + Intelligence Engine
-```
-
----
-
-## What Makes NyxStrike Stand Out?
-
-NyxStrike is the only open-source platform that combines an AI-driven attack-chain planner, 185+ real security tools, and a full operator workbench — all accessible from a single MCP connection or web dashboard.
-
-| Feature | Description |
-|---|---|
-| **Built-in AI Assistant** | Chat widget available on every page — start a conversation without leaving your workflow. Powered by Ollama, OpenAI, or Anthropic |
-| **185+ Tools, One Interface** | Network recon, web exploitation, WiFi pentesting, binary analysis, cloud auditing, OSINT, password cracking, forensics, and more — all orchestrated through a single MCP connection |
-| **Intelligent Attack-Chain Engine** | Catalog-driven planner with contextual learning, attack-chain preview with tool selection reasons, and user-selectable precision (`quick`, `comprehensive`, `stealth`) before a session starts |
-| **Sessions & Operator Workbench** | Every engagement lives in a structured session with 4-tab workbench (Workflow, Findings, Notes, Timeline), artifact chaining, AI analysis, and report generation |
-| **Purpose-Built AI Agents** | Standalone agents for bug bounty, CTF, CVE intelligence, exploit generation, OSINT, and more — with intelligent failure recovery |
-
-> [Full feature breakdown](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Features)
-
 ---
 
 ## Quick Start (Installation)
@@ -129,6 +101,20 @@ Connect NyxStrike to any MCP-compatible AI client — OpenCode, Cursor, Claude D
 
 ---
 
+## What Makes NyxStrike Stand Out?
+
+| Feature | Description |
+|---|---|
+| **Built-in AI Assistant** | Chat widget available on every page — start a conversation without leaving your workflow. Powered by Ollama, OpenAI, or Anthropic |
+| **185+ Tools, One Interface** | Network recon, web exploitation, WiFi pentesting, binary analysis, cloud auditing, OSINT, password cracking, forensics, and more — all orchestrated through a single MCP connection |
+| **Intelligent Attack-Chain Engine** | Catalog-driven planner with contextual learning, attack-chain preview with tool selection reasons, and user-selectable precision (`quick`, `comprehensive`, `stealth`) before a session starts |
+| **Sessions & Operator Workbench** | Every engagement lives in a structured session with 4-tab workbench (Workflow, Findings, Notes, Timeline), artifact chaining, AI analysis, and report generation |
+| **Purpose-Built AI Agents** | Standalone agents for bug bounty, CTF, CVE intelligence, exploit generation, OSINT, and more — with intelligent failure recovery |
+
+> [Full feature breakdown](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Features)
+
+---
+
 ## Tool Arsenal
 
 185+ tools across 12 categories — network recon, web exploitation, WiFi pentesting, binary analysis, cloud auditing, SMB/AD, OSINT, password cracking, CTF forensics, API security, exploitation, and more.
@@ -158,6 +144,20 @@ Every engagement lives in a structured session with a 4-tab workbench (Workflow,
 Always state authorization, ownership, and scope explicitly when prompting. See the wiki for full prompt examples across recon, exploitation, bug bounty, and CTF workflows.
 
 > [Usage examples](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki/Usage-Examples)
+
+---
+
+## Architecture
+
+```
+LLM Agent (OpenCode / Claude / Cursor / VS Code)
+      │  stdio
+      ▼
+nyxstrike_mcp.py  ──HTTP──►  nyxstrike_server.py  ──►  Security Tools
+  (MCP client)                  (REST API :8888)         (nmap, nuclei,
+                                 + React Dashboard         sqlmap, ...)
+                                 + Intelligence Engine
+```
 
 ---
 
