@@ -4,11 +4,14 @@ Precise summary based on GitHub release notes and current branch changes.
 
 ## 1.4.0 - nullbytecobra (next)
 
-### LLM session analysis
+### Built-in AI Chat assistant
+- Added persistent chat widget available on every dashboard page — start a conversation without leaving your workflow. Supports multi-session history, 
+and a resizable floating UI.
+
+### LLM analysis
 - Added `analyze_session` — passive LLM analysis pass that reads existing workflow session run logs, interprets them, and persists structured findings.
 - Added `NyxStrikeDB` (SQLite) for persisting LLM analysis sessions and vulnerability findings.
-- Added `LLMClient` — provider-agnostic LLM adapter supporting Ollama, OpenAI, and Anthropic backends; `GET /api/intelligence/llm-status` health endpoint.
-- Added AI Recon session type.
+- Added `LLMClient` — provider-agnostic LLM adapter supporting Ollama, OpenAI, and Anthropic backends.
 
 ### New tools
 - Added `http_headers` tool — fetches and displays HTTP response headers for a target URL.

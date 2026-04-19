@@ -52,20 +52,13 @@ NyxStrike is the only open-source platform that combines an AI-driven attack-cha
 
 | Feature | Description |
 |---|---|
-| **Sessions & Operator Workbench** | Every engagement lives in a structured session with 4-tab workbench (Workflow, Findings, Notes, Timeline), artifact chaining, AI analysis, and report generation. 7 session creation modes including intelligence-planned, manual, and 4 AI-driven variants |
+| **Built-in AI Assistant** | Chat widget available on every page — start a conversation without leaving your workflow. Auto-creates a session on first open. Powered by Ollama, OpenAI, or Anthropic |
 | **185+ Tools, One Interface** | Network recon, web exploitation, WiFi pentesting, binary analysis, cloud auditing, OSINT, password cracking, forensics, and more — all orchestrated through a single MCP connection |
-| **Intelligent Attack-Chain Engine** | Catalog-driven planner with contextual learning, smarter tool ranking, attack-chain preview with tool selection reasons, and user-selectable precision (`quick`, `comprehensive`, `stealth`) before a session starts |
-| **Artifact Chaining** | Step-by-step tool chaining with operator approval, confidence hints, and output mapping between steps — not just fire-and-forget |
-| **Durable Session Handoff** | AI planning and manual dashboard execution share the same session state, so you can switch between agent-driven and hands-on control at any point |
-| **Purpose-Built AI Agents** | Standalone agents for bug bounty workflows, CTF solving, CVE intelligence, exploit generation, vulnerability correlation, technology detection, rate-limit detection, and intelligent failure recovery |
-| **9 Workflow Skills** | Pre-built playbooks (web recon, SMB enum, binary analysis, subdomain enum, cloud audit, exploitation, password cracking, and more) mounted as MCP resources the agent follows automatically |
-| **Built-in Dashboard** | KPI cards, resource monitoring, tool availability by category, live process management (pause/resume/terminate), session workbench, notes, findings tracker, and report generation. No terminal required after setup |
-| **Global Command Palette** | `Ctrl/Cmd+K` keyboard-first control: jump pages, trigger tools, compare previous runs |
-| **Persistent Run History** | Server-side history survives browser refresh. Clears safely with confirmation |
-| **Per-Tool Timeout Policies** | Inactivity watchdog and max runtime cap keep long-running scans from hanging |
-| **Theme System** | One-click switcher with live preview: Dark Ops, Candy Pop, Solarized, Unicorn, Forest, and more |
-| **LLM Flexibility** | Works with Ollama (local), OpenAI, and Anthropic out of the box |
-| **Performance Modes** | `--compact` for lightweight/local LLM usage, `--profile` for targeted tool loading |
+| **Intelligent Attack-Chain Engine** | Catalog-driven planner with contextual learning, attack-chain preview with tool selection reasons, and user-selectable precision (`quick`, `comprehensive`, `stealth`) before a session starts |
+| **Sessions & Operator Workbench** | Every engagement lives in a structured session with 4-tab workbench (Workflow, Findings, Notes, Timeline), artifact chaining, AI analysis, and report generation |
+| **Purpose-Built AI Agents** | Standalone agents for bug bounty, CTF, CVE intelligence, exploit generation, OSINT, and more — with intelligent failure recovery |
+
+> [Full feature breakdown →](https://github.com/CommonHuman-Lab/nyxstrike/wiki/What-Makes-NyxStrike-Stand-Out)
 
 ---
 
