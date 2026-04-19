@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { MessageSquare, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { MessageSquare, ChevronLeft, ChevronRight, ArrowDown } from 'lucide-react'
 import { ChatSidebar } from './ChatSidebar'
 import { ChatMessageList } from './ChatMessageList'
 import { ChatInput } from './ChatInput'
@@ -22,8 +22,8 @@ function saveOpen(v: boolean) {
 function loadSize(): { w: number; h: number } {
   try {
     const s = JSON.parse(localStorage.getItem(SIZE_KEY) || '{}')
-    return { w: Number(s.w) || 360, h: Number(s.h) || 520 }
-  } catch { return { w: 360, h: 520 } }
+    return { w: Number(s.w) || 460, h: Number(s.h) || 520 }
+  } catch { return { w: 460, h: 520 } }
 }
 function saveSize(w: number, h: number) {
   try { localStorage.setItem(SIZE_KEY, JSON.stringify({ w, h })) } catch {}
@@ -41,7 +41,7 @@ export function ChatWidget({ llmAvailable, currentPage, currentSessionId }: Chat
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
 
-  const { sessions, createSession, deleteSession, updateSessionName } = useChatSessions()
+  const { sessions, loading, createSession, deleteSession, updateSessionName } = useChatSessions()
   const { messages, streaming, send, stop, loadHistory, clearMessages } = useChatStream(activeSessionId)
 
   const widgetRef = useRef<HTMLDivElement>(null)
@@ -61,12 +61,15 @@ export function ChatWidget({ llmAvailable, currentPage, currentSessionId }: Chat
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  // Auto-select first session when sessions load
+  // Auto-select most recent session, or create one if none exist
   useEffect(() => {
+    if (loading) return
     if (!activeSessionId && sessions.length > 0) {
       setActiveSessionId(sessions[0].id)
+    } else if (!activeSessionId && sessions.length === 0) {
+      handleCreateSession()
     }
-  }, [sessions, activeSessionId])
+  }, [sessions, activeSessionId, loading]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load history when session changes
   useEffect(() => {
@@ -165,7 +168,7 @@ export function ChatWidget({ llmAvailable, currentPage, currentSessionId }: Chat
           aria-label="Open NyxStrike chat"
         >
           <MessageSquare size={14} />
-          AI Chat
+          AI Assistant
         </button>
       )}
 
@@ -211,7 +214,7 @@ export function ChatWidget({ llmAvailable, currentPage, currentSessionId }: Chat
                   <span className="chat-session-label mono">{sessionLabel}</span>
                 </div>
                 <button className="chat-close-btn" onClick={toggleOpen} title="Close">
-                  <X size={14} />
+                  <ArrowDown size={14} />
                 </button>
               </div>
 
