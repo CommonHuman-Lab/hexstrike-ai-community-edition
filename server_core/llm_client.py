@@ -19,6 +19,7 @@ Config keys (checked in order: env var → config_local.json → config.py defau
   NYXSTRIKE_LLM_API_KEY     API key (not needed for Ollama)
   NYXSTRIKE_LLM_MAX_LOOPS   max agentic tool loops
   NYXSTRIKE_LLM_TIMEOUT     request timeout in seconds
+  NYXSTRIKE_LLM_THINK       enable model thinking/reasoning (default: false, Ollama only)
 
 Defaults are defined in config.py and can be overridden via config_local.json
 or environment variables without touching source code.
@@ -53,34 +54,31 @@ DEFAULT_OLLAMA_URL = "http://localhost:11434"
 class OllamaBackend:
   """Ollama local model server backend."""
 
-  def __init__(self, base_url: str, model: str, timeout: int) -> None:
+  def __init__(self, base_url: str, model: str, timeout: int, think: bool = False) -> None:
     self._base_url = base_url.rstrip("/")
     self._model = model
     self._timeout = timeout
-    self._generate_url = f"{self._base_url}/api/generate"
+    self._think = think
+    self._chat_url = f"{self._base_url}/api/chat"
     self._tags_url = f"{self._base_url}/api/tags"
 
   def chat(self, messages: List[Dict[str, Any]], stop: List[str] = []) -> str:
-    """Send messages to Ollama and return the response string.
-
-    Ollama's /api/generate doesn't natively support a message list, so we
-    concatenate them into a single prompt string.
-    """
-    prompt = _messages_to_prompt(messages)
+    """Send messages to Ollama /api/chat and return the response string."""
     payload: Dict[str, Any] = {
       "model": self._model,
-      "prompt": prompt,
+      "messages": messages,
       "stream": False,
+      "think": self._think,
       "options": {},
     }
     if stop:
       payload["options"]["stop"] = stop
 
     try:
-      resp = requests.post(self._generate_url, json=payload, timeout=self._timeout)
+      resp = requests.post(self._chat_url, json=payload, timeout=self._timeout)
       resp.raise_for_status()
       data = resp.json()
-      return data.get("response", "").strip()
+      return data.get("message", {}).get("content", "").strip()
     except requests.exceptions.ConnectionError:
       raise RuntimeError(
         f"Cannot connect to Ollama at {self._base_url}. "
@@ -119,8 +117,14 @@ class OllamaBackend:
     try:
       logger.info("Warming up Ollama model '%s'...", self._model)
       requests.post(
-        self._generate_url,
-        json={"model": self._model, "prompt": "hi", "stream": False, "options": {"num_predict": 1}},
+        self._chat_url,
+        json={
+          "model": self._model,
+          "messages": [{"role": "user", "content": "hi"}],
+          "stream": False,
+          "think": False,
+          "options": {"num_predict": 1},
+        },
         timeout=self._timeout,
       )
       logger.info("Ollama model '%s' warm-up complete.", self._model)
@@ -129,17 +133,17 @@ class OllamaBackend:
 
   def stream_chat(self, messages: List[Dict[str, Any]]) -> Generator[str, None, None]:
     """Stream tokens from Ollama one chunk at a time via NDJSON."""
-    prompt = _messages_to_prompt(messages)
     keep_alive = int(os.environ.get("NYXSTRIKE_LLM_KEEP_ALIVE") or 300)
     payload: Dict[str, Any] = {
       "model": self._model,
-      "prompt": prompt,
+      "messages": messages,
       "stream": True,
+      "think": self._think,
       "keep_alive": keep_alive,
       "options": {},
     }
     try:
-      with requests.post(self._generate_url, json=payload, timeout=self._timeout, stream=True) as resp:
+      with requests.post(self._chat_url, json=payload, timeout=self._timeout, stream=True) as resp:
         resp.raise_for_status()
         for line in resp.iter_lines():
           if not line:
@@ -148,7 +152,7 @@ class OllamaBackend:
             data = json.loads(line)
           except json.JSONDecodeError:
             continue
-          chunk = data.get("response", "")
+          chunk = data.get("message", {}).get("content", "")
           if chunk:
             yield chunk
           if data.get("done"):
@@ -338,24 +342,6 @@ class AnthropicBackend:
     return self._model
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
-def _messages_to_prompt(messages: List[Dict[str, Any]]) -> str:
-  """Flatten a message list into a single prompt string for backends that
-  don't natively support chat format (e.g. Ollama /api/generate)."""
-  parts = []
-  for m in messages:
-    role = m.get("role", "user")
-    content = m.get("content", "")
-    if role == "system":
-      parts.append(content)
-    elif role == "user":
-      parts.append(f"User: {content}")
-    elif role == "assistant":
-      parts.append(f"Assistant: {content}")
-  return "\n\n".join(parts)
-
-
 # ── Public facade ─────────────────────────────────────────────────────────────
 
 class LLMClient:
@@ -386,10 +372,12 @@ class LLMClient:
     base_url = _cfg("NYXSTRIKE_LLM_URL")
     api_key = _cfg("NYXSTRIKE_LLM_API_KEY")
     timeout = int(_cfg("NYXSTRIKE_LLM_TIMEOUT") or 300)
+    think_raw = _cfg("NYXSTRIKE_LLM_THINK")
+    think = str(think_raw).lower() in ("1", "true", "yes")
 
     try:
       if provider == "ollama":
-        self._backend = OllamaBackend(base_url, model, timeout)
+        self._backend = OllamaBackend(base_url, model, timeout, think)
       elif provider == "openai":
         self._backend = OpenAIBackend(model, api_key, base_url if base_url != DEFAULT_OLLAMA_URL else None, timeout)
       elif provider == "anthropic":

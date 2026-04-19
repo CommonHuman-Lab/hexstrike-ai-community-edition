@@ -40,6 +40,7 @@ _config = {
     "NYXSTRIKE_LLM_API_KEY":  "",                               # Required for openai / anthropic
     "NYXSTRIKE_LLM_TIMEOUT":  600,                              # seconds
     "NYXSTRIKE_LLM_MAX_LOOPS": 9,
+    "NYXSTRIKE_LLM_THINK":    False,                             # Enable model thinking/reasoning (Ollama only, e.g. Qwen3)
 
     # ── Chat widget ───────────────────────────────────────────────────────────
     "CHAT_SYSTEM_PROMPT": (
