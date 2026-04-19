@@ -190,4 +190,4 @@ Licensed under the [AGPLv3](LICENSE). You are free to use, modify, and distribut
 
 ## Credits
 
-Originally inspired by [hexstrike-ai](https://github.com/0x4m4/hexstrike-ai) by [0x4m4](https://github.com/0x4m4).
+Originally inspired by [hexstrike-ai](https://github.com/0x4m4/hexstrike-ai).
