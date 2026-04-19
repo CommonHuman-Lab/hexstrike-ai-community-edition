@@ -400,15 +400,15 @@ run_setup() {
   fi
 
   echo "[2/4] Syncing Python dependencies... (may take a while on first run)"
-  install_requirements_file "${ROOT_DIR}/requirements.txt"
+  install_requirements_file "${ROOT_DIR}/dependencies/requirements.txt"
 
-  if [[ "${INSTALL_TOOLS}" == true && -f "${ROOT_DIR}/requirements-extra.txt" ]]; then
-    install_requirements_file "${ROOT_DIR}/requirements-extra.txt"
+  if [[ "${INSTALL_TOOLS}" == true && -f "${ROOT_DIR}/dependencies/requirements-extra.txt" ]]; then
+    install_requirements_file "${ROOT_DIR}/dependencies/requirements-extra.txt"
   fi
 
-  if [[ "${INSTALL_TOOLS}" == true && "${INSTALL_BIG_PACKAGES}" == true && -f "${ROOT_DIR}/requirements-big.txt" ]]; then
+  if [[ "${INSTALL_TOOLS}" == true && "${INSTALL_BIG_PACKAGES}" == true && -f "${ROOT_DIR}/dependencies/requirements-big.txt" ]]; then
     echo "Installing big optional Python packages..."
-    install_requirements_file "${ROOT_DIR}/requirements-big.txt"
+    install_requirements_file "${ROOT_DIR}/dependencies/requirements-big.txt"
   fi
 
   if [[ "${INSTALL_TOOLS}" == true ]]; then
