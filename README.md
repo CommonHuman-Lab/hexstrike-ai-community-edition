@@ -14,7 +14,7 @@
 
 **AI-driven penetration testing and bug bounty automation platform that connects MCP-compatible LLM agents to 185+ real-world offensive security tools through a single REST API and web dashboard.**
 
-[📡 Wiki](https://github.com/CommonHuman-Lab/nyxstrike/wiki)
+[📡 Wiki](https://github.com/CommonHuman-Lab/hexstrike-ai-community-edition/wiki)
 
 <p align="center">
   <a href="https://discord.gg/aC8Q2xJFgp">
@@ -190,4 +190,4 @@ Licensed under the [AGPLv3](LICENSE). You are free to use, modify, and distribut
 
 ## Credits
 
-NyxStrike is built on top of **[hexstrike-ai](https://github.com/0x4m4/hexstrike-ai)** by **0x4m4**.
+**[hexstrike-ai](https://github.com/0x4m4/hexstrike-ai)** by **0x4m4**.
