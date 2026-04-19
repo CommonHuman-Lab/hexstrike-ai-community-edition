@@ -4,7 +4,7 @@ import type { ChatSession } from '../../api'
 
 export function useChatSessions() {
   const [sessions, setSessions] = useState<ChatSession[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   const loadSessions = useCallback(async () => {
     setLoading(true)

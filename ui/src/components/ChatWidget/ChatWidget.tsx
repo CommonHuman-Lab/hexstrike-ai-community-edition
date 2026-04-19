@@ -45,6 +45,7 @@ export function ChatWidget({ llmAvailable, currentPage, currentSessionId }: Chat
   const { messages, streaming, send, stop, loadHistory, clearMessages } = useChatStream(activeSessionId)
 
   const widgetRef = useRef<HTMLDivElement>(null)
+  const autoCreatedRef = useRef(false)
 
   // Keyboard shortcut Ctrl+Shift+C
   useEffect(() => {
@@ -66,7 +67,8 @@ export function ChatWidget({ llmAvailable, currentPage, currentSessionId }: Chat
     if (loading) return
     if (!activeSessionId && sessions.length > 0) {
       setActiveSessionId(sessions[0].id)
-    } else if (!activeSessionId && sessions.length === 0) {
+    } else if (!activeSessionId && sessions.length === 0 && !autoCreatedRef.current) {
+      autoCreatedRef.current = true
       handleCreateSession()
     }
   }, [sessions, activeSessionId, loading]) // eslint-disable-line react-hooks/exhaustive-deps
