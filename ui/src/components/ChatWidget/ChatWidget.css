@@ -344,7 +344,7 @@
 /* ── Input area ──────────────────────────────────────────────────────────── */
 .chat-input-area {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 6px;
   padding: 8px 10px;
   border-top: 1px solid var(--border);
@@ -367,7 +367,7 @@
 }
 .chat-textarea:focus { border-color: var(--accent); }
 .chat-textarea::placeholder { color: var(--text-dim); }
-.chat-input-actions { display: flex; align-items: flex-end; gap: 6px; }
+.chat-input-actions { display: flex; align-items: center; gap: 6px; }
 .chat-send-btn {
   background: var(--accent);
   color: var(--bg);
