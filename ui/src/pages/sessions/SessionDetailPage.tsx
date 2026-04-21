@@ -25,6 +25,8 @@ import {
   type StepState,
 } from './sessionDetailUtils'
 import './SessionsPage.css'
+import './SessionNotes.css'
+import './SessionFindings.css'
 import '../../components/tool-run/shared.css'
 
 export default function SessionDetailPage({

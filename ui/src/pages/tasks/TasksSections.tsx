@@ -99,7 +99,7 @@ export function ProcessesSection({
     <section className="section">
       <div className="section-header">
         <h3>Active Processes <span className="badge">{processes.length}</span></h3>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div className="section-header-controls">
           {actionMsg && <span className="section-meta" style={{ color: 'var(--amber)' }}>{actionMsg}</span>}
           {streamStatus !== 'streaming' && (
             <button className="icon-btn" onClick={onRefresh} title="Refresh"><RefreshCw size={14} /></button>
@@ -114,7 +114,7 @@ export function ProcessesSection({
         </div>
       ) : (
         <div className="tasks-table">
-          <div className="tasks-thead">
+          <div className="tasks-thead table-thead">
             <span>PID</span>
             <span>Command</span>
             <span>Status</span>

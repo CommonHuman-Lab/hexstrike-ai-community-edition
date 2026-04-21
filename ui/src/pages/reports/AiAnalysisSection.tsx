@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Brain, ChevronDown, ChevronRight, RefreshCw } from 'lucide-react'
+import { Brain, RefreshCw } from 'lucide-react'
 import { api } from '../../api'
 import type { LlmSession, LlmVulnerability } from '../../api/types/llm'
+import { CollapseChevron } from '../../components/CollapseChevron'
 
 const RISK_COLOR: Record<string, string> = {
   CRITICAL: 'var(--red)',
@@ -51,7 +52,7 @@ function SessionRow({ session }: SessionRowProps) {
     <div className="reports-group">
       <button className="ai-report-row" onClick={toggle}>
         <span className="reports-chevron">
-          {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+          <CollapseChevron open={open} size={12} />
         </span>
         <span className="mono ai-report-target">{session.target || '—'}</span>
         <span className="mono" style={{ color, fontWeight: 600 }}>
@@ -142,7 +143,7 @@ export function AiAnalysisSection() {
     <section className="section">
       <div className="section-header" style={{ cursor: 'pointer' }} onClick={handleToggle}>
         <h3>
-          {sectionOpen ? <ChevronDown size={13} style={{ verticalAlign: 'middle', marginRight: 6 }} /> : <ChevronRight size={13} style={{ verticalAlign: 'middle', marginRight: 6 }} />}
+          <CollapseChevron open={sectionOpen} size={13} className="section-chevron" />
           <Brain size={15} style={{ verticalAlign: 'middle', marginRight: 6 }} />
           AI Analysis Reports
           {sessions !== null && (

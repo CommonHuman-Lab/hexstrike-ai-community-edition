@@ -22,7 +22,7 @@ export function DashboardPage({ health, tools, runHistory, loading, error, toolC
     <>
       {loading && !health && (
         <div className="loading-state">
-          <div className="spin" style={{ width: 24, height: 24, border: '2px solid var(--green)', borderTopColor: 'transparent', borderRadius: '50%' }} />
+          <div className="spin spin--sm spin--green" />
           <p>Connecting to server…</p>
         </div>
       )}

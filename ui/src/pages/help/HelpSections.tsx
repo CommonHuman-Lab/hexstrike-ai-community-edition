@@ -1,5 +1,6 @@
 import { Terminal, FlaskConical } from 'lucide-react'
 import { CodeBlock } from '../../components/CodeBlock'
+import { CollapsibleSection } from '../../components/CollapsibleSection'
 import type { IdeConfig } from './ideConfigs'
 
 const MCP_FLAGS: Array<[string, string, string]> = [
@@ -30,9 +31,7 @@ export function IdeConfigSection({
   selectedIde: IdeConfig
 }) {
   return (
-    <section className="section">
-      <div className="section-header"><h3>IDE / Agent Configuration</h3></div>
-
+    <CollapsibleSection title="IDE / Agent Configuration" defaultOpen>
       <div className="help-path-row">
         <label className="help-path-label">Installation path</label>
         <input
@@ -64,14 +63,13 @@ export function IdeConfigSection({
         {selectedIde.note && <p className="ide-note">{selectedIde.note}</p>}
         <CodeBlock language="json" code={selectedIde.json(installPath)} />
       </div>
-    </section>
+    </CollapsibleSection>
   )
 }
 
 export function FlagsSection() {
   return (
-    <section className="section">
-      <div className="section-header"><h3>MCP Client Flags</h3></div>
+    <CollapsibleSection title="MCP Client Flags">
       <div className="flags-table">
         {MCP_FLAGS.map(([flag, description, defaultValue]) => (
           <div key={flag} className="flag-row">
@@ -81,28 +79,26 @@ export function FlagsSection() {
           </div>
         ))}
       </div>
-    </section>
+    </CollapsibleSection>
   )
 }
 
 export function AuthenticationSection() {
   return (
-    <section className="section">
-      <div className="section-header"><h3>Authentication</h3></div>
+    <CollapsibleSection title="Authentication">
       <p className="help-body">
         If you set <code>NYXSTRIKE_API_TOKEN</code> on the server, every request must carry a Bearer token.
         Pass it to the MCP client with <code>--auth-token</code>, or set it in the IDE config under <code>args</code>.
         The dashboard will prompt for it automatically when the server returns 401.
       </p>
       <CodeBlock language="bash" code={`# Server side\nexport NYXSTRIKE_API_TOKEN=your-secret-token\npython3 nyxstrike_server.py\n\n# MCP client side\nnyxstrike-env/bin/python3 nyxstrike_mcp.py \\\n+  --server http://localhost:8888 \\\n+  --auth-token your-secret-token \\\n+  --profile full`} />
-    </section>
+    </CollapsibleSection>
   )
 }
 
 export function DemoModeSection() {
   return (
-    <section className="section help-about-section">
-      <div className="section-header"><h3>Demo Mode</h3></div>
+    <CollapsibleSection title="Demo Mode" className="help-about-section">
       <div className="help-about">
         <p className="help-about-desc">
           Activate demo mode to explore the dashboard. All data is synthetic but designed to feel realistic. Ideal for learning, demos, or just satisfying your curiosity!
@@ -115,6 +111,6 @@ export function DemoModeSection() {
           Try demo mode
         </button>
       </div>
-    </section>
+    </CollapsibleSection>
   )
 }

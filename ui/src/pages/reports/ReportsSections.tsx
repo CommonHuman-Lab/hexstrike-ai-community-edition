@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { RunHistoryEntry } from '../../shared/types'
 import { getGroupStats, groupByDate, type GroupBy } from './reportUtils'
 import { safeFixed } from '../../shared/utils'
+import { CollapseChevron } from '../../components/CollapseChevron'
 
 export function ReportsTimelineSection({
   runHistory,
@@ -65,13 +65,13 @@ export function ReportsBreakdownSection({
 
   return (
     <section className="section">
-      <div className="section-header" style={{ cursor: 'pointer' }} onClick={() => setSectionOpen(o => !o)}>
+      <div className="section-header section-header--clickable" onClick={() => setSectionOpen(o => !o)}>
         <h3>
-          {sectionOpen ? <ChevronDown size={13} style={{ verticalAlign: 'middle', marginRight: 6 }} /> : <ChevronRight size={13} style={{ verticalAlign: 'middle', marginRight: 6 }} />}
+          <CollapseChevron open={sectionOpen} size={13} className="section-chevron" />
           Breakdown
         </h3>
         {sectionOpen && (
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }} onClick={e => e.stopPropagation()}>
+          <div className="section-header-controls" onClick={e => e.stopPropagation()}>
             <input
               className="search-input mono"
               style={{ width: 180 }}
@@ -87,7 +87,7 @@ export function ReportsBreakdownSection({
 
       {sectionOpen && (
         <div className="reports-table">
-          <div className="reports-thead">
+          <div className="reports-thead table-thead">
             <span></span>
             <span>{groupBy === 'tool' ? 'Tool' : 'Target'}</span>
             <span>Runs</span>
@@ -109,7 +109,7 @@ export function ReportsBreakdownSection({
               <div key={key} className="reports-group">
                 <button className="reports-row reports-row--clickable" onClick={() => toggleExpanded(key)}>
                   <span className="reports-chevron">
-                    {isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                    <CollapseChevron open={isOpen} size={12} />
                   </span>
                   <span className="mono reports-key">{key}</span>
                   <span className="mono">{stats.total}</span>
@@ -117,8 +117,8 @@ export function ReportsBreakdownSection({
                   <span className="mono" style={{ color: stats.failed > 0 ? 'var(--red)' : 'var(--text-dim)' }}>{stats.failed}</span>
                   <span className="mono">{safeFixed(stats.avgTime, 1)}s</span>
                   <div className="reports-last-cell">
-                    <span className="reports-pct-bar-bg">
-                      <span className="reports-pct-bar-fill" style={{ width: `${pct}%`, background: color }} />
+                    <span className="progress-bar">
+                      <span className="progress-bar__fill" style={{ width: `${pct}%`, background: color }} />
                     </span>
                     <span className="mono" style={{ fontSize: 11, color: 'var(--text-dim)' }}>
                       {stats.last.ts.toLocaleDateString('en-GB')} {stats.last.ts.toLocaleTimeString('en-GB')}

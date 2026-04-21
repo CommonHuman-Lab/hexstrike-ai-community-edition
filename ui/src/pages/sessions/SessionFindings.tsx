@@ -28,6 +28,117 @@ const emptyForm = (): CreateFindingPayload => ({
   tags: [],
 })
 
+// ── Shared Finding Form ────────────────────────────────────────────────────────
+
+interface FindingFormProps {
+  title: string
+  severity: Severity | string
+  status?: string
+  description: string
+  tool: string
+  cve: string
+  evidence: string
+  recommendation: string
+  tagsInput: string
+  saving: boolean
+  error: string | null
+  showStatus?: boolean
+  onChange: (key: string, value: string) => void
+  onTagsChange: (value: string) => void
+  onSave: () => void
+  onCancel: () => void
+}
+
+function FindingForm({
+  title, severity, status, description, tool, cve, evidence, recommendation,
+  tagsInput, saving, error, showStatus = false,
+  onChange, onTagsChange, onSave, onCancel,
+}: FindingFormProps) {
+  return (
+    <div className="finding-modal-body">
+      <div className="findings-form-row">
+        <input
+          className="findings-form-input"
+          placeholder="Title *"
+          value={title}
+          onChange={e => onChange('title', e.target.value)}
+          autoFocus
+        />
+        <select
+          className="findings-form-select"
+          value={severity}
+          onChange={e => onChange('severity', e.target.value)}
+        >
+          {SEVERITIES.map(s => <option key={s} value={s}>{SEVERITY_LABEL[s]}</option>)}
+        </select>
+        {showStatus && (
+          <select
+            className="findings-form-select"
+            value={status ?? 'open'}
+            onChange={e => onChange('status', e.target.value)}
+          >
+            {FINDING_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        )}
+      </div>
+      <textarea
+        className="findings-form-textarea"
+        placeholder="Description"
+        rows={3}
+        value={description}
+        onChange={e => onChange('description', e.target.value)}
+      />
+      <div className="findings-form-row">
+        <input
+          className="findings-form-input"
+          placeholder="Tool (e.g. nmap)"
+          value={tool}
+          onChange={e => onChange('tool', e.target.value)}
+        />
+        <input
+          className="findings-form-input"
+          placeholder="CVE (e.g. CVE-2021-44228)"
+          value={cve}
+          onChange={e => onChange('cve', e.target.value)}
+        />
+      </div>
+      <textarea
+        className="findings-form-textarea"
+        placeholder="Evidence / PoC"
+        rows={3}
+        value={evidence}
+        onChange={e => onChange('evidence', e.target.value)}
+      />
+      <textarea
+        className="findings-form-textarea"
+        placeholder="Recommendation"
+        rows={2}
+        value={recommendation}
+        onChange={e => onChange('recommendation', e.target.value)}
+      />
+      <input
+        className="findings-form-input"
+        placeholder="Tags (comma separated)"
+        value={tagsInput}
+        onChange={e => onTagsChange(e.target.value)}
+      />
+      {error && <div className="findings-error">{error}</div>}
+      <div className="findings-form-actions">
+        <button
+          className="session-action-btn session-action-btn--primary"
+          onClick={onSave}
+          disabled={saving}
+        >
+          {saving ? 'Saving…' : 'Save Finding'}
+        </button>
+        <button className="session-action-btn" onClick={onCancel} disabled={saving}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── Edit Finding Modal ─────────────────────────────────────────────────────────
 
 interface EditFindingModalProps {
@@ -52,6 +163,10 @@ function EditFindingModal({ finding, saving, error, onSave, onClose }: EditFindi
   })
   const [tagsInput, setTagsInput] = useState((finding.tags ?? []).join(', '))
 
+  function handleChange(key: string, value: string) {
+    setForm(p => ({ ...p, [key]: value }))
+  }
+
   function handleSave() {
     const payload = {
       ...form,
@@ -73,85 +188,24 @@ function EditFindingModal({ finding, saving, error, onSave, onClose }: EditFindi
           </div>
           <button className="modal-close" onClick={onClose} disabled={saving}>×</button>
         </div>
-        <div className="finding-modal-body">
-          <div className="findings-form-row">
-            <input
-              className="findings-form-input"
-              placeholder="Title *"
-              value={form.title ?? ''}
-              onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-              autoFocus
-            />
-            <select
-              className="findings-form-select"
-              value={form.severity ?? 'info'}
-              onChange={e => setForm(p => ({ ...p, severity: e.target.value as Severity }))}
-            >
-              {SEVERITIES.map(s => <option key={s} value={s}>{SEVERITY_LABEL[s]}</option>)}
-            </select>
-            <select
-              className="findings-form-select"
-              value={form.status ?? 'open'}
-              onChange={e => setForm(p => ({ ...p, status: e.target.value as typeof FINDING_STATUSES[number] }))}
-            >
-              {FINDING_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-          <textarea
-            className="findings-form-textarea"
-            placeholder="Description"
-            rows={3}
-            value={form.description ?? ''}
-            onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-          />
-          <div className="findings-form-row">
-            <input
-              className="findings-form-input"
-              placeholder="Tool (e.g. nmap)"
-              value={form.tool ?? ''}
-              onChange={e => setForm(p => ({ ...p, tool: e.target.value }))}
-            />
-            <input
-              className="findings-form-input"
-              placeholder="CVE (e.g. CVE-2021-44228)"
-              value={form.cve ?? ''}
-              onChange={e => setForm(p => ({ ...p, cve: e.target.value }))}
-            />
-          </div>
-          <textarea
-            className="findings-form-textarea"
-            placeholder="Evidence / PoC"
-            rows={3}
-            value={form.evidence ?? ''}
-            onChange={e => setForm(p => ({ ...p, evidence: e.target.value }))}
-          />
-          <textarea
-            className="findings-form-textarea"
-            placeholder="Recommendation"
-            rows={2}
-            value={form.recommendation ?? ''}
-            onChange={e => setForm(p => ({ ...p, recommendation: e.target.value }))}
-          />
-          <input
-            className="findings-form-input"
-            placeholder="Tags (comma separated)"
-            value={tagsInput}
-            onChange={e => setTagsInput(e.target.value)}
-          />
-          {error && <div className="findings-error">{error}</div>}
-          <div className="findings-form-actions">
-            <button
-              className="session-action-btn session-action-btn--primary"
-              onClick={handleSave}
-              disabled={saving}
-            >
-              {saving ? 'Saving…' : 'Save Finding'}
-            </button>
-            <button className="session-action-btn" onClick={onClose} disabled={saving}>
-              Cancel
-            </button>
-          </div>
-        </div>
+        <FindingForm
+          title={form.title ?? ''}
+          severity={form.severity ?? 'info'}
+          status={form.status ?? 'open'}
+          description={form.description ?? ''}
+          tool={form.tool ?? ''}
+          cve={form.cve ?? ''}
+          evidence={form.evidence ?? ''}
+          recommendation={form.recommendation ?? ''}
+          tagsInput={tagsInput}
+          saving={saving}
+          error={error}
+          showStatus
+          onChange={handleChange}
+          onTagsChange={setTagsInput}
+          onSave={handleSave}
+          onCancel={onClose}
+        />
       </div>
     </div>,
     document.body
@@ -199,7 +253,7 @@ export function SessionFindings({
     return acc
   }, {} as Record<Severity, SessionFinding[]>)
 
-  function updateForm(key: keyof CreateFindingPayload, value: string) {
+  function updateAddForm(key: string, value: string) {
     setForm(prev => ({ ...prev, [key]: value }))
   }
 
@@ -319,74 +373,22 @@ export function SessionFindings({
               </div>
               <button className="modal-close" onClick={() => { setShowForm(false); setError(null) }}>×</button>
             </div>
-            <div className="finding-modal-body">
-              <div className="findings-form-row">
-                <input
-                  className="findings-form-input"
-                  placeholder="Title *"
-                  value={form.title}
-                  onChange={e => updateForm('title', e.target.value)}
-                  autoFocus
-                />
-                <select
-                  className="findings-form-select"
-                  value={form.severity}
-                  onChange={e => updateForm('severity', e.target.value as Severity)}
-                >
-                  {SEVERITIES.map(s => <option key={s} value={s}>{SEVERITY_LABEL[s]}</option>)}
-                </select>
-              </div>
-              <textarea
-                className="findings-form-textarea"
-                placeholder="Description"
-                rows={3}
-                value={form.description ?? ''}
-                onChange={e => updateForm('description', e.target.value)}
-              />
-              <div className="findings-form-row">
-                <input
-                  className="findings-form-input"
-                  placeholder="Tool (e.g. nmap)"
-                  value={form.tool ?? ''}
-                  onChange={e => updateForm('tool', e.target.value)}
-                />
-                <input
-                  className="findings-form-input"
-                  placeholder="CVE (e.g. CVE-2021-44228)"
-                  value={form.cve ?? ''}
-                  onChange={e => updateForm('cve', e.target.value)}
-                />
-              </div>
-              <textarea
-                className="findings-form-textarea"
-                placeholder="Evidence / PoC"
-                rows={3}
-                value={form.evidence ?? ''}
-                onChange={e => updateForm('evidence', e.target.value)}
-              />
-              <textarea
-                className="findings-form-textarea"
-                placeholder="Recommendation"
-                rows={2}
-                value={form.recommendation ?? ''}
-                onChange={e => updateForm('recommendation', e.target.value)}
-              />
-              <input
-                className="findings-form-input"
-                placeholder="Tags (comma separated)"
-                value={tagsInput}
-                onChange={e => setTagsInput(e.target.value)}
-              />
-              {error && <div className="findings-error">{error}</div>}
-              <div className="findings-form-actions">
-                <button className="session-action-btn session-action-btn--primary" onClick={saveFinding} disabled={saving}>
-                  {saving ? 'Saving…' : 'Save Finding'}
-                </button>
-                <button className="session-action-btn" onClick={() => { setShowForm(false); setError(null) }}>
-                  Cancel
-                </button>
-              </div>
-            </div>
+            <FindingForm
+              title={form.title}
+              severity={form.severity}
+              description={form.description ?? ''}
+              tool={form.tool ?? ''}
+              cve={form.cve ?? ''}
+              evidence={form.evidence ?? ''}
+              recommendation={form.recommendation ?? ''}
+              tagsInput={tagsInput}
+              saving={saving}
+              error={error}
+              onChange={updateAddForm}
+              onTagsChange={setTagsInput}
+              onSave={saveFinding}
+              onCancel={() => { setShowForm(false); setError(null) }}
+            />
           </div>
         </div>,
         document.body

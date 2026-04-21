@@ -60,15 +60,6 @@
   padding: 8px 12px;
 }
 
-.reports-thead {
-  background: var(--bg-card2);
-  color: var(--text-dim);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid var(--border);
-}
-
 .reports-group {
   border-bottom: 1px solid var(--border);
 }

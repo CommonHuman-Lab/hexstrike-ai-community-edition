@@ -1,6 +1,7 @@
 import { Save, Plus, Trash2 } from 'lucide-react'
 import type { Settings, WordlistEntry, PersonalityPreset } from '../../api'
 import { ActionButton } from '../../components/ActionButton'
+import { CollapsibleSection } from '../../components/CollapsibleSection'
 
 function SettingsRow({ label, value, mono, accent }: {
   label: string
@@ -66,10 +67,10 @@ export function SettingsTextarea({ label, hint, value, onChange, rows = 4 }: {
 
 export function ServerEnvironmentSection({ settings }: { settings: Settings }) {
   return (
-    <section className="section">
-      <div className="section-header">
-        <h3>Server Environment <span className="badge">read-only</span></h3>
-      </div>
+    <CollapsibleSection
+      title="Server Environment"
+      badge={<span className="badge">read-only</span>}
+    >
       <div className="settings-grid">
         <SettingsRow label="Host" value={settings.server.host} mono />
         <SettingsRow label="Port" value={String(settings.server.port)} mono />
@@ -90,7 +91,7 @@ export function ServerEnvironmentSection({ settings }: { settings: Settings }) {
         <code> NYXSTRIKE_HOST</code>, <code>NYXSTRIKE_PORT</code>, <code>NYXSTRIKE_API_TOKEN</code>,
         <code> DEBUG_MODE</code>, <code>NYXSTRIKE_DATA_DIR</code>.
       </p>
-    </section>
+    </CollapsibleSection>
   )
 }
 
@@ -130,11 +131,11 @@ export function RuntimeConfigSection({
   onSave: () => Promise<void>
 }) {
   return (
-    <section className="section">
-      <div className="section-header">
-        <h3>Runtime Config</h3>
-        <span className="section-meta">changes apply immediately</span>
-      </div>
+    <CollapsibleSection
+      title="Runtime Config"
+      badge={<span className="section-meta">changes apply immediately</span>}
+      defaultOpen
+    >
       <div className="settings-grid">
         <SettingsField
           label="Command Timeout" unit="seconds"
@@ -177,7 +178,7 @@ export function RuntimeConfigSection({
           <Save size={14} /> {saving ? 'Saving…' : 'Save Runtime'}
         </ActionButton>
       </div>
-    </section>
+    </CollapsibleSection>
   )
 }
 
@@ -189,10 +190,7 @@ export function ServerControlsSection({
   onClearCache: () => Promise<void>
 }) {
   return (
-    <section className="section">
-      <div className="section-header">
-        <h3>Server Controls</h3>
-      </div>
+    <CollapsibleSection title="Server Controls">
       <div className="settings-grid">
         <div className="settings-row" style={{ alignItems: 'flex-start' }}>
           <ActionButton variant="danger" onClick={onClearCache} disabled={clearingCache}>
@@ -203,7 +201,7 @@ export function ServerControlsSection({
           </p>
         </div>
       </div>
-    </section>
+    </CollapsibleSection>
   )
 }
 
@@ -229,11 +227,11 @@ export function WordlistsSection({
   withCurrentCoverageOption: (current: string) => string[]
 }) {
   return (
-    <section className="section">
-      <div className="section-header">
-        <h3>Wordlists <span className="badge">{wordlistsDraft.length}</span></h3>
+    <CollapsibleSection
+      title="Wordlists"
+      badge={<span className="badge">{wordlistsDraft.length}</span>}
+      headerRight={(
         <div className="settings-actions-inline">
-
           <ActionButton variant="default" onClick={onAddWordlist} disabled={wordlistsSaving}>
             <Plus size={14} /> Add Wordlist
           </ActionButton>
@@ -241,7 +239,8 @@ export function WordlistsSection({
             <Save size={14} /> {wordlistsSaving ? 'Saving…' : 'Save Wordlists'}
           </ActionButton>
         </div>
-      </div>
+      )}
+    >
       <div className="wordlist-table">
         <div className="wordlist-head">
           <span>Name</span><span>Type</span><span>Speed</span><span>Coverage</span><span>Path</span><span>Actions</span>
@@ -302,7 +301,7 @@ export function WordlistsSection({
       <p className="settings-hint">
         Changes are stored in <code>wordlists.json</code>. Entries here override defaults from <code>config.py</code>.
       </p>
-    </section>
+    </CollapsibleSection>
   )
 }
 
@@ -334,11 +333,10 @@ export function ChatSettingsSection({
   const options = [...personalityPresets.map(p => ({ id: p.id, label: p.label })), { id: 'custom', label: 'Custom' }]
 
   return (
-    <section className="section">
-      <div className="section-header">
-        <h3>Chat Widget</h3>
-        <span className="section-meta">changes apply immediately</span>
-      </div>
+    <CollapsibleSection
+      title="Chat Widget"
+      badge={<span className="section-meta">changes apply immediately</span>}
+    >
       <div className="settings-grid">
         <div className="settings-field">
           <label className="settings-label">Personality</label>
@@ -382,6 +380,6 @@ export function ChatSettingsSection({
           <Save size={14} /> {saving ? 'Saving…' : 'Save Chat Settings'}
         </ActionButton>
       </div>
-    </section>
+    </CollapsibleSection>
   )
 }
