@@ -177,17 +177,63 @@ _CHAT_TOOL_BLOCKLIST = frozenset({
 })
 
 
+# Minimum confidence required before we inject tool schemas into the LLM call.
+# classify_intent returns 0.5 when there is zero keyword signal (pure fallback),
+# 0.75 for a narrow keyword win or LLM-assisted classification, and 1.0 for a
+# clear keyword winner.  We skip tool injection at 0.5 to avoid offering scan
+# tools for casual / conversational messages that happened to contain no
+# security keywords.
+_TOOL_INJECT_MIN_CONFIDENCE: float = 0.6
+
+# Short conversational phrases that should never trigger tool injection.
+# These are checked before calling classify-task to avoid a pointless round-trip.
+_CONVERSATIONAL_PATTERNS = (
+  "thank", "thanks", "cheers", "ok", "okay", "cool", "got it",
+  "sounds good", "makes sense", "perfect", "great", "nice",
+  "hello", "hi ", "hey ", "howdy",
+  "what is ", "what's ", "what are ", "explain ", "tell me ",
+  "how does ", "how do ", "can you ", "could you ", "would you ",
+  "help me understand", "what does ", "describe ",
+)
+
+
+def _is_conversational(message: str) -> bool:
+  """Return True if the message looks like casual chat rather than a task request."""
+  lower = message.lower().strip()
+  # Very short messages are almost always conversational
+  if len(lower) < 20:
+    return True
+  for pat in _CONVERSATIONAL_PATTERNS:
+    if lower.startswith(pat) or f" {pat}" in lower:
+      return True
+  return False
+
+
 def _get_tool_schemas_for_message(user_message: str) -> List[Dict[str, Any]]:
   """Use classify-task to get a focused tool shortlist for the user message.
 
-  Returns a list of Ollama tool schemas (may be empty if classification fails
-  or the provider is unavailable).
+  Returns a list of Ollama tool schemas (may be empty if classification fails,
+  confidence is too low, or the message is clearly conversational).
   """
+  # Fast path: skip tool injection entirely for conversational messages.
+  if _is_conversational(user_message):
+    logger.debug("chat: skipping tool injection — message looks conversational")
+    return []
+
   try:
     result = internal_api.classify_task(user_message)
     if not result.get("success"):
       logger.debug("chat: classify_task returned no success: %s", result.get("error"))
       return []
+
+    confidence = float(result.get("confidence") or 0.0)
+    if confidence < _TOOL_INJECT_MIN_CONFIDENCE:
+      logger.debug(
+        "chat: skipping tool injection — confidence %.2f below threshold %.2f (category=%s)",
+        confidence, _TOOL_INJECT_MIN_CONFIDENCE, result.get("category"),
+      )
+      return []
+
     tools = result.get("tools") or []
     if not tools:
       return []
@@ -196,7 +242,10 @@ def _get_tool_schemas_for_message(user_message: str) -> List[Dict[str, Any]]:
     if not tools:
       return []
     schemas = build_tool_schemas(tools)
-    logger.debug("chat: injecting %d tool schemas (category=%s)", len(schemas), result.get("category"))
+    logger.debug(
+      "chat: injecting %d tool schemas (category=%s confidence=%.2f)",
+      len(schemas), result.get("category"), confidence,
+    )
     return schemas
   except Exception as exc:
     logger.warning("chat: tool schema build failed (non-fatal): %s", exc)
