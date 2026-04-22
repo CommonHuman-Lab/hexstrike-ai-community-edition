@@ -40,6 +40,7 @@ export function ChatWidget({ llmAvailable, currentPage, currentSessionId }: Chat
   const [size, setSize] = useState(loadSize)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
+  const [prefill, setPrefill] = useState<string>('')
 
   const { sessions, loading, createSession, deleteSession, deleteAllSessions, updateSessionName, renameSession } = useChatSessions()
   const { messages, streaming, send, stop, loadHistory, clearMessages, confirmToolCall } = useChatStream(activeSessionId)
@@ -235,6 +236,7 @@ export function ChatWidget({ llmAvailable, currentPage, currentSessionId }: Chat
                 messages={messages}
                 onRetry={handleRetry}
                 onConfirmTool={confirmToolCall}
+                onSuggest={setPrefill}
               />
 
               {/* Input */}
@@ -243,6 +245,7 @@ export function ChatWidget({ llmAvailable, currentPage, currentSessionId }: Chat
                 streaming={streaming}
                 onStop={stop}
                 disabled={!activeSessionId}
+                prefill={prefill}
               />
             </div>
           </div>

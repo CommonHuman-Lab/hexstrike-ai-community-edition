@@ -15,6 +15,40 @@ function formatTime(iso?: string): string {
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
+const OUTPUT_COLLAPSE_LINES = 8
+
+function ToolOutputBlock({ text, variant }: { text: string; variant: 'stdout' | 'stderr' }) {
+  const lineCount = text.split('\n').length
+  const collapsible = lineCount > OUTPUT_COLLAPSE_LINES
+  const [expanded, setExpanded] = useState(!collapsible)
+  const [copied, setCopied] = useState(false)
+
+  function copyOutput() {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  return (
+    <div className="chat-tool-output-block">
+      <button className="chat-tool-output-copy" onClick={copyOutput} title="Copy output">
+        {copied ? <Check size={11} /> : <Copy size={11} />}
+      </button>
+      <pre
+        className={`chat-tool-call-${variant}${collapsible && !expanded ? ' chat-tool-call-output--collapsed' : ''}`}
+      >
+        {text}
+      </pre>
+      {collapsible && (
+        <button className="chat-tool-output-toggle" onClick={() => setExpanded(e => !e)}>
+          {expanded ? '↑ Show less' : `↓ Show more (${lineCount} lines)`}
+        </button>
+      )}
+    </div>
+  )
+}
+
 function ToolCallResolvedCard({ tc }: { tc: ToolCallResolved }) {
   const argLines = Object.entries(tc.arguments || {})
   const r = tc.result
@@ -33,9 +67,11 @@ function ToolCallResolvedCard({ tc }: { tc: ToolCallResolved }) {
         )}
         {hasResult && (
           <span className={`chat-tool-call-badge${r?.success === false ? ' chat-tool-call-badge--danger' : ''}`}>
-            {r?.success === false
-              ? <><XCircle size={10} /> Failed</>
-              : <><CheckCircle size={10} /> Done · {r?.execution_time?.toFixed(2)}s</>
+            {r?.timed_out
+              ? <><XCircle size={10} /> Timed out</>
+              : r?.success === false
+                ? <><XCircle size={10} /> Failed · rc:{r?.return_code}</>
+                : <><CheckCircle size={10} /> Done · {r?.execution_time?.toFixed(2)}s</>
             }
           </span>
         )}
@@ -52,8 +88,8 @@ function ToolCallResolvedCard({ tc }: { tc: ToolCallResolved }) {
       )}
       {(output || errOutput) && (
         <div className="chat-tool-call-output">
-          {output && <pre className="chat-tool-call-stdout">{output}</pre>}
-          {errOutput && <pre className="chat-tool-call-stderr">{errOutput}</pre>}
+          {output && <ToolOutputBlock text={output} variant="stdout" />}
+          {errOutput && <ToolOutputBlock text={errOutput} variant="stderr" />}
         </div>
       )}
     </div>

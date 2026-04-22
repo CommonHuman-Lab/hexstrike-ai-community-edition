@@ -14,13 +14,28 @@ interface ChatInputProps {
   streaming: boolean
   onStop: () => void
   disabled?: boolean
+  prefill?: string
 }
 
-export function ChatInput({ onSend, streaming, onStop, disabled }: ChatInputProps) {
+export function ChatInput({ onSend, streaming, onStop, disabled, prefill }: ChatInputProps) {
   const [text, setText] = useState('')
   const [emojiOpen, setEmojiOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const emojiRef = useRef<HTMLDivElement>(null)
+
+  // When a suggestion is selected from the empty state, prefill and focus
+  useEffect(() => {
+    if (prefill) {
+      setText(prefill)
+      requestAnimationFrame(() => {
+        const ta = textareaRef.current
+        if (ta) {
+          ta.focus()
+          ta.setSelectionRange(ta.value.length, ta.value.length)
+        }
+      })
+    }
+  }, [prefill])
 
   // Close emoji picker on outside click
   useEffect(() => {
