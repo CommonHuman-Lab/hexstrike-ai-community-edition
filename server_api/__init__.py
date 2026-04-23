@@ -52,6 +52,7 @@ from .web_scan import *
 from .wifi_pentest import *
 from .active_directory import *
 from .osint import *
+from .burp_agent import *
 
 def register_blueprints(app):
   """Register all API blueprints with the Flask app."""
@@ -341,6 +342,9 @@ def register_blueprints(app):
   app.register_blueprint(api_ctf_cryptography_solver_bp)
   app.register_blueprint(api_ctf_forensics_analyzer_bp)
   app.register_blueprint(api_ctf_binary_analyzer_bp)
+
+  # Burp Agent Loop
+  app.register_blueprint(api_burp_agent_bp)
 
   # Intelligent Error Handling
   app.register_blueprint(api_error_handling_statistics_bp)
