@@ -20,6 +20,7 @@ const SettingsPage      = lazy(() => import('../pages/settings/SettingsPage'))
 const HelpPage          = lazy(() => import('../pages/help/HelpPage'))
 const TasksPage         = lazy(() => import('../pages/tasks/TasksPage'))
 const ToolsPage         = lazy(() => import('../pages/tools/ToolsPage'))
+const PluginsPage       = lazy(() => import('../pages/plugins/PluginsPage'))
 const ReportsPage       = lazy(() => import('../pages/reports/ReportsPage'))
 const SessionsPage      = lazy(() => import('../pages/sessions/SessionsPage'))
 const SessionDetailPage = lazy(() => import('../pages/sessions/SessionDetailPage'))
@@ -130,6 +131,7 @@ export function MainContent({
         {page === 'tools' && health && (
           <ToolsPage health={health} tools={tools} toolsStatus={toolsStatusWithParents} />
         )}
+        {page === 'plugins' && <PluginsPage />}
         {page === 'reports' && <ReportsPage runHistory={runHistory} />}
         {page === 'sessions' && (
           // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -334,6 +334,9 @@ def register_blueprints(app):
   # Web UI
   app.register_blueprint(api_ui_bp)
 
+  # Plugins
+  app.register_blueprint(api_plugins_bp)
+
   # CTF
   app.register_blueprint(api_ctf_create_challenge_workflow_bp)
   app.register_blueprint(api_ctf_auto_solve_challenge_bp)

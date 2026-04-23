@@ -55,6 +55,8 @@ import type {
   UpdateSessionPayload,
   WebDashboardResponse,
   WordlistEntry,
+  PluginsByCategoryResponse,
+  PluginsListResponse,
 } from './types';
 
 type ProcessActionResponse = { success: boolean; message?: string; error?: string };
@@ -68,6 +70,9 @@ export const api = {
   tools: () => get<ToolsCatalogResponse>('/api/tools'),
   getToolCategories: () => get<ToolCategoriesResponse>('/api/tools/categories'),
   refreshToolAvailability: () => post<RefreshToolAvailabilityResponse>('/api/tools/availability/refresh'),
+
+  pluginList: () => get<PluginsListResponse>('/api/plugins/list'),
+  pluginsByCategory: () => get<PluginsByCategoryResponse>('/api/plugins/by-category'),
 
   getSettings: () => get<SettingsResponse>('/api/settings'),
   patchSettings: (runtime: Partial<Settings['runtime']>, chat?: Partial<Settings['chat']>) =>

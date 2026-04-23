@@ -8,7 +8,7 @@ from flask import Blueprint, jsonify, Response, stream_with_context
 import server_core.config_core as config_core
 from server_core.singletons import cache, telemetry, enhanced_process_manager, llm_client
 import server_api.ops.system_monitoring as _sm
-from server_api.ops.system_monitoring import _get_tool_availability
+from server_api.ops.system_monitoring import _get_tool_availability, _get_plugin_install_hints
 from server_core.tool_constants import HEALTH_TOOL_CATEGORIES
 import json
 from urllib.request import urlopen
@@ -162,6 +162,7 @@ def build_dashboard_data():
       "total_tools_available": sum(1 for v in tools_status.values() if v),
       "total_tools_count": len(tools_status),
       "category_stats": category_stats,
+      "plugin_install_hints": _get_plugin_install_hints(),
       "tool_availability_age_seconds": round(time.time() - _sm._tool_availability_last_refresh, 1) if _sm._tool_availability_last_refresh > 0 else None,
 
       # System resources

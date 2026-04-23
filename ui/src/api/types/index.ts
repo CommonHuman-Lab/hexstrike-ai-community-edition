@@ -43,6 +43,12 @@ export type {
 export type { CacheStatsResponse } from './cache';
 
 export type {
+  Plugin,
+  PluginsByCategoryResponse,
+  PluginsListResponse,
+} from './plugins';
+
+export type {
   ChatSession,
   ChatSessionsResponse,
   ChatSessionResponse,

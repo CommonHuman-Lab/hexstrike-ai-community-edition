@@ -13,3 +13,4 @@ from .sessions import *
 from .session_notes import *
 from .session_findings import *
 from .session_reports import *
+from .plugins import *

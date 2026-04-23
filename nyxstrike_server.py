@@ -20,6 +20,7 @@ from server_core.singletons import run_history, tool_stats
 from server_core.session_flow import append_event as _append_event, append_run_log as _append_run_log
 from server_api import register_blueprints
 from server_api.ops.web_dashboard import initialize_update_status_check
+from server_core.plugin_loader import load_plugins
 
 # ============================================================================
 # LOGGING CONFIGURATION (MUST BE FIRST)
@@ -74,6 +75,7 @@ def require_json_for_post():
         }), 400
 
 register_blueprints(app)
+load_plugins(app)
 initialize_update_status_check()
 
 # Pre-load the Ollama model in the background so it's ready before the first request.

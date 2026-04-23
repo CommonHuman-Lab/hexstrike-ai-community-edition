@@ -8,6 +8,7 @@ from mcp_core.tool_profiles import (
     FULL_PROFILE,
     resolve_profile_dependencies,
 )
+from mcp_core.plugin_mcp_loader import load_plugin_tools
 
 try:
     from fastmcp.server.providers.skills import SkillsDirectoryProvider
@@ -70,5 +71,8 @@ def setup_mcp_server(api_client, logger, compact: bool = False, profiles: Option
             if reg_func not in registered:
                 reg_func(mcp, api_client, logger)
                 registered.add(reg_func)  
+
+    # Load plugin MCP tools (plugins/tools/<name>/mcp_tool.py)
+    load_plugin_tools(mcp, api_client, logger)
 
     return mcp

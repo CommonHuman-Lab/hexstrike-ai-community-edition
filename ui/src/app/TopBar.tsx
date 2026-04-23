@@ -4,7 +4,7 @@ import {
   RefreshCw, Lock, Github, Copy, Check,
   LayoutDashboard, Terminal, Play,
   Settings as SettingsIcon, HelpCircle,
-  ListTodo, Wrench, FileText, Layers, Palette, PanelBottomOpen, X,
+  ListTodo, Wrench, FileText, Layers, Palette, PanelBottomOpen, X, Puzzle,
 } from 'lucide-react'
 import { clearToken, hasToken, type WebDashboardResponse } from '../api'
 import type { Page } from './routing'
@@ -38,6 +38,7 @@ const MOBILE_PAGE_OPTIONS: Array<{ value: Exclude<Page, 'session-detail'>; label
   { value: 'help', label: 'Help' },
   { value: 'tasks', label: 'Tasks' },
   { value: 'tools', label: 'Tools' },
+  { value: 'plugins', label: 'Plugins' },
   { value: 'reports', label: 'Reports' },
   { value: 'sessions', label: 'Sessions' },
 ]
@@ -314,6 +315,9 @@ export function TopBar({
         </button>
         <button className={`nav-tab ${page === 'tools' ? 'active' : ''}`} onClick={() => setPage('tools')}>
           <Wrench size={13} /> Tools
+        </button>
+        <button className={`nav-tab ${page === 'plugins' ? 'active' : ''}`} onClick={() => setPage('plugins')}>
+          <Puzzle size={13} /> Plugins
         </button>
         <button className={`nav-tab ${page === 'reports' ? 'active' : ''}`} onClick={() => setPage('reports')}>
           <FileText size={13} /> Reports
