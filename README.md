@@ -7,8 +7,6 @@
 
 ### AI-powered offensive security orchestration engine
 
-Turn fragmented penetration testing into structured AI-driven attack chains — from recon to exploitation — using AI agents that control real security tools.
-
 ### ⚡ From target → recon → exploit chain in minutes
 
 ⭐ If NyxStrike improves your workflow, consider starring the repo — it helps others discover it.
@@ -20,12 +18,9 @@ Turn fragmented penetration testing into structured AI-driven attack chains — 
 
 </div>
 
-
 ## What is NyxStrike?
 
-NyxStrike is an AI-driven offensive security orchestration engine that transforms fragmented penetration testing into structured, automated attack workflows.
-
-It connects LLM agents with real-world security tools and executes full end-to-end attack chains — from reconnaissance to exploitation.
+NyxStrike connects LLM agents to real offensive security tools and executes full attack chains — from recon to exploitation.
 
 ---
 
@@ -95,15 +90,14 @@ Connect NyxStrike to any MCP-compatible AI client — OpenCode, Cursor, Claude D
 
 NyxStrike does not just run tools — it orchestrates full attack chains using AI decision-making.
 
-- AI-driven multi-agent orchestration
-- Integration with 100+ offensive security tools
-- Modular architecture for extensibility
-- Workflow automation from recon → exploitation
-- Centralized control interface
+- AI agents that chain tools automatically
+- 185+ offensive security tools, all agent-controllable
+- Full attack workflow: recon → enumeration → exploitation → reporting
+- Modular tool registry — add or remove tools without touching agent logic
+- MCP-compatible — plug into any AI client you already use
+- Real-time session dashboard with live command output and logs
 
-> [Full feature breakdown](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Features)
-
-> [Full session & workbench docs](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Dashboard-and-Sessions)
+> [Full feature breakdown](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Features) · [Session & workbench docs](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Dashboard-and-Sessions)
 
 ---
 
@@ -117,8 +111,6 @@ NyxStrike does not just run tools — it orchestrates full attack chains using A
 - OSINT & intelligence gathering
 - Password attacks
 - Cloud & API security
-
-All orchestrated automatically by AI agents.
 
 > [Full tool list by category](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Tool-Arsenal)
 
