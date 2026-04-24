@@ -333,7 +333,6 @@ def load_plugins(app) -> None:
 
       enabled = str(entry.get("enabled", "true")).lower() not in ("false", "0", "no")
       if not enabled:
-        logger.info("plugin_loader [%s]: '%s' disabled — skipping", plugin_type, name)
         continue
 
       ok = loader_fn(app, name, registered_endpoints, registered_tool_names)

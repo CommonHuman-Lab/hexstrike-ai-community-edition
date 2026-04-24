@@ -27,4 +27,4 @@
 
 tools:
   - name: example_net_ping
-    enabled: true
+    enabled: false
