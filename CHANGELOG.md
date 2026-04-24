@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.0 - backdoorbear (next)
+- More to come!
+
 ## 1.4.0 - NyxStrike
 
 ### Built-in AI Chat assistant
