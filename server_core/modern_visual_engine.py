@@ -1,8 +1,6 @@
 import os
 from typing import Dict, Any
 
-from termcolor import RESET
-
 API_PORT = int(os.environ.get('NYXSTRIKE_PORT', 8888))
 API_HOST = os.environ.get('NYXSTRIKE_HOST', '127.0.0.1')
 

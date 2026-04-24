@@ -10,15 +10,4 @@ selenium>=4.15.0,<5.0.0         # Browser automation (selenium imports)
 webdriver-manager>=4.0.0,<5.0.0 # ChromeDriver management (referenced in code)
 aiohttp>=3.8.0,<4.0.0           # Async HTTP (aiohttp import)
 mitmproxy>=12.2.0,<13.0.0       # HTTP proxy (mitmproxy imports)
-
-# Optional Python dependencies in requirements-extra.txt
-# Installed with: ./scripts/install.sh --install-tools
-
-# ============================================================================
-# BIG Packages
-# ============================================================================
-# These are heavier packages that may not be needed for basic operation
-# Installed with: ./scripts/install.sh --install-tools --install-big-packages
-
-# Below is not a happy camper.
-# psycopg2>=2.9.11,<3.0.0      # PostgreSQL database connector (conditionally used for database interactions)
+PyMySQL>=1.1.2,<2.0.0      # MySQL database connector (conditionally used for database interactions)
