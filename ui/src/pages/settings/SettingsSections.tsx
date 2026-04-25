@@ -392,7 +392,7 @@ export function PageVisibilitySection({
 }) {
   return (
     <CollapsibleSection title="Navigation Pages">
-      <p className="settings-hint-inline" style={{ marginBottom: '1rem', textAlign: 'center' }}>
+      <p className="settings-hint-inline" style={{ margin: '1rem 0', textAlign: 'center' }}>
         Hide pages you don't use from the navigation bar.
         Your preferences are saved in this browser only.
       </p>
