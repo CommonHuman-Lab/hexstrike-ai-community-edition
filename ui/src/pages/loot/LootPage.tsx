@@ -597,7 +597,8 @@ function CredentialsTab() {
       />
 
       {/* Header */}
-      <div className="loot-tab-header">        <div className="loot-filter-row">
+      <div className="loot-tab-header">
+        <div className="loot-filter-row">
           <button
             className={`loot-filter-btn${filterType === 'all' ? ' loot-filter-btn--active' : ''}`}
             onClick={() => setFilterType('all')}
@@ -611,7 +612,7 @@ function CredentialsTab() {
               <button
                 key={t}
                 className={`loot-filter-btn${filterType === t ? ' loot-filter-btn--active' : ''}`}
-                onClick={() => setFilterType(t)}
+                onClick={() => setFilterType(filterType === t ? 'all' : t)}
               >
                 {t} ({count})
               </button>
@@ -877,7 +878,7 @@ function LootTab() {
               <button
                 key={t}
                 className={`loot-filter-btn${filterType === t ? ' loot-filter-btn--active' : ''}`}
-                onClick={() => setFilterType(t)}
+                onClick={() => setFilterType(filterType === t ? 'all' : t)}
               >
                 {t} ({count})
               </button>
