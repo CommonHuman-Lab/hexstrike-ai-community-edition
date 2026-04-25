@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { ConfirmActionModal } from '../../components/ConfirmActionModal'
 import {
   Plus, Trash2, Edit2, Search, X, KeyRound, Package, RefreshCw,
-  Download, CheckCircle2, Circle,
+  Download, CheckCircle2, Circle, Copy, Check,
 } from 'lucide-react'
 import { api } from '../../api'
 import type {
@@ -30,6 +30,23 @@ function parseTags(raw: string): string[] {
 
 function tagsToString(tags?: string[]): string {
   return (tags ?? []).join(', ')
+}
+
+// ── Copy Button ────────────────────────────────────────────────────────────────
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false)
+  function handleCopy() {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+  return (
+    <button className="finding-icon-btn loot-copy-btn" onClick={handleCopy} title="Copy">
+      {copied ? <Check size={12} color="var(--green)" /> : <Copy size={12} />}
+    </button>
+  )
 }
 
 // ── Credential Form ────────────────────────────────────────────────────────────
@@ -648,7 +665,10 @@ function CredentialsTab() {
                 </div>
               </div>
               {cred.secret && (
-                <pre className="loot-card-secret mono">{cred.secret}</pre>
+                <div className="loot-card-secret-wrap">
+                  <pre className="loot-card-secret mono">{cred.secret}</pre>
+                  <CopyButton text={cred.secret} />
+                </div>
               )}
               <div className="loot-card-meta">
                 {cred.hash_type && <span className="loot-meta-item mono">hash: {cred.hash_type}</span>}
@@ -902,7 +922,10 @@ function LootTab() {
                 </div>
               </div>
               {item.content && (
-                <pre className="loot-card-secret mono">{item.content}</pre>
+                <div className="loot-card-secret-wrap">
+                  <pre className="loot-card-secret mono">{item.content}</pre>
+                  <CopyButton text={item.content} />
+                </div>
               )}
               <div className="loot-card-meta">
                 {item.path && <span className="loot-meta-item mono">path: {item.path}</span>}

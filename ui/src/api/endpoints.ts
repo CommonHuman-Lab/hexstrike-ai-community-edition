@@ -1,4 +1,5 @@
 import { del, get, patch, post, postFormData, postWithTimeout, put, stream } from './client';
+import { isDemoMode } from '../app/demoUtils';
 import type {
   AttackChainStep,
   AnalyzeSessionResponse,
@@ -252,6 +253,7 @@ export const api = {
 
   // ── Credentials ──────────────────────────────────────────────────────────
   credentials: (params?: { session_id?: string; host?: string; service?: string; tag?: string; q?: string }) => {
+    if (isDemoMode()) return import('../app/demo').then(m => m.DEMO_CREDENTIALS);
     const qs = params ? '?' + new URLSearchParams(
       Object.fromEntries(Object.entries(params).filter(([, v]) => v != null).map(([k, v]) => [k, String(v)]))
     ).toString() : '';
@@ -267,6 +269,7 @@ export const api = {
 
   // ── Loot ─────────────────────────────────────────────────────────────────
   loot: (params?: { session_id?: string; host?: string; loot_type?: string; tag?: string; q?: string }) => {
+    if (isDemoMode()) return import('../app/demo').then(m => m.DEMO_LOOT);
     const qs = params ? '?' + new URLSearchParams(
       Object.fromEntries(Object.entries(params).filter(([, v]) => v != null).map(([k, v]) => [k, String(v)]))
     ).toString() : '';

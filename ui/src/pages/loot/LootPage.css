@@ -346,6 +346,26 @@ a.session-action-btn {
   color: var(--text-dim);
 }
 
+.loot-card-secret-wrap {
+  position: relative;
+}
+
+.loot-card-secret-wrap:hover .loot-copy-btn {
+  opacity: 1;
+}
+
+.loot-copy-btn {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0.15rem 0.25rem;
+}
+
 .loot-card-secret {
   font-size: 0.78rem;
   background: var(--bg);
