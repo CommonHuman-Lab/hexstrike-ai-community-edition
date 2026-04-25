@@ -1610,6 +1610,18 @@
   gap: 6px;
 }
 
+.modal-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.modal-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
 .modal-label {
   font-size: 11px;
   font-weight: 600;

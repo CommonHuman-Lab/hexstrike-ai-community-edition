@@ -2,6 +2,21 @@
   opacity: 0.5;
 }
 
+.registry-card--clickable {
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.registry-card--clickable:hover {
+  border-color: var(--purple);
+  box-shadow: 0 0 0 1px var(--purple);
+}
+
+.registry-card--clickable:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 2px;
+}
+
 .plugins-page__status {
   color: var(--text-dim);
   border-color: var(--border);

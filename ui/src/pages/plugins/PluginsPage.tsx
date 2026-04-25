@@ -3,6 +3,7 @@ import { AlertTriangle, Puzzle, RefreshCw, RotateCcw, XCircle } from 'lucide-rea
 import { api } from '../../api'
 import type { ManifestPlugin } from '../../api'
 import { StatCard } from '../../components/StatCard'
+import { PluginModal } from '../../components/PluginModal'
 import './PluginsPage.css'
 
 export default function PluginsPage() {
@@ -17,6 +18,7 @@ export default function PluginsPage() {
   /** Whether a restart is in progress. */
   const [restarting, setRestarting] = useState(false)
   const [restartMsg, setRestartMsg] = useState<string | null>(null)
+  const [selectedPlugin, setSelectedPlugin] = useState<ManifestPlugin | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -105,6 +107,9 @@ export default function PluginsPage() {
 
   return (
     <div className="page-content plugins-page">
+      {selectedPlugin && (
+        <PluginModal plugin={selectedPlugin} onClose={() => setSelectedPlugin(null)} />
+      )}
       <div className="kpi-row">
         <StatCard
           icon={<Puzzle size={20} />}
@@ -205,11 +210,15 @@ export default function PluginsPage() {
               {filtered.map(plugin => (
                 <div
                   key={plugin.name}
-                  className={`registry-card${plugin.enabled ? '' : ' plugins-page__card--disabled'}`}
+                  className={`registry-card registry-card--clickable${plugin.enabled ? '' : ' plugins-page__card--disabled'}`}
+                  onClick={() => setSelectedPlugin(plugin)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setSelectedPlugin(plugin) }}
                 >
                   <div className="registry-card-top">
                     <span className="registry-name mono">{plugin.name}</span>
-                    <label className="plugin-toggle" title={plugin.enabled ? 'Disable plugin' : 'Enable plugin'}>
+                    <label className="plugin-toggle" title={plugin.enabled ? 'Disable plugin' : 'Enable plugin'} onClick={e => e.stopPropagation()}>
                       <input
                         type="checkbox"
                         checked={plugin.enabled}
