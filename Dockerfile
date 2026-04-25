@@ -25,9 +25,6 @@ WORKDIR /opt/nyxstrike
 COPY . .
 
 # Run tool install (apt/cargo tools only).
-# nyxstrike.sh -t also triggers pip installs via the venv setup; we let it run
-# fully so the venv stamp files are written correctly, avoiding reinstalls later.
-# Build tools (gcc, python3-dev) are present above to handle any C extensions.
 RUN apt-get update -qq && \
     chmod +x nyxstrike.sh && \
     bash nyxstrike.sh -t && \
