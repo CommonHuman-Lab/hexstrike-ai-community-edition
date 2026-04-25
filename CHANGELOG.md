@@ -1,7 +1,24 @@
 # Changelog
 
 ## 1.5.0 - backdoorbear (next)
-- More to come!
+
+### Loot
+- Added Loot page for managing captured credentials and loot items from engagements.
+- Loot page is accessible from the nav and Command Palette.
+
+### Reports
+- Added HTML report generation endpoint for richer, exportable engagement reports.
+
+### Plugin management
+- Improved plugin management modal with enhanced plugin install/enable/disable UX.
+
+### Settings & navigation
+- Added page visibility controls — show or hide individual nav pages from Settings.
+- Dashboard and Settings pages are always visible and cannot be disabled.
+
+### Help page
+- Added Command Palette section explaining shortcuts and tool launch workflow.
+- Added UI Features section covering chat panel shortcut and page visibility.
 
 ## 1.4.0 - NyxStrike
 
