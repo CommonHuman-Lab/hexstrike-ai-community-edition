@@ -370,7 +370,7 @@ export function TopBar({
           </select>
         </label>
         <div
-          className={`status-dot ${health?.status === 'healthy' ? 'online' : error ? 'error' : 'loading'}${statusPulse ? ' status-dot--pulse' : ''}`}
+          className={`status-dot ${health?.status === 'healthy' ? (showRefreshButton ? 'polling' : 'online') : error ? 'error' : 'loading'}${statusPulse ? ' status-dot--pulse' : ''}`}
           title={statusTooltip}
           aria-label={statusTooltip}
         />
