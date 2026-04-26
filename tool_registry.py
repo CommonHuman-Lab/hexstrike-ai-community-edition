@@ -511,8 +511,8 @@ TOOLS: Dict[str, dict] = {
         "endpoint": "/api/tools/password-cracking/ophcrack",
         "method": "POST",
         "category": "brute_force",
-        "params": {"hash_file": {"required": True}},
-        "optional": {"tables_dir": "", "tables": "", "additional_args": ""},
+        "params": {},
+        "optional": {"hash_file": "", "hash": "", "tables_dir": "", "tables": "", "additional_args": ""},
         "effectiveness": 0.75,
     },
     "hashid": {
