@@ -32,6 +32,10 @@ optional:
     default: ""
     description: "SSH username"
 
+  password:
+    default: ""
+    description: "SSH password (optional)"
+
   command:
     default: ""
     description: "Command to request execution on the remote host"
