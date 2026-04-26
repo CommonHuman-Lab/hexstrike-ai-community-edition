@@ -12,7 +12,7 @@ category: example
 tags:
   - ssh
   - remote_execution
-endpoint: /api/plugins/ssh, /api/plugins/ssh/connect, /api/plugins/ssh/send, /api/plugins/ssh/disconnect
+endpoint: /api/plugins/ssh/connect
 mcp_tool_name: ssh
 effectiveness: 0.7
 check:
@@ -20,8 +20,8 @@ check:
   binary: ssh
   install: "pre-installed on most systems; on Debian: apt install openssh-client"
 params:
-  type: object
-  properties:
+  #type: object
+  #properties:
     host:
       type: string
       description: Target host (IP or hostname)
@@ -48,5 +48,4 @@ params:
       description: Whether to close the existing SSH session
       default: false
 
-  required:
-    - host
+  ##  - host
