@@ -1,10 +1,6 @@
 """
 Plugin: ssh_client — mcp_tool.py
-FastMCP tool registration for the SSH metadata plugin.
-
-This file is the MCP-side half of the plugin.
-It must expose a module-level `register(mcp, api_client, logger)` function.
-The plugin MCP loader calls it automatically during server setup.
+FastMCP tool registration for the SSH metadata + execution-request plugin.
 """
 
 import asyncio
@@ -19,17 +15,19 @@ def register(mcp, api_client, logger):
         host: str,
         port: int = 22,
         username: str = "",
+        command: str = "",
     ) -> Dict[str, Any]:
         """
-        SSH metadata tool.
+        SSH execution-request tool.
 
         Args:
-            host:     Target host to connect to
+            host:     Target host
             port:     SSH port (default 22)
-            username: Optional SSH username
+            username: Optional username
+            command:  Optional command to request execution
 
         Returns:
-            Structured metadata response from the SSH plugin endpoint.
+            Structured execution-request payload from the plugin.
         """
         try:
             loop = asyncio.get_running_loop()
@@ -37,7 +35,12 @@ def register(mcp, api_client, logger):
                 None,
                 lambda: api_client.safe_post(
                     "api/plugins/ssh",
-                    {"host": host, "port": port, "username": username},
+                    {
+                        "host": host,
+                        "port": port,
+                        "username": username,
+                        "command": command,
+                    },
                 ),
             )
             return response

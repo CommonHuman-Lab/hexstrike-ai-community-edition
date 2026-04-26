@@ -1,9 +1,9 @@
 """
 Plugin: ssh_client — server_api.py
-Flask Blueprint for the SSH metadata plugin.
+Flask Blueprint for the SSH metadata + execution-request plugin.
 
 This file is the server-side half of the plugin.
-It must expose a module-level `blueprint` (a Flask Blueprint instance).
+It exposes a module-level `blueprint` (a Flask Blueprint instance).
 The plugin loader registers it with the Flask app automatically.
 """
 
@@ -18,27 +18,32 @@ blueprint = Blueprint("plugin_ssh_client", __name__)
 @blueprint.route("/api/plugins/ssh", methods=["POST"])
 def ssh_metadata():
     """
-    SSH metadata endpoint.
+    SSH execution-request endpoint.
 
     Expects JSON:
       {
         "host": "192.168.1.10",   # required
         "port": 22,               # optional
-        "username": "root"        # optional
+        "username": "root",       # optional
+        "command": "ls -la"       # optional
       }
 
     Returns:
       {
         "success": true,
-        "message": "SSH metadata received",
-        "host": "...",
-        "port": ...,
-        "username": "..."
+        "action": "ssh_execute",
+        "payload": {
+            "host": "...",
+            "port": ...,
+            "username": "...",
+            "command": "..."
+        }
       }
     """
 
     data = request.get_json(force=True) or {}
 
+    # Required: host
     host = (data.get("host") or "").strip()
     if not host:
         return jsonify({
@@ -46,18 +51,26 @@ def ssh_metadata():
             "error": "Missing required parameter: host"
         }), 400
 
+    # Optional: port
     try:
         port = int(data.get("port", 22))
     except (TypeError, ValueError):
         port = 22
 
+    # Optional: username
     username = (data.get("username") or "").strip()
 
-    # Safe placeholder — no command execution
+    # Optional: command
+    command = (data.get("command") or "").strip()
+
+    # SAFE: No execution here — only returning a structured request
     return jsonify({
         "success": True,
-        "message": "SSH metadata received",
-        "host": host,
-        "port": port,
-        "username": username or None
+        "action": "ssh_execute",
+        "payload": {
+            "host": host,
+            "port": port,
+            "username": username or None,
+            "command": command or None
+        }
     })
