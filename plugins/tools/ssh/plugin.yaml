@@ -1,41 +1,40 @@
-name: ssh_client
-version: "1.0.0"
-description: "SSH metadata + execution-request plugin. Returns structured SSH execution requests."
-author: "system"
-category: network
-tags:
-  - ssh
-  - network
-  - remote
-  - command
+name: ssh
+description: |
+  Execute commands on a remote machine via SSH.
+  Automatically manages persistent sessions per host.
 
-endpoint: /api/plugins/ssh
-mcp_tool_name: ssh
-effectiveness: 0.55
+  - Connects automatically if no session exists
+  - Reuses session for faster execution
+  - Supports disconnecting sessions
 
-check:
-  type: which
-  binary: ssh
-  install: "Install OpenSSH client: apt install openssh-client"
+parameters:
+  type: object
+  properties:
+    host:
+      type: string
+      description: Target host (IP or hostname)
 
-params:
-  host:
-    required: true
-    description: "Target host to connect to"
+    port:
+      type: integer
+      description: SSH port (default 22)
+      default: 22
 
-optional:
-  port:
-    default: 22
-    description: "SSH port"
+    username:
+      type: string
+      description: SSH username
 
-  username:
-    default: ""
-    description: "SSH username"
+    password:
+      type: string
+      description: SSH password (optional if using key-based auth)
 
-  password:
-    default: ""
-    description: "SSH password (optional)"
+    command:
+      type: string
+      description: Command to execute on the remote host
 
-  command:
-    default: ""
-    description: "Command to request execution on the remote host"
+    disconnect:
+      type: boolean
+      description: Whether to close the existing SSH session
+      default: false
+
+  required:
+    - host
