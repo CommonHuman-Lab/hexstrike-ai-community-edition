@@ -1,6 +1,6 @@
 """
-Plugin: example_net_ping — mcp_tool.py
-FastMCP tool registration for the net_ping plugin.
+Plugin: ssh_client — mcp_tool.py
+FastMCP tool registration for the SSH metadata plugin.
 
 This file is the MCP-side half of the plugin.
 It must expose a module-level `register(mcp, api_client, logger)` function.
@@ -12,35 +12,35 @@ from typing import Dict, Any
 
 
 def register(mcp, api_client, logger):
-  """Register the nyxstrike_net_ping MCP tool."""
+    """Register the ssh MCP tool."""
 
-  @mcp.tool()
-  async def nyxstrike_net_ping(
-    target: str,
-    count: int = 4,
-    timeout: int = 10,
-  ) -> Dict[str, Any]:
-    """
-    ICMP ping a host and return latency and packet-loss statistics.
+    @mcp.tool()
+    async def ssh(
+        host: str,
+        port: int = 22,
+        username: str = "",
+    ) -> Dict[str, Any]:
+        """
+        SSH metadata tool.
 
-    Args:
-        target:  Hostname or IP address to ping
-        count:   Number of ICMP packets to send (1–20, default 4)
-        timeout: Per-packet timeout in seconds (1–60, default 10)
+        Args:
+            host:     Target host to connect to
+            port:     SSH port (default 22)
+            username: Optional SSH username
 
-    Returns:
-        Ping results including raw output, packet stats, and RTT values
-    """
-    try:
-      loop = asyncio.get_running_loop()
-      response = await loop.run_in_executor(
-        None,
-        lambda: api_client.safe_post(
-          "api/plugins/net_ping",
-          {"target": target, "count": count, "timeout": timeout},
-        ),
-      )
-      return response
-    except Exception as e:
-      logger.error("nyxstrike_net_ping failed: %s", e)
-      return {"error": str(e), "success": False}
+        Returns:
+            Structured metadata response from the SSH plugin endpoint.
+        """
+        try:
+            loop = asyncio.get_running_loop()
+            response = await loop.run_in_executor(
+                None,
+                lambda: api_client.safe_post(
+                    "api/plugins/ssh",
+                    {"host": host, "port": port, "username": username},
+                ),
+            )
+            return response
+        except Exception as e:
+            logger.error("ssh MCP tool failed: %s", e)
+            return {"error": str(e), "success": False}
