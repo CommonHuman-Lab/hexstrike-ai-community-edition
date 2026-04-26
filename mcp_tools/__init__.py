@@ -49,3 +49,4 @@ from mcp_tools.active_directory import *
 from mcp_tools.vuln_intel import *
 from mcp_tools.fingerprint import *
 from mcp_tools.osint import *
+from mcp_tools.ssh.ssh import *

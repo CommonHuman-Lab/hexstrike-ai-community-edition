@@ -108,7 +108,11 @@ APT_PACKAGES=(
   "theharvester:theharvester",
   "sublist3r:sublist3r",
   "parsero:parsero",
-  "joomscan:joomscan"
+  "joomscan:joomscan",
+  "openssh-client:ssh",
+  "openssh-server:sshd",
+  "telnet:telnet"
+
 )
 
 # Format: "go_module@version:expected_binary"
