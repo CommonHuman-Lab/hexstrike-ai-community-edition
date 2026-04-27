@@ -1,51 +1,46 @@
 name: ssh
-version: "1.0.0"
-description: |
-  Execute commands on a remote machine via SSH.
-  Automatically manages persistent sessions per host.
+version: "2.2.0"
 
-  - Connects automatically if no session exists
-  - Reuses session for faster execution
-  - Supports disconnecting sessions
+description: |
+  Executes remote SSH commands using a server-managed cached SSH connection.
+  The server establishes an authenticated SSH connection per host/user and reuses it for subsequent command execution.
+  Each request executes a command and returns stdout, stderr, and exit code.
+
 author: "system"
-category: example
+category: remote_access
+
 tags:
   - ssh
   - remote_execution
-endpoint: /api/plugins/ssh/connect
+  - paramiko
+  - exec_command
+
+endpoint: /api/plugins/ssh
 mcp_tool_name: ssh
-effectiveness: 0.7
+effectiveness: 0.95
+
 check:
-  type: which
-  binary: ssh
-  install: "pre-installed on most systems; on Debian: apt install openssh-client"
+  type: builtin
+
 params:
-  #type: object
-  #properties:
-    host:
-      type: string
-      description: Target host (IP or hostname)
+  host:
+    required: true
+    description: "Target host (IP or hostname)"
 
-    port:
-      type: integer
-      description: SSH port (default 22)
-      default: 22
+optional:
+  port:
+    default: 22
+    description: "SSH port"
 
-    username:
-      type: string
-      description: SSH username
+  username:
+    description: "SSH username for authentication"
 
-    password:
-      type: string
-      description: SSH password (optional if using key-based auth)
+  password:
+    description: "SSH password (required for initial connection)"
 
-    command:
-      type: string
-      description: Command to execute on the remote host
+  command:
+    description: "Command to execute on the remote host (returns stdout/stderr)"
 
-    disconnect:
-      type: boolean
-      description: Whether to close the existing SSH session
-      default: false
-
-  ##  - host
+  disconnect:
+    default: false
+    description: "Closes the cached SSH connection for this host/user"

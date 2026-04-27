@@ -1,85 +1,169 @@
 import logging
 import paramiko
-import uuid
-import time
 from flask import Blueprint, request, jsonify
+from concurrent.futures import ThreadPoolExecutor
 
 logger = logging.getLogger(__name__)
 blueprint = Blueprint("plugin_ssh_client", __name__)
 
-# 🔐 In-memory session store
+# -------------------------
+# Thread pool (safe blocking SSH execution)
+# -------------------------
+executor = ThreadPoolExecutor(max_workers=10)
+
+# -------------------------
+# SSH session cache
+# -------------------------
 ssh_sessions = {}
 
-@blueprint.route("/api/plugins/ssh/connect", methods=["POST"])
-def ssh_connect():
+
+def get_session_key(host, username, port):
+    return f"{username}@{host}:{port}"
+
+
+# -------------------------
+# CONNECT
+# -------------------------
+def ssh_connect(host, port, username, password):
+    logger.warning(f"[SSH CONNECT] initiating connection to {host}:{port} as {username}")
+
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    client.connect(
+        hostname=host,
+        port=port,
+        username=username,
+        password=password,
+        timeout=10
+    )
+
+    logger.warning(f"[SSH CONNECT] connection established to {host}:{port}")
+
+    return client
+
+
+# -------------------------
+# EXECUTE COMMAND (RELIABLE)
+# -------------------------
+def ssh_execute(client, command):
+    logger.warning(f"[SSH EXEC] command received: {command}")
+
+    stdin, stdout, stderr = client.exec_command(command)
+
+    exit_code = stdout.channel.recv_exit_status()
+
+    output = stdout.read().decode(errors="ignore")
+    error = stderr.read().decode(errors="ignore")
+
+    logger.warning(
+        f"[SSH OUTPUT] exit_code={exit_code} stdout={output} stderr={error}"
+    )
+
+    return {
+        "exit_code": exit_code,
+        "output": output,
+        "error": error
+    }
+
+
+# -------------------------
+# API ENTRY
+# -------------------------
+@blueprint.route("/api/plugins/ssh", methods=["POST"])
+def ssh_entry():
     data = request.get_json(force=True) or {}
 
     host = data.get("host")
     port = int(data.get("port", 22))
     username = data.get("username")
     password = data.get("password")
-
-    if not host:
-        return jsonify({"success": False, "error": "Missing host"}), 400
-
-    try:
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-        client.connect(hostname=host, port=port, username=username, password=password)
-
-        shell = client.invoke_shell()
-
-        session_id = str(uuid.uuid4())
-
-        ssh_sessions[session_id] = {
-            "client": client,
-            "shell": shell
-        }
-
-        return jsonify({"success": True, "session_id": session_id})
-
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-    
-@blueprint.route("/api/plugins/ssh/send", methods=["POST"])
-def ssh_send():
-    data = request.get_json(force=True) or {}
-
-    session_id = data.get("session_id")
     command = data.get("command")
+    disconnect = data.get("disconnect", False)
 
-    if session_id not in ssh_sessions:
-        return jsonify({"success": False, "error": "Invalid session"}), 400
+    logger.warning(
+        f"[SSH ENTRY] host={host}, port={port}, user={username}, "
+        f"command={command}, disconnect={disconnect}"
+    )
 
-    shell = ssh_sessions[session_id]["shell"]
+    if not host or not username:
+        logger.error("[SSH ENTRY] missing host or username")
+        return jsonify({"success": False, "error": "Missing host or username"}), 400
+
+    key = get_session_key(host, username, port)
 
     try:
-        shell.send(command + "\n")
+        # -------------------------
+        # DISCONNECT
+        # -------------------------
+        if disconnect:
+            logger.warning(f"[SSH DISCONNECT] key={key}")
 
-        #time.sleep(0.5)
+            if key in ssh_sessions:
+                try:
+                    ssh_sessions[key].close()
+                except Exception as e:
+                    logger.error(f"[SSH DISCONNECT ERROR] {e}")
 
-        output = ""
-        while shell.recv_ready():
-            output += shell.recv(4096).decode(errors="ignore")
+                ssh_sessions.pop(key, None)
 
-        return jsonify({"success": True, "output": output})
+            return jsonify({"success": True, "message": "Disconnected"})
+
+        # -------------------------
+        # CONNECT (if needed)
+        # -------------------------
+        if key not in ssh_sessions:
+            if not password:
+                logger.error("[SSH CONNECT] missing password")
+                return jsonify({"success": False, "error": "Password required"}), 400
+
+            logger.warning(f"[SSH SESSION] creating new session for {key}")
+
+            client = ssh_connect(host, port, username, password)
+            ssh_sessions[key] = client
+
+        else:
+            logger.warning(f"[SSH SESSION] reusing session for {key}")
+
+        client = ssh_sessions[key]
+
+        # -------------------------
+        # EXECUTE COMMAND
+        # -------------------------
+        if command:
+            logger.warning(f"[SSH EXECUTE REQUEST] {command}")
+
+            future = executor.submit(ssh_execute, client, command)
+            result = future.result()
+
+            logger.warning(f"[SSH RESPONSE READY] {result}")
+
+            return jsonify({
+                "success": True,
+                **result
+            })
+
+        # -------------------------
+        # JUST CONNECTED
+        # -------------------------
+        logger.warning("[SSH ENTRY] connected without command")
+
+        return jsonify({
+            "success": True,
+            "message": "Connected"
+        })
 
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-    
-@blueprint.route("/api/plugins/ssh/disconnect", methods=["POST"])
-def ssh_disconnect():
-    data = request.get_json(force=True) or {}
+        logger.error(f"[SSH ERROR] {e}")
 
-    session_id = data.get("session_id")
+        if key in ssh_sessions:
+            try:
+                ssh_sessions[key].close()
+            except Exception:
+                pass
+            ssh_sessions.pop(key, None)
 
-    if session_id not in ssh_sessions:
-        return jsonify({"success": False, "error": "Invalid session"}), 400
-
-    session = ssh_sessions.pop(session_id)
-
-    session["shell"].close()
-    session["client"].close()
-
-    return jsonify({"success": True})
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
