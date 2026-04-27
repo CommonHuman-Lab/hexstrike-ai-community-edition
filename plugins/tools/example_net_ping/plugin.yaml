@@ -43,3 +43,4 @@ optional:
   timeout:
     default: 10
     description: "Timeout in seconds per ping packet"
+
