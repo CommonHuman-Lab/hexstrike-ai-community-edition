@@ -1602,12 +1602,10 @@ print_summary() {
   fi
 
   echo -e "  ${CYAN}${BOLD}Next Steps:${RESET}"
-  echo -e "  1. Install Python dependencies:"
-  echo -e "     ${DIM}pip3 install --user -r requirements.txt${RESET}"
-  echo -e "  2. Ensure these are in your PATH (~/.bashrc or ~/.zshrc):"
+  echo -e "  1. Ensure these are in your PATH (~/.bashrc or ~/.zshrc):"
   echo -e "     ${DIM}export PATH=\"\$PATH:\$HOME/.local/bin:\$HOME/go/bin:\$HOME/.cargo/bin\"${RESET}"
-  echo -e "  3. Start the nyxstrike server:"
-  echo -e "     ${DIM}python3 nyxstrike_server.py${RESET}"
+  echo -e "  2. Start the nyxstrike server:"
+  echo -e "     ${DIM}./nyxstrike.sh -a ${RESET}"
   echo ""
   echo -e "${BOLD}${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 }
