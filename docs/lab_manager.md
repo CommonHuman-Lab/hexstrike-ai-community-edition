@@ -395,4 +395,4 @@ All lab scripts source `_common.sh` which provides:
 
 - [`install_tools.sh`](installation_and_flags.md) — installs the 185+ security tools NyxStrike orchestrates
 - [`skills/`](../skills/) — AI agent workflow guides that can be used against these lab targets
-- [VulnAD (original)](https://github.com/WazeHell/vulnerable-AD) — the PowerShell project this AD lab is based on
+- [VulnAD (original)](https://github.com/safebuffer/vulnerable-AD) — the PowerShell project this AD lab is based on
