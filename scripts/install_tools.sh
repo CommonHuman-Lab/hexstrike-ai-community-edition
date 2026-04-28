@@ -39,7 +39,7 @@ set -uo pipefail
 
 # ─── Colours ────────────────────────────────────────────────────────────────
 RED='\033[0;31m'
-GREEN='\033[0;32m'
+GREEN='\033[38;5;46m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
@@ -76,22 +76,6 @@ DISTRO=""      # ubuntu | debian | arch | fedora | rhel | unknown
 SUDO="sudo"
 [[ "$(id -u)" == "0" ]] && SUDO=""
 
-# ─── Banner ──────────────────────────────────────────────────────────────────
-print_banner() {
-  echo -e "${RED}${BOLD}"
-  cat << 'EOF'
-  ███╗   ██╗██╗   ██╗██╗  ██╗███████╗████████╗██████╗ ██╗██╗  ██╗███████╗
-  ████╗  ██║╚██╗ ██╔╝╚██╗██╔╝██╔════╝╚══██╔══╝██╔══██╗██║██║ ██╔╝██╔════╝
-  ██╔██╗ ██║ ╚████╔╝  ╚███╔╝ ███████╗   ██║   ██████╔╝██║█████╔╝ █████╗
-  ██║╚██╗██║  ╚██╔╝   ██╔██╗ ╚════██║   ██║   ██╔══██╗██║██╔═██╗ ██╔══╝
-  ██║ ╚████║   ██║   ██╔╝ ██╗███████║   ██║   ██║  ██║██║██║  ██╗███████╗
-  ╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝╚═╝  ╚═╝╚══════╝
-EOF
-  echo -e "${RESET}${CYAN}${BOLD}     AI-Powered Penetration Testing Framework — Tool Installer${RESET}"
-  echo -e "${DIM}           https://github.com/CommonHuman-Lab/nyxstrike${RESET}"
-  echo ""
-}
-
 # ─── Logging ─────────────────────────────────────────────────────────────────
 log() {
   local timestamp
@@ -111,7 +95,6 @@ section() { echo ""; echo -e "${BOLD}${YELLOW}━━━ $* ━━━━━━━
 
 # ─── Help ─────────────────────────────────────────────────────────────────────
 print_help() {
-  print_banner
   echo -e "${BOLD}USAGE${RESET}"
   echo "  ./scripts/install_tools.sh [OPTIONS]"
   echo ""
@@ -149,7 +132,6 @@ print_help() {
 
 # ─── Tool List ────────────────────────────────────────────────────────────────
 print_list() {
-  print_banner
   echo -e "${BOLD}nyxstrike — Managed Tool Inventory${RESET}"
   echo ""
   echo -e "${CYAN}🔍 NETWORK / RECON (25+)${RESET}"
@@ -1683,7 +1665,6 @@ parse_args() {
 # ─── Main ─────────────────────────────────────────────────────────────────────
 main() {
   parse_args "$@"
-  print_banner
 
   if [[ "$DRY_RUN" == true ]]; then
     echo -e "  ${BLUE}${BOLD}DRY-RUN MODE — no packages will be installed${RESET}"
