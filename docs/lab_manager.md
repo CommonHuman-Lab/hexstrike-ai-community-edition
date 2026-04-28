@@ -226,8 +226,8 @@ late-90s / early-2000s vulnerabilities still encountered in legacy environments.
 ### 7 — VulnAD (Vulnerable Active Directory)
 
 A Samba4 Active Directory Domain Controller pre-seeded with the same attack paths
-as the original [VulnAD](https://github.com/WazeHell/vulnerable-AD) PowerShell script
-by [@wazehell](https://github.com/WazeHell). Runs entirely on Linux — no Windows
+as the original [VulnAD](https://github.com/safebuffer/vulnerable-AD) PowerShell script
+by [@safebuffer](https://github.com/safebuffer). Runs entirely on Linux — no Windows
 license required.
 
 | | |
