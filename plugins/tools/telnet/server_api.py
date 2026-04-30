@@ -75,6 +75,11 @@ def looks_like_prompt(output):
     return bool(re.search(r"([$#>])\s*$", last_line))
 
 
+def looks_like_password_prompt(output):
+    tail = clean_terminal_output(output).lower().rstrip()
+    return bool(re.search(r"(password|passphrase)(?: for [^:]+)?:\s*$", tail))
+
+
 class TelnetSession:
     def __init__(self, host, port, username, password, timeout=10):
         self.host = host
@@ -257,6 +262,38 @@ class TelnetSession:
                 "prompt": prompt,
             }
 
+    def send_interactive_line(self, key, command, timeout=5, idle_timeout=0.8):
+        with self.lock:
+            self.send_line(command)
+
+            output = ""
+            end_time = time.time() + timeout
+            idle_end = time.time() + idle_timeout
+            while time.time() < end_time:
+                chunk = self.read_available(timeout=0.2)
+                if chunk:
+                    output += chunk
+                    idle_end = time.time() + idle_timeout
+                    if looks_like_password_prompt(output):
+                        break
+                    continue
+                if time.time() >= idle_end:
+                    break
+                time.sleep(0.05)
+
+            output = clean_terminal_output(output)
+            awaiting_input = looks_like_password_prompt(output)
+            prompt = key if awaiting_input else self.get_prompt(key)
+
+            return {
+                "exit_code": 0,
+                "output": output.strip(),
+                "error": "",
+                "prompt": prompt,
+                "awaiting_sensitive_input": awaiting_input,
+                "terminal_raw": True,
+            }
+
 
 def get_or_create_session(host, port, username, password):
     key = get_session_key(host, username, port)
@@ -283,6 +320,7 @@ def telnet_entry():
     password = data.get("password") or ""
     command = data.get("command") or ""
     disconnect = parse_bool(data.get("terminal_disconnect", False))
+    terminal_raw = str(data.get("terminal_mode", "")).strip().lower() == "raw"
     timeout = int(data.get("timeout", 30))
 
     logger.warning(
@@ -307,8 +345,11 @@ def telnet_entry():
         key, session, created = get_or_create_session(host, port, username, password)
         status_lines = [f"Connected to {host}:{port} as {username or 'anonymous'}"] if created else [f"Reusing Telnet session {key}"]
 
-        if command:
-            future = executor.submit(session.execute, key, command, timeout)
+        if command or terminal_raw:
+            if terminal_raw:
+                future = executor.submit(session.send_interactive_line, key, command)
+            else:
+                future = executor.submit(session.execute, key, command, timeout)
             result = future.result()
             return jsonify({
                 **tool_response(
@@ -317,6 +358,8 @@ def telnet_entry():
                     stderr=result.get("error", ""),
                     return_code=result.get("exit_code", 1),
                     prompt=result.get("prompt", key),
+                    awaiting_sensitive_input=result.get("awaiting_sensitive_input", False),
+                    terminal_raw=result.get("terminal_raw", False),
                 ),
                 "exit_code": result.get("exit_code", 1),
             })

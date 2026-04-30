@@ -50,6 +50,7 @@ type RemoteTerminalState = {
   busy: boolean
   transcript: string[]
   prompt: string
+  awaitingSensitiveInput: boolean
 }
 
 const EMPTY_REMOTE_TERMINAL_STATE: RemoteTerminalState = {
@@ -57,6 +58,7 @@ const EMPTY_REMOTE_TERMINAL_STATE: RemoteTerminalState = {
   busy: false,
   transcript: [],
   prompt: '$',
+  awaitingSensitiveInput: false,
 }
 
 function exportResultEntry(
@@ -120,7 +122,7 @@ function RemoteCommandTerminal({
   terminalState: RemoteTerminalState
   updateTerminalState: (terminalId: string, updater: (prev: RemoteTerminalState) => RemoteTerminalState) => void
 }) {
-  const { command, busy, transcript, prompt } = terminalState
+  const { command, busy, transcript, prompt, awaitingSensitiveInput } = terminalState
   const transcriptRef = useRef<HTMLPreElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
 
@@ -145,12 +147,15 @@ function RemoteCommandTerminal({
   }, [busy])
 
   async function runTerminalCommand() {
-    const nextCommand = command.trim()
-    if (!nextCommand || busy) return
+    const nextCommand = command
+    if (busy) return
     const activeTerminalId = terminalId
     const activePrompt = prompt
+    const activeSensitiveInput = awaitingSensitiveInput
     patchTerminal(activeTerminalId, { busy: true, command: '' })
-    appendTranscript(activeTerminalId, [`${activePrompt} ${nextCommand}`])
+    appendTranscript(activeTerminalId, [
+      activeSensitiveInput ? '[input hidden]' : `${activePrompt} ${nextCommand}`,
+    ])
 
     try {
       const result = await api.runTool(endpoint, {
@@ -158,13 +163,16 @@ function RemoteCommandTerminal({
         command: nextCommand,
         interactive: true,
         terminal_disconnect: false,
+        terminal_mode: 'raw',
       })
       const nextPrompt = (result as unknown as Record<string, unknown>).prompt
+      const nextSensitiveInput = (result as unknown as Record<string, unknown>).awaiting_sensitive_input
       const output = [resultText(result, 'stdout'), resultText(result, 'stderr')].filter(Boolean).join('\n').trim()
       updateTerminalState(activeTerminalId, prev => ({
         ...prev,
         prompt: typeof nextPrompt === 'string' && nextPrompt.trim() ? `${nextPrompt.trim()}$` : prev.prompt,
-        transcript: [...prev.transcript, output || '(no output)', `exit ${result.return_code ?? 0}`],
+        awaitingSensitiveInput: nextSensitiveInput === true,
+        transcript: output ? [...prev.transcript, output] : prev.transcript,
       }))
     } catch (e) {
       appendTranscript(activeTerminalId, [`error: ${String(e)}`])
@@ -186,6 +194,7 @@ function RemoteCommandTerminal({
       updateTerminalState(activeTerminalId, prev => ({
         ...prev,
         prompt: '$',
+        awaitingSensitiveInput: false,
         transcript: [...prev.transcript, resultText(result, 'stdout') || resultText(result, 'stderr') || 'Disconnected'],
       }))
     } catch (e) {
@@ -214,9 +223,10 @@ function RemoteCommandTerminal({
           onKeyDown={e => { if (e.key === 'Enter') void runTerminalCommand() }}
           disabled={busy}
           autoComplete="off"
+          type={awaitingSensitiveInput ? 'password' : 'text'}
           spellCheck={false}
         />
-        <button onClick={() => void runTerminalCommand()} disabled={busy || !command.trim()} title="Run command">
+        <button onClick={() => void runTerminalCommand()} disabled={busy} title="Run command">
           {busy ? <RefreshCw size={12} className="spin" /> : <Send size={12} />}
         </button>
       </div>
