@@ -5,7 +5,7 @@ requires-python = ">=3.10"
 dependencies = [
     "flask>=2.3.0,<4.0.0",
     "requests>=2.31.0,<3.0.0",
-    "psutil>=5.9.0,<6.0.0",
+    "psutil>=7.2.2,<8.0.0",
     "fastmcp[tasks]>=3.1.0,<4.0.0",
     "beautifulsoup4>=4.12.0,<5.0.0",
     "selenium>=4.15.0,<5.0.0",
