@@ -1,83 +1,102 @@
 import base64
 import json
+import re
 import shlex
+from urllib.parse import urlparse
 
+from commonhuman_core.openapi import discover_openapi, load_openapi
 from backend.server_core.tool_spec import ParamSpec, ToolSpec, ToolValidationError
 
+_SENSITIVE_PARAM_HINTS = ("password", "token", "key", "secret")
+_PATH_TEMPLATE_RE = re.compile(r"\{([^}/]+)\}")
+_UUID_HINT_RE = re.compile(r"uuid|guid", re.IGNORECASE)
 
-def _api_schema_analyzer_command(p: dict) -> str:
-    return shlex.join(["curl", "-s", p["schema_url"]])
+
+def _placeholder_for(param_name: str) -> str:
+    return "00000000-0000-4000-a000-000000000000" if _UUID_HINT_RE.search(param_name) else "1"
 
 
-def _api_schema_analyzer_postprocess(raw: dict, p: dict) -> dict:
-    if not raw.get("success"):
-        raise ToolValidationError("Failed to fetch API schema")
+def _normalize_endpoint(ep, fallback_base: str) -> None:
+    if fallback_base and not ep.url.startswith(("http://", "https://")):
+        ep.url = fallback_base + ep.url
 
-    schema_content = raw.get("stdout", "")
+    undeclared = [name for name in _PATH_TEMPLATE_RE.findall(ep.raw_path) if name not in ep.path_params]
+    for name in undeclared:
+        ep.url = ep.url.replace("{" + name + "}", _placeholder_for(name))
+    ep.path_params.extend(undeclared)
+
+
+def _api_schema_analyzer_handler(p: dict) -> dict:
+    schema_url = p["schema_url"]
     schema_type = p["schema_type"]
+    base_url = p["base_url"]
+
+    if schema_type.lower() not in ("openapi", "swagger"):
+        raise ToolValidationError(
+            f"schema_type must be 'openapi' or 'swagger' (got {schema_type!r}) — use graphql_scanner for GraphQL"
+        )
+
+    endpoints = load_openapi(schema_url, base_url=base_url)
+    if not endpoints:
+        raise ToolValidationError(f"Failed to load or parse OpenAPI/Swagger schema from {schema_url}")
+
+    parsed_schema_url = urlparse(schema_url)
+    fallback_base = base_url or f"{parsed_schema_url.scheme}://{parsed_schema_url.netloc}"
+    for ep in endpoints:
+        _normalize_endpoint(ep, fallback_base)
 
     analysis_results = {
-        "schema_url": p["schema_url"],
+        "schema_url": schema_url,
         "schema_type": schema_type,
-        "endpoints_found": [],
+        "endpoints_found": [
+            {
+                "path": ep.raw_path,
+                "url": ep.url,
+                "method": ep.method,
+                "path_params": ep.path_params,
+                "query_params": ep.query_params,
+                "body_params": ep.body_params,
+            }
+            for ep in endpoints
+        ],
         "security_issues": [],
         "recommendations": [],
     }
 
-    try:
-        schema_data = json.loads(schema_content)
-        if schema_type.lower() in ["openapi", "swagger"]:
-            paths = schema_data.get("paths", {})
+    for ep in endpoints:
+        for param_name in ep.path_params + ep.query_params + ep.body_params:
+            if any(hint in param_name.lower() for hint in _SENSITIVE_PARAM_HINTS):
+                analysis_results["security_issues"].append({
+                    "endpoint": f"{ep.method} {ep.raw_path}",
+                    "issue": "sensitive_parameter",
+                    "severity": "HIGH",
+                    "description": f"Sensitive parameter detected: {param_name}",
+                })
 
-            for path, methods in paths.items():
-                for method, details in methods.items():
-                    if isinstance(details, dict):
-                        endpoint_info = {
-                            "path": path,
-                            "method": method.upper(),
-                            "summary": details.get("summary", ""),
-                            "parameters": details.get("parameters", []),
-                            "security": details.get("security", []),
-                        }
-                        analysis_results["endpoints_found"].append(endpoint_info)
-
-                        if not endpoint_info["security"]:
-                            analysis_results["security_issues"].append({
-                                "endpoint": f"{method.upper()} {path}",
-                                "issue": "no_authentication",
-                                "severity": "MEDIUM",
-                                "description": "Endpoint has no authentication requirements",
-                            })
-
-                        for param in endpoint_info["parameters"]:
-                            param_name = param.get("name", "").lower()
-                            if any(sensitive in param_name for sensitive in ["password", "token", "key", "secret"]):
-                                analysis_results["security_issues"].append({
-                                    "endpoint": f"{method.upper()} {path}",
-                                    "issue": "sensitive_parameter",
-                                    "severity": "HIGH",
-                                    "description": f"Sensitive parameter detected: {param_name}",
-                                })
-
-        if analysis_results["security_issues"]:
-            analysis_results["recommendations"] = [
-                "Implement authentication for all endpoints",
-                "Use HTTPS for all API communications",
-                "Validate and sanitize all input parameters",
-                "Implement rate limiting",
-                "Add proper error handling",
-                "Use secure headers (CORS, CSP, etc.)",
-            ]
-
-    except json.JSONDecodeError:
-        analysis_results["security_issues"].append({
-            "endpoint": "schema",
-            "issue": "invalid_json",
-            "severity": "HIGH",
-            "description": "Schema is not valid JSON",
-        })
+    if analysis_results["security_issues"]:
+        analysis_results["recommendations"] = [
+            "Implement authentication for all endpoints",
+            "Use HTTPS for all API communications",
+            "Validate and sanitize all input parameters",
+            "Implement rate limiting",
+            "Add proper error handling",
+            "Use secure headers (CORS, CSP, etc.)",
+        ]
 
     return {"success": True, "schema_analysis_results": analysis_results}
+
+
+def _openapi_discover_handler(p: dict) -> dict:
+    base_url = p["base_url"]
+    if not base_url:
+        raise ToolValidationError("base_url parameter is required")
+
+    spec_url = discover_openapi(base_url)
+    return {
+        "success": spec_url is not None,
+        "base_url": base_url,
+        "spec_url": spec_url,
+    }
 
 
 def _graphql_scanner_commands(p: dict) -> list:
@@ -272,13 +291,24 @@ SPECS = [
         mcp_tool_name="api_schema_analyzer",
         endpoint="/api/tools/api_schema_analyzer",
         category="api_scan",
-        description="Analyze API schemas and identify potential security issues.",
+        description="Parse an OpenAPI/Swagger schema (JSON or YAML, v2 or v3) into typed endpoints and flag sensitive parameter names.",
         params=[
-            ParamSpec("schema_url", str, required=True, help_text="URL of the OpenAPI/Swagger/GraphQL schema"),
-            ParamSpec("schema_type", str, default="openapi", help_text="Schema type: openapi, swagger, or graphql"),
+            ParamSpec("schema_url", str, required=True, help_text="URL or file path of the OpenAPI/Swagger schema"),
+            ParamSpec("schema_type", str, default="openapi", help_text="Schema type: openapi or swagger (use graphql_scanner for GraphQL)"),
+            ParamSpec("base_url", str, default="", help_text="Override the API's base URL (scheme://host) when the spec declares none, or to target a different environment"),
         ],
-        build_command=_api_schema_analyzer_command,
-        postprocess=_api_schema_analyzer_postprocess,
+        handler=_api_schema_analyzer_handler,
+    ),
+    ToolSpec(
+        name="openapi_discover",
+        mcp_tool_name="openapi_discover",
+        endpoint="/api/tools/openapi_discover",
+        category="api_scan",
+        description="Probe a target's common paths (/openapi.json, /swagger.json, Swagger UI, ReDoc, ...) to locate its OpenAPI/Swagger spec.",
+        params=[
+            ParamSpec("base_url", str, required=True, help_text="Root URL of the target (scheme + host)"),
+        ],
+        handler=_openapi_discover_handler,
     ),
     ToolSpec(
         name="graphql_scanner",

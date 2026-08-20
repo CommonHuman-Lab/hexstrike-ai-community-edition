@@ -1,8 +1,11 @@
+import re
 from urllib.parse import quote, unquote
 
 from backend.server_core.workbench.registry import Operation, ParamSpec
 
 MODES = ["encode", "decode"]
+
+_PERCENT_ESCAPE_RE = re.compile(r'%[0-9a-fA-F]{2}')
 
 
 def run(params: dict) -> dict:
@@ -16,6 +19,15 @@ def run(params: dict) -> dict:
 
     safe = "" if str(params.get("encode_all", "false")).lower() == "true" else "/"
     return {"output": quote(text, safe=safe)}
+
+
+def _decloak_try(text: str) -> "str | None":
+    if not _PERCENT_ESCAPE_RE.search(text):
+        return None
+    decoded = unquote(text)
+    if decoded == text or "�" in decoded:
+        return None
+    return decoded
 
 
 OPERATION = Operation(
@@ -36,4 +48,6 @@ OPERATION = Operation(
             help_text="Only applies when encoding.",
         ),
     ],
+    decloak_try=_decloak_try,
+    decloak_priority=15,
 )

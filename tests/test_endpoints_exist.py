@@ -113,10 +113,6 @@ class TestSystemOps:
         r = _get(client, "/health")
         assert_route_exists(r, "/health")
 
-    def test_api_command(self, client):
-        r = _post(client, "/api/command")
-        assert_route_exists(r, "/api/command")
-
     def test_cache_stats(self, client):
         r = _get(client, "/api/cache/stats")
         assert_route_exists(r, "/api/cache/stats")

@@ -44,9 +44,10 @@ def _burpsuite_alternative_handler(p: dict) -> dict:
 
     if scan_type in ("comprehensive", "spider"):
         logger.info(ModernVisualEngine.format_tool_status("BrowserAgent", "RUNNING", "Reconnaissance Phase"))
-        if not browser_agent.driver:
-            browser_agent.setup_browser(headless)
-        results["browser_analysis"] = browser_agent.navigate_and_inspect(target)
+        with browser_agent.lock:
+            if not browser_agent.driver:
+                browser_agent.setup_browser(headless)
+            results["browser_analysis"] = browser_agent.navigate_and_inspect(target)
 
     if scan_type in ("comprehensive", "spider"):
         logger.info(ModernVisualEngine.format_tool_status("HTTP-Spider", "RUNNING", "Discovery Phase"))

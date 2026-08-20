@@ -1064,6 +1064,8 @@ class RecoveryExecutor:
             result = _re.sub(r"(--timeout\s+)\d+", r"\g<1>30", result)
         return result
 
+    _GOBUSTER_SUBCOMMANDS = {"dir", "dns", "fuzz", "gcs", "s3", "tftp", "vhost"}
+
     @staticmethod
     def _substitute_tool(command: str, new_tool: str) -> str:
         """Replace the leading binary name in *command* with *new_tool*."""
@@ -1074,7 +1076,19 @@ class RecoveryExecutor:
             parts = command.split()
         if not parts:
             return command
+        old_tool = parts[0]
         parts[0] = new_tool
+
+        if new_tool == "gobuster":
+            if old_tool == "ffuf":
+                parts = [
+                    part[: -len("FUZZ")] if part.endswith("/FUZZ") else "-s" if part == "-mc" else part
+                    for part in parts
+                ]
+                if "-s" in parts:
+                    parts += ["-b", ""]
+            if len(parts) < 2 or parts[1] not in RecoveryExecutor._GOBUSTER_SUBCOMMANDS:
+                parts.insert(1, "dir")
         try:
             return " ".join(_shlex.quote(p) for p in parts)
         except Exception:

@@ -1,7 +1,7 @@
 import time
 from datetime import datetime
 
-from backend.server_api.ai_payload.generate_payload import ai_payload_generator
+from backend.server_core.generators.payload_generator import ai_payload_generator
 from backend.server_core.tool_spec import ParamSpec, ToolSpec
 
 

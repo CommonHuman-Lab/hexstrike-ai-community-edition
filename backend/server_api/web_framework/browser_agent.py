@@ -19,7 +19,11 @@ class BrowserAgent:
         self.screenshots = []
         self.page_sources = []
         self.network_logs = []
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
+
+    @property
+    def lock(self) -> threading.RLock:
+        return self._lock
 
     def setup_browser(self, headless: bool = True, proxy_port: Optional[int] = None):
         """Setup Chrome browser with security testing options"""
@@ -481,6 +485,28 @@ class BrowserAgent:
                 self.driver.quit()
                 self.driver = None
                 logger.info(f"{ModernVisualEngine.format_tool_status('BrowserAgent', 'SUCCESS', 'Browser Closed')}")
+
+    def take_screenshot(self) -> dict:
+        with self._lock:
+            if self.driver is None:
+                return {'success': False, 'error': 'Browser not initialized. Use navigate action first.'}
+            screenshot_path = f"/tmp/security_screenshot_{int(time.time())}.png"
+            self.driver.save_screenshot(screenshot_path)
+            return {
+                'success': True,
+                'screenshot': screenshot_path,
+                'current_url': self.driver.current_url,
+                'timestamp': datetime.now().isoformat(),
+            }
+
+    def get_status(self) -> dict:
+        with self._lock:
+            return {
+                'success': True,
+                'browser_active': self.driver is not None,
+                'screenshots_taken': len(self.screenshots),
+                'pages_visited': len(self.page_sources),
+            }
 
 
 # Global instance

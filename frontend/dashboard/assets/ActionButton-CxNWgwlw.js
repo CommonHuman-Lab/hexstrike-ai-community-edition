@@ -1,1 +1,0 @@
-import{r as e}from"./vendor-markdown-CZSHC-G5.js";var t=e();function n({variant:e=`default`,className:n=``,children:r,...i}){return(0,t.jsx)(`button`,{className:`action-button action-button--${e} press-feedback${n?` ${n}`:``}`,...i,children:r})}export{n as t};

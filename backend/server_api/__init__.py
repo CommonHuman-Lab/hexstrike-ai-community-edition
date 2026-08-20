@@ -1,6 +1,5 @@
 from backend.server_api._generic.autoload import register_all_toolspec_blueprints
 from .ai_assist import *
-from .ai_payload import *
 from .tools_catalog import *
 from .ui_blueprint import *
 from .settings import *
@@ -10,9 +9,9 @@ from .api_audit import *
 from .error_handling import *
 from .ops import *
 from .vuln_intel import *
-from .web_framework import *
 from .burp_agent import *
 from .workbench import *
+from .payload_workbench import *
 
 def register_blueprints(app):
   """Register all API blueprints with the Flask app."""
@@ -33,7 +32,6 @@ def register_blueprints(app):
   app.register_blueprint(api_topology_bp)
 
   # OPS — General
-  app.register_blueprint(api_visual_bp)
   app.register_blueprint(api_process_management_bp)
   app.register_blueprint(api_process_execute_async_bp)
   app.register_blueprint(api_process_get_task_result_bp)
@@ -46,9 +44,6 @@ def register_blueprints(app):
   app.register_blueprint(api_process_auto_scaling_bp)
   app.register_blueprint(api_process_scale_pool_bp)
   app.register_blueprint(api_process_health_check_bp)
-
-  # Web Framework
-  app.register_blueprint(api_web_framework_http_framework_bp)
 
   # Vulnerability Intelligence
   app.register_blueprint(api_vulnerability_intelligence_bp)
@@ -96,3 +91,6 @@ def register_blueprints(app):
 
   # Workbench
   app.register_blueprint(api_workbench_bp)
+
+  # Payload Workbench
+  app.register_blueprint(api_payload_workbench_bp)

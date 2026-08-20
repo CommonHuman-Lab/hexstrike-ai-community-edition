@@ -1,7 +1,8 @@
 import shlex
+import time
 from datetime import datetime
 
-from backend.server_api.ai_payload.generate_payload import ai_payload_generator
+from backend.server_core.generators.payload_generator import ai_payload_generator
 from backend.server_core.singletons import cve_intelligence, exploit_generator, vulnerability_correlator
 from backend.server_core.tool_spec import ParamSpec, ToolSpec, ToolValidationError
 
@@ -497,6 +498,120 @@ def _advanced_payload_generation_handler(p: dict) -> dict:
     }
 
 
+def _vulnerability_intelligence_dashboard_handler(p: dict) -> dict:
+    latest_cves = _cve_monitor_handler({"hours": 24, "severity_filter": "CRITICAL", "keywords": ""})
+
+    dashboard = {
+        "timestamp": time.time(),
+        "latest_critical_cves": latest_cves.get("cve_monitoring", {}).get("cves", [])[:5],
+        "threat_landscape": {
+            "high_risk_software": ["Apache HTTP Server", "Microsoft Exchange", "VMware vCenter", "Fortinet FortiOS"],
+            "trending_attack_vectors": ["Supply chain attacks", "Cloud misconfigurations", "Zero-day exploits", "AI-powered attacks"],
+            "active_threat_groups": ["APT29", "Lazarus Group", "FIN7", "REvil"],
+        },
+        "exploit_intelligence": {
+            "new_public_exploits": "Simulated data - check exploit-db for real data",
+            "weaponized_exploits": "Monitor threat intelligence feeds",
+            "exploit_kits": "Track underground markets",
+        },
+        "recommendations": [
+            "Prioritize patching for critical CVEs discovered in last 24h",
+            "Monitor for zero-day activity in trending attack vectors",
+            "Implement advanced threat detection for active threat groups",
+            "Review security controls against nation-state level attacks",
+        ],
+    }
+
+    return {"success": True, "dashboard": dashboard}
+
+
+_THREAT_FOCUS_SCENARIOS = {
+    "apt": [
+        "Spear phishing with weaponized documents",
+        "Living-off-the-land techniques",
+        "Lateral movement via stolen credentials",
+        "Data staging and exfiltration",
+    ],
+    "ransomware": [
+        "Initial access via RDP/VPN",
+        "Privilege escalation and persistence",
+        "Shadow copy deletion",
+        "Encryption and ransom note deployment",
+    ],
+    "insider_threat": [
+        "Unusual data access patterns",
+        "After-hours activity",
+        "Large data downloads",
+        "Access to sensitive systems",
+    ],
+}
+
+
+def _threat_hunting_assistant_handler(p: dict) -> dict:
+    target_environment = p["target_environment"]
+    threat_indicators = p["threat_indicators"]
+    hunt_focus = p["hunt_focus"]
+
+    valid_hunt_focus = ["general", "apt", "ransomware", "insider_threat", "supply_chain"]
+    if hunt_focus not in valid_hunt_focus:
+        hunt_focus = "general"
+
+    indicators = [i.strip() for i in threat_indicators.split(",") if i.strip()] if threat_indicators else []
+
+    hunting_playbook = {
+        "target_environment": target_environment,
+        "hunt_focus": hunt_focus,
+        "indicators_analyzed": indicators,
+        "detection_queries": [],
+        "investigation_steps": [],
+        "threat_scenarios": [],
+        "mitigation_strategies": [],
+    }
+
+    if "windows" in target_environment.lower():
+        hunting_playbook["detection_queries"] = [
+            "Get-WinEvent | Where-Object {$_.Id -eq 4688 -and $_.Message -like '*suspicious*'}",
+            "Get-Process | Where-Object {$_.ProcessName -notin @('explorer.exe', 'svchost.exe')}",
+            "Get-ItemProperty HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+            "Get-NetTCPConnection | Where-Object {$_.State -eq 'Established' -and $_.RemoteAddress -notlike '10.*'}",
+        ]
+    elif "cloud" in target_environment.lower():
+        hunting_playbook["detection_queries"] = [
+            "CloudTrail logs for unusual API calls",
+            "Failed authentication attempts from unknown IPs",
+            "Privilege escalation events",
+            "Data exfiltration indicators",
+        ]
+
+    hunting_playbook["threat_scenarios"] = _THREAT_FOCUS_SCENARIOS.get(hunt_focus, [
+        "Unauthorized access attempts",
+        "Suspicious process execution",
+        "Network anomalies",
+        "Data access violations",
+    ])
+
+    hunting_playbook["investigation_steps"] = [
+        "1. Validate initial indicators and expand IOC list",
+        "2. Run detection queries and analyze results",
+        "3. Correlate events across multiple data sources",
+        "4. Identify affected systems and user accounts",
+        "5. Assess scope and impact of potential compromise",
+        "6. Implement containment measures if threat confirmed",
+        "7. Document findings and update detection rules",
+    ]
+
+    if indicators:
+        correlation_result = _threat_feeds_handler({
+            "indicators": ",".join(indicators),
+            "timeframe": "30d",
+            "sources": "all",
+        })
+        if correlation_result.get("success"):
+            hunting_playbook["threat_correlation"] = correlation_result.get("threat_intelligence", {})
+
+    return {"success": True, "hunting_playbook": hunting_playbook}
+
+
 SPECS = [
     ToolSpec(
         name="vulnx",
@@ -595,5 +710,27 @@ SPECS = [
             ParamSpec("custom_constraints", str, default="", help_text="Custom payload constraints (size limits, character restrictions, etc.)"),
         ],
         handler=_advanced_payload_generation_handler,
+    ),
+    ToolSpec(
+        name="vulnerability_intelligence_dashboard",
+        mcp_tool_name="vulnerability_intelligence_dashboard",
+        endpoint="/api/vuln-intel/dashboard",
+        category="vuln_intel",
+        description="Get a comprehensive vulnerability intelligence dashboard with latest threats and trends.",
+        params=[],
+        handler=_vulnerability_intelligence_dashboard_handler,
+    ),
+    ToolSpec(
+        name="threat_hunting_assistant",
+        mcp_tool_name="threat_hunting_assistant",
+        endpoint="/api/vuln-intel/threat-hunting-assistant",
+        category="vuln_intel",
+        description="AI-powered threat hunting assistant with vulnerability correlation and attack simulation.",
+        params=[
+            ParamSpec("target_environment", str, required=True, help_text='Environment to hunt in (e.g., "Windows Domain", "Cloud Infrastructure")'),
+            ParamSpec("threat_indicators", str, default="", help_text="Known IOCs or suspicious indicators to investigate"),
+            ParamSpec("hunt_focus", str, default="general", help_text="Focus area (general, apt, ransomware, insider_threat, supply_chain)"),
+        ],
+        handler=_threat_hunting_assistant_handler,
     ),
 ]

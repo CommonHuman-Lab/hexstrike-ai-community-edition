@@ -1,0 +1,71 @@
+.payload-search-wrap {
+  margin: 0 10px 8px;
+  max-width: none;
+}
+
+.payload-page-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 24px;
+}
+
+/* .verify-tool-desc / .verify-result-output are borrowed from VerifyPage.css (never
+   imported here) — redeclared so output wraps instead of forcing a horizontal
+   scrollbar on the whole panel when a payload has no natural break points. */
+.verify-tool-desc {
+  color: var(--text-dim);
+  font-size: 12px;
+  margin: 0 0 10px;
+}
+
+.verify-result-output {
+  margin-top: 10px;
+  max-height: 240px;
+  overflow: auto;
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.payload-category-label-static {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 5px 14px;
+  color: var(--text-dim);
+}
+
+.payload-test-target {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px;
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.payload-test-target-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 0;
+  color: var(--text-h);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.payload-test-target-toggle:hover { color: var(--green); }

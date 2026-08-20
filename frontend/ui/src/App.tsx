@@ -35,6 +35,7 @@ export default function App() {
     activeWorkbenchOperationId,
     activeWorkbenchRecipe,
     activeWorkbenchInput,
+    activePayloadWorkbenchOperationId,
     sidebarMobileOpen,
     setSidebarMobileOpen,
     setPage,
@@ -42,6 +43,7 @@ export default function App() {
     setActiveToolName,
     setActiveWorkbenchOperationId,
     setActiveWorkbenchRecipe,
+    setActivePayloadWorkbenchOperationId,
     openWorkbench,
   } = useAppRouting(isPageEnabled)
 
@@ -173,6 +175,8 @@ export default function App() {
             onWorkbenchRecipeChanged={setActiveWorkbenchRecipe}
             urlWorkbenchInput={activeWorkbenchInput}
             onOpenInWorkbench={openWorkbench}
+            urlPayloadWorkbenchOperationId={activePayloadWorkbenchOperationId}
+            onPayloadWorkbenchOperationSelected={setActivePayloadWorkbenchOperationId}
             openSessionDetail={openSessionDetail}
             activeSessionId={activeSessionId}
             setPage={setPage}

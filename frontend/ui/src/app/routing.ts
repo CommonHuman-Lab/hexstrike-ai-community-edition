@@ -12,7 +12,8 @@ export type Page =
   | 'session-detail'
   | 'loot'
   | 'verify'
-  | 'workbench';
+  | 'workbench'
+  | 'payload-workbench';
 
 const VALID_PAGES = new Set<Page>([
   'dashboard',
@@ -29,6 +30,7 @@ const VALID_PAGES = new Set<Page>([
   'loot',
   'verify',
   'workbench',
+  'payload-workbench',
 ]);
 
 export function buildWorkbenchHash(
@@ -44,6 +46,10 @@ export function buildWorkbenchHash(
   return query ? `${path}?${query}` : path;
 }
 
+export function buildPayloadWorkbenchHash(operationId: string | null): string {
+  return operationId ? `/payload-workbench/${encodeURIComponent(operationId)}` : '/payload-workbench';
+}
+
 export function routeFromHash(): {
   page: Page;
   sessionId: string | null;
@@ -51,6 +57,7 @@ export function routeFromHash(): {
   workbenchOperationId: string | null;
   workbenchRecipe: string | null;
   workbenchInput: string | null;
+  payloadWorkbenchOperationId: string | null;
 } {
   const hash = window.location.hash.replace(/^#\/?/, '');
   if (hash.startsWith('sessions/')) {
@@ -62,6 +69,7 @@ export function routeFromHash(): {
       workbenchOperationId: null,
       workbenchRecipe: null,
       workbenchInput: null,
+      payloadWorkbenchOperationId: null,
     };
   }
   if (hash.startsWith('run/')) {
@@ -73,6 +81,7 @@ export function routeFromHash(): {
       workbenchOperationId: null,
       workbenchRecipe: null,
       workbenchInput: null,
+      payloadWorkbenchOperationId: null,
     };
   }
   if (hash === 'workbench' || hash.startsWith('workbench/') || hash.startsWith('workbench?')) {
@@ -86,6 +95,20 @@ export function routeFromHash(): {
       workbenchOperationId: operationId || null,
       workbenchRecipe: query.get('recipe'),
       workbenchInput: query.get('input'),
+      payloadWorkbenchOperationId: null,
+    };
+  }
+  if (hash === 'payload-workbench' || hash.startsWith('payload-workbench/')) {
+    const pathPart = hash.slice('payload-workbench'.length);
+    const operationId = pathPart.startsWith('/') ? decodeURIComponent(pathPart.slice(1)) : '';
+    return {
+      page: 'payload-workbench',
+      sessionId: null,
+      toolName: null,
+      workbenchOperationId: null,
+      workbenchRecipe: null,
+      workbenchInput: null,
+      payloadWorkbenchOperationId: operationId || null,
     };
   }
 
@@ -96,5 +119,6 @@ export function routeFromHash(): {
     workbenchOperationId: null,
     workbenchRecipe: null,
     workbenchInput: null,
+    payloadWorkbenchOperationId: null,
   };
 }

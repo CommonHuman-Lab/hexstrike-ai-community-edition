@@ -207,6 +207,26 @@ class TestRunRecipeEndpoint:
         assert body["output"] != "hello"
 
 
+class TestDecloakEndpoint:
+    def test_returns_success_with_chain(self, client):
+        r = client.post(
+            "/api/workbench/decloak",
+            json={"input": "564739775532566a636d56305132396b5a513d3d"},
+        )
+        assert r.status_code == 200
+        body = r.get_json()
+        assert body["success"] is True
+        assert body["output"] == "TopSecretCode"
+        assert len(body["steps"]) == 2
+
+    def test_missing_body_does_not_crash(self, client):
+        r = client.post("/api/workbench/decloak")
+        assert r.status_code == 200
+        body = r.get_json()
+        assert body["success"] is True
+        assert body["output"] == ""
+
+
 class TestSavedRecipesEndpoints:
     def _create(self, client, name="pytest-workbench-recipe", steps=None):
         r = client.post(

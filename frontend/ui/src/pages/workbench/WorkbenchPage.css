@@ -89,9 +89,38 @@
   pointer-events: none;
 }
 
+.workbench-mode-tabs {
+  display: flex;
+  gap: 4px;
+  margin: 0 10px 8px;
+}
+
+.workbench-mode-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex: 1;
+  padding: 5px 8px;
+  font-size: 11.5px;
+  font-family: var(--mono);
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.workbench-mode-tab:hover { color: var(--text-h); }
+.workbench-mode-tab--active {
+  color: var(--green);
+  border-color: var(--green);
+  background: var(--green-dim);
+}
+
 .workbench-main {
   flex: 1 1 0;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .workbench-search {

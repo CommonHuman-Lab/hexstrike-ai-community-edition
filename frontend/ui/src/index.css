@@ -128,7 +128,7 @@ html, body {
 ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 
 /* Utility */
-.mono { font-family: var(--mono); }
+.mono { font-family: var(--mono); font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
 .text-green { color: var(--green); }
 .text-red { color: var(--red); }
 .text-amber { color: var(--amber); }

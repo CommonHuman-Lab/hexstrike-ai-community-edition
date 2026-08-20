@@ -1,6 +1,6 @@
 [project]
 name = "nyxstrike"
-version = "1.8.0"
+version = "1.9.0"
 requires-python = ">=3.10"
 dependencies = [
     "flask>=2.3.0,<4.0.0",
@@ -20,6 +20,8 @@ dependencies = [
     "stingxss>=0.1.0,<1.0.0",
     "breachsql>=0.1.0,<1.0.0",
     "vaultrip>=0.1.0,<1.0.0",
+    "commonhuman-payloads>=0.1.7,<1.0.0",
+    "commonhuman-core>=0.1.7,<1.0.0",
 ]
 
 [project.optional-dependencies]
@@ -31,7 +33,6 @@ tools = [
     "waymore",
     "chardet>=3.0.2,<6.0.0",
     "volatility3>=2.27.0",
-    "pwntools>=4.15.0,<5.0.0",
     "angr>=9.2.205,<10.0.0",
     "checkov>=3.0.0",
     "ROPgadget>=7.0.0,<8.0.0",

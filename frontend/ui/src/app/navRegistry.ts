@@ -1,7 +1,7 @@
 import type { LucideIcon } from 'lucide-react'
 import {
   LayoutDashboard, Play, Terminal, Settings as SettingsIcon, HelpCircle,
-  ListTodo, Wrench, Puzzle, FileText, Layers, KeyRound, ShieldCheck, FlaskConical,
+  ListTodo, Wrench, Puzzle, FileText, Layers, KeyRound, ShieldCheck, FlaskConical, Syringe,
 } from 'lucide-react'
 import type { Page } from './routing'
 
@@ -25,6 +25,7 @@ export const NAV_ENTRIES: NavEntry[] = [
   { id: 'verify', label: 'Verify', icon: ShieldCheck, description: 'Evidence chain-of-custody — look up runs by hash, check session integrity', mandatory: false, paletteLabel: 'Open Verify' },
   { id: 'tools', label: 'Tools', icon: Wrench, description: 'Browse and inspect available tools', mandatory: false, paletteLabel: 'Open Tools' },
   { id: 'workbench', label: 'Workbench', icon: FlaskConical, description: 'Quick data transforms — encoding, hashing, ciphers, and more', mandatory: false, paletteLabel: 'Open Workbench' },
+  { id: 'payload-workbench', label: 'Payload', icon: Syringe, description: 'Generate, evade, and test attack payloads — XSS, SQLi, LFI, and more', mandatory: false, paletteLabel: 'Open Payload Workbench' },
   { id: 'plugins', label: 'Plugins', icon: Puzzle, description: 'Manage skill and plugin extensions', mandatory: false, paletteLabel: 'Open Plugins' },
   { id: 'help', label: 'Help', icon: HelpCircle, description: 'Documentation and keyboard shortcuts', mandatory: false, paletteLabel: 'Open Help' },
   { id: 'settings', label: 'Settings', icon: SettingsIcon, description: 'Application settings (always visible)', mandatory: true, paletteLabel: 'Open Settings' },

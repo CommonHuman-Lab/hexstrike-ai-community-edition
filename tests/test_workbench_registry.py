@@ -97,3 +97,18 @@ class TestOperationToDict:
         op = get_operation("hash_digest")
         d = op.to_dict()
         assert any(p["name"] == "algorithm" for p in d["params"])
+
+
+class TestDecloakFields:
+    def test_defaults_when_not_set(self):
+        op = get_operation("case_convert")
+        assert op.decloak_try is None
+        assert op.decloak_priority == 100
+        assert op.decloak_terminal is False
+
+    def test_decloak_fields_not_leaked_in_to_dict(self):
+        op = get_operation("base64")
+        d = op.to_dict()
+        assert "decloak_try" not in d
+        assert "decloak_priority" not in d
+        assert "decloak_terminal" not in d

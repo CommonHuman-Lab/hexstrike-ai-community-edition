@@ -20,7 +20,7 @@ from .parameter_optimizer import ParameterOptimizer
 from .rate_limit_detector import RateLimitDetector
 from .failure_recovery_system import FailureRecoverySystem
 from .performance_monitor import PerformanceMonitor
-from .ai_exploit_generator import AIExploitGenerator
+from .generators.ai_exploit_generator import AIExploitGenerator
 from .intelligence.cve_intelligence_manager import CVEIntelligenceManager
 from .intelligence.intelligent_decision_engine import IntelligentDecisionEngine
 

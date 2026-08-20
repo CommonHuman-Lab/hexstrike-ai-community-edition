@@ -25,6 +25,11 @@
   box-shadow: none;
 }
 
+.action-button:focus-visible {
+  outline: 2px solid var(--accent, var(--green));
+  outline-offset: 2px;
+}
+
 .action-button--default {
   border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
   background:

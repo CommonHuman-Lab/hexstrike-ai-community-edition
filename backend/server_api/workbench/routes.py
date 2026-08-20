@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 
 from backend.server_core.singletons import db
+from backend.server_core.workbench.decloak import run_decloak
 from backend.server_core.workbench.registry import CATEGORIES, get_operation, list_operations
 
 api_workbench_bp = Blueprint("api_workbench", __name__)
@@ -97,6 +98,22 @@ def workbench_run_recipe():
     if current_mime:
         response["output_mime"] = current_mime
     return jsonify(response)
+
+
+@api_workbench_bp.route("/api/workbench/decloak", methods=["POST"])
+def workbench_decloak():
+    body = request.get_json(silent=True) or {}
+    input_text = body.get("input", "")
+    max_depth = body.get("max_depth")
+    try:
+        max_depth = int(max_depth) if max_depth is not None else 8
+    except (TypeError, ValueError):
+        max_depth = 8
+    try:
+        result = run_decloak(input_text, max_depth=max_depth)
+    except Exception as e:
+        return jsonify({"success": False, "error": f"Decloak failed: {e}"})
+    return jsonify({"success": True, **result})
 
 
 @api_workbench_bp.route("/api/workbench/recipes", methods=["GET"])

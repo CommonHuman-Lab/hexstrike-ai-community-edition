@@ -22,6 +22,19 @@ def run(params: dict) -> dict:
     return {"output": output}
 
 
+def _decloak_try(text: str) -> "str | None":
+    stripped = text.strip()
+    if not stripped or " " in stripped:
+        return None
+    labels = stripped.split(".")
+    if not any(label.lower().startswith("xn--") for label in labels):
+        return None
+    try:
+        return run({"input": stripped, "mode": "decode"})["output"]
+    except ValueError:
+        return None
+
+
 OPERATION = Operation(
     id="punycode",
     category="encoding",
@@ -32,4 +45,6 @@ OPERATION = Operation(
         ParamSpec(name="input", label="Domain", type="text", required=True, help_text="e.g. xn--mnchen-3ya.de"),
         ParamSpec(name="mode", label="Mode", type="select", choices=MODES, default="decode"),
     ],
+    decloak_try=_decloak_try,
+    decloak_priority=8,
 )

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { FlaskConical, RefreshCw, Search, ChevronDown, ChevronRight, ChevronsDownUp, X, Settings2, RotateCcw, Star, Database, Layers } from 'lucide-react'
+import { FlaskConical, RefreshCw, Search, ChevronDown, ChevronRight, ChevronsDownUp, X, Settings2, RotateCcw, Star, Database, Layers, Wand2 } from 'lucide-react'
 import { api } from '../../api'
 import type { WorkbenchOperation } from '../../api'
 import { usePersistentState } from '../../hooks/usePersistentState'
@@ -11,6 +11,7 @@ import { BrowserPage } from '../../components/layout/BrowserPage'
 import { KpiStrip } from '../../components/data-display/KpiStrip'
 import { OperationPanel } from './OperationPanel'
 import { RecipePanel, type RecipeStep } from './RecipePanel'
+import { DecloakPanel } from './DecloakPanel'
 import { WorkbenchSidebarCustomize } from './WorkbenchSidebarCustomize'
 import './WorkbenchPage.css'
 
@@ -51,6 +52,7 @@ export default function WorkbenchPage({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [mode, setMode] = useState<'operations' | 'decloak'>('operations')
   const [search, setSearch] = useState('')
   const [expanded, setExpanded] = usePersistentState<string[]>('nyxstrike_workbench_expanded_categories', [])
   const [recipe, setRecipe] = usePersistentState<RecipeStep[]>('nyxstrike_workbench_recipe', [])
@@ -159,6 +161,7 @@ export default function WorkbenchPage({
   function selectOperation(operationId: string) {
     setSelectedId(operationId)
     setPendingInitialInput(null)
+    setMode('operations')
     onOperationSelected?.(operationId)
   }
 
@@ -302,6 +305,22 @@ export default function WorkbenchPage({
                     </ActionButton>
                   </div>
                 </div>
+                <div className="workbench-mode-tabs">
+                  <button
+                    type="button"
+                    className={`workbench-mode-tab${mode === 'operations' ? ' workbench-mode-tab--active' : ''}`}
+                    onClick={() => setMode('operations')}
+                  >
+                    Operations
+                  </button>
+                  <button
+                    type="button"
+                    className={`workbench-mode-tab${mode === 'decloak' ? ' workbench-mode-tab--active' : ''}`}
+                    onClick={() => setMode('decloak')}
+                  >
+                    <Wand2 size={12} /> Decloak
+                  </button>
+                </div>
                 <div className={`workbench-search${isCustomizing ? ' workbench-search--disabled' : ''}`}>
                   <Search size={13} className="workbench-search-icon" />
                   <input
@@ -389,24 +408,28 @@ export default function WorkbenchPage({
             )}
             main={(
               <div className="workbench-main">
-                <section className="workbench-panel">
-                  {selected
-                    ? (
-                      <OperationPanel
-                        key={selected.id}
-                        operation={selected}
-                        onAddToRecipe={addToRecipe}
-                        initialInput={pendingInitialInput ?? undefined}
-                      />
-                    )
-                    : (
-                      <div className="workbench-panel-empty">
-                        <FlaskConical size={28} color="var(--text-dim)" />
-                        <span className="workbench-panel-empty-title">Select an operation</span>
-                        <span className="workbench-panel-empty-hint">Pick something from the sidebar to get started.</span>
-                      </div>
-                    )}
-                </section>
+                {mode === 'decloak' ? (
+                  <DecloakPanel />
+                ) : (
+                  <section className="workbench-panel">
+                    {selected
+                      ? (
+                        <OperationPanel
+                          key={selected.id}
+                          operation={selected}
+                          onAddToRecipe={addToRecipe}
+                          initialInput={pendingInitialInput ?? undefined}
+                        />
+                      )
+                      : (
+                        <div className="workbench-panel-empty">
+                          <FlaskConical size={28} color="var(--text-dim)" />
+                          <span className="workbench-panel-empty-title">Select an operation</span>
+                          <span className="workbench-panel-empty-hint">Pick something from the sidebar to get started.</span>
+                        </div>
+                      )}
+                  </section>
+                )}
               </div>
             )}
             aside={(

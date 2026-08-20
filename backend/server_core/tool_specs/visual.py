@@ -1,7 +1,43 @@
 from datetime import datetime
 
+from backend.server_core.intelligence.cve_intelligence_manager import CVEIntelligenceManager
 from backend.server_core.modern_visual_engine import ModernVisualEngine
 from backend.server_core.tool_spec import ParamSpec, ToolSpec
+
+
+def _create_vulnerability_card_handler(p: dict) -> dict:
+    card = CVEIntelligenceManager().render_vulnerability_card(p)
+    return {
+        "success": True,
+        "vulnerability_card": card,
+        "timestamp": datetime.now().isoformat(),
+    }
+
+
+def _create_vulnerability_report_handler(p: dict) -> dict:
+    vuln_data = p["vulnerabilities"]
+    target = p["target"]
+    scan_type = p["scan_type"]
+
+    cve_intelligence = CVEIntelligenceManager()
+    vulnerability_cards = [cve_intelligence.render_vulnerability_card(vuln) for vuln in vuln_data]
+
+    summary_data = {
+        "target": target,
+        "tools_used": [scan_type],
+        "execution_time": 0,
+        "vulnerabilities": vuln_data,
+        "findings": "",
+    }
+    summary_report = ModernVisualEngine().create_summary_report(summary_data)
+
+    return {
+        "success": True,
+        "vulnerability_cards": vulnerability_cards,
+        "summary_report": summary_report,
+        "total_vulnerabilities": len(vuln_data),
+        "timestamp": datetime.now().isoformat(),
+    }
 
 
 def _format_tool_output_handler(p: dict) -> str:
@@ -69,5 +105,33 @@ SPECS = [
         ],
         handler=_create_scan_summary_handler,
         postprocess=_create_scan_summary_postprocess,
+    ),
+    ToolSpec(
+        name="create_vulnerability_card",
+        mcp_tool_name="create_vulnerability_card",
+        endpoint="/api/visual/vulnerability-card",
+        category="visual",
+        description="Create a beautiful vulnerability card with severity-based styling and visual indicators.",
+        params=[
+            ParamSpec("severity", str, default="info", help_text="Vulnerability severity (critical, high, medium, low, info)"),
+            ParamSpec("title", str, default="Unknown Vulnerability", help_text="Vulnerability title"),
+            ParamSpec("url", str, default="N/A", help_text="Affected URL/target"),
+            ParamSpec("description", str, default="No description available", help_text="Vulnerability description"),
+            ParamSpec("cvss_score", float, default=0.0, help_text="CVSS score (0.0-10.0)"),
+        ],
+        handler=_create_vulnerability_card_handler,
+    ),
+    ToolSpec(
+        name="create_vulnerability_report",
+        mcp_tool_name="create_vulnerability_report",
+        endpoint="/api/visual/vulnerability-report",
+        category="visual",
+        description="Create a beautiful vulnerability report with severity-based styling and visual indicators for each finding, plus a summary.",
+        params=[
+            ParamSpec("vulnerabilities", list, required=True, help_text="List of vulnerability objects (severity, title, url, description, cvss_score)"),
+            ParamSpec("target", str, default="", help_text="Target that was scanned"),
+            ParamSpec("scan_type", str, default="comprehensive", help_text="Type of scan performed"),
+        ],
+        handler=_create_vulnerability_report_handler,
     ),
 ]

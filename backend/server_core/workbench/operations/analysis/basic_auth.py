@@ -31,6 +31,16 @@ def run(params: dict) -> dict:
     return {"output": decoded}
 
 
+def _decloak_try(text: str) -> "str | None":
+    stripped = text.strip()
+    if not stripped.lower().startswith("basic "):
+        return None
+    try:
+        return run({"input": stripped, "mode": "decode"})["output"]
+    except ValueError:
+        return None
+
+
 OPERATION = Operation(
     id="basic_auth",
     category="analysis",
@@ -41,4 +51,6 @@ OPERATION = Operation(
         ParamSpec(name="input", label="Input", type="textarea", required=True),
         ParamSpec(name="mode", label="Mode", type="select", choices=MODES, default="decode"),
     ],
+    decloak_try=_decloak_try,
+    decloak_priority=14,
 )

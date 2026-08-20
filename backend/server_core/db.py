@@ -32,6 +32,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import backend.server_core.config_core as config_core
+from backend.server_core import credential_crypto
 
 logger = logging.getLogger(__name__)
 
@@ -120,6 +121,7 @@ class NyxStrikeDB:
     self._migrate_chat_messages_stats()
     self._migrate_credentials_loot()
     self._migrate_workbench_recipes()
+    self._migrate_payload_workbench_recipes()
 
     logger.debug("db: tables verified")
 
@@ -203,6 +205,24 @@ class NyxStrikeDB:
       """)
       self._conn.commit()
       logger.debug("db: workbench_recipes table verified")
+
+  def _migrate_payload_workbench_recipes(self) -> None:
+    """Create the payload_workbench_recipes table if missing (existing DBs)."""
+    with self._lock:
+      self._conn.executescript("""
+        CREATE TABLE IF NOT EXISTS payload_workbench_recipes (
+          id         INTEGER PRIMARY KEY AUTOINCREMENT,
+          recipe_id  TEXT UNIQUE NOT NULL,
+          name       TEXT NOT NULL,
+          steps      TEXT NOT NULL DEFAULT '[]',
+          created_at TEXT DEFAULT (datetime('now')),
+          updated_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_payload_workbench_recipes_name ON payload_workbench_recipes(name);
+      """)
+      self._conn.commit()
+      logger.debug("db: payload_workbench_recipes table verified")
 
   # ── Internal helpers ─────────────────────────────────────────────────────────
 
@@ -443,7 +463,7 @@ class NyxStrikeDB:
           cred_id,
           cred.get("type", "plaintext"),
           cred.get("username", ""),
-          cred.get("secret", ""),
+          credential_crypto.encrypt_secret(cred.get("secret", "")),
           cred.get("hash_type", ""),
           cred.get("service", ""),
           cred.get("host", ""),
@@ -468,6 +488,8 @@ class NyxStrikeDB:
         row["tags"] = json.loads(row["tags"])
       except Exception:
         row["tags"] = []
+    if row and "secret" in row:
+      row["secret"] = credential_crypto.decrypt_secret(row["secret"])
     return row
 
   def list_credentials(
@@ -513,6 +535,8 @@ class NyxStrikeDB:
           row["tags"] = json.loads(row["tags"])
         except Exception:
           row["tags"] = []
+      if "secret" in row:
+        row["secret"] = credential_crypto.decrypt_secret(row["secret"])
     return rows
 
   def update_credential(self, cred_id: str, **fields: Any) -> None:
@@ -526,6 +550,8 @@ class NyxStrikeDB:
       return
     if "tags" in updates and isinstance(updates["tags"], list):
       updates["tags"] = json.dumps(updates["tags"])
+    if "secret" in updates:
+      updates["secret"] = credential_crypto.encrypt_secret(updates["secret"])
     updates["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
     set_clause = ", ".join(f"{k} = ?" for k in updates)
     values = list(updates.values()) + [cred_id]
@@ -710,6 +736,69 @@ class NyxStrikeDB:
     """Delete a saved recipe."""
     with self._lock:
       self._conn.execute("DELETE FROM workbench_recipes WHERE recipe_id = ?", (recipe_id,))
+      self._conn.commit()
+
+  # ── Payload Workbench recipes ────────────────────────────────────────────────
+
+  def add_payload_workbench_recipe(self, name: str, steps: List[Dict[str, Any]]) -> str:
+    """Insert a saved Payload Workbench recipe and return its recipe_id."""
+    import uuid
+    recipe_id = f"recipe_{uuid.uuid4().hex[:8]}"
+    with self._lock:
+      self._conn.execute(
+        "INSERT INTO payload_workbench_recipes (recipe_id, name, steps) VALUES (?, ?, ?)",
+        (recipe_id, name, json.dumps(steps)),
+      )
+      self._conn.commit()
+    return recipe_id
+
+  def get_payload_workbench_recipe(self, recipe_id: str) -> Optional[Dict[str, Any]]:
+    """Return a single saved recipe or None."""
+    with self._lock:
+      cur = self._conn.execute("SELECT * FROM payload_workbench_recipes WHERE recipe_id = ?", (recipe_id,))
+      row = self._row_to_dict(cur.fetchone())
+    if row and isinstance(row.get("steps"), str):
+      try:
+        row["steps"] = json.loads(row["steps"])
+      except Exception:
+        row["steps"] = []
+    return row
+
+  def list_payload_workbench_recipes(self) -> List[Dict[str, Any]]:
+    """Return all saved recipes, most recently updated first."""
+    with self._lock:
+      cur = self._conn.execute("SELECT * FROM payload_workbench_recipes ORDER BY updated_at DESC")
+      rows = self._rows_to_list(cur.fetchall())
+    for row in rows:
+      if isinstance(row.get("steps"), str):
+        try:
+          row["steps"] = json.loads(row["steps"])
+        except Exception:
+          row["steps"] = []
+    return rows
+
+  def update_payload_workbench_recipe(self, recipe_id: str, **fields: Any) -> None:
+    """Update allowed fields on a saved recipe."""
+    allowed = {"name", "steps"}
+    updates = {k: v for k, v in fields.items() if k in allowed}
+    if not updates:
+      return
+    if "steps" in updates and isinstance(updates["steps"], list):
+      updates["steps"] = json.dumps(updates["steps"])
+    updates["updated_at"] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    set_clause = ", ".join(f"{k} = ?" for k in updates)
+    values = list(updates.values()) + [recipe_id]
+    with self._lock:
+      self._conn.execute(
+        f"UPDATE payload_workbench_recipes SET {set_clause} WHERE recipe_id = ?",
+        values,
+      )
+      self._conn.commit()
+
+  def delete_payload_workbench_recipe(self, recipe_id: str) -> None:
+    """Delete a saved recipe."""
+    with self._lock:
+      self._conn.execute("DELETE FROM payload_workbench_recipes WHERE recipe_id = ?", (recipe_id,))
       self._conn.commit()
 
   # ── Lifecycle ─────────────────────────────────────────────────────────────────

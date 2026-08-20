@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.9.0 (2026-08-20)
+
+### Run page
+- Boolean params (e.g. `exploit`, `dump_all`) now render as toggle switches instead of free-text true/false fields.
+
+### Payload workbench
+- New "Payload Workbench" — generate and test payloads (SQLi, XSS, etc.) without leaving the UI.
+
+### HTTP framework
+- `http_spider` now runs on the `commonhuman-core` crawler — threaded discovery, richer form parsing (select/hidden/required-field handling), and correct handling of redirects and off-origin filtering.
+- New `http_authenticate` tool — logs the shared session into a target via form login, OAuth2 client-credentials, or Basic/Digest/NTLM, so subsequent `http_request`/`http_spider`/`http_intruder` calls run authenticated.
+- New `js_api_discover` tool — extracts REST/JSON API endpoints straight out of a SPA's JavaScript bundles (React/Vue/Angular), catching `fetch`/`axios` calls a plain crawl never sees.
+- New `source_map_recover` tool — recovers original pre-minified JS/TS source via `sourceMappingURL`/`.map` files, for real source instead of minified bundles when reviewing DOM-XSS sinks.
+- New `ws_discover`/`ws_inject` tools — find WebSocket endpoints referenced in a page's HTML/JS, then send payloads over them and check responses for reflection (chat, real-time features).
+
+### API scanning
+- `api_schema_analyzer` now parses OpenAPI/Swagger specs (JSON or YAML, v2 or v3, `$ref`-resolving) via `commonhuman-core` instead of a bare JSON fetch — every endpoint comes back with a real, scannable URL (path params filled, base URL resolved) ready to hand to breachsql/phaseaccess.
+- New `openapi_discover` tool — probes a target's common paths (`/openapi.json`, Swagger UI, ReDoc, ...) to locate its spec automatically.
+
+### Recon
+- New `dork_search` tool — queries DuckDuckGo/Bing/Yahoo for URLs matching a dork query (e.g. `site:target.com inurl:search`), returning only parameter-bearing candidates. No API keys required.
+
+### Hardening
+- Smart-scan now re-scores remaining tool candidates between small batches instead of committing to one fixed list up front, so a failure can down-rank a tool before the next round fires.
+- Fixed a shared-driver race in the browser agent — concurrent requests now queue instead of racing on the same Selenium session.
+- Harvested credentials are now encrypted at rest.
+- Plugin loading now logs before executing third-party code, with an opt-in allowlist mode.
+
 ## 1.8.0 - exploitotter (2026-08-13)
 
 ### Workbench

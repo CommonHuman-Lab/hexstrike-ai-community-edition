@@ -1,7 +1,7 @@
 import logging
 import re
 
-# ANSI color codes (inlined to avoid importing from mcp_core)
+# ANSI color codes (inlined to avoid importing from mcp_client)
 _COLORS = {
     'DEBUG':    '\033[38;5;240m',  # gray
     'INFO':     '\033[38;5;46m',   # bright green

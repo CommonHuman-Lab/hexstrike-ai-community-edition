@@ -49,6 +49,9 @@ class Operation:
     description: str
     run: Callable[[dict], dict]
     params: List[ParamSpec] = field(default_factory=list)
+    decloak_try: Optional[Callable[[str], Optional[str]]] = None
+    decloak_priority: int = 100
+    decloak_terminal: bool = False
 
     def to_dict(self) -> dict:
         return {

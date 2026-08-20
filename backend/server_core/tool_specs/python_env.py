@@ -1,3 +1,4 @@
+import shlex
 import time
 
 from backend.server_core.file_ops import file_manager
@@ -14,7 +15,7 @@ def _execute_python_script_build_command(p: dict) -> str:
         raise RuntimeError(script_result.get("error", "Failed to create script file"))
 
     python_path = env_manager.get_python_path(p["env_name"])
-    return f"{python_path} {script_result['path']}"
+    return shlex.join([python_path, script_result["path"]])
 
 
 def _install_python_package_handler(p: dict) -> dict:

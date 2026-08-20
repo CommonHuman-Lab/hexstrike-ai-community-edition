@@ -111,6 +111,7 @@ export function RunPanel({
                 name={key}
                 value={fieldValues[key] ?? ''}
                 onChange={value => setFieldValues(prev => ({ ...prev, [key]: value }))}
+                isBoolean={typeof selected.optional[key] === 'boolean'}
               />
             ))}
 

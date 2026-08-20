@@ -91,7 +91,7 @@ recovery_executor = RecoveryExecutor(error_handler)
 
 # ── Vulnerability intelligence ──────
 from .intelligence.cve_intelligence_manager import CVEIntelligenceManager
-from .ai_exploit_generator import AIExploitGenerator
+from .generators.ai_exploit_generator import AIExploitGenerator
 from .vulnerability_correlator import VulnerabilityCorrelator
 
 cve_intelligence = _Lazy(CVEIntelligenceManager)

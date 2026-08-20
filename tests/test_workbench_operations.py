@@ -17,6 +17,13 @@ def run(op_id: str, **params) -> dict:
     return op.run(params)
 
 
+def decloak_try(op_id: str, text: str):
+    op = get_operation(op_id)
+    assert op is not None, f"operation {op_id!r} not found in registry"
+    assert op.decloak_try is not None, f"operation {op_id!r} has no decloak_try"
+    return op.decloak_try(text)
+
+
 # ---------------------------------------------------------------------------
 # encoding
 # ---------------------------------------------------------------------------
@@ -42,6 +49,56 @@ class TestBase64:
     def test_round_trip(self):
         encoded = run("base64", input="round trip me", mode="encode")["output"]
         assert run("base64", input=encoded, mode="decode")["output"] == "round trip me"
+
+    def test_decloak_try_matches_valid_base64(self):
+        assert decloak_try("base64", "VG9wU2VjcmV0Q29kZQ==") == "TopSecretCode"
+
+    def test_decloak_try_none_on_non_base64(self):
+        assert decloak_try("base64", "not base64 at all!!!") is None
+
+    def test_decloak_try_none_on_too_short(self):
+        assert decloak_try("base64", "abc") is None
+
+
+class TestBase64Url:
+    def test_round_trip(self):
+        encoded = run("base64url", input="subjects?x=1&y=2", mode="encode")["output"]
+        assert run("base64url", input=encoded, mode="decode")["output"] == "subjects?x=1&y=2"
+
+    def test_encode_uses_dash_underscore_alphabet(self):
+        assert run("base64url", input="subjects?x=1&y=2", mode="encode")["output"] == "c3ViamVjdHM_eD0xJnk9Mg=="
+
+    def test_default_mode_is_encode(self):
+        assert run("base64url", input="hello") == run("base64url", input="hello", mode="encode")
+
+    def test_decode_invalid_raises(self):
+        with pytest.raises(ValueError):
+            run("base64url", input="not valid!!!", mode="decode")
+
+    def test_decloak_try_matches_dash_underscore_base64(self):
+        encoded = run("base64url", input="subjects?x=1&y=2", mode="encode")["output"]
+        assert decloak_try("base64url", encoded) == "subjects?x=1&y=2"
+
+    def test_decloak_try_none_without_dash_or_underscore(self):
+        assert decloak_try("base64url", "VG9wU2VjcmV0Q29kZQ==") is None
+
+
+class TestUtf7:
+    def test_round_trip(self):
+        encoded = run("utf7", input="Hi Mom ☺!", mode="encode")["output"]
+        assert run("utf7", input=encoded, mode="decode")["output"] == "Hi Mom ☺!"
+
+    def test_encode_known_vector(self):
+        assert run("utf7", input="Hi Mom ☺!", mode="encode")["output"] == "Hi Mom +Jjo!"
+
+    def test_default_mode_is_encode(self):
+        assert run("utf7", input="hello") == run("utf7", input="hello", mode="encode")
+
+    def test_decloak_try_matches_shift_sequence(self):
+        assert decloak_try("utf7", "Hi Mom +Jjo!") == "Hi Mom ☺!"
+
+    def test_decloak_try_none_without_plus(self):
+        assert decloak_try("utf7", "plain ascii text") is None
 
 
 class TestBase32:
@@ -73,6 +130,15 @@ class TestHex:
     def test_decode_invalid_raises(self):
         with pytest.raises(ValueError):
             run("hex", input="zz", mode="decode")
+
+    def test_decloak_try_matches_valid_hex(self):
+        assert decloak_try("hex", "68656c6c6f21") == "hello!"
+
+    def test_decloak_try_none_on_non_hex(self):
+        assert decloak_try("hex", "not hex at all!!!") is None
+
+    def test_decloak_try_none_on_too_short(self):
+        assert decloak_try("hex", "6869") is None
 
 
 class TestUrlEncoding:
@@ -114,6 +180,115 @@ class TestBase85:
             run("base85", input="\x01\x02not valid", mode="decode")
 
 
+class TestBase58:
+    def test_round_trip(self):
+        encoded = run("base58", input="Hello, World!", mode="encode")["output"]
+        assert run("base58", input=encoded, mode="decode")["output"] == "Hello, World!"
+
+    def test_encode_known_vector(self):
+        assert run("base58", input="Hello, World!", mode="encode")["output"] == "72k1xXWG59fYdzSNoA"
+
+    def test_default_mode_is_encode(self):
+        assert run("base58", input="hello") == run("base58", input="hello", mode="encode")
+
+    def test_decode_invalid_char_raises(self):
+        with pytest.raises(ValueError):
+            run("base58", input="0OIl", mode="decode")
+
+    def test_decloak_try_matches_valid_base58(self):
+        assert decloak_try("base58", "72k1xXWG59fYdzSNoA") == "Hello, World!"
+
+    def test_decloak_try_none_on_short_word(self):
+        assert decloak_try("base58", "cat") is None
+
+
+class TestBase45:
+    def test_round_trip(self):
+        encoded = run("base45", input="Hello!!", mode="encode")["output"]
+        assert run("base45", input=encoded, mode="decode")["output"] == "Hello!!"
+
+    def test_encode_known_vector(self):
+        assert run("base45", input="AB", mode="encode")["output"] == "BB8"
+
+    def test_default_mode_is_encode(self):
+        assert run("base45", input="hello") == run("base45", input="hello", mode="encode")
+
+    def test_decode_invalid_char_raises(self):
+        with pytest.raises(ValueError):
+            run("base45", input="!!!", mode="decode")
+
+    def test_decloak_try_matches_valid_base45(self):
+        encoded = run("base45", input="Hello, Base45!", mode="encode")["output"]
+        assert decloak_try("base45", encoded) == "Hello, Base45!"
+
+    def test_decloak_try_none_on_too_short(self):
+        assert decloak_try("base45", "AB") is None
+
+
+class TestMorseCode:
+    def test_encode(self):
+        assert run("morse_code", input="SOS")["output"] == "... --- ..."
+
+    def test_round_trip(self):
+        encoded = run("morse_code", input="HELLO WORLD")["output"]
+        assert run("morse_code", input=encoded, mode="decode")["output"] == "HELLO WORLD"
+
+    def test_encode_unmapped_char_raises(self):
+        with pytest.raises(ValueError):
+            run("morse_code", input="hello~world")
+
+    def test_decode_invalid_token_raises(self):
+        with pytest.raises(ValueError):
+            run("morse_code", input="......", mode="decode")
+
+    def test_decloak_try_matches_morse(self):
+        assert decloak_try("morse_code", "... --- ... / .... . .-.. .-.. ---") == "SOS HELLO"
+
+    def test_decloak_try_none_on_plain_text(self):
+        assert decloak_try("morse_code", "hello world") is None
+
+
+class TestQuotedPrintable:
+    def test_round_trip(self):
+        encoded = run("quoted_printable", input="café résumé", mode="encode")["output"]
+        assert run("quoted_printable", input=encoded, mode="decode")["output"] == "café résumé"
+
+    def test_encode_known_vector(self):
+        assert run("quoted_printable", input="café", mode="encode")["output"] == "caf=C3=A9"
+
+    def test_default_mode_is_encode(self):
+        assert run("quoted_printable", input="hello") == run("quoted_printable", input="hello", mode="encode")
+
+    def test_decloak_try_matches_escaped_text(self):
+        assert decloak_try("quoted_printable", "caf=C3=A9 r=C3=A9sum=C3=A9") == "café résumé"
+
+    def test_decloak_try_none_without_escapes(self):
+        assert decloak_try("quoted_printable", "plain text, no escapes here") is None
+
+    def test_decloak_try_none_on_coincidental_equals_hex_pair(self):
+        assert decloak_try("quoted_printable", "q=eagle&loc=north gate?") is None
+
+
+class TestUuencode:
+    def test_round_trip(self):
+        encoded = run("uuencode", input="Cat")["output"]
+        assert run("uuencode", input=encoded, mode="decode")["output"] == "Cat"
+
+    def test_default_mode_is_encode(self):
+        assert run("uuencode", input="hello") == run("uuencode", input="hello", mode="encode")
+
+    def test_decode_missing_header_raises(self):
+        with pytest.raises(ValueError):
+            run("uuencode", input="not uuencoded data", mode="decode")
+
+    def test_decloak_try_matches_uuencoded_block(self):
+        encoded = run("uuencode", input="Hello, uuencode!")["output"]
+        assert decloak_try("uuencode", encoded) == "Hello, uuencode!"
+
+    def test_decloak_try_none_without_begin_header(self):
+        assert decloak_try("uuencode", "just some text") is None
+
+
 class TestPunycode:
     def test_decode(self):
         assert run("punycode", input="xn--mnchen-3ya.de", mode="decode")["output"] == "münchen.de"
@@ -135,6 +310,12 @@ class TestPunycode:
     def test_empty_input_raises(self):
         with pytest.raises(ValueError):
             run("punycode", input="")
+
+    def test_decloak_try_matches_xn_domain(self):
+        assert decloak_try("punycode", "xn--mnchen-3ya.de") == "münchen.de"
+
+    def test_decloak_try_none_on_ordinary_domain(self):
+        assert decloak_try("punycode", "example.com") is None
 
 
 class TestCharcodeConvert:
@@ -160,6 +341,25 @@ class TestCharcodeConvert:
     def test_from_charcode_invalid_token_raises(self):
         with pytest.raises(ValueError):
             run("charcode_convert", input="65 zz", mode="from_charcode")
+
+    def test_to_charcode_binary(self):
+        assert run("charcode_convert", input="AB", mode="to_charcode", base="binary")["output"] == "01000001 01000010"
+
+    def test_binary_round_trip(self):
+        codes = run("charcode_convert", input="hello!", mode="to_charcode", base="binary")["output"]
+        assert run("charcode_convert", input=codes, mode="from_charcode", base="binary")["output"] == "hello!"
+
+    def test_decloak_try_matches_decimal_charcode(self):
+        assert decloak_try("charcode_convert", "72 101 108 108 111") == "Hello"
+
+    def test_decloak_try_matches_binary_charcode(self):
+        assert decloak_try("charcode_convert", "01001000 01100101 01101100 01101100 01101111") == "Hello"
+
+    def test_decloak_try_none_on_single_number(self):
+        assert decloak_try("charcode_convert", "72") is None
+
+    def test_decloak_try_none_on_ordinary_sentence(self):
+        assert decloak_try("charcode_convert", "the quick brown fox") is None
 
 
 # ---------------------------------------------------------------------------
@@ -236,6 +436,12 @@ class TestRot13:
     def test_self_inverse(self):
         assert run("rot13", input=run("rot13", input="hello")["output"])["output"] == "hello"
 
+    def test_decloak_try_never_returns_none_for_non_empty_input(self):
+        assert decloak_try("rot13", "uryyb jbeyq") == "hello world"
+
+    def test_decloak_try_none_on_empty_input(self):
+        assert decloak_try("rot13", "   ") is None
+
 
 class TestCaesarCipher:
     def test_default_shift(self):
@@ -266,6 +472,50 @@ class TestXorCipher:
         key_bytes = b"k3y"
         recovered = bytes(b ^ key_bytes[i % len(key_bytes)] for i, b in enumerate(raw))
         assert recovered.decode("utf-8") == "secret message"
+
+    def test_decloak_try_recovers_single_byte_key(self):
+        hexed = run("xor_cipher", input="Secret message here", key="k")["output"]
+        assert decloak_try("xor_cipher", hexed) == "Secret message here"
+
+    def test_decloak_try_none_on_non_hex(self):
+        assert decloak_try("xor_cipher", "not hex at all!!!") is None
+
+    def test_decloak_try_none_on_uniform_hash_bytes(self):
+        assert decloak_try("xor_cipher", "a" * 64) is None
+
+    def test_decloak_try_none_on_plain_hex_of_text(self):
+        hexed = run("hex", input="hello world", mode="encode")["output"]
+        assert decloak_try("xor_cipher", hexed) is None
+
+
+class TestRot47:
+    def test_encode(self):
+        assert run("rot47", input="Hello, World!")["output"] == "w6==@[ (@C=5P"
+
+    def test_self_inverse(self):
+        encoded = run("rot47", input="Hello, World!")["output"]
+        assert run("rot47", input=encoded)["output"] == "Hello, World!"
+
+    def test_decloak_try_never_returns_none_for_non_empty_input(self):
+        assert decloak_try("rot47", "w6==@[ (@C=5P") == "Hello, World!"
+
+    def test_decloak_try_none_on_empty_input(self):
+        assert decloak_try("rot47", "   ") is None
+
+
+class TestAtbash:
+    def test_encode(self):
+        assert run("atbash", input="Hello, World!")["output"] == "Svool, Dliow!"
+
+    def test_self_inverse(self):
+        encoded = run("atbash", input="Hello, World!")["output"]
+        assert run("atbash", input=encoded)["output"] == "Hello, World!"
+
+    def test_decloak_try_never_returns_none_for_non_empty_input(self):
+        assert decloak_try("atbash", "Svool, Dliow!") == "Hello, World!"
+
+    def test_decloak_try_none_on_empty_input(self):
+        assert decloak_try("atbash", "   ") is None
 
 
 class TestVigenereCipher:
@@ -374,11 +624,27 @@ class TestGzip:
         with pytest.raises(ValueError):
             run("gzip", input="not base64 gzip data", mode="decompress")
 
+    def test_decloak_try_matches_valid_gzip(self):
+        compressed = run("gzip", input="hello gzip world", mode="compress")["output"]
+        assert decloak_try("gzip", compressed) == "hello gzip world"
+
+    def test_decloak_try_none_on_plain_base64_without_gzip_magic(self):
+        plain_b64 = run("base64", input="just base64, not gzip", mode="encode")["output"]
+        assert decloak_try("gzip", plain_b64) is None
+
 
 class TestZlib:
     def test_round_trip(self):
         compressed = run("zlib", input="b" * 200, mode="compress")["output"]
         assert run("zlib", input=compressed, mode="decompress")["output"] == "b" * 200
+
+    def test_decloak_try_matches_valid_zlib(self):
+        compressed = run("zlib", input="hello zlib world", mode="compress")["output"]
+        assert decloak_try("zlib", compressed) == "hello zlib world"
+
+    def test_decloak_try_none_on_plain_base64_without_zlib_header(self):
+        plain_b64 = run("base64", input="just base64, not zlib", mode="encode")["output"]
+        assert decloak_try("zlib", plain_b64) is None
 
     def test_decompress_invalid_raises(self):
         with pytest.raises(ValueError):
@@ -575,6 +841,12 @@ class TestHashIdentify:
         with pytest.raises(ValueError):
             run("hash_identify", input="")
 
+    def test_decloak_try_matches_md5_length_hash(self):
+        assert "MD5" in decloak_try("hash_identify", "5d41402abc4b2a76b9719d911017c592")
+
+    def test_decloak_try_none_on_non_hash_shaped_input(self):
+        assert decloak_try("hash_identify", "not a hash at all") is None
+
 
 class TestUrlParse:
     def test_parses_components(self):
@@ -621,6 +893,12 @@ class TestBasicAuth:
     def test_decode_invalid_base64_raises(self):
         with pytest.raises(ValueError):
             run("basic_auth", input="not valid base64!!!", mode="decode")
+
+    def test_decloak_try_matches_basic_prefix(self):
+        assert decloak_try("basic_auth", "Basic dXNlcjpwYXNz") == "user:pass"
+
+    def test_decloak_try_none_without_basic_prefix(self):
+        assert decloak_try("basic_auth", "dXNlcjpwYXNz") is None
 
     def test_decode_without_colon_raises(self):
         import base64

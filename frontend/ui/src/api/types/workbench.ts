@@ -84,3 +84,11 @@ export interface WorkbenchRecipeDeleteResponse {
   success: boolean;
   error?: string;
 }
+
+export interface WorkbenchDecloakResponse {
+  success: boolean;
+  output?: string;
+  steps?: WorkbenchRecipeStepResult[];
+  stopped_reason?: 'plaintext' | 'max_depth' | 'cycle' | 'terminal';
+  error?: string;
+}

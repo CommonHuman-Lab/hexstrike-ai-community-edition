@@ -29,11 +29,14 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from backend.server_core import config_core
+
 logger = logging.getLogger(__name__)
 
 _REPO_ROOT    = Path(__file__).parent.parent.parent
 _PLUGINS_DIR  = _REPO_ROOT / "plugins"
 _MANIFEST_FILE = _PLUGINS_DIR / "plugins.yaml"
+_TRUSTED_PLUGINS_FILE = _PLUGINS_DIR / "trusted_plugins.txt"
 
 # Internal registry: plugin_type -> {name -> metadata}
 _loaded: Dict[str, Dict[str, Dict[str, Any]]] = {}
@@ -124,6 +127,16 @@ def _load_yaml(path: Path) -> Dict[str, Any]:
 # Tool plugin loader
 # ---------------------------------------------------------------------------
 
+def _load_trusted_plugin_names() -> set:
+  if not _TRUSTED_PLUGINS_FILE.exists():
+    return set()
+  with _TRUSTED_PLUGINS_FILE.open("r", encoding="utf-8") as fh:
+    return {
+      line.strip() for line in fh
+      if line.strip() and not line.strip().startswith("#")
+    }
+
+
 def _load_tool_plugin(
   app,
   plugin_name: str,
@@ -202,6 +215,18 @@ def _load_tool_plugin(
   if not server_api_file.exists():
     logger.warning("plugin_loader [tools]: '%s' — server_api.py not found", plugin_name)
     return False
+
+  trust_mode = str(config_core.get("PLUGIN_TRUST_MODE", "warn")).lower()
+  if trust_mode == "allowlist" and plugin_name not in _load_trusted_plugin_names():
+    logger.warning(
+      "plugin_loader [tools]: '%s' — not in trusted_plugins.txt (PLUGIN_TRUST_MODE=allowlist) — skipping",
+      plugin_name,
+    )
+    return False
+  logger.warning(
+    "plugin_loader [tools]: '%s' — executing untrusted third-party code from %s — review before enabling in production use",
+    plugin_name, server_api_file,
+  )
 
   try:
     module = _import_file(f"_plugin_tool_server_api_{plugin_name}", server_api_file)

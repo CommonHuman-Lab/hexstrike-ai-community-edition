@@ -11,6 +11,8 @@
 
 NyxStrike connects LLM agents to real offensive security tools and executes full attack chains — from recon to exploitation.
 
+**200+ tools · 50+ categories · AI decision engine · Tamper-evident evidence chain**
+
 ---
 
 ## 🚀 Quick Start (Installation)
@@ -81,12 +83,13 @@ Connect NyxStrike to any MCP-compatible AI client — OpenCode, Cursor, Claude D
 
 NyxStrike does not just run tools — it orchestrates full attack chains using AI decision-making.
 
-- AI agents that chain tools automatically
-- 185+ offensive security tools, all agent-controllable
+- AI agents that chain tools automatically, guided by a decision engine that ranks and re-scores tools mid-scan
+- 200+ offensive security tools, all agent-controllable
 - Full attack workflow: recon → enumeration → exploitation → reporting
-- Modular tool registry — add or remove tools without touching agent logic
+- Local payload & data workbench — 40+ crypto, encoding, and analysis operations, no target required
+- Every tool run hash-chained for tamper-evident, verifiable evidence
+- Real-time dashboard — live output, network topology maps
 - MCP-compatible — plug into any AI client you already use
-- Real-time session dashboard with live command output and logs
 
 > [Full feature breakdown](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Features) · [Session & workbench docs](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Dashboard-and-Sessions)
 
@@ -94,14 +97,15 @@ NyxStrike does not just run tools — it orchestrates full attack chains using A
 
 ## 🧰 Tool Arsenal
 
-185+ offensive security tools across 12 categories — all dynamically orchestrated by AI agents in real time.
+200+ offensive security tools across 50+ categories — all dynamically orchestrated by AI agents in real time.
 
-- Network reconnaissance
-- Web exploitation
-- Wireless security
+- Network & wireless reconnaissance
+- Web & API exploitation
 - OSINT & intelligence gathering
-- Password attacks
-- Cloud & API security
+- Password & credential attacks
+- Binary exploitation & reverse engineering
+- Cloud, container & IaC security
+- Digital forensics & incident response
 
 > [Full tool list by category](https://github.com/CommonHuman-Lab/nyxstrike/wiki/Tool-Arsenal)
 

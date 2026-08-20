@@ -9,10 +9,8 @@ import subprocess
 import sys
 import threading
 import time
-import traceback
 
 import backend.server_core.config_core as config_core
-from backend.server_core.command_executor import execute_command
 from backend.server_core.modern_visual_engine import ModernVisualEngine
 
 from backend.server_core.tool_constants import (
@@ -217,31 +215,6 @@ def ping():
         "message": "Pong! NyxStrike Tools API Server is responsive",
         "timestamp": datetime.now().isoformat()
     })
-
-
-@api_system_monitoring_bp.route("/api/command", methods=["POST"])
-def generic_command():
-    """Execute any command provided in the request with enhanced logging"""
-    try:
-        params = request.json
-        command = params.get("command", "")
-        use_cache = params.get("use_cache", True)
-        timeout = params.get("timeout")
-
-        if not command:
-            logger.warning("Command endpoint called without command parameter")
-            return jsonify({
-                "error": "Command parameter is required"
-            }), 400
-
-        result = execute_command(command, use_cache=use_cache, timeout=timeout)
-        return jsonify(result)
-    except Exception as e:
-        logger.error(f"Error in command endpoint: {str(e)}")
-        logger.error(traceback.format_exc())
-        return jsonify({
-            "error": f"Server error: {str(e)}"
-        }), 500
 
 
 @api_system_monitoring_bp.route("/api/tools/categories", methods=["GET"])

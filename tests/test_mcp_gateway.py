@@ -1,7 +1,7 @@
 """
 tests/test_mcp_gateway.py
 
-Unit tests for mcp_tools/gateway.py — the two MCP tools:
+Unit tests for mcp_client/gateway.py — the two MCP tools:
   • classify_task  — calls api_client.safe_post("/api/intelligence/classify-task")
   • run_tool       — validates params, fills defaults, calls api_client.safe_post(endpoint)
 
@@ -44,7 +44,7 @@ def _make_gateway():
     mcp = MagicMock()
     mcp.tool = tool_decorator
 
-    from mcp_client.mcp_tools.gateway import register_gateway_tools
+    from mcp_client.gateway import register_gateway_tools
     register_gateway_tools(mcp, api_client)
 
     return registered, api_client

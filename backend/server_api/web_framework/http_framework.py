@@ -1,26 +1,24 @@
-from flask import Blueprint, request, jsonify
 import logging
 import re
-import requests
 from datetime import datetime
 from typing import Any, Dict, Optional
-from urllib.parse import urljoin, urlparse
-from bs4 import BeautifulSoup
+from urllib.parse import urlparse
+from commonhuman_core.crawler import crawl
+from commonhuman_core.http.client import HttpClient
+from commonhuman_core.auth import form_login, bearer_login, http_auth
 from backend.server_core import ModernVisualEngine
 
 logger = logging.getLogger(__name__)
-
-api_web_framework_http_framework_bp = Blueprint("api_web_framework_http_framework", __name__)
 
 
 class HTTPTestingFramework:
     """Advanced HTTP testing framework as Burp Suite alternative"""
 
     def __init__(self):
-        self.session = requests.Session()
-        self.session.headers.update({
+        self._client = HttpClient(timeout=30, headers={
             'User-Agent': 'Security-HTTP-Framework/1.0 (Advanced Security Testing)'
         })
+        self.session = self._client._session
         self.proxy_history = []
         self.vulnerabilities = []
         self.match_replace_rules = []  # [{'where':'query|headers|body|url','pattern':'regex','replacement':'str'}]
@@ -33,6 +31,50 @@ class HTTPTestingFramework:
             'http': f'http://127.0.0.1:{proxy_port}',
             'https': f'http://127.0.0.1:{proxy_port}'
         }
+
+    def authenticate(self, auth_type: str, **kwargs) -> Dict[str, Any]:
+        """Authenticate the shared session via form login, OAuth2 client-credentials, or HTTP auth."""
+        try:
+            auth_type = (auth_type or '').lower()
+
+            if auth_type == 'form':
+                result = form_login(
+                    login_url=kwargs['login_url'],
+                    username=kwargs['username'],
+                    password=kwargs['password'],
+                    username_field=kwargs.get('username_field') or 'username',
+                    password_field=kwargs.get('password_field') or 'password',
+                    extra_fields=kwargs.get('extra_fields') or None,
+                    client=self._client,
+                )
+            elif auth_type == 'bearer':
+                result = bearer_login(
+                    token_url=kwargs['token_url'],
+                    client_id=kwargs['client_id'],
+                    client_secret=kwargs['client_secret'],
+                    grant_type=kwargs.get('grant_type') or 'client_credentials',
+                    client=self._client,
+                )
+            elif auth_type in ('basic', 'digest', 'ntlm'):
+                self.session.auth = http_auth(auth_type, kwargs['auth_cred'])
+                return {'success': True, 'auth_type': auth_type}
+            else:
+                return {'success': False, 'error': f'Unknown auth_type: {auth_type}'}
+
+            if result.headers:
+                self.session.headers.update(result.headers)
+
+            return {
+                'success': not result.is_empty(),
+                'auth_type': auth_type,
+                'cookies_set': bool(result.cookies),
+                'authorization_header_set': 'Authorization' in result.headers,
+            }
+        except KeyError as e:
+            return {'success': False, 'error': f'Missing required parameter: {e}'}
+        except Exception as e:
+            logger.error(f"{ModernVisualEngine.format_error_card('ERROR', 'Auth', str(e))}")
+            return {'success': False, 'error': str(e)}
 
     def intercept_request(self, url: str, method: str = 'GET', data: Any = None,
                          headers: Optional[Dict[str, Any]] = None, cookies: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -49,9 +91,9 @@ class HTTPTestingFramework:
                 send_headers.update(headers)
 
             if method.upper() == 'GET':
-                response = self.session.get(url, params=data, headers=send_headers, timeout=30)
+                response = self._client.get(url, params=data, headers=send_headers)
             elif method.upper() == 'POST':
-                response = self.session.post(url, data=data, headers=send_headers, timeout=30)
+                response = self._client.post(url, data=data, headers=send_headers)
             elif method.upper() == 'PUT':
                 response = self.session.put(url, data=data, headers=send_headers, timeout=30)
             elif method.upper() == 'DELETE':
@@ -222,9 +264,10 @@ class HTTPTestingFramework:
 
     def _analyze_response_for_vulns(self, url: str, response):
         """Analyze HTTP response for common vulnerabilities"""
-        vulns = []
+        self._check_security_headers(url, response.headers)
+        self._analyze_body_for_vulns(url, response.text)
 
-        # Check for missing security headers
+    def _check_security_headers(self, url: str, headers) -> None:
         security_headers = {
             'X-Frame-Options': 'Clickjacking protection missing',
             'X-Content-Type-Options': 'MIME type sniffing protection missing',
@@ -233,8 +276,9 @@ class HTTPTestingFramework:
             'Content-Security-Policy': 'Content Security Policy missing'
         }
 
+        vulns = []
         for header, description in security_headers.items():
-            if header not in response.headers:
+            if header not in headers:
                 vulns.append({
                     'type': 'missing_security_header',
                     'severity': 'medium',
@@ -242,6 +286,10 @@ class HTTPTestingFramework:
                     'url': url,
                     'header': header
                 })
+        self.vulnerabilities.extend(vulns)
+
+    def _analyze_body_for_vulns(self, url: str, text: str) -> None:
+        vulns = []
 
         # Check for sensitive information disclosure
         sensitive_patterns = [
@@ -252,7 +300,7 @@ class HTTPTestingFramework:
         ]
 
         for pattern, description in sensitive_patterns:
-            matches = re.findall(pattern, response.text, re.IGNORECASE)
+            matches = re.findall(pattern, text, re.IGNORECASE)
             if matches:
                 vulns.append({
                     'type': 'information_disclosure',
@@ -272,7 +320,7 @@ class HTTPTestingFramework:
         ]
 
         for error in sql_errors:
-            if error.lower() in response.text.lower():
+            if error.lower() in text.lower():
                 vulns.append({
                     'type': 'sql_injection_indicator',
                     'severity': 'high',
@@ -287,81 +335,33 @@ class HTTPTestingFramework:
         return self.vulnerabilities[-limit:] if self.vulnerabilities else []
 
     def spider_website(self, base_url: str, max_depth: int = 3, max_pages: int = 100) -> dict:
-        """Spider website to discover endpoints and forms"""
+        """Spider website to discover endpoints and forms via commonhuman_core.crawler"""
         try:
-            discovered_urls = set()
-            forms = []
-            to_visit = [(base_url, 0)]
-            visited = set()
+            result = crawl(base_url, injector=self._client, max_pages=max_pages, max_depth=max_depth)
 
-            while to_visit and len(discovered_urls) < max_pages:
-                current_url, depth = to_visit.pop(0)
+            forms = [
+                {
+                    'action': form.action,
+                    'method': form.method,
+                    'inputs': [{'name': name, 'value': value} for name, value in form.params.items()],
+                    'base_data': form.base_data,
+                }
+                for form in result.form_targets
+            ]
 
-                if current_url in visited or depth > max_depth:
-                    continue
-
-                visited.add(current_url)
-
+            for url, html in result.page_sources.items():
                 try:
-                    response = self.session.get(current_url, timeout=10)
-                    if response.status_code == 200:
-                        discovered_urls.add(current_url)
-
-                        # Parse HTML for links and forms
-                        soup = BeautifulSoup(response.text, 'html.parser')
-
-                        # Find all links
-                        for link in soup.find_all('a', href=True):
-                            href_attr = link.get('href')
-                            if isinstance(href_attr, list):
-                                href = href_attr[0] if href_attr else ""
-                            elif isinstance(href_attr, str):
-                                href = href_attr
-                            else:
-                                href = ""
-                            if not href:
-                                continue
-                            full_url = urljoin(current_url, href)
-
-                            if urlparse(full_url).netloc == urlparse(base_url).netloc:
-                                if full_url not in visited and depth < max_depth:
-                                    to_visit.append((full_url, depth + 1))
-
-                        # Find all forms
-                        for form in soup.find_all('form'):
-                            action_attr = form.get('action')
-                            if isinstance(action_attr, list):
-                                action_value = action_attr[0] if action_attr else ''
-                            elif isinstance(action_attr, str):
-                                action_value = action_attr
-                            else:
-                                action_value = ''
-
-                            form_data = {
-                                'url': current_url,
-                                'action': urljoin(current_url, action_value),
-                                'method': str(form.get('method') or 'GET').upper(),
-                                'inputs': []
-                            }
-
-                            for input_tag in form.find_all(['input', 'textarea', 'select']):
-                                form_data['inputs'].append({
-                                    'name': input_tag.get('name', ''),
-                                    'type': input_tag.get('type', 'text'),
-                                    'value': input_tag.get('value', '')
-                                })
-
-                            forms.append(form_data)
-
-                except Exception as e:
-                    logger.warning(f"Error spidering {current_url}: {str(e)}")
-                    continue
+                    head_resp = self.session.head(url, timeout=10, allow_redirects=True)
+                    self._check_security_headers(url, head_resp.headers)
+                except Exception:
+                    pass
+                self._analyze_body_for_vulns(url, html)
 
             return {
                 'success': True,
-                'discovered_urls': list(discovered_urls),
+                'discovered_urls': result.visited_urls,
                 'forms': forms,
-                'total_pages': len(discovered_urls),
+                'total_pages': len(result.visited_urls),
                 'vulnerabilities': self._get_recent_vulns()
             }
 
@@ -372,98 +372,3 @@ class HTTPTestingFramework:
 
 # Global instance
 http_framework = HTTPTestingFramework()
-
-
-@api_web_framework_http_framework_bp.route("/api/tools/http-framework", methods=["POST"])
-def http_framework_endpoint():
-    """Enhanced HTTP testing framework (Burp Suite alternative)"""
-    try:
-        params = request.json
-        action = params.get("action", "request")  # request, spider, proxy_history, set_rules, set_scope, repeater, intruder
-        url = params.get("url", "")
-        method = params.get("method", "GET")
-        data = params.get("data", {})
-        headers = params.get("headers", {})
-        cookies = params.get("cookies", {})
-
-        if action == "request":
-            if not url:
-                return jsonify({"error": "URL parameter is required for request action"}), 400
-
-            request_command = f"{method} {url}"
-            logger.info(f"{ModernVisualEngine.format_command_execution(request_command, 'STARTING')}")
-            result = http_framework.intercept_request(url, method, data, headers, cookies)
-
-            if result.get("success"):
-                logger.info(f"{ModernVisualEngine.format_tool_status('HTTP-Framework', 'SUCCESS', url)}")
-            else:
-                logger.error(f"{ModernVisualEngine.format_tool_status('HTTP-Framework', 'FAILED', url)}")
-
-            return jsonify(result)
-
-        elif action == "spider":
-            if not url:
-                return jsonify({"error": "URL parameter is required for spider action"}), 400
-
-            max_depth = params.get("max_depth", 3)
-            max_pages = params.get("max_pages", 100)
-
-            spider_command = f"Spider {url}"
-            logger.info(f"{ModernVisualEngine.format_command_execution(spider_command, 'STARTING')}")
-            result = http_framework.spider_website(url, max_depth, max_pages)
-
-            if result.get("success"):
-                total_pages = result.get("total_pages", 0)
-                pages_info = f"{total_pages} pages"
-                logger.info(f"{ModernVisualEngine.format_tool_status('HTTP-Spider', 'SUCCESS', pages_info)}")
-            else:
-                logger.error(f"{ModernVisualEngine.format_tool_status('HTTP-Spider', 'FAILED', url)}")
-
-            return jsonify(result)
-
-        elif action == "proxy_history":
-            return jsonify({
-                "success": True,
-                "history": http_framework.proxy_history[-100:],  # Last 100 requests
-                "total_requests": len(http_framework.proxy_history),
-                "vulnerabilities": http_framework.vulnerabilities,
-            })
-
-        elif action == "set_rules":
-            rules = params.get("rules", [])
-            http_framework.set_match_replace_rules(rules)
-            return jsonify({"success": True, "rules_set": len(rules)})
-
-        elif action == "set_scope":
-            scope_host = params.get("host")
-            include_sub = params.get("include_subdomains", True)
-            if not scope_host:
-                return jsonify({"error": "host parameter required"}), 400
-            http_framework.set_scope(scope_host, include_sub)
-            return jsonify({"success": True, "scope": http_framework.scope})
-
-        elif action == "repeater":
-            request_spec = params.get("request") or {}
-            result = http_framework.send_custom_request(request_spec)
-            return jsonify(result)
-
-        elif action == "intruder":
-            if not url:
-                return jsonify({"error": "URL parameter required"}), 400
-            method = params.get("method", "GET")
-            location = params.get("location", "query")
-            fuzz_params = params.get("params", [])
-            payloads = params.get("payloads", [])
-            base_data = params.get("base_data", {})
-            max_requests = params.get("max_requests", 100)
-            result = http_framework.intruder_sniper(
-                url, method, location, fuzz_params, payloads, base_data, max_requests
-            )
-            return jsonify(result)
-
-        else:
-            return jsonify({"error": f"Unknown action: {action}"}), 400
-
-    except Exception as e:
-        logger.error(f"{ModernVisualEngine.format_error_card('ERROR', 'HTTP-Framework', str(e))}")
-        return jsonify({"error": f"Server error: {str(e)}"}), 500

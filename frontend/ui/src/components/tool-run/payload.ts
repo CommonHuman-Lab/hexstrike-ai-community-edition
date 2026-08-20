@@ -42,9 +42,10 @@ export function buildRunPayload(tool: Tool, fieldValues: Record<string, string>)
   if (missing.length > 0) return { payload, missing }
 
   for (const k of required) payload[k] = fieldValues[k].trim()
-  for (const k of Object.keys(tool.optional)) {
+  for (const [k, defaultValue] of Object.entries(tool.optional)) {
     const v = fieldValues[k]
-    if (v !== undefined && v !== '') payload[k] = v
+    if (v === undefined || v === '') continue
+    payload[k] = typeof defaultValue === 'boolean' ? v === 'true' : v
   }
   return { payload, missing }
 }

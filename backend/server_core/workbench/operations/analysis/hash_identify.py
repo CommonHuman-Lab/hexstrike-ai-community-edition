@@ -39,6 +39,18 @@ def run(params: dict) -> dict:
     return {"output": "\n".join(candidates), "note": note}
 
 
+def _decloak_try(text: str) -> "str | None":
+    stripped = text.strip()
+    if not stripped:
+        return None
+    candidates = [name for prefix, name in PREFIX_ALGORITHMS if stripped.startswith(prefix)]
+    if not candidates and all(c in "0123456789abcdefABCDEF" for c in stripped):
+        candidates = HEX_LENGTH_ALGORITHMS.get(len(stripped), [])
+    if not candidates:
+        return None
+    return "\n".join(candidates)
+
+
 OPERATION = Operation(
     id="hash_identify",
     category="analysis",
@@ -48,4 +60,7 @@ OPERATION = Operation(
     params=[
         ParamSpec(name="input", label="Hash", type="textarea", required=True),
     ],
+    decloak_try=_decloak_try,
+    decloak_priority=5,
+    decloak_terminal=True,
 )

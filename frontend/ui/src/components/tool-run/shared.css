@@ -31,6 +31,44 @@
 .run-field-input:focus { border-color: var(--green); }
 .run-field-input::placeholder { color: var(--text-dim); }
 
+.run-field-toggle {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  cursor: pointer;
+  user-select: none;
+  width: fit-content;
+}
+
+.run-field-toggle input[type="checkbox"] { display: none; }
+
+.run-field-toggle-track {
+  position: relative;
+  width: 34px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--border);
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.run-field-toggle input:checked + .run-field-toggle-track { background: var(--green); }
+
+.run-field-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bg-surface, #fff);
+  transition: transform 0.2s;
+}
+
+.run-field-toggle input:checked + .run-field-toggle-track .run-field-toggle-thumb {
+  transform: translateX(16px);
+}
+
 .run-opt-btn {
   display: inline-flex;
   align-items: center;

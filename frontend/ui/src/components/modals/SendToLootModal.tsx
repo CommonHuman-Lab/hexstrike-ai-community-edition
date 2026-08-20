@@ -15,9 +15,10 @@ interface SendToLootModalProps {
   onClose: () => void
   defaultTitle: string
   content: string
+  sourceTool?: string
 }
 
-export function SendToLootModal({ isOpen, onClose, defaultTitle, content }: SendToLootModalProps) {
+export function SendToLootModal({ isOpen, onClose, defaultTitle, content, sourceTool = 'workbench' }: SendToLootModalProps) {
   const { pushToast } = useToast()
   const [title, setTitle] = useState(defaultTitle)
   const [lootType, setLootType] = useState<LootType>('other')
@@ -37,7 +38,7 @@ export function SendToLootModal({ isOpen, onClose, defaultTitle, content }: Send
       loot_type: lootType,
       title: title.trim(),
       content: body,
-      source_tool: 'workbench',
+      source_tool: sourceTool,
       tags: tagsInput.split(',').map(t => t.trim()).filter(Boolean),
     })
     setSaving(false)
