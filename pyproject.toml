@@ -26,7 +26,7 @@ dependencies = [
 
 [project.optional-dependencies]
 tools = [
-    "bbot>=2.8.3",
+    "bbot>=3.0.2",
     "httpx>=0.28.1",
     "uro>=1.0.2",
     "dirsearch>=0.4.3",
